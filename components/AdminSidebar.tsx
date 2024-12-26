@@ -1,3 +1,4 @@
+'use client'
 import React, {useEffect, useState} from 'react';
 
 import {
@@ -38,7 +39,7 @@ const AdminSidebar = ({children}) => {
     const router = useRouter()
     const [currentUser,setCurrentUser] = useState(null)
     const [isLoading,setIsLoading] = useState(true)
-    async function currentSeesion() {
+    async function currentSession() {
         const { role }  = await GetCurrentUser()
         if( role === 'USER') {
             router.push('/')
@@ -50,7 +51,7 @@ const AdminSidebar = ({children}) => {
         }
     }
     useEffect(()=>{
-        currentSeesion()
+        currentSession()
     },[])
 
     return (
