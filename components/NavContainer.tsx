@@ -121,25 +121,6 @@ const NavContainer = ({sendDataToParent}) => {
         }
     },[ticker])
 
-    const CryptoList = () => {
-        marketWatchCrypto[1].map((item,index)=>{
-            tickersData.map((ticker)=>{
-                if(ticker.symbol.toLowerCase() == item.toLowerCase() + "t") {
-                    return (
-                        <li key={index}
-                            className='w-full flex gap-4 px-6 py-2 justify-start items-center border-1 border-muted hover:bg-secondary hover:cursor-pointer'>
-                            <div className={`symbol symbol-${item}`}>
-
-                            </div>
-                            <span className='text-sm'>
-                                {marketWatchCrypto[0][index]}
-                                {ticker.lastPr}
-                            </span>
-                        </li>
-                    )
-                }
-            })
-        })}
     const getTickersData = async () => {
         const response = await fetch('https://api.bitget.com/api/spot/v1/market/tickers')
         const {data} = await response.json();
