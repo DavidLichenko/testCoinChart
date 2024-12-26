@@ -105,6 +105,10 @@ function Trade () {
     async function currentSeesion() {
         const session = await getSession()
         if(!user) {
+            if(session === null) {
+                router.push('/welcome')
+                return;
+            }
             setUser(session.user)
             setSession(session)
             setCurrentUser(await GetCurrentUser())
