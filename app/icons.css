@@ -1,0 +1,3496 @@
+.symbol_zoom {
+    background-image: url(../components/images/symbols.59930972.png);
+    background-repeat: no-repeat;
+    display: block;
+    zoom: .70;
+}
+.symbol {
+    background-image: url(../components/images/symbols.59930972.png);
+    background-repeat: no-repeat;
+    display: block;
+    zoom: .25;
+}
+
+.symbol-AA {
+    width: 64px;
+    height: 64px;
+    background-position: -5px -5px
+}
+
+.symbol-AAL {
+    width: 64px;
+    height: 64px;
+    background-position: -79px -5px
+}
+
+.symbol-AAPL {
+    width: 64px;
+    height: 64px;
+    background-position: -153px -5px
+}
+
+.symbol-AAVEUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -227px -5px
+}
+
+.symbol-ABBV {
+    width: 64px;
+    height: 64px;
+    background-position: -301px -5px
+}
+
+.symbol-ABNB {
+    width: 64px;
+    height: 64px;
+    background-position: -375px -5px
+}
+
+.symbol-ACB {
+    width: 64px;
+    height: 64px;
+    background-position: -449px -5px
+}
+
+.symbol-ACRV {
+    width: 64px;
+    height: 64px;
+    background-position: -523px -5px
+}
+
+.symbol-ADA {
+    width: 64px;
+    height: 64px;
+    background-position: -597px -5px
+}
+
+.symbol-ADAUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -671px -5px
+}
+
+.symbol-ADBE {
+    width: 64px;
+    height: 64px;
+    background-position: -745px -5px
+}
+
+.symbol-ADR {
+    width: 60px;
+    height: 60px;
+    background-position: -819px -5px
+}
+
+.symbol-ADS {
+    width: 64px;
+    height: 64px;
+    background-position: -889px -5px
+}
+
+.symbol-AEM {
+    width: 64px;
+    height: 64px;
+    background-position: -963px -5px
+}
+
+.symbol-AETUF {
+    width: 64px;
+    height: 64px;
+    background-position: -1037px -5px
+}
+
+.symbol-AFLT {
+    width: 64px;
+    height: 64px;
+    background-position: -1111px -5px
+}
+
+.symbol-AI {
+    width: 64px;
+    height: 64px;
+    background-position: -1185px -5px
+}
+
+.symbol-AIG {
+    width: 64px;
+    height: 64px;
+    background-position: -1259px -5px
+}
+
+.symbol-AIR {
+    width: 64px;
+    height: 64px;
+    background-position: -1333px -5px
+}
+
+.symbol-ALB {
+    width: 64px;
+    height: 64px;
+    background-position: -1407px -5px
+}
+
+.symbol-ALE {
+    width: 64px;
+    height: 64px;
+    background-position: -1481px -5px
+}
+
+.symbol-ALGOUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -1555px -5px
+}
+
+.symbol-ALI {
+    width: 64px;
+    height: 64px;
+    background-position: -1629px -5px
+}
+
+.symbol-ALL {
+    width: 64px;
+    height: 64px;
+    background-position: -1703px -5px
+}
+
+.symbol-ALR {
+    width: 64px;
+    height: 64px;
+    background-position: -5px -79px
+}
+
+.symbol-ALRS {
+    width: 60px;
+    height: 60px;
+    background-position: -79px -79px
+}
+
+.symbol-ALV {
+    width: 60px;
+    height: 60px;
+    background-position: -149px -79px
+}
+
+.symbol-AMD {
+    width: 64px;
+    height: 64px;
+    background-position: -219px -79px
+}
+
+.symbol-AMGN {
+    width: 64px;
+    height: 64px;
+    background-position: -293px -79px
+}
+
+.symbol-AMZN {
+    width: 64px;
+    height: 64px;
+    background-position: -367px -79px
+}
+
+.symbol-APD {
+    width: 64px;
+    height: 64px;
+    background-position: -441px -79px
+}
+
+.symbol-APEUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -515px -79px
+}
+
+.symbol-APTUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -589px -79px
+}
+
+.symbol-ARB {
+    width: 64px;
+    height: 64px;
+    background-position: -663px -79px
+}
+
+.symbol-ARBUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -737px -79px
+}
+
+.symbol-ARM {
+    width: 60px;
+    height: 60px;
+    background-position: -811px -79px
+}
+
+.symbol-ASML {
+    width: 64px;
+    height: 64px;
+    background-position: -881px -79px
+}
+
+.symbol-ASP {
+    width: 64px;
+    height: 64px;
+    background-position: -955px -79px
+}
+
+.symbol-ATAT {
+    width: 64px;
+    height: 64px;
+    background-position: -1029px -79px
+}
+
+.symbol-ATMVU {
+    width: 64px;
+    height: 64px;
+    background-position: -1103px -79px
+}
+
+.symbol-ATOM {
+    width: 64px;
+    height: 64px;
+    background-position: -1177px -79px
+}
+
+.symbol-ATOMUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -1251px -79px
+}
+
+.symbol-ATVI {
+    width: 64px;
+    height: 64px;
+    background-position: -1325px -79px
+}
+
+.symbol-AUD {
+    width: 64px;
+    height: 64px;
+    background-position: -1399px -79px
+}
+
+.symbol-AUD200 {
+    width: 64px;
+    height: 64px;
+    background-position: -1473px -79px
+}
+
+.symbol-AUDCAD {
+    width: 64px;
+    height: 64px;
+    background-position: -1547px -79px
+}
+
+.symbol-AUDCHF {
+    width: 64px;
+    height: 64px;
+    background-position: -1621px -79px
+}
+
+.symbol-AUDCNY {
+    width: 64px;
+    height: 64px;
+    background-position: -1695px -79px
+}
+
+.symbol-AUDJPY {
+    width: 64px;
+    height: 64px;
+    background-position: -5px -153px
+}
+
+.symbol-AUDNZD {
+    width: 64px;
+    height: 64px;
+    background-position: -79px -153px
+}
+
+.symbol-AUDUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -153px -153px
+}
+
+.symbol-AUS200 {
+    width: 64px;
+    height: 64px;
+    background-position: -227px -153px
+}
+
+.symbol-AVAXUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -301px -153px
+}
+
+.symbol-AVGO {
+    width: 60px;
+    height: 60px;
+    background-position: -375px -153px
+}
+
+.symbol-AXP {
+    width: 64px;
+    height: 64px;
+    background-position: -445px -153px
+}
+
+.symbol-AXS {
+    width: 64px;
+    height: 64px;
+    background-position: -519px -153px
+}
+
+.symbol-AXSUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -593px -153px
+}
+
+.symbol-AZN {
+    width: 64px;
+    height: 64px;
+    background-position: -667px -153px
+}
+
+.symbol-BA {
+    width: 64px;
+    height: 64px;
+    background-position: -741px -153px
+}
+
+.symbol-BABA {
+    width: 64px;
+    height: 64px;
+    background-position: -815px -153px
+}
+
+.symbol-BAC {
+    width: 64px;
+    height: 64px;
+    background-position: -889px -153px
+}
+
+.symbol-BANDUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -963px -153px
+}
+
+.symbol-BAS {
+    width: 64px;
+    height: 64px;
+    background-position: -1037px -153px
+}
+
+.symbol-BAYN {
+    width: 64px;
+    height: 64px;
+    background-position: -1111px -153px
+}
+
+.symbol-BC {
+    width: 64px;
+    height: 64px;
+    background-position: -1185px -153px
+}
+
+.symbol-BCHUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -1259px -153px
+}
+
+.symbol-BE {
+    width: 64px;
+    height: 64px;
+    background-position: -1333px -153px
+}
+
+.symbol-BF-B {
+    width: 60px;
+    height: 60px;
+    background-position: -1407px -153px
+}
+
+.symbol-BIDU {
+    width: 64px;
+    height: 64px;
+    background-position: -1477px -153px
+}
+
+.symbol-BIIB {
+    width: 64px;
+    height: 64px;
+    background-position: -1551px -153px
+}
+
+.symbol-BKNG {
+    width: 64px;
+    height: 64px;
+    background-position: -1625px -153px
+}
+
+.symbol-BKSY {
+    width: 64px;
+    height: 64px;
+    background-position: -1699px -153px
+}
+
+.symbol-BLDP {
+    width: 64px;
+    height: 64px;
+    background-position: -5px -227px
+}
+
+.symbol-BLK {
+    width: 64px;
+    height: 64px;
+    background-position: -79px -227px
+}
+
+.symbol-BLUR {
+    width: 64px;
+    height: 64px;
+    background-position: -153px -227px
+}
+
+.symbol-BLURUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -227px -227px
+}
+
+.symbol-BMO {
+    width: 64px;
+    height: 64px;
+    background-position: -301px -227px
+}
+
+.symbol-BMW {
+    width: 64px;
+    height: 64px;
+    background-position: -375px -227px
+}
+
+.symbol-BNB {
+    width: 64px;
+    height: 64px;
+    background-position: -449px -227px
+}
+
+.symbol-BNBUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -523px -227px
+}
+
+.symbol-BNP {
+    width: 64px;
+    height: 64px;
+    background-position: -597px -227px
+}
+
+.symbol-BNS {
+    width: 64px;
+    height: 64px;
+    background-position: -671px -227px
+}
+
+.symbol-BNTX {
+    width: 64px;
+    height: 64px;
+    background-position: -745px -227px
+}
+
+.symbol-BONKUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -819px -227px
+}
+
+.symbol-BP {
+    width: 64px;
+    height: 64px;
+    background-position: -893px -227px
+}
+
+.symbol-BRK {
+    width: 64px;
+    height: 64px;
+    background-position: -967px -227px
+}
+
+.symbol-BRK-A {
+    width: 60px;
+    height: 60px;
+    background-position: -1041px -227px
+}
+
+.symbol-BSVUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -1111px -227px
+}
+
+.symbol-BTC {
+    width: 64px;
+    height: 64px;
+    background-position: -1185px -227px
+}
+
+.symbol-BTCEUR {
+    width: 64px;
+    height: 64px;
+    background-position: -1259px -227px
+}
+
+.symbol-BTCUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -1333px -227px
+}
+
+.symbol-BTG {
+    width: 64px;
+    height: 64px;
+    background-position: -1407px -227px
+}
+
+.symbol-BTI {
+    width: 64px;
+    height: 64px;
+    background-position: -1481px -227px
+}
+
+.symbol-BTTUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -1555px -227px
+}
+
+.symbol-BYON {
+    width: 64px;
+    height: 64px;
+    background-position: -1629px -227px
+}
+
+.symbol-C {
+    background-position: -1703px -227px
+}
+
+.symbol-C,.symbol-CAC {
+    width: 64px;
+    height: 64px
+}
+
+.symbol-CAC {
+    background-position: -5px -301px
+}
+
+.symbol-CAD {
+    width: 64px;
+    height: 64px;
+    background-position: -79px -301px
+}
+
+.symbol-CADCHF {
+    width: 64px;
+    height: 64px;
+    background-position: -153px -301px
+}
+
+.symbol-CADJPY {
+    width: 64px;
+    height: 64px;
+    background-position: -227px -301px
+}
+
+.symbol-CAKEUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -301px -301px
+}
+
+.symbol-CAPITALSUGAR {
+    width: 60px;
+    height: 60px;
+    background-position: -375px -301px
+}
+
+.symbol-CAT {
+    width: 64px;
+    height: 64px;
+    background-position: -445px -301px
+}
+
+.symbol-CBK {
+    width: 64px;
+    height: 64px;
+    background-position: -519px -301px
+}
+
+.symbol-CCL {
+    width: 64px;
+    height: 64px;
+    background-position: -593px -301px
+}
+
+.symbol-CDR {
+    width: 64px;
+    height: 64px;
+    background-position: -667px -301px
+}
+
+.symbol-CFX {
+    width: 64px;
+    height: 64px;
+    background-position: -741px -301px
+}
+
+.symbol-CFXUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -815px -301px
+}
+
+.symbol-CGC {
+    width: 64px;
+    height: 64px;
+    background-position: -889px -301px
+}
+
+.symbol-CHF {
+    width: 64px;
+    height: 64px;
+    background-position: -963px -301px
+}
+
+.symbol-CHFJPY {
+    width: 64px;
+    height: 64px;
+    background-position: -1037px -301px
+}
+
+.symbol-CHL {
+    width: 64px;
+    height: 64px;
+    background-position: -1111px -301px
+}
+
+.symbol-CHPT {
+    width: 64px;
+    height: 64px;
+    background-position: -1185px -301px
+}
+
+.symbol-CHV {
+    width: 64px;
+    height: 64px;
+    background-position: -1259px -301px
+}
+
+.symbol-CHZUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -1333px -301px
+}
+
+.symbol-CM {
+    width: 64px;
+    height: 64px;
+    background-position: -1407px -301px
+}
+
+.symbol-CNQ {
+    width: 64px;
+    height: 64px;
+    background-position: -1481px -301px
+}
+
+.symbol-CNY {
+    width: 64px;
+    height: 64px;
+    background-position: -1555px -301px
+}
+
+.symbol-COCOA {
+    width: 64px;
+    height: 64px;
+    background-position: -1629px -301px
+}
+
+.symbol-COFFEE {
+    width: 64px;
+    height: 64px;
+    background-position: -1703px -301px
+}
+
+.symbol-COIN {
+    width: 60px;
+    height: 60px;
+    background-position: -5px -375px
+}
+
+.symbol-CORN {
+    width: 64px;
+    height: 64px;
+    background-position: -75px -375px
+}
+
+.symbol-COST {
+    width: 64px;
+    height: 64px;
+    background-position: -149px -375px
+}
+
+.symbol-COTTON {
+    width: 64px;
+    height: 64px;
+    background-position: -223px -375px
+}
+
+.symbol-CPE {
+    width: 64px;
+    height: 64px;
+    background-position: -297px -375px
+}
+
+.symbol-CQQQ {
+    width: 64px;
+    height: 64px;
+    background-position: -371px -375px
+}
+
+.symbol-CRM {
+    width: 64px;
+    height: 64px;
+    background-position: -445px -375px
+}
+
+.symbol-CSCO {
+    width: 64px;
+    height: 64px;
+    background-position: -519px -375px
+}
+
+.symbol-CVE {
+    width: 64px;
+    height: 64px;
+    background-position: -593px -375px
+}
+
+.symbol-CVS {
+    width: 60px;
+    height: 60px;
+    background-position: -667px -375px
+}
+
+.symbol-DAI {
+    width: 60px;
+    height: 60px;
+    background-position: -737px -375px
+}
+
+.symbol-DAL {
+    width: 64px;
+    height: 64px;
+    background-position: -807px -375px
+}
+
+.symbol-DAN {
+    width: 64px;
+    height: 64px;
+    background-position: -881px -375px
+}
+
+.symbol-DASHUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -955px -375px
+}
+
+.symbol-DAX {
+    width: 64px;
+    height: 64px;
+    background-position: -1029px -375px
+}
+
+.symbol-DBK {
+    width: 64px;
+    height: 64px;
+    background-position: -1103px -375px
+}
+
+.symbol-DBX {
+    width: 64px;
+    height: 64px;
+    background-position: -1177px -375px
+}
+
+.symbol-DELL {
+    width: 60px;
+    height: 60px;
+    background-position: -1251px -375px
+}
+
+.symbol-DG {
+    width: 64px;
+    height: 64px;
+    background-position: -1321px -375px
+}
+
+.symbol-DIS {
+    width: 64px;
+    height: 64px;
+    background-position: -1395px -375px
+}
+
+.symbol-DJX {
+    width: 64px;
+    height: 64px;
+    background-position: -1469px -375px
+}
+
+.symbol-DOGE {
+    width: 64px;
+    height: 64px;
+    background-position: -1543px -375px
+}
+
+.symbol-DOGEUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -1617px -375px
+}
+
+.symbol-DOT {
+    width: 64px;
+    height: 64px;
+    background-position: -1691px -375px
+}
+
+.symbol-DOTUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -5px -449px
+}
+
+.symbol-DPZ {
+    width: 64px;
+    height: 64px;
+    background-position: -79px -449px
+}
+
+.symbol-DSHUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -153px -449px
+}
+
+.symbol-DWAC {
+    width: 64px;
+    height: 64px;
+    background-position: -227px -449px
+}
+
+.symbol-DXY {
+    width: 64px;
+    height: 64px;
+    background-position: -301px -449px
+}
+
+.symbol-DYM {
+    width: 64px;
+    height: 64px;
+    background-position: -375px -449px
+}
+
+.symbol-DYMUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -449px -449px
+}
+
+.symbol-EBAY {
+    width: 64px;
+    height: 64px;
+    background-position: -523px -449px
+}
+
+.symbol-EDR {
+    width: 64px;
+    height: 64px;
+    background-position: -597px -449px
+}
+
+.symbol-EGLDUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -671px -449px
+}
+
+.symbol-EKRNUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -745px -449px
+}
+
+.symbol-EKRONA {
+    width: 64px;
+    height: 64px;
+    background-position: -819px -449px
+}
+
+.symbol-EL {
+    width: 64px;
+    height: 64px;
+    background-position: -893px -449px
+}
+
+.symbol-EMBK {
+    width: 64px;
+    height: 64px;
+    background-position: -967px -449px
+}
+
+.symbol-ENB {
+    width: 64px;
+    height: 64px;
+    background-position: -1041px -449px
+}
+
+.symbol-ENI {
+    width: 64px;
+    height: 64px;
+    background-position: -1115px -449px
+}
+
+.symbol-EOSUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -1189px -449px
+}
+
+.symbol-ERBB {
+    width: 64px;
+    height: 64px;
+    background-position: -1263px -449px
+}
+
+.symbol-ERDUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -1337px -449px
+}
+
+.symbol-ESLT {
+    width: 64px;
+    height: 64px;
+    background-position: -1411px -449px
+}
+
+.symbol-ETC {
+    width: 64px;
+    height: 64px;
+    background-position: -1485px -449px
+}
+
+.symbol-ETCUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -1559px -449px
+}
+
+.symbol-ETH {
+    width: 64px;
+    height: 64px;
+    background-position: -1633px -449px
+}
+
+.symbol-ETHEUR {
+    width: 64px;
+    height: 64px;
+    background-position: -1707px -449px
+}
+
+.symbol-ETHUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -5px -523px
+}
+
+.symbol-EUR {
+    width: 64px;
+    height: 64px;
+    background-position: -79px -523px
+}
+
+.symbol-EURAUD {
+    width: 64px;
+    height: 64px;
+    background-position: -153px -523px
+}
+
+.symbol-EURCAD {
+    width: 64px;
+    height: 64px;
+    background-position: -227px -523px
+}
+
+.symbol-EURCHF {
+    width: 64px;
+    height: 64px;
+    background-position: -301px -523px
+}
+
+.symbol-EURCNY {
+    width: 64px;
+    height: 64px;
+    background-position: -375px -523px
+}
+
+.symbol-EURGBP {
+    width: 64px;
+    height: 64px;
+    background-position: -449px -523px
+}
+
+.symbol-EURJPY {
+    width: 64px;
+    height: 64px;
+    background-position: -523px -523px
+}
+
+.symbol-EURNZD {
+    width: 64px;
+    height: 64px;
+    background-position: -597px -523px
+}
+
+.symbol-EURRUB {
+    width: 64px;
+    height: 64px;
+    background-position: -671px -523px
+}
+
+.symbol-EURSGD {
+    width: 64px;
+    height: 64px;
+    background-position: -745px -523px
+}
+
+.symbol-EURUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -819px -523px
+}
+
+.symbol-EUSTX50 {
+    width: 64px;
+    height: 64px;
+    background-position: -893px -523px
+}
+
+.symbol-EZJ {
+    background-position: -967px -523px
+}
+
+.symbol-EZJ,.symbol-F {
+    width: 64px;
+    height: 64px
+}
+
+.symbol-F {
+    background-position: -1041px -523px
+}
+
+.symbol-FB {
+    width: 64px;
+    height: 64px;
+    background-position: -1115px -523px
+}
+
+.symbol-FDX {
+    width: 64px;
+    height: 64px;
+    background-position: -1189px -523px
+}
+
+.symbol-FDXTF {
+    width: 64px;
+    height: 64px;
+    background-position: -1263px -523px
+}
+
+.symbol-FILUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -1337px -523px
+}
+
+.symbol-FIT {
+    width: 64px;
+    height: 64px;
+    background-position: -1411px -523px
+}
+
+.symbol-FLOKIUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -1485px -523px
+}
+
+.symbol-FLOWUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -1559px -523px
+}
+
+.symbol-FP {
+    width: 64px;
+    height: 64px;
+    background-position: -1633px -523px
+}
+
+.symbol-FQVLF {
+    width: 64px;
+    height: 64px;
+    background-position: -1707px -523px
+}
+
+.symbol-FSLY {
+    width: 64px;
+    height: 64px;
+    background-position: -5px -597px
+}
+
+.symbol-FTMUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -79px -597px
+}
+
+.symbol-FTSE {
+    width: 64px;
+    height: 64px;
+    background-position: -153px -597px
+}
+
+.symbol-FTT {
+    width: 64px;
+    height: 64px;
+    background-position: -227px -597px
+}
+
+.symbol-FTTUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -301px -597px
+}
+
+.symbol-GALAUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -375px -597px
+}
+
+.symbol-GAS {
+    width: 64px;
+    height: 64px;
+    background-position: -449px -597px
+}
+
+.symbol-GAZP {
+    width: 64px;
+    height: 64px;
+    background-position: -523px -597px
+}
+
+.symbol-GBNXF {
+    width: 64px;
+    height: 64px;
+    background-position: -597px -597px
+}
+
+.symbol-GBP {
+    width: 64px;
+    height: 64px;
+    background-position: -671px -597px
+}
+
+.symbol-GBPAUD {
+    width: 64px;
+    height: 64px;
+    background-position: -745px -597px
+}
+
+.symbol-GBPCAD {
+    width: 64px;
+    height: 64px;
+    background-position: -819px -597px
+}
+
+.symbol-GBPCHF {
+    width: 64px;
+    height: 64px;
+    background-position: -893px -597px
+}
+
+.symbol-GBPJPY {
+    width: 64px;
+    height: 64px;
+    background-position: -967px -597px
+}
+
+.symbol-GBPNZD {
+    width: 64px;
+    height: 64px;
+    background-position: -1041px -597px
+}
+
+.symbol-GBPUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -1115px -597px
+}
+
+.symbol-GBTC {
+    width: 64px;
+    height: 64px;
+    background-position: -1189px -597px
+}
+
+.symbol-GE {
+    width: 64px;
+    height: 64px;
+    background-position: -1263px -597px
+}
+
+.symbol-GENGF {
+    width: 64px;
+    height: 64px;
+    background-position: -1337px -597px
+}
+
+.symbol-GILD {
+    width: 64px;
+    height: 64px;
+    background-position: -1411px -597px
+}
+
+.symbol-GL {
+    background-position: -1485px -597px
+}
+
+.symbol-GL,.symbol-GM {
+    width: 64px;
+    height: 64px
+}
+
+.symbol-GM {
+    background-position: -1559px -597px
+}
+
+.symbol-GME {
+    width: 64px;
+    height: 64px;
+    background-position: -1633px -597px
+}
+
+.symbol-GMKN {
+    width: 64px;
+    height: 64px;
+    background-position: -1707px -597px
+}
+
+.symbol-GNLX {
+    width: 64px;
+    height: 64px;
+    background-position: -5px -671px
+}
+
+.symbol-GOLD {
+    width: 64px;
+    height: 64px;
+    background-position: -79px -671px
+}
+
+.symbol-GOOGL {
+    width: 64px;
+    height: 64px;
+    background-position: -153px -671px
+}
+
+.symbol-GOOGLE {
+    width: 64px;
+    height: 64px;
+    background-position: -227px -671px
+}
+
+.symbol-GPRO {
+    width: 64px;
+    height: 64px;
+    background-position: -301px -671px
+}
+
+.symbol-GRTUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -375px -671px
+}
+
+.symbol-GS {
+    width: 64px;
+    height: 64px;
+    background-position: -449px -671px
+}
+
+.symbol-HBARUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -523px -671px
+}
+
+.symbol-HD {
+    width: 64px;
+    height: 64px;
+    background-position: -597px -671px
+}
+
+.symbol-HFTUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -671px -671px
+}
+
+.symbol-HG {
+    width: 64px;
+    height: 64px;
+    background-position: -745px -671px
+}
+
+.symbol-HOG {
+    width: 64px;
+    height: 64px;
+    background-position: -819px -671px
+}
+
+.symbol-HPQ {
+    width: 64px;
+    height: 64px;
+    background-position: -893px -671px
+}
+
+.symbol-HSI {
+    width: 64px;
+    height: 64px;
+    background-position: -967px -671px
+}
+
+.symbol-HTOO {
+    width: 64px;
+    height: 64px;
+    background-position: -1041px -671px
+}
+
+.symbol-IBEX {
+    width: 64px;
+    height: 64px;
+    background-position: -1115px -671px
+}
+
+.symbol-IBIT {
+    width: 64px;
+    height: 64px;
+    background-position: -1189px -671px
+}
+
+.symbol-IBKR {
+    width: 64px;
+    height: 64px;
+    background-position: -1263px -671px
+}
+
+.symbol-IBM {
+    width: 64px;
+    height: 64px;
+    background-position: -1337px -671px
+}
+
+.symbol-ICPUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -1411px -671px
+}
+
+.symbol-ID {
+    width: 64px;
+    height: 64px;
+    background-position: -1485px -671px
+}
+
+.symbol-IDUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -1559px -671px
+}
+
+.symbol-IMO {
+    width: 64px;
+    height: 65px;
+    background-position: -1633px -671px
+}
+
+.symbol-INJ {
+    width: 64px;
+    height: 64px;
+    background-position: -1707px -671px
+}
+
+.symbol-INJUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -5px -745px
+}
+
+.symbol-INO {
+    width: 64px;
+    height: 64px;
+    background-position: -79px -745px
+}
+
+.symbol-INTC {
+    width: 64px;
+    height: 64px;
+    background-position: -153px -745px
+}
+
+.symbol-IOTAUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -227px -745px
+}
+
+.symbol-IOTUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -301px -745px
+}
+
+.symbol-IRTS {
+    width: 64px;
+    height: 64px;
+    background-position: -375px -745px
+}
+
+.symbol-ITX {
+    width: 64px;
+    height: 64px;
+    background-position: -449px -745px
+}
+
+.symbol-IXIC {
+    width: 64px;
+    height: 64px;
+    background-position: -523px -745px
+}
+
+.symbol-JMIA {
+    width: 64px;
+    height: 64px;
+    background-position: -597px -745px
+}
+
+.symbol-JNJ {
+    width: 64px;
+    height: 64px;
+    background-position: -671px -745px
+}
+
+.symbol-JPM {
+    width: 64px;
+    height: 64px;
+    background-position: -745px -745px
+}
+
+.symbol-JPY {
+    width: 64px;
+    height: 64px;
+    background-position: -819px -745px
+}
+
+.symbol-JSW {
+    width: 64px;
+    height: 64px;
+    background-position: -893px -745px
+}
+
+.symbol-JTO {
+    width: 64px;
+    height: 64px;
+    background-position: -967px -745px
+}
+
+.symbol-JTOUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -1041px -745px
+}
+
+.symbol-JUVE {
+    width: 64px;
+    height: 64px;
+    background-position: -1115px -745px
+}
+
+.symbol-KAVAUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -1189px -745px
+}
+
+.symbol-KGC {
+    width: 64px;
+    height: 64px;
+    background-position: -1263px -745px
+}
+
+.symbol-KGHA {
+    width: 64px;
+    height: 64px;
+    background-position: -1337px -745px
+}
+
+.symbol-KLAYUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -1411px -745px
+}
+
+.symbol-KMX {
+    width: 64px;
+    height: 64px;
+    background-position: -1485px -745px
+}
+
+.symbol-KO {
+    width: 64px;
+    height: 64px;
+    background-position: -1559px -745px
+}
+
+.symbol-KSCP {
+    width: 64px;
+    height: 64px;
+    background-position: -1707px -745px
+}
+
+.symbol-KYTX {
+    width: 64px;
+    height: 64px;
+    background-position: -5px -819px
+}
+
+.symbol-LABZF {
+    width: 64px;
+    height: 64px;
+    background-position: -79px -819px
+}
+
+.symbol-LAC {
+    width: 64px;
+    height: 64px;
+    background-position: -153px -819px
+}
+
+.symbol-LAZR {
+    width: 64px;
+    height: 65px;
+    background-position: -227px -819px
+}
+
+.symbol-LCID {
+    width: 60px;
+    height: 60px;
+    background-position: -301px -819px
+}
+
+.symbol-LDOUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -371px -819px
+}
+
+.symbol-LEN {
+    width: 64px;
+    height: 64px;
+    background-position: -445px -819px
+}
+
+.symbol-LENDUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -519px -819px
+}
+
+.symbol-LHA {
+    width: 64px;
+    height: 64px;
+    background-position: -593px -819px
+}
+
+.symbol-LI {
+    width: 60px;
+    height: 60px;
+    background-position: -667px -819px
+}
+
+.symbol-LIC {
+    width: 60px;
+    height: 60px;
+    background-position: -737px -819px
+}
+
+.symbol-LIN {
+    width: 64px;
+    height: 64px;
+    background-position: -807px -819px
+}
+
+.symbol-LINK {
+    width: 64px;
+    height: 64px;
+    background-position: -881px -819px
+}
+
+.symbol-LINKUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -955px -819px
+}
+
+.symbol-LIT {
+    width: 64px;
+    height: 64px;
+    background-position: -1029px -819px
+}
+
+.symbol-LKOH {
+    width: 64px;
+    height: 64px;
+    background-position: -1103px -819px
+}
+
+.symbol-LLY {
+    width: 64px;
+    height: 64px;
+    background-position: -1177px -819px
+}
+
+.symbol-LMT {
+    width: 64px;
+    height: 64px;
+    background-position: -1251px -819px
+}
+
+.symbol-LNVGY {
+    width: 64px;
+    height: 64px;
+    background-position: -1325px -819px
+}
+
+.symbol-LTC {
+    width: 64px;
+    height: 64px;
+    background-position: -1399px -819px
+}
+
+.symbol-LTCUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -1473px -819px
+}
+
+.symbol-LTS {
+    width: 64px;
+    height: 64px;
+    background-position: -1547px -819px
+}
+
+.symbol-LULU {
+    width: 64px;
+    height: 64px;
+    background-position: -1621px -819px
+}
+
+.symbol-LUNAUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -1695px -819px
+}
+
+.symbol-LUNCUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -5px -893px
+}
+
+.symbol-LUNMF {
+    width: 64px;
+    height: 64px;
+    background-position: -79px -893px
+}
+
+.symbol-LVMH {
+    width: 64px;
+    height: 64px;
+    background-position: -153px -893px
+}
+
+.symbol-LVMHF {
+    width: 64px;
+    height: 64px;
+    background-position: -301px -893px
+}
+
+.symbol-LYFT {
+    width: 64px;
+    height: 64px;
+    background-position: -375px -893px
+}
+
+.symbol-LYG {
+    width: 64px;
+    height: 64px;
+    background-position: -449px -893px
+}
+
+.symbol-MA {
+    width: 64px;
+    height: 64px;
+    background-position: -523px -893px
+}
+
+.symbol-MAHMF {
+    width: 64px;
+    height: 64px;
+    background-position: -597px -893px
+}
+
+.symbol-MANAUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -671px -893px
+}
+
+.symbol-MANTA {
+    width: 64px;
+    height: 64px;
+    background-position: -745px -893px
+}
+
+.symbol-MANTAUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -819px -893px
+}
+
+.symbol-MANU {
+    width: 64px;
+    height: 65px;
+    background-position: -893px -893px
+}
+
+.symbol-MARXU {
+    width: 64px;
+    height: 64px;
+    background-position: -967px -893px
+}
+
+.symbol-MATIC {
+    width: 64px;
+    height: 64px;
+    background-position: -1041px -893px
+}
+
+.symbol-MATICUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -1115px -893px
+}
+
+.symbol-MBIO {
+    width: 64px;
+    height: 64px;
+    background-position: -1189px -893px
+}
+
+.symbol-MBK {
+    width: 64px;
+    height: 64px;
+    background-position: -1263px -893px
+}
+
+.symbol-MCD {
+    width: 64px;
+    height: 64px;
+    background-position: -1337px -893px
+}
+
+.symbol-MDT {
+    width: 64px;
+    height: 64px;
+    background-position: -1411px -893px
+}
+
+.symbol-MEGEF {
+    width: 64px;
+    height: 64px;
+    background-position: -1485px -893px
+}
+
+.symbol-MEMEUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -1559px -893px
+}
+
+.symbol-MGA {
+    width: 64px;
+    height: 64px;
+    background-position: -1633px -893px
+}
+
+.symbol-MGM {
+    width: 64px;
+    height: 64px;
+    background-position: -1707px -893px
+}
+
+.symbol-MGPRF {
+    width: 64px;
+    height: 64px;
+    background-position: -5px -967px
+}
+
+.symbol-MIB {
+    width: 64px;
+    height: 64px;
+    background-position: -79px -967px
+}
+
+.symbol-MKRUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -153px -967px
+}
+
+.symbol-MMM {
+    width: 64px;
+    height: 64px;
+    background-position: -227px -967px
+}
+
+.symbol-MO {
+    width: 64px;
+    height: 64px;
+    background-position: -301px -967px
+}
+
+.symbol-MRK {
+    width: 60px;
+    height: 60px;
+    background-position: -375px -967px
+}
+
+.symbol-MRNA {
+    width: 64px;
+    height: 64px;
+    background-position: -445px -967px
+}
+
+.symbol-MRVL {
+    width: 60px;
+    height: 60px;
+    background-position: -519px -967px
+}
+
+.symbol-MS {
+    width: 64px;
+    height: 64px;
+    background-position: -589px -967px
+}
+
+.symbol-MSFT {
+    width: 64px;
+    height: 64px;
+    background-position: -663px -967px
+}
+
+.symbol-MSTR {
+    width: 64px;
+    height: 64px;
+    background-position: -737px -967px
+}
+
+.symbol-MTS {
+    width: 64px;
+    height: 64px;
+    background-position: -811px -967px
+}
+
+.symbol-MU {
+    width: 64px;
+    height: 65px;
+    background-position: -967px -967px
+}
+
+.symbol-NDAQ {
+    width: 64px;
+    height: 64px;
+    background-position: -1041px -967px
+}
+
+.symbol-NDX {
+    width: 64px;
+    height: 64px;
+    background-position: -1115px -967px
+}
+
+.symbol-NEAR {
+    width: 64px;
+    height: 64px;
+    background-position: -1189px -967px
+}
+
+.symbol-NEARUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -1263px -967px
+}
+
+.symbol-NEM {
+    width: 64px;
+    height: 64px;
+    background-position: -1337px -967px
+}
+
+.symbol-NEOUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -1411px -967px
+}
+
+.symbol-NET {
+    width: 60px;
+    height: 60px;
+    background-position: -1485px -967px
+}
+
+.symbol-NFLX {
+    width: 64px;
+    height: 64px;
+    background-position: -1555px -967px
+}
+
+.symbol-NFTBACC {
+    width: 64px;
+    height: 64px;
+    background-position: -1629px -967px
+}
+
+.symbol-NFTBAKC {
+    width: 64px;
+    height: 64px;
+    background-position: -1703px -967px
+}
+
+.symbol-NFTCC {
+    width: 64px;
+    height: 64px;
+    background-position: -5px -1041px
+}
+
+.symbol-NFTCK {
+    width: 64px;
+    height: 64px;
+    background-position: -79px -1041px
+}
+
+.symbol-NFTCKVX {
+    width: 64px;
+    height: 64px;
+    background-position: -153px -1041px
+}
+
+.symbol-NFTCP {
+    width: 64px;
+    height: 64px;
+    background-position: -227px -1041px
+}
+
+.symbol-NFTDF {
+    width: 64px;
+    height: 64px;
+    background-position: -301px -1041px
+}
+
+.symbol-NFTEV {
+    width: 64px;
+    height: 64px;
+    background-position: -375px -1041px
+}
+
+.symbol-NFTFLUF {
+    width: 64px;
+    height: 64px;
+    background-position: -449px -1041px
+}
+
+.symbol-NFTFRWC {
+    width: 64px;
+    height: 64px;
+    background-position: -523px -1041px
+}
+
+.symbol-NFTLL {
+    width: 64px;
+    height: 64px;
+    background-position: -597px -1041px
+}
+
+.symbol-NFTMAYC {
+    width: 64px;
+    height: 64px;
+    background-position: -671px -1041px
+}
+
+.symbol-NFTMB {
+    width: 64px;
+    height: 64px;
+    background-position: -745px -1041px
+}
+
+.symbol-NFTPA {
+    width: 64px;
+    height: 64px;
+    background-position: -819px -1041px
+}
+
+.symbol-NFTPC {
+    width: 64px;
+    height: 64px;
+    background-position: -893px -1041px
+}
+
+.symbol-NFTPP {
+    width: 64px;
+    height: 64px;
+    background-position: -1041px -1041px
+}
+
+.symbol-NFTSB {
+    width: 64px;
+    height: 64px;
+    background-position: -1115px -1041px
+}
+
+.symbol-NFTSR {
+    width: 64px;
+    height: 64px;
+    background-position: -1189px -1041px
+}
+
+.symbol-NFTVF {
+    width: 64px;
+    height: 64px;
+    background-position: -1263px -1041px
+}
+
+.symbol-NFTWOW {
+    width: 64px;
+    height: 64px;
+    background-position: -1337px -1041px
+}
+
+.symbol-NGAS {
+    width: 64px;
+    height: 64px;
+    background-position: -1411px -1041px
+}
+
+.symbol-NI225 {
+    width: 64px;
+    height: 64px;
+    background-position: -1485px -1041px
+}
+
+.symbol-NIFTY {
+    width: 64px;
+    height: 64px;
+    background-position: -1559px -1041px
+}
+
+.symbol-NIO {
+    width: 64px;
+    height: 64px;
+    background-position: -1633px -1041px
+}
+
+.symbol-NKE {
+    width: 64px;
+    height: 64px;
+    background-position: -1707px -1041px
+}
+
+.symbol-NKLA {
+    width: 64px;
+    height: 64px;
+    background-position: -5px -1115px
+}
+
+.symbol-NOC {
+    width: 64px;
+    height: 64px;
+    background-position: -79px -1115px
+}
+
+.symbol-NOK {
+    width: 64px;
+    height: 64px;
+    background-position: -153px -1115px
+}
+
+.symbol-NOKIA {
+    width: 64px;
+    height: 64px;
+    background-position: -227px -1115px
+}
+
+.symbol-NOTUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -301px -1115px
+}
+
+.symbol-NQROBOUSN {
+    width: 64px;
+    height: 64px;
+    background-position: -375px -1115px
+}
+
+.symbol-NTR {
+    width: 64px;
+    height: 64px;
+    background-position: -449px -1115px
+}
+
+.symbol-NVDA {
+    width: 64px;
+    height: 64px;
+    background-position: -523px -1115px
+}
+
+.symbol-NVTK {
+    width: 64px;
+    height: 64px;
+    background-position: -597px -1115px
+}
+
+.symbol-NYSE {
+    width: 64px;
+    height: 64px;
+    background-position: -671px -1115px
+}
+
+.symbol-NZD {
+    width: 64px;
+    height: 64px;
+    background-position: -745px -1115px
+}
+
+.symbol-NZDAUD {
+    width: 64px;
+    height: 64px;
+    background-position: -819px -1115px
+}
+
+.symbol-NZDCAD {
+    width: 64px;
+    height: 64px;
+    background-position: -893px -1115px
+}
+
+.symbol-NZDCHF {
+    width: 64px;
+    height: 64px;
+    background-position: -967px -1115px
+}
+
+.symbol-NZDJPY {
+    width: 64px;
+    height: 64px;
+    background-position: -1041px -1115px
+}
+
+.symbol-NZDUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -1115px -1115px
+}
+
+.symbol-OCEANUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -1189px -1115px
+}
+
+.symbol-OMXS30 {
+    width: 64px;
+    height: 64px;
+    background-position: -1263px -1115px
+}
+
+.symbol-ONTUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -1337px -1115px
+}
+
+.symbol-OOP {
+    width: 64px;
+    height: 64px;
+    background-position: -1411px -1115px
+}
+
+.symbol-OP {
+    width: 64px;
+    height: 64px;
+    background-position: -1485px -1115px
+}
+
+.symbol-OPUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -1559px -1115px
+}
+
+.symbol-ORCL {
+    width: 64px;
+    height: 64px;
+    background-position: -1633px -1115px
+}
+
+.symbol-ORDI {
+    width: 64px;
+    height: 64px;
+    background-position: -1707px -1115px
+}
+
+.symbol-ORDIUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -5px -1189px
+}
+
+.symbol-PA {
+    width: 64px;
+    height: 64px;
+    background-position: -79px -1189px
+}
+
+.symbol-PARXF {
+    width: 64px;
+    height: 64px;
+    background-position: -153px -1189px
+}
+
+.symbol-PAXGUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -227px -1189px
+}
+
+.symbol-PBA {
+    width: 64px;
+    height: 64px;
+    background-position: -301px -1189px
+}
+
+.symbol-PENDLE {
+    width: 64px;
+    height: 64px;
+    background-position: -375px -1189px
+}
+
+.symbol-PENDLEUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -449px -1189px
+}
+
+.symbol-PEO {
+    width: 64px;
+    height: 64px;
+    background-position: -523px -1189px
+}
+
+.symbol-PEP {
+    width: 64px;
+    height: 64px;
+    background-position: -597px -1189px
+}
+
+.symbol-PEPEUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -671px -1189px
+}
+
+.symbol-PEPEUSDT {
+    width: 64px;
+    height: 64px;
+    background-position: -745px -1189px
+}
+
+.symbol-PFE {
+    width: 64px;
+    height: 64px;
+    background-position: -819px -1189px
+}
+
+.symbol-PG {
+    width: 64px;
+    height: 64px;
+    background-position: -893px -1189px
+}
+
+.symbol-PGE {
+    width: 64px;
+    height: 64px;
+    background-position: -967px -1189px
+}
+
+.symbol-PGZ {
+    width: 64px;
+    height: 64px;
+    background-position: -1041px -1189px
+}
+
+.symbol-PHIA {
+    width: 64px;
+    height: 64px;
+    background-position: -1115px -1189px
+}
+
+.symbol-PINS {
+    width: 64px;
+    height: 64px;
+    background-position: -1189px -1189px
+}
+
+.symbol-PKIUF {
+    width: 64px;
+    height: 64px;
+    background-position: -1263px -1189px
+}
+
+.symbol-PKN {
+    width: 64px;
+    height: 64px;
+    background-position: -1337px -1189px
+}
+
+.symbol-PKO {
+    width: 64px;
+    height: 64px;
+    background-position: -1411px -1189px
+}
+
+.symbol-PL {
+    width: 64px;
+    height: 64px;
+    background-position: -1485px -1189px
+}
+
+.symbol-PLL {
+    width: 64px;
+    height: 64px;
+    background-position: -1559px -1189px
+}
+
+.symbol-PLN {
+    width: 64px;
+    height: 64px;
+    background-position: -1633px -1189px
+}
+
+.symbol-PLTR {
+    width: 60px;
+    height: 60px;
+    background-position: -1707px -1189px
+}
+
+.symbol-PLUG {
+    width: 64px;
+    height: 64px;
+    background-position: -1707px -1259px
+}
+
+.symbol-PM {
+    width: 64px;
+    height: 64px;
+    background-position: -5px -1333px
+}
+
+.symbol-PSKOF {
+    width: 64px;
+    height: 64px;
+    background-position: -79px -1333px
+}
+
+.symbol-PSKOF_2 {
+    width: 64px;
+    height: 64px;
+    background-position: -153px -1333px
+}
+
+.symbol-PTALF {
+    width: 64px;
+    height: 64px;
+    background-position: -227px -1333px
+}
+
+.symbol-PTR {
+    width: 64px;
+    height: 64px;
+    background-position: -301px -1333px
+}
+
+.symbol-PVH {
+    width: 60px;
+    height: 60px;
+    background-position: -375px -1333px
+}
+
+.symbol-PYPL {
+    width: 64px;
+    height: 64px;
+    background-position: -445px -1333px
+}
+
+.symbol-QCOM {
+    width: 64px;
+    height: 64px;
+    background-position: -519px -1333px
+}
+
+.symbol-QNTUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -593px -1333px
+}
+
+.symbol-QQQ {
+    width: 64px;
+    height: 64px;
+    background-position: -667px -1333px
+}
+
+.symbol-QS {
+    width: 60px;
+    height: 60px;
+    background-position: -741px -1333px
+}
+
+.symbol-QTUMUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -811px -1333px
+}
+
+.symbol-RACE {
+    width: 64px;
+    height: 64px;
+    background-position: -885px -1333px
+}
+
+.symbol-RBC {
+    width: 64px;
+    height: 64px;
+    background-position: -959px -1333px
+}
+
+.symbol-RCL {
+    width: 64px;
+    height: 64px;
+    background-position: -1033px -1333px
+}
+
+.symbol-RDDT {
+    width: 64px;
+    height: 64px;
+    background-position: -1107px -1333px
+}
+
+.symbol-REPYF {
+    width: 64px;
+    height: 64px;
+    background-position: -1181px -1333px
+}
+
+.symbol-REPYY {
+    width: 64px;
+    height: 64px;
+    background-position: -1255px -1333px
+}
+
+.symbol-RHHBY {
+    width: 60px;
+    height: 60px;
+    background-position: -1329px -1333px
+}
+
+.symbol-RIF {
+    width: 64px;
+    height: 64px;
+    background-position: -1399px -1333px
+}
+
+.symbol-RIFUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -1473px -1333px
+}
+
+.symbol-RIO {
+    width: 60px;
+    height: 60px;
+    background-position: -1547px -1333px
+}
+
+.symbol-ROSN {
+    width: 64px;
+    height: 64px;
+    background-position: -1617px -1333px
+}
+
+.symbol-RTSI {
+    width: 64px;
+    height: 64px;
+    background-position: -1691px -1333px
+}
+
+.symbol-RTX {
+    width: 60px;
+    height: 60px;
+    background-position: -5px -1407px
+}
+
+.symbol-RUB {
+    width: 64px;
+    height: 64px;
+    background-position: -75px -1407px
+}
+
+.symbol-RUNEUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -149px -1407px
+}
+
+.symbol-RY {
+    width: 64px;
+    height: 64px;
+    background-position: -223px -1407px
+}
+
+.symbol-SANDUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -297px -1407px
+}
+
+.symbol-SAP {
+    width: 64px;
+    height: 64px;
+    background-position: -371px -1407px
+}
+
+.symbol-SBER {
+    width: 64px;
+    height: 64px;
+    background-position: -445px -1407px
+}
+
+.symbol-SBUX {
+    width: 64px;
+    height: 64px;
+    background-position: -519px -1407px
+}
+
+.symbol-SCCO {
+    width: 60px;
+    height: 60px;
+    background-position: -593px -1407px
+}
+
+.symbol-SEI {
+    width: 64px;
+    height: 64px;
+    background-position: -663px -1407px
+}
+
+.symbol-SEIUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -737px -1407px
+}
+
+.symbol-SGML {
+    width: 64px;
+    height: 64px;
+    background-position: -811px -1407px
+}
+
+.symbol-SHC {
+    width: 64px;
+    height: 64px;
+    background-position: -885px -1407px
+}
+
+.symbol-SHEL {
+    width: 64px;
+    height: 64px;
+    background-position: -959px -1407px
+}
+
+.symbol-SHIB {
+    width: 64px;
+    height: 64px;
+    background-position: -1033px -1407px
+}
+
+.symbol-SHIBUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -1107px -1407px
+}
+
+.symbol-SIE {
+    width: 64px;
+    height: 64px;
+    background-position: -1181px -1407px
+}
+
+.symbol-SIRI {
+    width: 64px;
+    height: 64px;
+    background-position: -1255px -1407px
+}
+
+.symbol-SITM {
+    width: 60px;
+    height: 60px;
+    background-position: -1329px -1407px
+}
+
+.symbol-SJM {
+    width: 60px;
+    height: 60px;
+    background-position: -1399px -1407px
+}
+
+.symbol-SLI {
+    width: 64px;
+    height: 64px;
+    background-position: -1469px -1407px
+}
+
+.symbol-SMCI {
+    width: 64px;
+    height: 64px;
+    background-position: -1543px -1407px
+}
+
+.symbol-SMI {
+    width: 64px;
+    height: 64px;
+    background-position: -1617px -1407px
+}
+
+.symbol-SNAL {
+    width: 64px;
+    height: 64px;
+    background-position: -1691px -1407px
+}
+
+.symbol-SNAP {
+    width: 64px;
+    height: 64px;
+    background-position: -5px -1481px
+}
+
+.symbol-SNXUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -79px -1481px
+}
+
+.symbol-SOL {
+    width: 64px;
+    height: 64px;
+    background-position: -153px -1481px
+}
+
+.symbol-SOLUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -227px -1481px
+}
+
+.symbol-SONY {
+    width: 64px;
+    height: 64px;
+    background-position: -301px -1481px
+}
+
+.symbol-SOUN {
+    width: 60px;
+    height: 60px;
+    background-position: -375px -1481px
+}
+
+.symbol-SOYBEAN {
+    width: 64px;
+    height: 64px;
+    background-position: -445px -1481px
+}
+
+.symbol-SPCE {
+    width: 64px;
+    height: 64px;
+    background-position: -519px -1481px
+}
+
+.symbol-SPL {
+    width: 64px;
+    height: 64px;
+    background-position: -593px -1481px
+}
+
+.symbol-SPOT {
+    width: 64px;
+    height: 64px;
+    background-position: -667px -1481px
+}
+
+.symbol-SPR {
+    width: 64px;
+    height: 64px;
+    background-position: -741px -1481px
+}
+
+.symbol-SPX {
+    width: 64px;
+    height: 64px;
+    background-position: -815px -1481px
+}
+
+.symbol-SQ {
+    width: 64px;
+    height: 64px;
+    background-position: -889px -1481px
+}
+
+.symbol-SQM {
+    width: 64px;
+    height: 64px;
+    background-position: -963px -1481px
+}
+
+.symbol-SQQQ {
+    width: 64px;
+    height: 64px;
+    background-position: -1037px -1481px
+}
+
+.symbol-SRNE {
+    width: 64px;
+    height: 64px;
+    background-position: -1111px -1481px
+}
+
+.symbol-STOXX {
+    width: 64px;
+    height: 64px;
+    background-position: -1185px -1481px
+}
+
+.symbol-STXUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -1259px -1481px
+}
+
+.symbol-STZ {
+    width: 64px;
+    height: 64px;
+    background-position: -1333px -1481px
+}
+
+.symbol-SU {
+    width: 64px;
+    height: 64px;
+    background-position: -1407px -1481px
+}
+
+.symbol-SUGAR {
+    width: 64px;
+    height: 64px;
+    background-position: -1481px -1481px
+}
+
+.symbol-SUI {
+    width: 64px;
+    height: 64px;
+    background-position: -1555px -1481px
+}
+
+.symbol-SUIUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -1629px -1481px
+}
+
+.symbol-SWKS {
+    width: 60px;
+    height: 60px;
+    background-position: -1703px -1481px
+}
+
+.symbol-SXPUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -1703px -1551px
+}
+
+.symbol-SYM {
+    background-position: -5px -1625px
+}
+
+.symbol-SYM,.symbol-T {
+    width: 64px;
+    height: 64px
+}
+
+.symbol-T {
+    background-position: -79px -1625px
+}
+
+.symbol-TCS {
+    width: 64px;
+    height: 64px;
+    background-position: -153px -1625px
+}
+
+.symbol-TD {
+    width: 64px;
+    height: 64px;
+    background-position: -227px -1625px
+}
+
+.symbol-TECK {
+    width: 64px;
+    height: 64px;
+    background-position: -301px -1625px
+}
+
+.symbol-TEVA {
+    width: 64px;
+    height: 64px;
+    background-position: -375px -1625px
+}
+
+.symbol-THETAUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -449px -1625px
+}
+
+.symbol-TIF {
+    width: 64px;
+    height: 64px;
+    background-position: -523px -1625px
+}
+
+.symbol-TLRY {
+    width: 64px;
+    height: 64px;
+    background-position: -597px -1625px
+}
+
+.symbol-TLS {
+    width: 64px;
+    height: 64px;
+    background-position: -671px -1625px
+}
+
+.symbol-TM {
+    width: 64px;
+    height: 64px;
+    background-position: -745px -1625px
+}
+
+.symbol-TON {
+    width: 64px;
+    height: 64px;
+    background-position: -819px -1625px
+}
+
+.symbol-TONUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -893px -1625px
+}
+
+.symbol-TPE {
+    width: 64px;
+    height: 64px;
+    background-position: -967px -1625px
+}
+
+.symbol-TPG {
+    width: 64px;
+    height: 64px;
+    background-position: -1041px -1625px
+}
+
+.symbol-TQQQ {
+    width: 64px;
+    height: 64px;
+    background-position: -1115px -1625px
+}
+
+.symbol-TRIP {
+    width: 64px;
+    height: 64px;
+    background-position: -1189px -1625px
+}
+
+.symbol-TRP {
+    width: 64px;
+    height: 64px;
+    background-position: -1263px -1625px
+}
+
+.symbol-TRV {
+    width: 64px;
+    height: 64px;
+    background-position: -1337px -1625px
+}
+
+.symbol-TRX {
+    width: 64px;
+    height: 64px;
+    background-position: -1411px -1625px
+}
+
+.symbol-TRXUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -1485px -1625px
+}
+
+.symbol-TRY {
+    width: 64px;
+    height: 64px;
+    background-position: -1559px -1625px
+}
+
+.symbol-TSLA {
+    width: 64px;
+    height: 64px;
+    background-position: -1633px -1625px
+}
+
+.symbol-TSM {
+    width: 64px;
+    height: 64px;
+    background-position: -1707px -1625px
+}
+
+.symbol-TSN {
+    width: 64px;
+    height: 64px;
+    background-position: -5px -1699px
+}
+
+.symbol-TTDKY {
+    width: 64px;
+    height: 64px;
+    background-position: -79px -1699px
+}
+
+.symbol-TWTR {
+    width: 64px;
+    height: 64px;
+    background-position: -153px -1699px
+}
+
+.symbol-TWTUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -227px -1699px
+}
+
+.symbol-TXCX {
+    width: 64px;
+    height: 64px;
+    background-position: -301px -1699px
+}
+
+.symbol-UBER {
+    width: 64px;
+    height: 64px;
+    background-position: -375px -1699px
+}
+
+.symbol-UKOIL {
+    width: 64px;
+    height: 64px;
+    background-position: -449px -1699px
+}
+
+.symbol-ULTA {
+    width: 64px;
+    height: 64px;
+    background-position: -523px -1699px
+}
+
+.symbol-UNA {
+    width: 64px;
+    height: 64px;
+    background-position: -597px -1699px
+}
+
+.symbol-UNH {
+    width: 64px;
+    height: 64px;
+    background-position: -671px -1699px
+}
+
+.symbol-UNI {
+    width: 64px;
+    height: 64px;
+    background-position: -745px -1699px
+}
+
+.symbol-UNIUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -819px -1699px
+}
+
+.symbol-USD {
+    width: 64px;
+    height: 64px;
+    background-position: -893px -1699px
+}
+
+.symbol-USDCAD {
+    width: 64px;
+    height: 64px;
+    background-position: -967px -1699px
+}
+
+.symbol-USDCHF {
+    width: 64px;
+    height: 64px;
+    background-position: -1041px -1699px
+}
+
+.symbol-USDCNY {
+    width: 64px;
+    height: 64px;
+    background-position: -1115px -1699px
+}
+
+.symbol-USDHKD {
+    width: 64px;
+    height: 64px;
+    background-position: -1189px -1699px
+}
+
+.symbol-USDILS {
+    width: 64px;
+    height: 64px;
+    background-position: -1263px -1699px
+}
+
+.symbol-USDINR {
+    width: 64px;
+    height: 64px;
+    background-position: -1337px -1699px
+}
+
+.symbol-USDJPY {
+    width: 64px;
+    height: 64px;
+    background-position: -1411px -1699px
+}
+
+.symbol-USDMXN {
+    width: 64px;
+    height: 64px;
+    background-position: -1485px -1699px
+}
+
+.symbol-USDPLN {
+    width: 64px;
+    height: 64px;
+    background-position: -1559px -1699px
+}
+
+.symbol-USDRUB {
+    width: 64px;
+    height: 64px;
+    background-position: -1633px -1699px
+}
+
+.symbol-USDSGD {
+    width: 64px;
+    height: 64px;
+    background-position: -1707px -1699px
+}
+
+.symbol-USDT {
+    width: 64px;
+    height: 64px;
+    background-position: -1777px -5px
+}
+
+.symbol-USDTRY {
+    width: 64px;
+    height: 64px;
+    background-position: -1769px -79px
+}
+
+.symbol-USDZAR {
+    width: 64px;
+    height: 64px;
+    background-position: -1773px -153px
+}
+
+.symbol-USOIL {
+    width: 64px;
+    height: 64px;
+    background-position: -1777px -227px
+}
+
+.symbol-UVXY {
+    width: 64px;
+    height: 64px;
+    background-position: -1777px -301px
+}
+
+.symbol-V {
+    width: 64px;
+    height: 64px;
+    background-position: -1765px -375px
+}
+
+.symbol-VALE {
+    width: 64px;
+    height: 64px;
+    background-position: -1781px -449px
+}
+
+.symbol-VETUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -1781px -523px
+}
+
+.symbol-VFC {
+    width: 64px;
+    height: 64px;
+    background-position: -1781px -597px
+}
+
+.symbol-VGT {
+    width: 64px;
+    height: 64px;
+    background-position: -1781px -671px
+}
+
+.symbol-VIX {
+    width: 64px;
+    height: 64px;
+    background-position: -1781px -745px
+}
+
+.symbol-VOD {
+    width: 64px;
+    height: 64px;
+    background-position: -1769px -819px
+}
+
+.symbol-VOW {
+    width: 64px;
+    height: 64px;
+    background-position: -1781px -893px
+}
+
+.symbol-VSCO {
+    width: 64px;
+    height: 64px;
+    background-position: -1777px -967px
+}
+
+.symbol-VTB {
+    width: 60px;
+    height: 60px;
+    background-position: -1781px -1041px
+}
+
+.symbol-VXRT {
+    width: 64px;
+    height: 64px;
+    background-position: -1781px -1111px
+}
+
+.symbol-VZ {
+    width: 64px;
+    height: 64px;
+    background-position: -1781px -1185px
+}
+
+.symbol-WAVESUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -1781px -1259px
+}
+
+.symbol-WBD {
+    width: 64px;
+    height: 64px;
+    background-position: -1765px -1333px
+}
+
+.symbol-WBX {
+    width: 64px;
+    height: 64px;
+    background-position: -1765px -1407px
+}
+
+.symbol-WDS {
+    width: 64px;
+    height: 64px;
+    background-position: -1777px -1481px
+}
+
+.symbol-WFC {
+    width: 64px;
+    height: 64px;
+    background-position: -1781px -1555px
+}
+
+.symbol-WHEAT {
+    width: 64px;
+    height: 64px;
+    background-position: -1781px -1629px
+}
+
+.symbol-WIFUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -1781px -1703px
+}
+
+.symbol-WLD {
+    width: 64px;
+    height: 64px;
+    background-position: -5px -1777px
+}
+
+.symbol-WLDUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -79px -1777px
+}
+
+.symbol-WMT {
+    width: 64px;
+    height: 64px;
+    background-position: -153px -1777px
+}
+
+.symbol-WORK {
+    width: 64px;
+    height: 64px;
+    background-position: -227px -1777px
+}
+
+.symbol-WPRT {
+    width: 64px;
+    height: 64px;
+    background-position: -301px -1777px
+}
+
+.symbol-WYNN {
+    width: 64px;
+    height: 64px;
+    background-position: -375px -1777px
+}
+
+.symbol-XAGUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -449px -1777px
+}
+
+.symbol-XAUUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -523px -1777px
+}
+
+.symbol-XECUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -597px -1777px
+}
+
+.symbol-XEMEUR {
+    width: 64px;
+    height: 64px;
+    background-position: -671px -1777px
+}
+
+.symbol-XLM {
+    width: 64px;
+    height: 64px;
+    background-position: -745px -1777px
+}
+
+.symbol-XLMUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -819px -1777px
+}
+
+.symbol-XMR {
+    width: 64px;
+    height: 64px;
+    background-position: -893px -1777px
+}
+
+.symbol-XMRUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -967px -1777px
+}
+
+.symbol-XNIUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -1041px -1777px
+}
+
+.symbol-XOM {
+    width: 64px;
+    height: 64px;
+    background-position: -1115px -1777px
+}
+
+.symbol-XRP {
+    width: 64px;
+    height: 64px;
+    background-position: -1189px -1777px
+}
+
+.symbol-XRPEUR {
+    width: 64px;
+    height: 64px;
+    background-position: -1263px -1777px
+}
+
+.symbol-XRPUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -1337px -1777px
+}
+
+.symbol-XTZUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -1411px -1777px
+}
+
+.symbol-YCCUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -1485px -1777px
+}
+
+.symbol-YFIUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -1559px -1777px
+}
+
+.symbol-YNDX {
+    width: 64px;
+    height: 64px;
+    background-position: -1633px -1777px
+}
+
+.symbol-YNPUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -1707px -1777px
+}
+
+.symbol-YUANC {
+    width: 64px;
+    height: 64px;
+    background-position: -1781px -1777px
+}
+
+.symbol-YUANPAY {
+    width: 64px;
+    height: 64px;
+    background-position: -1851px -5px
+}
+
+.symbol-ZC {
+    width: 64px;
+    height: 64px;
+    background-position: -1843px -79px
+}
+
+.symbol-ZECUSD {
+    width: 64px;
+    height: 64px;
+    background-position: -1847px -153px
+}
+
+.symbol-ZM {
+    width: 64px;
+    height: 64px;
+    background-position: -1851px -227px
+}
+
+.symbol-ZNGA {
+    width: 64px;
+    height: 64px;
+    background-position: -1851px -301px
+}

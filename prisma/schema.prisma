@@ -1,0 +1,142 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url = env("POSTGRES_PRISMA_URL") // uses connection pooling
+  directUrl = env("POSTGRES_URL_NON_POOLING") // uses a direct connection
+}
+
+model User {
+  id                String              @id @default(uuid())
+  email             String              @unique
+  password          String
+  name              String?
+  role              UserRole            @default(USER)
+  imageUrl          String?
+  provider          String?
+  status            UserStatus          @default(NEW)
+  providerId        String?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  orders            Orders[]
+  trade_transaction Trade_Transaction[]
+  balance           Balances[]
+  comments          Comments[]
+  isVerif           Boolean             @default(false)
+  verification      Verification[]
+  TotalBalance      Float?               @default(0)
+}
+
+model Orders {
+  id        Int         @id @default(autoincrement())
+  status    OrderStatus
+  type      OrderType
+  amount    Float
+  User      User        @relation(fields: [userId], references: [id])
+  userId    String
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+}
+
+model Trade_Transaction {
+  id         String                 @id @default(uuid())
+  status     TradeTransactionStatus @default(OPEN)
+  type       TradeTransactionType
+  volume     Float
+  leverage   Int
+  profit     Float?
+  ticker     String
+  openInA    Float
+  openIn     Float
+  closeIn    Float?
+  takeProfit Float?
+  stopLoss   Float?
+  userId     String
+  User       User                   @relation(fields: [userId], references: [id])
+  createdAt  DateTime               @default(now())
+  endAt      DateTime?
+}
+
+model Balances {
+  userId String @id
+  usd    Float  @default(0)
+  User   User   @relation(fields: [userId], references: [id])
+}
+
+model Verification {
+  id             Int      @id @default(autoincrement())
+  userId         String
+  back_id_image  String?
+  back_id_verif  Boolean? @default(false)
+  front_id_image String?
+  front_id_verif Boolean? @default(false)
+  street_address  String?
+  city           String?
+  zip_code       String?
+  User           User     @relation(fields: [userId], references: [id])
+}
+model CryptoAddresses {
+  id                  Int      @id @default(autoincrement())
+  btc_address         String?
+  btc_BTCaddress      String?
+  eth_address         String?
+  ethERC20_address    String?
+  usdt_address        String?
+  usdtTRC20_address   String?
+}
+model Comments {
+  userId String @id
+  messages    Json?
+  User   User   @relation(fields: [userId], references: [id])
+}
+enum OrderStatus {
+  PENDING
+  SUCCESSFUL
+  CANCELLED
+}
+
+enum TradeTransactionType {
+  BUY
+  SELL
+}
+
+enum OrderType {
+  DEPOSIT
+  WITHDRAW
+}
+
+enum TradeTransactionStatus {
+  OPEN
+  CLOSE
+}
+
+enum UserRole {
+  USER
+  OWNER
+  ADMIN
+  WORKER
+  TEAMLEAD
+}
+
+enum UserStatus {
+  WRONGNUMBER
+  WRONGINFO
+  CALLBACK
+  LOWPOTENTIONAL
+  HIGHPOTENTIONAL
+  NOTINTERESTED
+  DEPOSIT
+  TRASH
+  DROP
+  NEW
+  RESIGN
+  COMPLETED
+}
