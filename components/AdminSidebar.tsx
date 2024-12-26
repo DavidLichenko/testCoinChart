@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 
 import {
     NavigationMenu,
@@ -7,6 +7,9 @@ import {
     NavigationMenuList, navigationMenuTriggerStyle
 } from "@/components/ui/navigation-menu";
 import Link from "next/link";
+import {GetCurrentUser} from "@/actions/form";
+import {useRouter} from "next/navigation";
+import {Skeleton} from "@/components/ui/skeleton";
 const items = [
     {
         title: "Leads",
@@ -29,28 +32,52 @@ const items = [
 
     }
 ]
+
 const AdminSidebar = ({children}) => {
+
+    const router = useRouter()
+    const [currentUser,setCurrentUser] = useState(null)
+    const [isLoading,setIsLoading] = useState(true)
+    async function currentSeesion() {
+        const { role }  = await GetCurrentUser()
+        if( role === 'USER') {
+            router.push('/')
+        } else {
+            setIsLoading(false)
+        }
+        if (!currentUser) {
+            setCurrentUser( role)
+        }
+    }
+    useEffect(()=>{
+        currentSeesion()
+    },[])
+
     return (
         <div className="h-full">
-            <header className='flex w-[80%]  mx-auto justify-center items-center pt-10'>
-                <NavigationMenu>
-                    <NavigationMenuList>
-                        <NavigationMenuItem className='flex gap-12'>
-                            {items.map((item,index) => (
-                                <Link href={'' + item.url} legacyBehavior passHref key={index}>
-                                    <NavigationMenuLink className={navigationMenuTriggerStyle()}>
-                                        {item.title}
-                                    </NavigationMenuLink>
-                                </Link>
-                            ))}
+            { isLoading ? <Skeleton className={'h-screen  w-full'}><span className={'opacity-0 h-screen w-full'}>0</span></Skeleton> :
+                <>
+                    <header className='flex w-[80%]  mx-auto justify-center items-center pt-10'>
+                        <NavigationMenu>
+                            <NavigationMenuList>
+                                <NavigationMenuItem className='flex gap-12'>
+                                    {items.map((item,index) => (
+                                        <Link href={'' + item.url} legacyBehavior passHref key={index}>
+                                            <NavigationMenuLink className={navigationMenuTriggerStyle()}>
+                                                {item.title}
+                                            </NavigationMenuLink>
+                                        </Link>
+                                    ))}
 
-                        </NavigationMenuItem>
-                    </NavigationMenuList>
-                </NavigationMenu>
-            </header>
-            <main className="main w-full  overflow-y-auto">
-                {children}
-            </main>
+                                </NavigationMenuItem>
+                            </NavigationMenuList>
+                        </NavigationMenu>
+                    </header>
+                    <main className="main w-full  overflow-y-auto">
+                        {children}
+                    </main>
+                </>
+            }
         </div>
     );
 };

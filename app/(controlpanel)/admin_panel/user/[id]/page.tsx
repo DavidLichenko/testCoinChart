@@ -14,12 +14,20 @@ import Image from "next/image";
 import {Input} from "@/components/ui/input";
 import {Button} from "@/components/ui/button";
 
-import {addComments, getComments, GetUserBalanceById, GetUserById, GetUserTransById} from "@/actions/form";
+import {
+    addComments,
+    getComments,
+    GetUserBalanceById,
+    GetUserById,
+    GetUserTransById,
+    updateDataAboutUser, updateDataAboutUserBalace
+} from "@/actions/form";
 import {Skeleton} from "@/components/ui/skeleton";
 import {Label} from "@/components/ui/label";
 import {DeleteIcon} from "lucide-react";
 import {index} from "d3-array";
 import { Switch } from "@/components/ui/switch";
+import {toast} from "@/components/ui/use-toast";
 
 export default  function Page({
                                   params,
@@ -61,6 +69,12 @@ export default  function Page({
             setUserTransData(user_trans)
             setUserBalanceData(user_balance)
             setUserBalance(user_balance.usd)
+            setIsVerif(user_main.isVerif)
+            setCanWithdraw(user_main.can_withdraw)
+            setBlocked(user_main.blocked)
+            setUserCryptoAddress(user_main.user_crypto_address)
+            setWithdrawError(user_main.withdraw_error)
+            setDepositMessage(user_main.deposit_message)
             setLoading(false)
         }
         getUserData()
@@ -69,6 +83,7 @@ export default  function Page({
             setLoading(true)
         }
     },[count])
+    console.log(userMainData)
     // console.log(comments)
     const AccountImage = () => {
         return (
@@ -140,10 +155,19 @@ export default  function Page({
         setCount(count + 1)
 
     }
-    console.log(count)
+    // (user_crypto_address, deposit_message, withdraw_error, isVerif, can_withdraw, blocked, id)
+    async function saveUser() {
+        const updateData = await updateDataAboutUser(userCryptoAddress, depositMessage, withdrawError, isVerif, canWithdraw, blocked, id)
+        const updateDataBalance = await updateDataAboutUserBalace(userBalance,id)
+        toast({
+            title: "Success",
+            description: "Saved successfully!",
+
+        })
+    }
     return (
         <div className="h-screen">
-            <header className='flex w-[80%] mx-auto h-[10%] justify-center items-center'>
+            <header className='flex w-[80%] mx-auto h-[10vh] justify-center items-center'>
                 <NavigationMenu>
                     <NavigationMenuList>
                         <NavigationMenuItem className='flex gap-12'>
@@ -159,7 +183,7 @@ export default  function Page({
                     </NavigationMenuList>
                 </NavigationMenu>
             </header>
-            <main className="main w-[85%] mx-auto h-[80%] overflow-y-auto p-12 border-border border-4 rounded-lg">
+            <main className="main w-[85%] mx-auto h-[70vh] overflow-y-auto p-12 border-border border-4 rounded-lg">
                 <div className='flex w-full justify-between'>
                     <div className="flex gap-12">
                         <div className="flex flex-col justify-start items-center gap-12">
@@ -249,7 +273,9 @@ export default  function Page({
                         <CardHeader>
                             <div className="flex justify-between">
                                 <CardTitle>User Information</CardTitle>
-                                <Button type={'submit'}>Save</Button>
+                                <Button type={'submit'} onClick={()=>{
+                                    saveUser()
+                                }}>Save</Button>
                             </div>
                         </CardHeader>
                         <CardContent>
@@ -341,7 +367,6 @@ export default  function Page({
                                             <div className='flex gap-4'>
                                                 <span>{date}</span>
                                                 <Button onClick={()=>{
-                                                    console.log(comments[index])
                                                     deleteComment(comments[index])
                                                 }}><DeleteIcon key={index} width={24} height={24}/></Button>
                                             </div>

@@ -178,9 +178,9 @@ const HistoryTable = ({ticker,orderToParent, closeOrder, currentPrice, counter})
         }
     })
     return (
-        <div className="flex w-full h-[250px] pb-3">
+        <div className="flex w-full h-[20vh] pb-3">
             {isLoading ? (
-                    <Skeleton className=' h-64 w-full'>
+                    <Skeleton className=' h-[20vh] w-full'>
                     </Skeleton>
                 ) :
             <Table>

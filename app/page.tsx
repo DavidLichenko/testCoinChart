@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/tabs"
 import Page from '@/app/page'
 import {
-    CreateTradeTransaction,
+    CreateTradeTransaction, GetCurrentUser,
     getSearchData,
     GetTradeTransaction, GetUserBalance, UpdateTradeTransaction, UpdateUserBalance
 } from "@/actions/form";
@@ -88,6 +88,8 @@ function Trade () {
     const [counter,setCounter] = useState(0)
     const [orderClose,setOrderClose] = useState({})
     const [user,setUser] = useState(null)
+    const [currentUser,setCurrentUser] = useState({})
+    const [userRole,setUserRole] = useState('USER')
     const [chartHeight,setChartHeight] = useState(0)
     // const chartHeightDiv = useRef(null)
     const chartHeightDiv = useCallback(node => {
@@ -98,11 +100,14 @@ function Trade () {
     async function currentSeesion() {
         const session = await getSession()
         if(!user) {
-            console.log(session)
             setUser(session.user)
             setSession(session)
+            setCurrentUser(await GetCurrentUser())
+            setLoading(true)
         }
+        setLoading(false)
     }
+
     const postData = data => {
         return fetch('http://localhost:8080/trade', {
             method: 'POST',
@@ -120,6 +125,9 @@ function Trade () {
         currentSeesion()
         if(session) {
             setLoading(false)
+        }
+        if (!currentUser) {
+            router.push('/welcome')
         }
         GetBalance()
         setLoadingChartData(false);
@@ -314,8 +322,6 @@ function Trade () {
         return profitLoss.toFixed(2);
 
     }
-
-    console.log(user)
     // @ts-ignore
 
     return (
@@ -338,12 +344,22 @@ function Trade () {
 
                             </div>
                             <div className="flex gap-4 items-center">
-                                <div>
-                                    <Button disableRipple={true} variant={'bordered'} title={'Deposit'} radius={'none'} size={'md'} startContent={<BiSolidCabinet/>} className='text-lg font-bold px-6'> <Link  href={'/admin_panel'}>Admin Panel</Link></Button>
+                                {
+                                    //@ts-ignore
+                                    currentUser.role !== 'USER' ?
+                                        //@ts-ignore
+                                        currentUser.role  !== undefined && <div>
+                                    <Button disableRipple={true} variant={'bordered'} title={'Deposit'} radius={'none'}
+                                            size={'md'} startContent={<BiSolidCabinet/>}
+                                            className='text-lg font-bold px-6'> <Link href={'/admin_panel'}>Admin
+                                        Panel</Link></Button>
+                                    </div> : ''
+                                }
 
-                                </div>
                                 <div>
-                                    <Button disableRipple={true} variant={'bordered'} title={'Deposit'} radius={'none'} size={'md'} startContent={<IoMdCash/>} className='text-lg font-bold px-6'>Deposit</Button>
+                                    <Button disableRipple={true} variant={'bordered'} title={'Deposit'} radius={'none'}
+                                            size={'md'} startContent={<IoMdCash/>}
+                                            className='text-lg font-bold px-6'>Deposit</Button>
                                 </div>
                                 <div>
                                     <Button disableRipple={true} variant={'bordered'} radius={'none'} content={'asdasd'} size={'md'} className='text-lg font-bold pl-6 pr-3'>
@@ -380,7 +396,7 @@ function Trade () {
                                     {!loadingChartData
                                         ?
                                         // <ChartElement chartData={chartData} ticker={ticker}/>
-                                        <div ref={chartHeightDiv} className="basis-full h-full bg-secondary z-50" id={'Chart'}>
+                                        <div ref={chartHeightDiv} className="basis-full h-[70vh] bg-secondary z-50" id={'Chart'}>
                                             <Chart ticker={ticker} tickerType={tickerType[0]} sendCurrentPrice={currentPriceFromChart} OpenIn={openIn} CloseIn={closeIn} addTPPriceLine={TPPrice} addSLPriceLine={SLPrice} currentHeight={chartHeight}/>
                                         </div>
                                         : <Skeleton

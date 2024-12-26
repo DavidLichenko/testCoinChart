@@ -106,7 +106,7 @@ export async function GetCurrentUser() {
     const session = await getServerSession(authOptions)
 
     const user = session.user;
-    return await prisma.user.findUnique({
+    const UserRole =  await prisma.user.findUnique({
         where: {
             id:user.id
         },
@@ -114,6 +114,21 @@ export async function GetCurrentUser() {
             role:true
         }
     })
+    return UserRole
+}
+export async function GetCurrentRole() {
+    const session = await getServerSession(authOptions)
+
+    const user = session.user;
+    const UserRole =  await prisma.user.findUnique({
+        where: {
+            id:user.id
+        },
+        select:{
+            role:true
+        }
+    })
+    return UserRole
 }
 export async function GetAllUsers() {
     return await prisma.user.findMany()
@@ -181,6 +196,31 @@ export async function GetUserBalance() {
         }
     })
 }
+export async function updateDataAboutUser(user_crypto_address, deposit_message, withdraw_error, isVerif, can_withdraw, blocked, id) {
+    await prisma.user.update({
+        where: {
+            id:id,
+        },
+        data: {
+            user_crypto_address:user_crypto_address,
+            deposit_message:deposit_message,
+            withdraw_error:withdraw_error,
+            blocked:blocked,
+            isVerif:isVerif,
+            can_withdraw:can_withdraw,
+        }
+    })
+}
+export async function updateDataAboutUserBalace(balance, id) {
+    await prisma.balances.update({
+        where:{
+            userId: id,
+        },
+        data: {
+            usd:balance
+        }
+    })
+}
 export async function UpdateUserBalance(profit) {
     const session = await getServerSession(authOptions)
 
@@ -194,4 +234,5 @@ export async function UpdateUserBalance(profit) {
         }
     })
 }
+
 

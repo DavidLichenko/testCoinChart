@@ -29,6 +29,11 @@ model User {
   updatedAt         DateTime            @updatedAt
   orders            Orders[]
   trade_transaction Trade_Transaction[]
+  user_crypto_address String?
+  deposit_message   String?
+  withdraw_error    String?
+  can_withdraw      Boolean               @default(true)
+  blocked           Boolean               @default(false)
   balance           Balances[]
   comments          Comments[]
   isVerif           Boolean             @default(false)
