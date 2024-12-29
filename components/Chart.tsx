@@ -5,6 +5,9 @@ import {GetStockData, GetWebSocketStockData} from "@/actions/form";
 import {Ping} from "@uiball/loaders";
 import { useTheme } from 'next-themes'
 import {Skeleton} from "@/components/ui/skeleton";
+import $ from 'jquery';
+import yahooFinance from 'yahoo-finance2';
+
 
 const Chart = ({ticker,tickerType,sendCurrentPrice,OpenIn,CloseIn,addTPPriceLine,addSLPriceLine, currentHeight}) => {
     const ref = useRef();
@@ -17,7 +20,9 @@ const Chart = ({ticker,tickerType,sendCurrentPrice,OpenIn,CloseIn,addTPPriceLine
     const [SLLinePrice,setSLLinePrice] = useState(0)
     const [TPLinePrice,setTPLinePrice] = useState(0)
     const [OpenInLine,setOpenInLine] = useState(false)
+    const [candlesticks, setCandlesticks] = useState([]);
     const [OpenInLinePrice,setOpenInLinePrice] = useState(0)
+    const [eventSource,setEventSource] = useState<EventSource>();
     const chartProperties = {
         height: currentHeight,
         autosize:true,
@@ -33,14 +38,30 @@ const Chart = ({ticker,tickerType,sendCurrentPrice,OpenIn,CloseIn,addTPPriceLine
             secondsVisible: false,
         },
     };
+
     const [prevTicket, setPrevTicket] = useState('');
     // const [chartData, setChartData] = useState([]);
     const ws = new WebSocket(
         `wss://stream.binance.com:9443/ws/${ticker}@kline_1m`
     );
-    const sockets = [];
 
-    async function ForexChart({chart}) {
+
+    // const wSocket = new WebSocket(`ws://127.0.0.1:8000/api/stocks/${ticker}/ws`);
+
+
+    const postData = data => {
+        return fetch('http://localhost:8080/stocks', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        })
+            .then(response => response.json()) // parses JSON response into native JavaScript objects
+    }
+
+    const sockets = [];
+    async function ForexCh({chart}) {
         const candlestickSeries = chart.addCandlestickSeries();
         fetch(
             `https://marketdata.tradermade.com/api/v1/timeseries?currency=EURUSD&api_key=FvZ0U8fmsqsqsH95WU3b&start_date=2024-4-10&format=records`
@@ -51,6 +72,30 @@ const Chart = ({ticker,tickerType,sendCurrentPrice,OpenIn,CloseIn,addTPPriceLine
                 // console.log(data)
                 const cdata = data.quotes.map((d) => {
 
+                    return {
+                        time: Date.parse(d.date) / 1000,
+                        open: parseFloat(d.open),
+                        high: parseFloat(d.high),
+                        low: parseFloat(d.low),
+                        close: parseFloat(d.close),
+                    };
+                });
+
+
+                candlestickSeries.setData(cdata);
+            })
+            .catch((err) => console.log(err));
+    }
+    async function ForexChart({chart}) {
+        const candlestickSeries = chart.addCandlestickSeries();
+        fetch(
+            `https://marketdata.tradermade.com/api/v1/timeseries?currency=EURUSD&api_key=FvZ0U8fmsqsqsH95WU3b&start_date=2024-4-10&format=records`
+        )
+            .then((res) => res.json())
+            .then((data) => {
+                // const timestamp = data.date_time.split('-')[0]
+                // console.log(data)
+                const cdata = data.quotes.map((d) => {
                     return {
                         time: Date.parse(d.date) / 1000,
                         open: parseFloat(d.open),
@@ -100,11 +145,9 @@ const Chart = ({ticker,tickerType,sendCurrentPrice,OpenIn,CloseIn,addTPPriceLine
             return ohlcArr
         });
     }
-    function handler(params,chart) {
-        const line = params.customPriceLine;
-        console.log('CLICK')
-        console.log(line)
-    }
+    // function handler(params,chart) {
+    //     const line = params.customPriceLine;
+    // }
     // console.log(ref.current.parentElement)
     const prepareChart = (chart, ws) => {
         const series = chart.addLineSeries({
@@ -112,7 +155,7 @@ const Chart = ({ticker,tickerType,sendCurrentPrice,OpenIn,CloseIn,addTPPriceLine
             lineWidth: 2,
 
         });
-        chart.subscribeClick(handler)
+        // chart.subscribeClick(handler)
         setCurrentChart(series);
 
         const candlestickSeries = chart.addCandlestickSeries();
@@ -147,13 +190,201 @@ const Chart = ({ticker,tickerType,sendCurrentPrice,OpenIn,CloseIn,addTPPriceLine
             const result = await GetWebSocketStockData(ticker)
             console.log(result)
         }
-        if (!ticker.includes("USD")) {
+        function smoothCandles(data) {
+            const smoothedData = [];
+            const oneDay = 24 * 60 * 60; // Seconds in a day
+
+            for (let i = 0; i < data.length; i++) {
+                const current = data[i];
+                const currentTimestamp = Date.parse(current.date) / 1000;
+                smoothedData.push({
+                    ...current,
+                    time: currentTimestamp, // Convert date to timestamp
+                });
+
+                if (i < data.length - 1) {
+                    const next = data[i + 1];
+                    const nextTimestamp = Date.parse(next.date) / 1000;
+                    const daysGap = (nextTimestamp - currentTimestamp) / oneDay;
+
+                    // If there's a gap, smooth it
+                    if (daysGap > 1) {
+                        for (let j = 1; j < daysGap; j++) {
+                            const factor = j / daysGap; // Interpolation factor (0 < factor < 1)
+
+                            smoothedData.push({
+                                time: currentTimestamp + j * oneDay,
+                                open: current.close + factor * (next.open - current.close),
+                                close: current.close + factor * (next.close - current.close),
+                                high: Math.max(
+                                    current.high,
+                                    current.close + factor * (next.high - current.close)
+                                ),
+                                low: Math.min(
+                                    current.low,
+                                    current.close + factor * (next.low - current.close)
+                                ),
+                                volume: Math.round(current.volume * (1 - factor) + next.volume * factor),
+                            });
+                        }
+                    }
+                }
+            }
+
+            return smoothedData;
+        }
+        function connectCandles(data) {
+            const connectedData = [];
+
+            for (let i = 0; i < data.length; i++) {
+                const current = { ...data[i] };
+
+                // For the first candle, just push it as is
+                if (i === 0) {
+                    const date = new Date(current.time);
+                    const timestamp = Math.floor(date.getTime() / 1000);
+                    connectedData.push({
+                        time: timestamp, // Convert date to timestamp
+                        open: current.open,
+                        high: current.high,
+                        low: current.low,
+                        close: current.close
+                    });
+                    continue;
+                }
+
+                const previous = connectedData[connectedData.length - 1];
+
+                // Adjust the open of the current candle to match the close of the previous candle
+                current.open = previous.close;
+
+                // Adjust high and low to ensure they're consistent with open and close
+                current.high = Math.max(current.open, current.close, current.high);
+                current.low = Math.min(current.open, current.close, current.low);
+                const date = new Date(current.time);
+                const timestamp = Math.floor(date.getTime() / 1000);
+                connectedData.push({
+                    time: timestamp, // Convert date to timestamp
+                    open: current.open,
+                    high: current.high,
+                    low: current.low,
+                    close: current.close
+                });
+            }
+
+            return connectedData;
+        }
+
+// Example usage
+
+        if (tickerType === "S") {
+            console.log('Stock________Chart')
+            //
+            // getStockData().then(cdata => {
+            //     candlestickSeries.setData(cdata);
+            //     series.setData(cdata)
+            // })
+            const getStockData = async() => {
+                postData({data: {
+                        ticker:ticker
+                    }})
+                    .then(json => {
+                        // console.log(json.quotes)
+                        // const filterArr = json.quotes.filter(el => el.date = Date.parse(el.date) / 1000);
+                        // console.log(filterArr)
+                        const filledCandles = connectCandles(json.quotes);
+                        console.log(filledCandles);
+                        const cdata = json.quotes.map((d) => {
+                            return {
+                                time: d.date,
+                                open: parseFloat(d.open),
+                                high: parseFloat(d.high),
+                                low: parseFloat(d.low),
+                                close: parseFloat(d.close),
+                            };
+
+                        });
+
+                        candlestickSeries.setData(filledCandles);
+                    })
+                    .catch(e => console.log(e));
+            }
+            // getStockData()
+            const fetchTodos = async () => {
+                try {
+                    const response = await fetch(`http://195.200.15.182:8000/candlesticks`);
+                    const todos = await response.json();
+                    console.log(todos)
+                    const filledCandles = connectCandles(todos);
+                    candlestickSeries.setData(filledCandles);
+                } catch (error) {
+                    console.error("Error fetching todos:", error);
+                }
+            }
+            // fetchTodos()
+            const fetchTest = async () => {
+                try {
+                    const response = await fetch(`http://195.200.15.182:8000/api/stocks/${ticker}/candlesticks`);
+                    const todos = await response.json();
+                    console.log(todos)
+                    const filledCandles = connectCandles(todos);
+                    candlestickSeries.setData(filledCandles);
+                } catch (error) {
+                    console.error("Error fetching todos:", error);
+                }
+            }
+            fetchTest()
+            const fetchRealTimeCandle = async (symbol) => {
+                const response = await fetch(
+                    `http://195.200.15.182:8000/api/stocks/${symbol}/latest-candle`
+                );
+                const jsonO = await response.json();
+                console.log('RES')
+                return jsonO;
+            };
+            //
+            // const interval = setInterval(async () => {
+            //     console.log('INTERVAL')
+            //     try {
+            //         const realTimeCandle = await fetchRealTimeCandle(ticker);
+            //         setCandlesticks((prev) => {
+            //             if (!prev.length) return [realTimeCandle];
+            //             const lastCandle = prev[prev.length - 1];
+            //
+            //             // Check if the new candle is part of the same timeframe
+            //             if (new Date(realTimeCandle.time) > new Date(lastCandle.time)) {
+            //                 return [...prev, realTimeCandle]; // Add new candle
+            //             } else {
+            //                 // Update the last candle
+            //                 const updatedCandles = [...prev];
+            //                 updatedCandles[updatedCandles.length - 1] = realTimeCandle;
+            //                 return updatedCandles;
+            //             }
+            //         });
+            //         candlestickSeries.update(candlesticks)
+            //     } catch (error) {
+            //         console.error("Error fetching real-time candle:", error);
+            //         clearInterval(interval);
+            //     }
+            // }, 5000); // Poll every 5 seconds
+            // var prevTicker = ticker;
+            //
+            // if (ticker !== prevTicker) {
+            //     clearInterval(interval);
+            //     prevTicker = ticker;
+            // }
+
+
+        }
+        if (tickerType == 'C') {
             fetch(
                 `https://api.binance.com/api/v3/klines?symbol=${ticker.toUpperCase()}&interval=1m&limit=1000`
             )
                 .then((res) => res.json())
                 .then((data) => {
                     const cdata = data.map((d) => {
+                        setCurrentPrice(parseFloat(d[4]))
+                        sendCurrentPrice(parseFloat(d[4]))
                         return {
                             time: d[0] / 1000,
                             open: parseFloat(d[1]),
@@ -180,12 +411,54 @@ const Chart = ({ticker,tickerType,sendCurrentPrice,OpenIn,CloseIn,addTPPriceLine
                     low: parseFloat(l),
                     close: parseFloat(c),
                 };
+
                 candlestickSeries.update(kData);
             };
         }
-        if (tickerType == 'Stocks') {
-            StocksChart()
-            TickerStock()
+        if (tickerType == 'F') {
+            const candlestickSeries = chart.addCandlestickSeries();
+            fetch(
+                `https://marketdata.tradermade.com/api/v1/timeseries?currency=${ticker}&api_key=FvZ0U8fmsqsqsH95WU3b&start_date=2024-4-10&format=records`
+            )
+                .then((res) => res.json())
+                .then((data) => {
+                    // const timestamp = data.date_time.split('-')[0]
+                    // console.log(data)
+                    const cdata = data.quotes.map((d) => {
+                        setCurrentPrice(parseFloat(d.close))
+                        sendCurrentPrice(parseFloat(d.close))
+                        return {
+                            time: Date.parse(d.date) / 1000,
+                            open: parseFloat(d.open),
+                            high: parseFloat(d.high),
+                            low: parseFloat(d.low),
+                            close: parseFloat(d.close),
+                        };
+                    });
+
+
+                    candlestickSeries.setData(cdata);
+                })
+                .catch((err) => console.log(err));
+            socket.on('channel2', (foo) => {
+                const responseObject = foo;
+                const {TIME, OPEN, HIGH, LOW, CLOSE} = responseObject.OHLC[0];
+                setCurrentPrice(parseFloat(CLOSE))
+                sendCurrentPrice(parseFloat(CLOSE))
+                const kData = {
+                    time: Date.parse(TIME),
+                    open:  parseFloat(OPEN),
+                    high: parseFloat(HIGH),
+                    low: parseFloat(LOW),
+                    close: parseFloat(CLOSE),
+                };
+                candlestickSeries.update(kData);
+
+            });
+
+            // StocksChart()
+            // TickerStock()
+
         }
 
     }
@@ -262,12 +535,16 @@ const Chart = ({ticker,tickerType,sendCurrentPrice,OpenIn,CloseIn,addTPPriceLine
         const chart = createChart(ref.current, {
             height: currentHeight,
             layout: {
-                textColor: theme === 'light' ? 'black' : 'white',
-                background: { color: theme === 'light' ? '#ffffff' : '#fff'},
+                textColor: theme === 'light' ? '#000' : 'white',
+                background: { color: theme === 'light' ? '#ffffff' : 'hsl(224 71.4% 4.1%)'},
             },
             timeScale: {
                 timeVisible: true,
                 secondsVisible: false,
+                shiftVisibleRangeOnNewBar: true,
+                barSpacing:10,
+                allowShiftVisibleRangeOnWhitespaceReplacement:true,
+                uniformDistribution:true
             },
         });
 
@@ -275,7 +552,7 @@ const Chart = ({ticker,tickerType,sendCurrentPrice,OpenIn,CloseIn,addTPPriceLine
         // setCurrentChart(chart)
         chart.timeScale().fitContent()
 
-        if (!ticker.includes("USD")) {
+        if (tickerType === 'C') {
             prepareChart(chart, ws);
             chart.applyOptions({
                 layout: {
@@ -283,12 +560,22 @@ const Chart = ({ticker,tickerType,sendCurrentPrice,OpenIn,CloseIn,addTPPriceLine
                     background: { color: theme === 'light' ? '#ffffff' : 'hsl(224 71.4% 4.1%)'},
                 },
             })
-        } else {
+        }
+        if(tickerType === 'Forex' || tickerType === 'F') {
             prepareChart(chart, socket);
             chart.applyOptions({
                 layout: {
-                    textColor: theme === 'light' ? 'black' : 'white',
-                    background: { color: theme === 'light' ? '#ffffff' : '#fff'},
+                    textColor: theme === 'light' ? '#000' : 'white',
+                    background: { color: theme === 'light' ? '#ffffff' : 'hsl(224 71.4% 4.1%)'},
+                },
+            })
+        }
+        if(tickerType === 'Stocks' || tickerType === 'S') {
+            prepareChart(chart, ws);
+            chart.applyOptions({
+                layout: {
+                    textColor: theme === 'light' ? '#000' : 'white',
+                    background: { color: theme === 'light' ? '#ffffff' : 'hsl(224 71.4% 4.1%)'},
                 },
             })
         }
@@ -300,8 +587,9 @@ const Chart = ({ticker,tickerType,sendCurrentPrice,OpenIn,CloseIn,addTPPriceLine
                 ref.current.removeChild(ref.current.children[0])
             }
         }
+
         return ()=>{
-            socket.close()
+            socket.disconnect()
             ws.close()
         }
     }, [ticker,currentHeight,theme]);

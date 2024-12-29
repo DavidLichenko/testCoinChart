@@ -477,7 +477,7 @@ export const marketWatchStocks = [
         'AAL',
         'ACB',
         'ADR',
-        'ADS',
+        'ADDYY',
         'AEM',
         'AIG',
         'AIR',

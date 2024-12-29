@@ -134,17 +134,17 @@ function Trade () {
         currentSeesion()
         if(session) {
             setLoading(false)
+            GetBalance()
         }
         if (!currentUser) {
             router.push('/welcome')
         }
-        GetBalance()
         setLoadingChartData(false);
         calculateMargin(volume,currentPrice,leverage)
 
-        if (ticker) {
-            updateTickerData(ticker)
-        }
+        // if (ticker) {
+        //     updateTickerData(ticker)
+        // }
 
         setProfit(calculateProfitLoss(volume,openIn,currentPrice))
         setLoading(false)
@@ -203,14 +203,9 @@ function Trade () {
     const updateTickerData = async(ticker) => {
         // setLoadingChartData(true);
         postData({data: {
-                ticker:ticker
+                ticker:ticker,
+                tickerType:tickerType
             }})
-            .then(json => {
-                // setLoadingChartData(false);
-                // setChartData(json.values)
-                // console.log(json)
-            })
-            .catch(e => console.log(e));
 
     }
     const GetBalance = async() => {
@@ -298,9 +293,8 @@ function Trade () {
         } catch (error) {
             console.log(error)
         }
-        // setOrderClose(row)
     }
-    // console.log(orderClose)
+
     const volumeChange = (event) => {
         var rgx = /^[0-9]*\.?[0-9]*$/;
         if(event.target.value.match(rgx)) {
@@ -379,7 +373,7 @@ function Trade () {
                                                     // <ChartElement chartData={chartData} ticker={ticker}/>
                                                     <div ref={chartHeightDiv} className="basis-full w-full h-full bg-secondary z-50"
                                                          id={'Chart'}>
-                                                        <Chart ticker={ticker} tickerType={tickerType[0]}
+                                                        <Chart ticker={ticker} tickerType={tickerType}
                                                                sendCurrentPrice={currentPriceFromChart} OpenIn={openIn}
                                                                CloseIn={closeIn} addTPPriceLine={TPPrice}
                                                                addSLPriceLine={SLPrice} currentHeight={700}/>

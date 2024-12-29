@@ -34,7 +34,7 @@ const NavContainer = ({sendDataToParent}) => {
 
     const selectedTicker = (ticker, tickerType) => {
         setTicker(ticker)
-        sendDataToParent(ticker,true,tickerType)
+        sendDataToParent(ticker,true,tickerType[0])
         setInput('');
         setSearchData([]);
     }
@@ -108,14 +108,14 @@ const NavContainer = ({sendDataToParent}) => {
     }
     useEffect(()=> {
         // getNewsData()
-        getListData()
+        // getListData()
         // getTickersData()
         const intervalTicker = setInterval(()=>{
             getTickersDataBinance()
         },1000)
-        if (ticker) {
-            updateTickerData(ticker)
-        }
+        // if (ticker) {
+        //     updateTickerData(ticker)
+        // }
         return () =>{
             clearInterval(intervalTicker);
         }
@@ -245,7 +245,7 @@ const NavContainer = ({sendDataToParent}) => {
                                         <ul className="flex flex-col w-full h-full">
                                             {marketWatchForex[1].map((item, index) => (
                                                 <li key={index}  onClick={()=>{
-                                                    selectedTicker(item,marketWatchStocks[2])
+                                                    selectedTicker(item,marketWatchForex[2])
                                                 }}
                                                     className='w-full flex gap-4 px-6 py-2 justify-start items-center border-1 border-muted hover:bg-secondary hover:cursor-pointer'>
                                                     <div className={`symbol symbol-${item}`}>
