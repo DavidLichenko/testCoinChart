@@ -7,7 +7,7 @@ import { useTheme } from 'next-themes'
 import {Skeleton} from "@/components/ui/skeleton";
 import $ from 'jquery';
 import yahooFinance from 'yahoo-finance2';
-
+import axios  from "axios";
 
 const Chart = ({ticker,tickerType,sendCurrentPrice,OpenIn,CloseIn,addTPPriceLine,addSLPriceLine, currentHeight}) => {
     const ref = useRef();
@@ -278,33 +278,12 @@ const Chart = ({ticker,tickerType,sendCurrentPrice,OpenIn,CloseIn,addTPPriceLine
 // Example usage
 
         if (tickerType === "S") {
-            console.log('Stock________Chart')
-            //
-            // getStockData().then(cdata => {
-            //     candlestickSeries.setData(cdata);
-            //     series.setData(cdata)
-            // })
             const getStockData = async() => {
                 postData({data: {
                         ticker:ticker
                     }})
                     .then(json => {
-                        // console.log(json.quotes)
-                        // const filterArr = json.quotes.filter(el => el.date = Date.parse(el.date) / 1000);
-                        // console.log(filterArr)
                         const filledCandles = connectCandles(json.quotes);
-                        console.log(filledCandles);
-                        const cdata = json.quotes.map((d) => {
-                            return {
-                                time: d.date,
-                                open: parseFloat(d.open),
-                                high: parseFloat(d.high),
-                                low: parseFloat(d.low),
-                                close: parseFloat(d.close),
-                            };
-
-                        });
-
                         candlestickSeries.setData(filledCandles);
                     })
                     .catch(e => console.log(e));
@@ -324,11 +303,10 @@ const Chart = ({ticker,tickerType,sendCurrentPrice,OpenIn,CloseIn,addTPPriceLine
             // fetchTodos()
             const fetchTest = async () => {
                 try {
-                    const response = await fetch(`http://195.200.15.182:8000/api/stocks/${ticker}/candlesticks`);
-                    const todos = await response.json();
-                    console.log(todos)
-                    const filledCandles = connectCandles(todos);
+                    const response = await axios.get(`http://195.200.15.182:8000/api/stocks/${ticker}/candlesticks`).then(json => {
+                    const filledCandles = connectCandles(json);
                     candlestickSeries.setData(filledCandles);
+                    });
                 } catch (error) {
                     console.error("Error fetching todos:", error);
                 }
