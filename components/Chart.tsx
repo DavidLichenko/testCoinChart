@@ -303,8 +303,8 @@ const Chart = ({ticker,tickerType,sendCurrentPrice,OpenIn,CloseIn,addTPPriceLine
             // fetchTodos()
             const fetchTest = async () => {
                 try {
-                    const response = await axios.get(`http://195.200.15.182:8000/api/stocks/${ticker}/candlesticks`).then(json => {
-                    const filledCandles = connectCandles(json);
+                    const response = await axios.get(`http://13.60.192.52:8000/api/stocks/${ticker}/candlesticks`).then(json => {
+                    const filledCandles = connectCandles(json.data);
                     candlestickSeries.setData(filledCandles);
                     });
                 } catch (error) {
