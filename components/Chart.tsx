@@ -303,7 +303,7 @@ const Chart = ({ticker,tickerType,sendCurrentPrice,OpenIn,CloseIn,addTPPriceLine
             // http://srv677099.hstgr.cloud:8000/api/stocks/${ticker}/candlesticks/
             const fetchTest = async () => {
                 try {
-                    const response = await fetch(`http://srv677099.hstgr.cloud:8000/api/stocks/${ticker}/candlesticks/`, {
+                    const response = await fetch(`https://srv677099.hstgr.cloud/api/stocks/${ticker}/candlesticks/`, {
                         method:'GET',
                         headers: {
                             'Content-Type': 'application/json', // Specify the content type
