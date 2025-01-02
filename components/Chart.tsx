@@ -271,7 +271,6 @@ const Chart = ({ticker,tickerType,sendCurrentPrice,OpenIn,CloseIn,addTPPriceLine
                     close: current.close
                 });
             }
-
             return connectedData;
         }
 
@@ -301,12 +300,20 @@ const Chart = ({ticker,tickerType,sendCurrentPrice,OpenIn,CloseIn,addTPPriceLine
                 }
             }
             // fetchTodos()
+            // http://srv677099.hstgr.cloud:8000/api/stocks/${ticker}/candlesticks/
             const fetchTest = async () => {
                 try {
-                    const response = await axios.get(`http://13.60.192.52:8000/api/stocks/${ticker}/candlesticks`).then(json => {
-                    const filledCandles = connectCandles(json.data);
-                    candlestickSeries.setData(filledCandles);
+                    const response = await fetch(`http://srv677099.hstgr.cloud:8000/api/stocks/${ticker}/candlesticks/`, {
+                        method:'GET',
+                        headers: {
+                            'Content-Type': 'application/json', // Specify the content type
+                        },
                     });
+                    const json = await response.json();
+                    const filledCandles = connectCandles(json.data);
+                    let jsonArr = filledCandles.sort((a, b) => a.time - b.time);
+                    // console.log(jsonArr)
+                    candlestickSeries.setData(jsonArr);
                 } catch (error) {
                     console.error("Error fetching todos:", error);
                 }
