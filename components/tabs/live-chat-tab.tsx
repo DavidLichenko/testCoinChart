@@ -38,6 +38,9 @@ export default function UserChat() {
   const fetchCurrentUser = async () => {
     try {
       const user = await GetCurrentData();
+      const res = await fetch(`/api/messages?userId=${user.id}`);
+      const data = await res.json();
+      setMessages(data);
       setCurrentUser(user);
     } catch (error) {
       console.error('Error fetching current user:', error);
@@ -46,25 +49,26 @@ export default function UserChat() {
 
   useEffect(() => {
     fetchCurrentUser();
+    // fetchMessages();
   }, []);
 
   useEffect(() => {
     if (currentUser.id) {
-      fetchMessages();
 
+      console.log(currentUser.role)
       // Listen for incoming chat messages
-      socket.on('chat message', (msg) => {
 
-        console.log(msg);
-        console.log('CHAT_MESSAGE')
-        setMessages((prevMessages) => [...prevMessages, msg]);
-      });
     }
+    socket.on('chat message', (msg) => {
 
+      console.log(msg);
+      console.log('CHAT_MESSAGE')
+      setMessages((prevMessages) => [...prevMessages, msg]);
+    });
     return () => {
       socket.off('chat message');
     };
-  }, []);
+  }, [currentUser]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -126,7 +130,7 @@ export default function UserChat() {
       // Emit the message via Socket.IO for real-time updates
       socket.emit('chat message', savedMessage);
       console.log(savedMessage)
-
+      setMessages((prevMessages) => [...prevMessages, savedMessage]);
       setInput('');
       setFile(null);
       if (fileInputRef.current) {
