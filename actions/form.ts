@@ -116,6 +116,16 @@ export async function GetCurrentUser() {
     })
     return UserRole
 }
+export async function GetCurrentData() {
+    const session = await getServerSession(authOptions)
+    const user = session.user;
+    const UserData =  await prisma.user.findUnique({
+        where: {
+            id:user.id
+        }
+    })
+    return UserData
+}
 export async function GetCurrentRole() {
     const session = await getServerSession(authOptions)
 
@@ -151,6 +161,22 @@ export async function GetUserTransById(id) {
     const getTradeTransaction = await prisma.trade_Transaction.findMany({
         where: {
             userId:id
+        }
+    })
+    if (getTradeTransaction) {
+        return await getTradeTransaction
+    } else {
+        return false
+    }
+}
+export async function GetUserActiveTrans() {
+    const session = await getServerSession(authOptions)
+
+    const user = session.user;
+    const getTradeTransaction = await prisma.trade_Transaction.findMany({
+        where: {
+            userId:user.id,
+            status: "OPEN",
         }
     })
     if (getTradeTransaction) {
@@ -233,6 +259,34 @@ export async function UpdateUserBalance(profit) {
             usd:parseFloat(profit)
         }
     })
+}
+
+interface NetworkAddress {
+    address: string
+}
+
+export async function getNetworkAddress(token: string, network: string): Promise<NetworkAddress> {
+    // Simulated database fetch - replace with your actual Prisma query
+    // const address = await prisma.networkAddresses.findFirst({
+    //   where: {
+    //     token,
+    //     network,
+    //   },
+    // });
+
+    // For demonstration, returning mock addresses
+    const addresses = {
+        btc: { bitcoin: "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh" },
+        eth: { erc20: "0x742d35Cc6634C0532925a3b844Bc454e4438f44e" },
+        usdt: {
+            erc20: "0x742d35Cc6634C0532925a3b844Bc454e4438f44e",
+            trc20: "TJRyFcr8j1GXm9TJhBwCYRQUZSJzHsiqxL"
+        }
+    }
+
+    return {
+        address: addresses[token as keyof typeof addresses]?.[network as keyof typeof addresses[keyof typeof addresses]] || ""
+    }
 }
 
 

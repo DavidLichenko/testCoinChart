@@ -13,7 +13,7 @@ import VerificationTab from './tabs/verification-tab'
 import LiveChatTab from './tabs/live-chat-tab'
 import SettingsTab from './tabs/settings-tab'
 
-export function UserSettingsModal() {
+export function UserSettingsModal({totalAmount, totalProfit, totalDeposit, userData}) {
   const [open, setOpen] = useState(false)
   const [activeTab, setActiveTab] = useState('dashboard')
   const [isMobile, setIsMobile] = useState(false)
@@ -34,8 +34,8 @@ export function UserSettingsModal() {
   }
 
   const tabContent = {
-    dashboard: { title: 'Dashboard', content: <DashboardTab /> },
-    personal: { title: 'Personal Information', content: <PersonalInfoTab /> },
+    dashboard: { title: 'Dashboard', content: <DashboardTab totalAmount={totalAmount} totalProfit={totalProfit} totalDeposit={totalDeposit} /> },
+    personal: { title: 'Personal Information', content: <PersonalInfoTab userData={userData} /> },
     withdrawal: { title: 'Withdrawal', content: <WithdrawalTab /> },
     verification: { title: 'Verification', content: <VerificationTab /> },
     livechat: { title: 'Live Chat', content: <LiveChatTab /> },
@@ -50,7 +50,7 @@ export function UserSettingsModal() {
           <span className="sr-only">User Settings</span>
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[900px] bg-secondary w-full h-[30vh] sm:h-[50vh] p-4 sm:p-6 flex flex-col">
+      <DialogContent className="sm:max-w-[900px] bg-secondary w-full h-[30vh] sm:h-[90vh] p-4 sm:p-6 flex flex-col">
         <DialogHeader>
           <DialogTitle>User Settings</DialogTitle>
         </DialogHeader>
@@ -85,10 +85,10 @@ export function UserSettingsModal() {
             {!isMobile && (
               <>
                 <TabsContent value="dashboard">
-                  <DashboardTab />
+                  <DashboardTab totalAmount={totalAmount} totalProfit={totalProfit} totalDeposit={totalDeposit}/>
                 </TabsContent>
                 <TabsContent value="personal">
-                  <PersonalInfoTab />
+                  <PersonalInfoTab userData={userData} />
                 </TabsContent>
                 <TabsContent value="withdrawal">
                   <WithdrawalTab />

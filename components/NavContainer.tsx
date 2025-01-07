@@ -1,5 +1,5 @@
 import React, {useState, useEffect, ReactNode} from 'react';
-import {Tabs, Tab, Card, CardBody, Switch, Input, Button, Accordion, AccordionItem} from "@nextui-org/react";
+import {Tabs, Tab, Card, CardBody, Switch, Input, Button, Accordion, AccordionItem, Divider} from "@nextui-org/react";
 import {
     MdAccountBalance,
     MdCloud,
@@ -16,6 +16,7 @@ import {Ping} from "@uiball/loaders";
 import {marketWatchCrypto, marketWatchForex, marketWatchMetals, marketWatchStocks} from "@/components/marketWatch";
 import {SearchIcon} from "lucide-react";
 import {RiVipCrown2Line} from "react-icons/ri";
+import {GetUserActiveTrans} from "@/actions/form";
 
 const NavContainer = ({sendDataToParent}) => {
     const [active,setActive] = useState<boolean>(false);
@@ -30,11 +31,15 @@ const NavContainer = ({sendDataToParent}) => {
     const [chartData, setChartData] = useState([])
     const [tradingNews,setTradingNews] = useState([])
     const [listsData,setListsData] = useState([])
+    const [activeOrders,setActiveOrders] = useState([])
+    const [loading, setLoading] = useState(true);
     const [tickersData, setTickersData] = useState([])
-
-    const selectedTicker = (ticker, tickerType) => {
+    const [currentPrice, setCurrentPrice] = useState(0)
+    const [marketData, setMarketData] = useState(null);
+    const selectedTicker = (ticker, tickerType, tickerName) => {
+        console.log(tickerName)
         setTicker(ticker)
-        sendDataToParent(ticker,true,tickerType[0])
+        sendDataToParent(ticker,true,tickerType[0], tickerName)
         setInput('');
         setSearchData([]);
     }
@@ -55,6 +60,20 @@ const NavContainer = ({sendDataToParent}) => {
     //         </>
     //     )
     // }
+    function calculateProfitLossBUY(volumeEUR, entryPrice, exitPrice) {
+        const priceDifference = exitPrice - entryPrice;
+        const profitLoss = (volumeEUR * priceDifference);
+        return profitLoss.toFixed(2);
+
+    }
+    function calculateProfitLossSELL(volumeEUR, entryPrice, exitPrice) {
+        const priceDifference =  entryPrice - exitPrice;
+        const profitLoss = (volumeEUR * priceDifference) ;
+        return profitLoss.toFixed(2);
+
+    }
+
+
     const postData = data => {
         return fetch('http://localhost:8080/trade', {
             method: 'POST',
@@ -106,21 +125,36 @@ const NavContainer = ({sendDataToParent}) => {
             })
             .catch(e => console.log(e));
     }
+    const getListOrders = async() => {
+        const getTransactions = await GetUserActiveTrans()
+        setActiveOrders(getTransactions)
+    }
     useEffect(()=> {
-        // getNewsData()
-        // getListData()
-        // getTickersData()
+        const fetchMarketData = async () => {
+            try {
+                const response = await fetch('/api/market');
+                if (!response.ok) {
+                    throw new Error('Failed to fetch market data');
+                }
+                const data = await response.json();
+                setMarketData(data);
+            } catch (error) {
+                console.error('Error fetching market data:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchMarketData();
+        getListOrders()
         const intervalTicker = setInterval(()=>{
             getTickersDataBinance()
         },1000)
-        // if (ticker) {
-        //     updateTickerData(ticker)
-        // }
         return () =>{
             clearInterval(intervalTicker);
         }
     },[ticker])
-
+    console.log(marketData)
     const getTickersData = async () => {
         const response = await fetch('https://api.bitget.com/api/spot/v1/market/tickers')
         const {data} = await response.json();
@@ -204,7 +238,7 @@ const NavContainer = ({sendDataToParent}) => {
                                                         ticker.symbol.toLowerCase() == item.toLowerCase() + "t" && ticker.lastId !== -1 &&
 
                                                         <li key={index} onClick={()=>{
-                                                            selectedTicker(ticker.symbol.toLowerCase(),marketWatchCrypto[2])
+                                                            selectedTicker(ticker.symbol.toLowerCase(),marketWatchCrypto[2],marketWatchCrypto[0][index])
                                                         }}
                                                             className='w-full flex gap-4 px-2 py-2 relative justify-start items-center border-1 border-muted hover:bg-secondary hover:cursor-pointer'>
                                                             <div className={`symbol symbol-${item}`}>
@@ -228,7 +262,7 @@ const NavContainer = ({sendDataToParent}) => {
                                         <ul className="flex flex-col w-full h-full">
                                             {marketWatchStocks[1].map((item, index) => (
                                                 <li key={index} onClick={()=>{
-                                                    selectedTicker(item,marketWatchStocks[2])
+                                                    selectedTicker(item,marketWatchStocks[2],marketWatchStocks[0][index])
                                                 }}
                                                     className='w-full flex gap-4 px-6 py-2 justify-start items-center border-1 border-muted hover:bg-secondary hover:cursor-pointer'>
                                                     <div className={`symbol symbol-${item}`}>
@@ -245,7 +279,7 @@ const NavContainer = ({sendDataToParent}) => {
                                         <ul className="flex flex-col w-full h-full">
                                             {marketWatchForex[1].map((item, index) => (
                                                 <li key={index}  onClick={()=>{
-                                                    selectedTicker(item,marketWatchForex[2])
+                                                    selectedTicker(item,marketWatchForex[2],marketWatchForex[0][index])
                                                 }}
                                                     className='w-full flex gap-4 px-6 py-2 justify-start items-center border-1 border-muted hover:bg-secondary hover:cursor-pointer'>
                                                     <div className={`symbol symbol-${item}`}>
@@ -262,6 +296,9 @@ const NavContainer = ({sendDataToParent}) => {
                                         <ul className="flex flex-col w-full h-full">
                                             {marketWatchMetals[1].map((item, index) => (
                                                 <li key={index}
+                                                    onClick={()=>{
+                                                        selectedTicker(item,marketWatchForex[2],marketWatchMetals[0][index])
+                                                    }}
                                                     className='w-full flex gap-4 px-6 py-2 justify-start items-center border-1 border-muted hover:bg-secondary hover:cursor-pointer'>
                                                     <div className={`symbol symbol-${item}`}>
 
@@ -298,21 +335,28 @@ const NavContainer = ({sendDataToParent}) => {
                             <div className="flex flex-col h-[80vh] w-full items-start relative justify-start pt-2 overscroll-x-none overscroll-y-auto overflow-x-hidden overflow-y-auto">
                                 <p className='text-xl font-bold text-center mx-auto w-full pb-6'>Active orders</p>
                                 <div className="flex flex-row items-center justify-around w-full bg-secondary">
-                                    <Button disableRipple={true} radius='none' fullWidth={true} color='default' variant='light' className={`p-5 bg-background ${activeBtn ? 'bg-secondary' : ''}`}
-                                            onClick={()=>{setActiveBtn(true)}}
-                                    >
-                                        Active
-                                    </Button>
-                                    {/*<div className="border-r-2 border-border">|</div>*/}
-                                    <Button radius='none' disableRipple={true} fullWidth={true} color='default' variant='light' className={`p-5 bg-background border-l-1 border-border ${activeBtn ? '' : 'bg-secondary'}`}
-                                            onClick={()=>{setActiveBtn(false)}}>
-                                        Pending
-                                    </Button>
+                                    <Divider/>
                                 </div>
-                                <div className="flex flex-col items-center justify-center h-full w-full">
-                                    <MdImportExport size={64}/>
-                                    <p className="text-muted-foreground text-xl w-[70%] flex text-center items-center justify-center text-mono mx-auto">You have no open position yet</p>
-                                </div>
+                                {
+                                    activeOrders.length != 0 ?
+                                        activeOrders.map((item,index)=>(
+                                            <>
+                                                <div key={index} className={'flex items-center gap-6 border-border border-1 w-full justify-start'}>
+                                                    <p className={'p-2'}>{item.ticker}</p>
+                                                    <p className={'p-2'}>{item.type}</p>
+                                                    <p className={'p-2'}>{item.openIn}</p>
+                                                    <p className={'p-2'}>{item.type == "SELL" ? calculateProfitLossSELL(parseFloat(item.volume), parseFloat(item.openIn), currentPrice) : calculateProfitLossBUY()}</p>
+                                                </div>
+                                                <br/>
+                                            </>
+                                        ))
+
+                                        :     <div className="flex flex-col items-center justify-center h-full w-full">
+                                            <MdImportExport size={64}/>
+                                            <p className="text-muted-foreground text-xl w-[70%] flex text-center items-center justify-center text-mono mx-auto">You have no open position yet</p>
+                                        </div>
+                                }
+
                             </div>
                         </CardBody>
                     </Card>
@@ -338,55 +382,55 @@ const NavContainer = ({sendDataToParent}) => {
                         </CardBody>
                     </Card>
                 </Tab>
-                <Tab className='w-full' title={
-                    <div
-                        className="flex flex-col w-full h-full justify-center items-center  py-6 px-4 hover:cursor-pointer">
-                        <RiVipCrown2Line size={32}/>
-                        <div className='text-center pt-2 uppercase text-pretty'>VIP</div>
-                    </div>
-                }>
-                    <Card radius='none'  className='bg-popover border-border h-full border-2'>
-                        <CardBody className='h-full py-3 px-0'>
-                            <div
-                                className="flex flex-col h-[80vh] w-full items-start relative justify-start pt-2 overscroll-x-none overscroll-y-auto overflow-x-hidden overflow-y-auto">
-                                <p className='text-xl font-bold text-center mx-auto w-full pb-6'>VIP Accounts</p>
-                                <div className="flex flex-col items-center justify-center h-full w-full">
-                                    <MdHistory size={64} className={'animate-bounce'}/>
-                                    <p className="text-muted-foreground text-xl w-[70%] flex text-center items-center justify-center text-mono mx-auto">
-                                        Processing</p>
-                                </div>
-                            </div>
-                        </CardBody>
-                    </Card>
-                </Tab>
-                <Tab className='w-full h-full' title={
-                    <div
-                        className="flex flex-col w-full h-full justify-center items-center  py-6 px-4 hover:cursor-pointer">
-                        <MdNewspaper size={32}/>
-                        <div className='text-center pt-2 uppercase text-pretty'>INFO</div>
-                    </div>
-                }>
-                    <Card radius='none' className='bg-popover border-border h-full border-2'>
-                        <CardBody className='h-full py-3 px-0'>
-                            <div className="flex flex-col h-[80vh] w-full items-start relative justify-start gap-2 pt-2 overscroll-x-none overscroll-y-auto overflow-x-hidden overflow-y-auto">
-                                <p className='text-xl font-bold text-center mx-auto w-full pb-6'>INFO</p>
-                                {tradingNews.length > 0 && tradingNews.map((item, index) => (
-                                    <div key={index} className='bg-secondary p-3 m-3'>
-                                        <h2 className="text-xl font-bold mb-3">{item.title}</h2>
-                                        <span className="text-md text-muted-foreground ">{item.description}</span>
-                                        {/* {item.title} */}
-                                    </div>
-                                ))}
-                                {/* {
-                                    tradingNews && 
-                                    <div>
-                                    
-                                    <div/>
-                                } */}
-                            </div>
-                        </CardBody>
-                    </Card>
-                </Tab>
+                {/*<Tab className='w-full' title={*/}
+                {/*    <div*/}
+                {/*        className="flex flex-col w-full h-full justify-center items-center  py-6 px-4 hover:cursor-pointer">*/}
+                {/*        <RiVipCrown2Line size={32}/>*/}
+                {/*        <div className='text-center pt-2 uppercase text-pretty'>VIP</div>*/}
+                {/*    </div>*/}
+                {/*}>*/}
+                {/*    <Card radius='none'  className='bg-popover border-border h-full border-2'>*/}
+                {/*        <CardBody className='h-full py-3 px-0'>*/}
+                {/*            <div*/}
+                {/*                className="flex flex-col h-[80vh] w-full items-start relative justify-start pt-2 overscroll-x-none overscroll-y-auto overflow-x-hidden overflow-y-auto">*/}
+                {/*                <p className='text-xl font-bold text-center mx-auto w-full pb-6'>VIP Accounts</p>*/}
+                {/*                <div className="flex flex-col items-center justify-center h-full w-full">*/}
+                {/*                    <MdHistory size={64} className={'animate-bounce'}/>*/}
+                {/*                    <p className="text-muted-foreground text-xl w-[70%] flex text-center items-center justify-center text-mono mx-auto">*/}
+                {/*                        Processing</p>*/}
+                {/*                </div>*/}
+                {/*            </div>*/}
+                {/*        </CardBody>*/}
+                {/*    </Card>*/}
+                {/*</Tab>*/}
+                {/*<Tab className='w-full h-full' title={*/}
+                {/*    <div*/}
+                {/*        className="flex flex-col w-full h-full justify-center items-center  py-6 px-4 hover:cursor-pointer">*/}
+                {/*        <MdNewspaper size={32}/>*/}
+                {/*        <div className='text-center pt-2 uppercase text-pretty'>INFO</div>*/}
+                {/*    </div>*/}
+                {/*}>*/}
+                {/*    <Card radius='none' className='bg-popover border-border h-full border-2'>*/}
+                {/*        <CardBody className='h-full py-3 px-0'>*/}
+                {/*            <div className="flex flex-col h-[80vh] w-full items-start relative justify-start gap-2 pt-2 overscroll-x-none overscroll-y-auto overflow-x-hidden overflow-y-auto">*/}
+                {/*                <p className='text-xl font-bold text-center mx-auto w-full pb-6'>INFO</p>*/}
+                {/*                {tradingNews.length > 0 && tradingNews.map((item, index) => (*/}
+                {/*                    <div key={index} className='bg-secondary p-3 m-3'>*/}
+                {/*                        <h2 className="text-xl font-bold mb-3">{item.title}</h2>*/}
+                {/*                        <span className="text-md text-muted-foreground ">{item.description}</span>*/}
+                {/*                        /!* {item.title} *!/*/}
+                {/*                    </div>*/}
+                {/*                ))}*/}
+                {/*                /!* {*/}
+                {/*                    tradingNews && */}
+                {/*                    <div>*/}
+                {/*                    */}
+                {/*                    <div/>*/}
+                {/*                } *!/*/}
+                {/*            </div>*/}
+                {/*        </CardBody>*/}
+                {/*    </Card>*/}
+                {/*</Tab>*/}
             </Tabs>
         </div>
     );

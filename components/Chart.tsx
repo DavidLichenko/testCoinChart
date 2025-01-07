@@ -1,15 +1,12 @@
 import React, { useEffect, useRef, useState } from "react";
 import { createChart, WatermarkOptions } from "lightweight-charts";
-import {socket} from "@/app/socket";
 import {GetStockData, GetWebSocketStockData} from "@/actions/form";
 import {Ping} from "@uiball/loaders";
 import { useTheme } from 'next-themes'
 import {Skeleton} from "@/components/ui/skeleton";
-import $ from 'jquery';
-import yahooFinance from 'yahoo-finance2';
-import axios  from "axios";
 
-const Chart = ({ticker,tickerType,sendCurrentPrice,OpenIn,CloseIn,addTPPriceLine,addSLPriceLine, currentHeight}) => {
+
+const Chart = ({ticker,tickerType,sendCurrentPrice,OpenIn,CloseIn,addTPPriceLine,addSLPriceLine, currentHeight, tickerName}) => {
     const ref = useRef();
     const [chartHeight, setChartHeight] = useState(0);
     const [currentPrice,setCurrentPrice] = useState(0.000)
@@ -60,7 +57,7 @@ const Chart = ({ticker,tickerType,sendCurrentPrice,OpenIn,CloseIn,addTPPriceLine
             .then(response => response.json()) // parses JSON response into native JavaScript objects
     }
 
-    const sockets = [];
+
     async function ForexCh({chart}) {
         const candlestickSeries = chart.addCandlestickSeries();
         fetch(
@@ -85,65 +82,6 @@ const Chart = ({ticker,tickerType,sendCurrentPrice,OpenIn,CloseIn,addTPPriceLine
                 candlestickSeries.setData(cdata);
             })
             .catch((err) => console.log(err));
-    }
-    async function ForexChart({chart}) {
-        const candlestickSeries = chart.addCandlestickSeries();
-        fetch(
-            `https://marketdata.tradermade.com/api/v1/timeseries?currency=EURUSD&api_key=FvZ0U8fmsqsqsH95WU3b&start_date=2024-4-10&format=records`
-        )
-            .then((res) => res.json())
-            .then((data) => {
-                // const timestamp = data.date_time.split('-')[0]
-                // console.log(data)
-                const cdata = data.quotes.map((d) => {
-                    return {
-                        time: Date.parse(d.date) / 1000,
-                        open: parseFloat(d.open),
-                        high: parseFloat(d.high),
-                        low: parseFloat(d.low),
-                        close: parseFloat(d.close),
-                    };
-                });
-
-
-                candlestickSeries.setData(cdata);
-            })
-            .catch((err) => console.log(err));
-        socket.on('channel2', (foo) => {
-            // console.log(JSON.parse(foo))
-            const forexArr = foo
-            const datArr = []
-            datArr.push(forexArr)
-            const interval = 60; // 1 minute interval
-            let ohlcData = {
-                timestamp: undefined,
-                low: undefined,
-                high: undefined,
-                close: undefined
-            };
-            const ohlcArr = []
-            for (const data of datArr) {
-                // const dataToObj = JSON.parse(data)
-                const timestamp = Date.parse(data[2]) / 1000;
-                const roundedTimestamp = Math.floor((timestamp + (5 * 3600) + (30 * 60)) / interval) * interval;
-                if (ohlcArr[roundedTimestamp] == ohlcData.timestamp) {
-                    ohlcArr[roundedTimestamp] = {
-                        timestamp: roundedTimestamp + (5 * 3600) + (30 * 60), // Corrected timestamp
-                        low: data[4],
-                        high: data[4],
-                        open: data[4],
-                        close: data[4]
-                    }
-                } else {
-                    ohlcData.timestamp = ohlcArr[roundedTimestamp].timestamp
-                    ohlcData.low = Math.min(ohlcArr[roundedTimestamp].low, data[4]);
-                    ohlcData.high = Math.max(ohlcArr[roundedTimestamp].high, data[4]);
-                    ohlcData.close = data[4];
-                }
-            }
-
-            return ohlcArr
-        });
     }
     // function handler(params,chart) {
     //     const line = params.customPriceLine;
@@ -425,21 +363,21 @@ const Chart = ({ticker,tickerType,sendCurrentPrice,OpenIn,CloseIn,addTPPriceLine
                     candlestickSeries.setData(cdata);
                 })
                 .catch((err) => console.log(err));
-            socket.on('channel2', (foo) => {
-                const responseObject = foo;
-                const {TIME, OPEN, HIGH, LOW, CLOSE} = responseObject.OHLC[0];
-                setCurrentPrice(parseFloat(CLOSE))
-                sendCurrentPrice(parseFloat(CLOSE))
-                const kData = {
-                    time: Date.parse(TIME),
-                    open:  parseFloat(OPEN),
-                    high: parseFloat(HIGH),
-                    low: parseFloat(LOW),
-                    close: parseFloat(CLOSE),
-                };
-                candlestickSeries.update(kData);
-
-            });
+            // socket.on('channel2', (foo) => {
+            //     const responseObject = foo;
+            //     const {TIME, OPEN, HIGH, LOW, CLOSE} = responseObject.OHLC[0];
+            //     setCurrentPrice(parseFloat(CLOSE))
+            //     sendCurrentPrice(parseFloat(CLOSE))
+            //     const kData = {
+            //         time: Date.parse(TIME),
+            //         open:  parseFloat(OPEN),
+            //         high: parseFloat(HIGH),
+            //         low: parseFloat(LOW),
+            //         close: parseFloat(CLOSE),
+            //     };
+            //     candlestickSeries.update(kData);
+            //
+            // });
 
             // StocksChart()
             // TickerStock()
@@ -542,16 +480,16 @@ const Chart = ({ticker,tickerType,sendCurrentPrice,OpenIn,CloseIn,addTPPriceLine
             chart.applyOptions({
                 layout: {
                     textColor: theme === 'light' ? '#000' : 'white',
-                    background: { color: theme === 'light' ? '#ffffff' : 'hsl(224 71.4% 4.1%)'},
+                    background: { color: theme === 'light' ? '#ffffff' : 'hsl(233,94%,7%)'},
                 },
             })
         }
         if(tickerType === 'Forex' || tickerType === 'F') {
-            prepareChart(chart, socket);
+            prepareChart(chart, ws);
             chart.applyOptions({
                 layout: {
                     textColor: theme === 'light' ? '#000' : 'white',
-                    background: { color: theme === 'light' ? '#ffffff' : 'hsl(224 71.4% 4.1%)'},
+                    background: { color: theme === 'light' ? '#ffffff' : 'hsl(233,94%,7%)'},
                 },
             })
         }
@@ -560,7 +498,7 @@ const Chart = ({ticker,tickerType,sendCurrentPrice,OpenIn,CloseIn,addTPPriceLine
             chart.applyOptions({
                 layout: {
                     textColor: theme === 'light' ? '#000' : 'white',
-                    background: { color: theme === 'light' ? '#ffffff' : 'hsl(224 71.4% 4.1%)'},
+                    background: { color: theme === 'light' ? '#ffffff' : 'hsl(233,94%,7%)'},
                 },
             })
         }
@@ -574,7 +512,6 @@ const Chart = ({ticker,tickerType,sendCurrentPrice,OpenIn,CloseIn,addTPPriceLine
         }
 
         return ()=>{
-            socket.disconnect()
             ws.close()
         }
     }, [ticker,currentHeight,theme]);
@@ -582,12 +519,16 @@ const Chart = ({ticker,tickerType,sendCurrentPrice,OpenIn,CloseIn,addTPPriceLine
     return (
         <>
             {currentHeight ?
-                <div ref={ref} className='relative'>
+                <>
                     <div
-                        className='absolute capitalize top-5 pl-6 pr-12 py-1.5 border-border border-1 left-6 z-50 text-muted-foreground font-bold'>
-                        {ticker} ~ 1 ~ AragonTrade
+                        className='sticky capitalize top-5 pl-6 pr-12 py-1.5 border-border border-1 left-6 z-[30] bg-background text-muted-foreground font-bold'>
+                        {tickerName} ~ 1 ~ AragonTrade
                     </div>
-                </div>
+                    <div ref={ref} className='relative'>
+
+                    </div>
+
+                </>
                 :
                 <Skeleton
                     className='w-full h-[750px]  border-2  bg-background flex items-center justify-center basis-full grow'>

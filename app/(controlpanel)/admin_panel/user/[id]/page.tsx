@@ -118,7 +118,7 @@ export default  function Page({
         },
         {
             title: "Live Chat",
-            url: "/chat",
+            url: "/livechat",
             baseUrl:'/admin_panel/user/'
 
         },

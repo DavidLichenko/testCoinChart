@@ -7,10 +7,10 @@ import { Menu, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 const tabItems = [
-  { id: 'home', label: 'Home' },
-  { id: 'about', label: 'About' },
-  { id: 'services', label: 'Services' },
-  { id: 'contact', label: 'Contact' },
+  { id: 'home', label: 'Active Orders' },
+  { id: 'about', label: 'History' },
+  { id: 'services', label: 'VIP' },
+  { id: 'chat', label: 'Chat' },
 ]
 
 export function NavigationMenu({ onTabChange }: { onTabChange: (tabId: string) => void }) {
@@ -38,11 +38,11 @@ export function NavigationMenu({ onTabChange }: { onTabChange: (tabId: string) =
           <Button
             variant="ghost"
             size="icon"
-            className="fixed top-4 right-4 z-[1000]"
+            className="fixed top-4 left-4 z-[40]"
             onClick={toggleMenu}
             aria-label={isOpen ? 'Close menu' : 'Open menu'}
           >
-            {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6 " />}
+            {isOpen ? <X className="h-6 w-6 z-[1000]" /> : <Menu className="h-6 w-6 " />}
           </Button>
           <AnimatePresence>
             {isOpen && (
@@ -54,7 +54,17 @@ export function NavigationMenu({ onTabChange }: { onTabChange: (tabId: string) =
                 transition={{ duration: 0.3 }}
                 className="fixed top-0 left-0 w-full h-full inset-0 bg-background z-[900]"
               >
+
                 <div className="flex h-full flex-col items-center justify-center space-y-8">
+                  <Button
+                      variant="ghost"
+                      size="icon"
+                      className="fixed top-4 right-4 z-[900]"
+                      onClick={toggleMenu}
+                      aria-label={isOpen ? 'Close menu' : 'Open menu'}
+                  >
+                    {isOpen ? <X className="h-6 w-6 z-[1000]" /> : <Menu className="h-6 w-6 " />}
+                  </Button>
                   {tabItems.map((item) => (
                     <Button
                       key={item.id}

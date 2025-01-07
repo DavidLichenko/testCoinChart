@@ -452,7 +452,7 @@ export const marketWatchStocks = [
         'CM',
         'DG',
         'EL',
-        'FB',
+        'META',
         'FP',
         'GE',
         'GL',
@@ -522,7 +522,7 @@ export const marketWatchStocks = [
         'IBM',
         'IMO',
         'INO',
-        'ITX',
+        'IDEXF',
         'JNJ',
         'JPM',
         'KGC',
@@ -776,22 +776,20 @@ export const marketWatchForex = [
 ]
 export const marketWatchMetals = [
     [
-        'Copper',
-        'XPD/USD',
-        'XPT/USD',
-        'Aluminium',
+        'Palladium',
+        'Platinum',
+        'Natural Gas',
+        'CRUDE OIL',
         'Silver',
         'Gold',
-        'Nickel / US Dollar'
     ],
     [
-        'HG',
-        'PA',
-        'PL',
-        'ALI',
+        'XPDUSD',
+        'NATGAS',
+        'UKOIL',
+        'XPTUSD',
         'XAGUSD',
         'XAUUSD',
-        'XNIUSD'
     ],
     ['Metals']
 ]

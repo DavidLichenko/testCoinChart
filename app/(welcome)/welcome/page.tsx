@@ -1,328 +1,173 @@
+// app/page.tsx
 'use client'
-import React, {ReactNode} from 'react';
+import Image from "next/image";
 import Logo from "@/components/Logo";
 import Link from "next/link";
 import ThemeSwitcher from "@/components/ThemeSwitcher";
-import Image from 'next/image'
-import Support from '@/components/images/support.png'
-import Safe from '@/components/images/safe.png'
-import Create from '@/components/images/create.png'
-import Login from '@/components/images/login.png'
-import Manage from '@/components/images/manage.png'
-import {Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle} from "@/components/ui/card";
-import {Skeleton} from "@/components/ui/skeleton";
-import GetStartedBtn from "@/components/GetStartedBtn";
-import {TfiArrow} from "react-icons/tfi";
-import {ArrowLeft} from "lucide-react";
-import {BiRightArrowAlt} from "react-icons/bi";
+import React from "react";
+import HeroImg from "@/components/images/welcome/intro-img.webp"
+import BuiltIn from "@/components/images/welcome/profits-platform.webp"
+import AssetsTrade from "@/components/images/welcome/profits-weekends.webp"
+import ProfitProtection from "@/components/images/welcome/profits-protection.webp"
+import InstantDeposit from "@/components/images/welcome/profits-instant.webp"
+import CustomerSupport from "@/components/images/welcome/profits-support.webp"
+import FreeAnalytic from "@/components/images/welcome/download.webp"
+import LiveTrading from "@/components/images/welcome/download (1).webp"
+import TradeInvest from "@/components/images/welcome/bonus-image.webp"
+import Webinars from "@/components/images/welcome/goals-webinars.webp"
 import {useMediaQuery} from "react-responsive";
 
 
 
-function StatsCard({title, icon,  helperText, linkText, link, colorLink, className} : {
-                       title: string;
-                       icon: ReactNode;
-                       helperText: string;
-                       className: string;
-                       linkText:string;
-                       link:string;
-                       colorLink:string;
-
-                   }
-) {
-    return <Card className={className}>
-        <CardHeader className="flex flex-col items-center justify-center px-10">
-            <CardTitle className="text-2xl font-bold text-center">
-                <Image
-                    // @ts-ignore
-                    src={icon} className={'mb-10 mx-auto'} alt={''} />
-                {title}
-            </CardTitle>
-        </CardHeader>
-        <CardContent>
-            <p className="text-sm text-muted-foreground pt-2 ">{helperText}</p>
-            <Link href={link}>
-                <p className={`flex arrow-class gap-2 justify-center items-center text-sm text-${colorLink}-500 font-bold pt-5 text-left hover:text-${colorLink}-300 transition-colors duration-200`}>
-                    {linkText}
-                    <BiRightArrowAlt style={{ height: 24, width:24 }}/>
-                </p>
-
-            </Link>
-        </CardContent>
-    </Card>
-}
-
-function Page() {
-    const isMobile = useMediaQuery({ maxWidth: 768 })
+export default function Home() {
+    const isMobile = useMediaQuery({maxWidth: 768})
     return (
         <>
-            { isMobile ? <div>
+            <nav
+                className="flex justify-between items-center border-b border-border h-16 bg-gradient-to-b from-custom-950 to-custom-900 px-8 py-4 fixed w-full top-0 z-50">
+                <div className="flex gap-2 items-center ">
+                    <Logo/>
+                    <h2 className={'text-2xl font-bold'}><p>{isMobile ? "AT" : "Aragon Trade"}</p></h2>
+                </div>
+                <div className="flex gap-2 items-center ">
+                    <Link
+                        className='text-white border-border font-bold border-2 rounded-md px-6 py-1 transition-all  bg-transparent hover:bg-gray-200 hover:text-background'
+                        href="/sign-in">
+                        Sign in
+                    </Link>
+                    <Link
+                        className='text-white border-border font-bold border-2 rounded-md px-6 py-1 opacity-85 bg-gradient-to-r from-indigo-700 to-indigo-500 transition-all hover:opacity-100'
+                        href="/sign-up">
+                        Sign up
+                    </Link>
+                </div>
+            </nav>
+            <div className="bg-background">
 
-                    <nav
-                        className="flex justify-between items-center border-b border-border h-16 bg-background px-8 py-2 fixed w-full top-0">
-                        <div className="flex gap-2 items-center ">
-                            <Logo/>
-                        </div>
-                        <div className="flex gap-2 items-center ">
-                            <Link
-                                className='text-white border-border font-bold border-2 rounded-md px-6 py-1 transition-all  bg-transparent hover:bg-gray-200 hover:text-background'
-                                href="/sign-in">
-                                Sign in
+                {/* Hero Section */}
+                <section className="bg-secondary  h-full  py-16 mt-16">
+                    <div
+                        className="container flex md:flex-row flex-col mx-auto items-center  justify-center gap-12 text-white text-center">
+                        <div className={'flex flex-col md:w-2/3 '}>
+                            <h1 className="text-7xl font-bold text-left max-smart:text-5xl  md:w-2/3">Haz que tu dinero trabaje para ti</h1>
+                            <p className="mt-8 font-medium md:mt-4 text-xl w-1/2 text-pretty max-smart:w-full text-left">
+                                Empieza desde $100 y maximiza tus ingresos con nuestras condiciones únicas.
+                            </p>
+                            <Link href={'/sign-up'}
+                                className="mt-6 hidden md:block w-[200px] px-3 py-2 bg-white text-blue-900 font-bold rounded-md hover:bg-gray-100">
+                                EMPEZAR TRADING
                             </Link>
-                            <Link
-                                className='text-white border-border font-bold border-2 rounded-md px-6 py-1 opacity-85 bg-gradient-to-r from-indigo-700 to-indigo-500 transition-all hover:opacity-100'
-                                href="/sign-up">
-                                Sign up
-                            </Link>
+                        </div>
+                        <div>
+                            <Image width={512} height={512} alt={''} src={HeroImg}/>
+                        </div>
+                        <Link href={'/sign-up'}
+                            className="mt-6 block md:hidden w-[200px] px-3 py-2 bg-white text-blue-900 font-bold rounded-md hover:bg-gray-100">
+                            EMPEZAR TRADING
+                        </Link>
+                    </div>
+                </section>
 
-                            <div className="flex gap-2 items-center">
-                                <ThemeSwitcher/>
+                {/* Features Section */}
+                <section className="py-16 px-4 bg-foreground">
+                    <div className="container">
+                        <h2 className="text-2xl md:text-6xl  font-bold text-background text-left md:text-center">Disfruta de tus mayores beneficios con nosotros</h2>
+                        <p className="mt-4 text-md md:text-4xl text-left md:text-center text-background font-medium">
+                            Ofrecemos condiciones de mercado líderes para maximizar tu experiencia de trading.
+                        </p>
+                        <div className="grid  h-[70vh]  grid-cols-2 grid-rows-5 md:h-full md:grid-cols-4 md:grid-rows-2 gap-2 md:gap-8 mt-10  mx-auto text-background">
+                            <div className="col-span-2 md:col-span-1 md:row-span-2 bg-white  md:max-h-full px-5 py-4 md:py-10 rounded-lg flex items-center md:items-stretch flex-row-reverse md:flex-col md:justify-between">
+                                <h3 className="flex-1  text-md max-smart:text-small md:text-xl  font-medium ">Plataformas de trading todo en uno</h3>
+                                <div className="text-md mb-0 md:mb-4 flex flex-1  md:items-end md:justify-end"><Image  className={'md:relative -bottom-4'} width={isMobile ? 60 :128} height={isMobile ? 60 :128} alt={''} src={BuiltIn}/></div>
                             </div>
-                        </div>
-                    </nav>
-                    <main className="flex first_block flex-grow justify-center w-[100%] h-[100vh] px-20 mt-14">
-                        <div className="flex items-center justify-center flex-col">
-                            <div className="text mx-auto pb-20">
-                                <h2 className='text-5xl font-bold leading-relaxed'>
-                                    We make crypto <br/>
-                                    clear and simple
-                                </h2>
-
-                            </div>
-                            <GetStartedBtn/>
-                        </div>
-                    </main>
-                    <main className="flex flex-grow  justify-center w-full h-full px-20 my-20 mx-auto">
-                        <div className="flex flex-col items-center justify-between ">
-                            <div className="flex flex-col gap-10  flex-grow cards mx-auto pb-20">
-
-                                <StatsCard title={'Create'}
-                                    // @ts-ignore
-                                           icon={Create} link={'/sign-up'} colorLink={'blue'}
-                                           linkText={'Get Started'}
-                                           helperText={'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempos Lorem ipsum dolor'}
-                                           className="shadow-md shadow-blue-600 transition-all p-5 hover:shadow-xl hover:shadow-blue-600"/>
-                                <StatsCard title={'Login'}
-                                    // @ts-ignore
-                                           icon={Login} link={'/sign-in'} colorLink={'purple'}
-                                           linkText={'Login'}
-                                           helperText={'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempos Lorem ipsum dolor'}
-                                           className="shadow-md shadow-purple-600 p-5 transition-all hover:shadow-xl hover:shadow-purple-600"/>
-                                <StatsCard title={'Manage'}
-                                    // @ts-ignore
-                                           icon={Manage} link={'/sign-in'} colorLink={'pink'}
-                                           linkText={'Dashboard'}
-                                           helperText={'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempos Lorem ipsum dolor'}
-                                           className="shadow-md shadow-pink-600 p-5 transition-all hover:shadow-xl hover:shadow-pink-600  "/>
-                            </div>
-                        </div>
-                    </main>
-                    <main className="flex flex-grow justify-center w-full h-full px-20 my-20 mx-auto">
-                        <div className="flex flex-col items-center justify-between ">
-                            <div className="flex gap-2  flex-grow flex-col items-center mx-auto pb-20">
-                                <h2 className='text-5xl w-[70%] font-bold leading-relaxed text-center mx-auto'>
-                                    A crypto mining platform that invest in you
-                                </h2>
-                                <p className="text-xl text-center w-[60%] mx-auto text-muted-foreground py-14 ">Lorem
-                                    ipsum
-                                    dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempos Lorem ipsum
-                                    dolor</p>
-                                <GetStartedBtn/>
-                            </div>
-                        </div>
-                    </main>
-                    <main className="flex flex-grow justify-center w-full h-full px-20 my-20 mx-auto">
-                        <div className="flex flex-col items-center justify-between ">
-                            <div className="flex gap-2 flex-col  flex-grow items-center mx-auto pb-20">
-                                <div>
-                                    <Image src={Support} alt={'support'}/>
-                                </div>
-                                <div className='flex flex-col items-start w-full'>
-                                    <h2 className='text-5xl  font-bold leading-relaxed text-left mx-auto'>
-                                        24/7 access to full service customer support
-                                    </h2>
-                                    <p className="text-xl text-left  mx-auto text-muted-foreground py-14 ">Lorem ipsum
-                                        dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempos Lorem ipsum
-                                        dolor
-                                    </p>
-                                    <GetStartedBtn variant={'outline'} colors={'bg-innerhit border-4'}/>
-                                </div>
-                            </div>
-                        </div>
-                    </main>
-                    <main className="flex flex-grow justify-center w-full h-full px-20 my-20 mx-auto">
-                        <div className="flex flex-col items-center justify-between ">
-                            <div className="flex gap-2  flex-grow flex-col items-center mx-auto pb-20">
-                                <h2 className='text-5xl w-[70%] font-bold leading-relaxed text-center mx-auto'>
-                                    Buy and sell with the lowest fees in the industry
-                                </h2>
-                                <p className="text-xl text-center w-[60%] mx-auto text-muted-foreground py-14 ">Lorem
-                                    ipsum
-                                    dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempos Lorem ipsum dolor
-                                    sit
-                                    amet</p>
+                            <div className="row-start-2 col-span-2 md:row-start-auto md:col-span-2 bg-white md:max-h-full px-5 py-4 md:py-10 rounded-lg flex items-center md:items-stretch  flex-row-reverse md:flex-col md:justify-between">
+                                <h3 className="flex-1 text-md max-smart:text-small md:text-xl text-pretty w-[50%] font-medium">Activos para operar los fines de semana</h3>
+                                <div className="text-4xl mb-0 md:mb-4 flex flex-1 md:items-end md:justify-end"> <Image className={'md:relative -bottom-10'} width={isMobile ? 60 : 96} height={isMobile ? 60 : 96} alt={''} src={AssetsTrade}/></div>
                             </div>
                             <div
-                                className="crypto_tracking bg-gray-800 w-full h-full rounded-md flex flex-col items-center">
+                                className="row-span-2 row-start-3 md:row-span-full md:col-start-2 md:row-start-2 bg-white  px-5 py-4 md:py-10 gap-2 rounded-lg flex flex-col justify-between">
 
-                            </div>
-                        </div>
-                    </main>
-                    <main className="flex flex-grow justify-center w-full h-full px-20 mt-20 mx-auto">
-
-                        <div className="flex gap-2  flex-grow flex-col justify-center items-center mx-auto pb-20">
-                            <div>
-                                <Image src={Safe} alt={'safe'}/>
-                            </div>
-                            <div className='flex flex-col items-start w-full'>
-                                <h2 className='text-5xl  font-bold leading-relaxed text-left mx-auto'>
-                                    Take your first step into safe, secure crypto investing
-                                </h2>
-                                <p className="text-xl text-left  mx-auto text-muted-foreground py-14 ">
-                                    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempos Lorem
-                                    ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempos
-                                </p>
-                                <GetStartedBtn/>
-                            </div>
-
-
-                        </div>
-                    </main>
-
-
-                </div> :
-                <div className="flex flex-col min-h-screen min-w-full bg-background max-h-full">
-                    <nav
-                        className="flex justify-between items-center border-b border-border h-[120px] bg-background px-8 py-2 fixed w-full top-0">
-                        <div className="flex gap-4 items-center ">
-                            <Logo/>
-                        </div>
-                        <div className="flex gap-4 items-center ">
-                            <Link
-                                className='text-white border-border font-bold border-2 rounded-md px-6 py-1 transition-all  bg-transparent hover:bg-gray-200 hover:text-background'
-                                href="/sign-in">
-                                Sign in
-                            </Link>
-                            <Link
-                                className='text-white border-border font-bold border-2 rounded-md px-6 py-1 opacity-85 bg-gradient-to-r from-indigo-700 to-indigo-500 transition-all hover:opacity-100'
-                                href="/sign-up">
-                                Sign up
-                            </Link>
-
-                            <div className="flex gap-4 items-center">
-                                <ThemeSwitcher/>
-                            </div>
-                        </div>
-
-                    </nav>
-                    <main className="flex first_block flex-grow justify-center w-[100%] h-[100vh] px-20 mt-14">
-                        <div className="flex items-center justify-center flex-col">
-                            <div className="text mx-auto pb-20">
-                                <h2 className='text-5xl font-bold leading-relaxed'>
-                                    We make crypto <br/>
-                                    clear and simple
-                                </h2>
-
-                            </div>
-                            <GetStartedBtn/>
-                        </div>
-                    </main>
-                    <main className="flex flex-grow justify-center w-[70%] h-full px-20 my-20 mx-auto">
-                        <div className="flex flex-col items-center justify-between ">
-                            <div className="flex gap-10  flex-grow flex-row cards mx-auto pb-20">
-
-                                <StatsCard title={'Create'}
-                                    // @ts-ignore
-                                           icon={Create} link={'/sign-up'} colorLink={'blue'}
-                                           linkText={'Get Started'}
-                                           helperText={'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempos Lorem ipsum dolor'}
-                                           className="shadow-md shadow-blue-600 transition-all p-5 hover:shadow-xl hover:shadow-blue-600"/>
-                                <StatsCard title={'Login'}
-                                    // @ts-ignore
-                                           icon={Login} link={'/sign-in'} colorLink={'purple'}
-                                           linkText={'Login'}
-                                           helperText={'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempos Lorem ipsum dolor'}
-                                           className="shadow-md shadow-purple-600 p-5 transition-all hover:shadow-xl hover:shadow-purple-600"/>
-                                <StatsCard title={'Manage'}
-                                    // @ts-ignore
-                                           icon={Manage} link={'/dashboard'} colorLink={'pink'}
-                                           linkText={'Dashboard'}
-                                           helperText={'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempos Lorem ipsum dolor'}
-                                           className="shadow-md shadow-pink-600 p-5 transition-all hover:shadow-xl hover:shadow-pink-600  "/>
-                            </div>
-                        </div>
-                    </main>
-                    <main className="flex flex-grow justify-center w-[70%] h-full px-20 my-20 mx-auto">
-                        <div className="flex flex-col items-center justify-between ">
-                            <div className="flex gap-2  flex-grow flex-col items-center mx-auto pb-20">
-                                <h2 className='text-5xl w-[70%] font-bold leading-relaxed text-center mx-auto'>
-                                    A crypto mining platform that invest in you
-                                </h2>
-                                <p className="text-xl text-center w-[60%] mx-auto text-muted-foreground py-14 ">Lorem
-                                    ipsum
-                                    dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempos Lorem ipsum
-                                    dolor</p>
-                                <GetStartedBtn/>
-                            </div>
-                        </div>
-                    </main>
-                    <main className="flex flex-grow justify-center w-[70%] h-full px-20 my-20 mx-auto">
-                        <div className="flex flex-col items-center justify-between ">
-                            <div className="flex gap-2  flex-grow flex-row items-center mx-auto pb-20">
-                                <div>
-                                    <Image src={Support} alt={'support'}/>
+                                <h3 className="flex-1 text-md max-smart:text-small md:text-xl font-medium ">Depósitos {isMobile && <br/>} instantáneos</h3>
+                                <div className="text-4xl mb-3 md:mb-4 flex flex-1 items-end justify-end"><Image className={'md:relative -bottom-8'} width={isMobile ? 48 : 96} height={isMobile ? 48 : 96} alt={''} src={InstantDeposit}/>
                                 </div>
-                                <div className='flex flex-col items-start w-[50%]'>
-                                    <h2 className='text-5xl  font-bold leading-relaxed text-left mx-auto'>
-                                        24/7 access to full service customer support
-                                    </h2>
-                                    <p className="text-xl text-left  mx-auto text-muted-foreground py-14 ">Lorem ipsum
-                                        dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempos Lorem ipsum
-                                        dolor
-                                    </p>
-                                    <GetStartedBtn variant={'outline'} colors={'bg-innerhit border-4'}/>
+                            </div>
+                            <div
+                                className="row-span-2 row-start-3 md:row-span-full md:col-span-2 md:col-start-3 md:row-start-2 bg-white px-5 py-4 md:py-10 rounded-lg flex flex-col justify-between">
+                                <h3 className="flex-1 text-md max-smart:text-small md:text-xl font-medium">Soporte al cliente 24/7</h3>
+                                <div className="text-4xl mb-0 md:mb-4 flex flex-1 items-end justify-end"><Image className={'md:relative -bottom-14 -right-8'} width={isMobile ? 64 : 128} height={isMobile ? 64 : 128} alt={''}
+                                                                                                                src={CustomerSupport}/>
+                                </div>
+
+                            </div>
+                            <div
+                                className="col-span-2 row-start-5 md:col-span-full md:col-start-4 md:row-start-1 bg-white px-5 py-4 md:py-10 rounded-lg flex items-center md:items-stretch flex-row md:flex-col  h-full justify-between">
+                                <h3 className="flex-1 text-md max-smart:text-small md:text-xl font-medium ">Protección contra saldos negativos</h3>
+                                <div className="text-4xl mb-0 mt-4 md:mt-0 md:mb-0 flex flex-1 justify-end items-center md:items-end md:justify-end"><Image className={'relative -right-5 md:-bottom-14 md:-right-10'} width={isMobile ? 96 : 128} height={isMobile ? 96 : 128} alt={''}
+                                                                                                                                                            src={ProfitProtection}/>
                                 </div>
                             </div>
                         </div>
-                    </main>
-                    <main className="flex flex-grow justify-center w-[70%] h-full px-20 my-20 mx-auto">
-                        <div className="flex flex-col items-center justify-between ">
-                            <div className="flex gap-2  flex-grow flex-col items-center mx-auto pb-20">
-                                <h2 className='text-5xl w-[70%] font-bold leading-relaxed text-center mx-auto'>
-                                    Buy and sell with the lowest fees in the industry
-                                </h2>
-                                <p className="text-xl text-center w-[60%] mx-auto text-muted-foreground py-14 ">Lorem
-                                    ipsum
-                                    dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempos Lorem ipsum dolor sit
-                                    amet</p>
-                            </div>
-                            <div className="crypto_tracking bg-gray-800 w-[70%] h-full rounded-md flex flex-col items-center">
+                        <div className="mt-8 text-center">
+                            <Link href={'/sign-up'} className="px-6 py-3 bg-blue-900 text-white font-bold rounded-md hover:bg-blue-800">
+                                EMPEZAR TRADING
+                            </Link>
+                        </div>
+                    </div>
+                </section>
 
+                {/* Backup Section */}
+                <section className="py-16 px-4 bg-foreground text-secondary">
+                    <div className="container">
+                        <h2 className="text-6xl font-bold text-center max-smart:text-5xl">Logra tus objetivos con nuestro respaldo</h2>
+                        <p className="mt-4 text-center text-foreground">
+                            Proporcionamos los recursos y herramientas que necesitas para llevar tu trading al siguiente
+                            nivel.
+                        </p>
+                        <div className="grid grid-cols-1 grid-rows-3 md:grid-cols-2 md:grid-rows-2 gap-8 mt-10 mx-auto">
+                            <div className="md:row-span-1 bg-white px-5 py-10 rounded-lg flex flex-col  gap-4 text-left">
+                                <h3 className="text-4xl font-semibold  md:w-1/2 ">Sesiones de trading en vivo</h3>
+                                <p className="mt-2 text-xl text-gray-600 font-medium  md:w-1/2">Únete a nuestros expertos en tiempo real.</p>
+                                <div className="text-4xl mb-4 flex flex-1 items-center justify-center md:mt-0 mt-7"><Image width={256} height={256} alt={''}
+                                                                                                              src={FreeAnalytic}/></div>
+                            </div>
+                            <div className="md:row-span-1  bg-white px-5 py-10 rounded-lg flex flex-col gap-4 text-left">
+                                <h3 className="text-4xl font-semibold  md:w-1/2">Análisis gratuitos</h3>
+                                <p className="mt-2 text-xl text-gray-600 font-medium  md:w-1/2">Accede a análisis detallados y material educativo.</p>
+                                <div className="text-4xl mb-4 flex flex-1 items-center justify-center"><Image width={256} height={256} alt={''}
+                                                                                                              src={LiveTrading}/></div>
+                            </div>
+
+                            <div className="md:col-span-2 md:row-start-2 md:h-2/3 flex md:flex-row flex-col items-center md:justify-center bg-white p-5 rounded-lg text-left">
+                                <div className="flex flex-col">
+                                    <h3 className="text-4xl font-semibold mb-4 md:mb-0 md:w-1/2">Seminarios web regulares</h3>
+                                    <p className="mt-2 text-xl text-gray-600 font-medium md:w-1/2">Vea videos educativos con expertos del mercado en
+                                        nuestro canal de YouTube.</p>
+                                </div>
+                                <div className="text-4xl mb-4 md:mt-0 mt-14"><Image width={512} height={512} alt={''} src={Webinars}/></div>
                             </div>
                         </div>
-                    </main>
-                    <main className="flex flex-grow justify-center w-[70%] h-full px-20 my-20 mx-auto">
+                    </div>
+                </section>
 
-                        <div className="flex gap-2  flex-grow flex-row justify-center items-center mx-auto pb-20">
-                            <div className='flex flex-col items-start w-[50%]'>
-                                <h2 className='text-5xl  font-bold leading-relaxed text-left mx-auto'>
-                                    Take your first step into safe, secure crypto investing
-                                </h2>
-                                <p className="text-xl text-left  mx-auto text-muted-foreground py-14 ">
-                                    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempos Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempos
-                                </p>
-                                <GetStartedBtn />
-                            </div>
-                            <div>
-                                <Image src={Safe} alt={'safe'}/>
-                            </div>
-
+                {/* Promotion Section */}
+                <section className="py-16 px-4 bg-secondary">
+                    <div className="container flex md:flex-row flex-col mx-auto items-center  justify-center gap-12 text-white text-center">
+                        <div className={'flex flex-col md:w-2/3'}>
+                            <h1 className="text-7xl font-bold text-left md:w-2/3 max-smart:text-5xl">Opera más de lo que invertiste</h1>
+                            <p className="mt-4 text-xl md:w-1/2 max-smart:w-full text-pretty text-left">
+                                Aplica un bono del 50% a cada depósito y maximiza tu potencial de inversión.
+                            </p>
+                            <Link href={'/sign-up'}
+                                className="mt-6 w-[200px] font-bold px-3 py-2 bg-white text-blue-900 rounded-md hover:bg-gray-100">
+                                TRADEA CON BONOS
+                            </Link>
                         </div>
-                    </main>
-                </div>
-            }
+                        <div>
+                            <Image width={512} height={512} alt={''} src={TradeInvest}/>
+                        </div>
+                    </div>
+                </section>
+            </div>
         </>
     );
 }
-
-export default Page;

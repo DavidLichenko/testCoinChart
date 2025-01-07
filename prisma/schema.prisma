@@ -5,40 +5,41 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
   previewFeatures = ["driverAdapters"]
 }
 
 datasource db {
-  provider = "postgresql"
-  url = env("POSTGRES_PRISMA_URL") // uses connection pooling
+  provider  = "postgresql"
+  url       = env("POSTGRES_PRISMA_URL") // uses connection pooling
   directUrl = env("POSTGRES_URL_NON_POOLING") // uses a direct connection
 }
 
 model User {
-  id                String              @id @default(uuid())
-  email             String              @unique
-  password          String
-  name              String?
-  role              UserRole            @default(USER)
-  imageUrl          String?
-  provider          String?
-  status            UserStatus          @default(NEW)
-  providerId        String?
-  createdAt         DateTime            @default(now())
-  updatedAt         DateTime            @updatedAt
-  orders            Orders[]
-  trade_transaction Trade_Transaction[]
+  id                  String              @id @default(uuid())
+  email               String              @unique
+  password            String
+  name                String?
+  role                UserRole            @default(USER)
+  imageUrl            String?
+  provider            String?
+  status              UserStatus          @default(NEW)
+  providerId          String?
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+  orders              Orders[]
+  trade_transaction   Trade_Transaction[]
   user_crypto_address String?
-  deposit_message   String?
-  withdraw_error    String?
-  can_withdraw      Boolean               @default(true)
-  blocked           Boolean               @default(false)
-  balance           Balances[]
-  comments          Comments[]
-  isVerif           Boolean             @default(false)
-  verification      Verification[]
-  TotalBalance      Float?               @default(0)
+  deposit_message     String?
+  withdraw_error      String?
+  can_withdraw        Boolean             @default(true)
+  blocked             Boolean             @default(false)
+  balance             Balances[]
+  comments            Comments[]
+  isVerif             Boolean             @default(false)
+  verification        Verification[]
+  TotalBalance        Float?              @default(0)
+  messages            Message[]
 }
 
 model Orders {
@@ -84,25 +85,38 @@ model Verification {
   back_id_verif  Boolean? @default(false)
   front_id_image String?
   front_id_verif Boolean? @default(false)
-  street_address  String?
+  street_address String?
   city           String?
   zip_code       String?
   User           User     @relation(fields: [userId], references: [id])
 }
+
 model CryptoAddresses {
-  id                  Int      @id @default(autoincrement())
-  btc_address         String?
-  btc_BTCaddress      String?
-  eth_address         String?
-  ethERC20_address    String?
-  usdt_address        String?
-  usdtTRC20_address   String?
+  id                Int     @id @default(autoincrement())
+  btc_address       String?
+  btc_BTCaddress    String?
+  eth_address       String?
+  ethERC20_address  String?
+  usdt_address      String?
+  usdtTRC20_address String?
 }
+
 model Comments {
-  userId String @id
-  messages    Json?
-  User   User   @relation(fields: [userId], references: [id])
+  userId   String @id
+  messages Json?
+  User     User   @relation(fields: [userId], references: [id])
 }
+
+model Message {
+  id               String   @id @default(cuid())
+  content          String
+  imageUrl         String?
+  isSupportMessage Boolean  @default(false)
+  createdAt        DateTime @default(now())
+  userId           String
+  user             User     @relation(fields: [userId], references: [id])
+}
+
 enum OrderStatus {
   PENDING
   SUCCESSFUL
@@ -130,6 +144,11 @@ enum UserRole {
   ADMIN
   WORKER
   TEAMLEAD
+}
+
+enum UserMessage {
+  USER
+  SUPPORT
 }
 
 enum UserStatus {

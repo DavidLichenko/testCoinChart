@@ -19,10 +19,12 @@ const config = {
 			  'sans-serif',
 			  ...fontFamily.sans,
 		  ],
+		  display: ['Oswald', ],
+		  body: ['Roboto,RobotoDraft,Droid Sans,system-ui,-apple-system,BlinkMacSystemFont,sans-serif'],
 	  },
   	container: {
   		center: true,
-  		padding: '2rem',
+  		padding: '1rem',
   		screens: {
   			'2xl': '1400px'
   		}
@@ -71,7 +73,20 @@ const config = {
   				'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
   				border: 'hsl(var(--sidebar-border))',
   				ring: 'hsl(var(--sidebar-ring))'
-  			}
+  			},
+			custom: {
+				50: '#f4f4fb',
+				100: '#e8e8f6',
+				200: '#cbcdec',
+				300: '#9da2dc',
+				400: '#6870c8',
+				500: '#454fb2 ',
+				600: '#333996',
+				700: '#2b2e79',
+				800: '#01042e',
+				900: 'hsl(231, 97%, 14%)',
+				950: '#030307',
+			}
   		},
   		borderRadius: {
   			lg: 'var(--radius)',
@@ -99,7 +114,10 @@ const config = {
   		animation: {
   			'accordion-down': 'accordion-down 0.2s ease-out',
   			'accordion-up': 'accordion-up 0.2s ease-out'
-  		}
+  		},
+		screens: {
+			'smart': '400px',
+		},
   	}
   },
   plugins: [require("tailwindcss-animate"), nextui()],

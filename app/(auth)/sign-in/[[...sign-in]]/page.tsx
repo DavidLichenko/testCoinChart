@@ -59,11 +59,12 @@ const SignInForm = () => {
             {
                 isMobile ? <div>
                         <nav
-                            className="flex justify-between items-center border-b border-border h-16 bg-background px-8 py-2 mb-12 fixed w-full top-0">
-                            <div className="flex gap-4 items-center ">
+                            className="flex justify-between items-center border-b border-border h-16 bg-gradient-to-t from-custom-950 to-custom-900 px-8 py-4 fixed w-full top-0 z-50">
+                            <div className="flex gap-2 items-center ">
                                 <Logo/>
+                                <h2 className={'text-2xl font-bold'}><p>{isMobile ? "AT" : "Aragon Trade"}</p></h2>
                             </div>
-                            <div className="flex gap-4 items-center ">
+                            <div className="flex gap-2 items-center ">
                                 <Link
                                     className='text-white border-border font-bold border-2 rounded-md px-6 py-1 transition-all  bg-transparent hover:bg-gray-200 hover:text-background'
                                     href="/sign-in">
@@ -74,16 +75,11 @@ const SignInForm = () => {
                                     href="/sign-up">
                                     Sign up
                                 </Link>
-
-                                <div className="flex gap-4 items-center">
-                                    <ThemeSwitcher/>
-                                </div>
                             </div>
-
                         </nav>
 
                         <div
-                            className="flex flex-col h-screen items-center justify-center mx-auto w-full border-3 border-border rounded-lg px-12">
+                            className="flex flex-col h-screen items-center justify-center mx-auto w-full mt-8 border-3 border-border rounded-lg px-12 font-bold">
                             <div className="w-full flex items-center justify-center text-2xl my-2">Sign In</div>
 
                             <Form {...form}>
@@ -124,11 +120,6 @@ const SignInForm = () => {
                                         Sign in
                                     </Button>
                                 </form>
-                                <div
-                                    className='mx-auto my-4 flex w-full items-center justify-evenly before:mr-4 before:block before:h-px before:flex-grow before:bg-stone-400 after:ml-4 after:block after:h-px after:flex-grow after:bg-stone-400'>
-                                    or
-                                </div>
-                                <GoogleSignInButton>Sign in with Google</GoogleSignInButton>
                                 <p className='text-center text-sm text-gray-600 mt-2'>
                                     If you don&apos;t have an account, please&nbsp;
                                     <Link className='text-blue-500 hover:underline' href='/sign-up'>
@@ -141,13 +132,14 @@ const SignInForm = () => {
 
                     </div> :
 
-                    <div className={'h-screen flex-col flex justify-center'}>
+                    <div className={'h-screen flex-col flex justify-center font-bold'}>
                         <nav
-                            className="flex justify-between items-center border-b border-border h-[120px] bg-background px-8 py-2 mb-12 fixed w-full top-0">
-                            <div className="flex gap-4 items-center ">
+                            className="flex justify-between items-center border-b border-border h-16 bg-gradient-to-t from-custom-950 to-custom-900 px-8 py-4 fixed w-full top-0 z-50">
+                            <div className="flex gap-2 items-center ">
                                 <Logo/>
+                                <h2 className={'text-2xl font-bold'}><p>{isMobile ? "AT" : "Aragon Trade"}</p></h2>
                             </div>
-                            <div className="flex gap-4 items-center ">
+                            <div className="flex gap-2 items-center ">
                                 <Link
                                     className='text-white border-border font-bold border-2 rounded-md px-6 py-1 transition-all  bg-transparent hover:bg-gray-200 hover:text-background'
                                     href="/sign-in">
@@ -158,12 +150,7 @@ const SignInForm = () => {
                                     href="/sign-up">
                                     Sign up
                                 </Link>
-
-                                <div className="flex gap-4 items-center">
-                                    <ThemeSwitcher/>
-                                </div>
                             </div>
-
                         </nav>
                         <div
                             className="flex flex-col h-3/6 items-center justify-center mx-auto w-1/3 border-3 border-border rounded-lg px-12">
@@ -206,11 +193,6 @@ const SignInForm = () => {
                                         Sign in
                                     </Button>
                                 </form>
-                                <div
-                                    className='mx-auto my-4 flex w-full items-center justify-evenly before:mr-4 before:block before:h-px before:flex-grow before:bg-stone-400 after:ml-4 after:block after:h-px after:flex-grow after:bg-stone-400'>
-                                    or
-                                </div>
-                                <GoogleSignInButton>Sign in with Google</GoogleSignInButton>
                                 <p className='text-center text-sm text-gray-600 mt-2'>
                                     If you don&apos;t have an account, please&nbsp;
                                     <Link className='text-blue-500 hover:underline' href='/sign-up'>
