@@ -362,7 +362,7 @@ function Trade () {
                                             </div>
                                         </Button>
                                     </div>
-                                    <div className="flex gap-4 items-center mr-4">
+                                    <div className="flex gap-4 items-center">
                                         {userBalance ?
                                             <UserSettingsModal totalAmount={userBalance} totalDeposit={0} totalProfit={0} userData={currentUserData} /> :
                                             <UserSettingsModal totalAmount={0} totalDeposit={0} totalProfit={0} userData={{}} />

@@ -44,7 +44,7 @@ const SignUpForm = () => {
         resolver: zodResolver(FormSchema),
         defaultValues: {
             email: '',
-            number:'',
+            number:null,
             password: '',
             confirmPassword: '',
         },

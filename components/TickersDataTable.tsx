@@ -71,6 +71,7 @@ const MarketTable = () => {
         globalFilterFn: filterFns.includesString, // Default "includes" filter function
     });
 
+
     return (
         <div className="min-w-full rounded-md text-white">
             <GlobalFilter globalFilter={globalFilter} setGlobalFilter={setGlobalFilter} />
@@ -79,6 +80,7 @@ const MarketTable = () => {
                 {table.getHeaderGroups().map((headerGroup) => (
                     <tr key={headerGroup.id} className="bg-gray-700">
                         {headerGroup.headers.map((header) => (
+                            // @ts-ignore
                             <th key={header.id} className="p-2">
                                 {header.isPlaceholder ? null : header.column.columnDef.header}
                             </th>
