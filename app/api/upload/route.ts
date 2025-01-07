@@ -31,6 +31,7 @@ export async function POST(req: IncomingMessage) {
             }
 
             const uploadedFile = files.file;
+            // @ts-ignore
             const filePath = `/photos/${path.basename(uploadedFile.filepath)}`;
 
             resolve(
