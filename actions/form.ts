@@ -30,7 +30,7 @@ export async function GetWebSocketStockData(ticker:string) {
     }
     return await result
 }
-export async function CreateTradeTransaction(status,type,takeProfit,profit,ticker,leverage,openIn,closeIn,stopLoss,volume) {
+export async function CreateTradeTransaction(status: string, type: any, takeProfit: string | number | null, profit: null, ticker: string, leverage: string | number, openIn: string | number, closeIn: string | null, stopLoss: string | number | null, volume: number) {
     const session = await getServerSession(authOptions)
 
     const user = session.user;
