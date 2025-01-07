@@ -62,7 +62,7 @@ export function CreditCardForm() {
       <div className="mt-8">
         <h3 className="text-lg font-semibold text-custom-100 mb-4">Withdrawal History</h3>
         <div className="rounded-lg bg-custom-900/50 p-4 text-custom-300 text-center">
-          You don't have any withdrawal history
+          You don`&apos;`t have any withdrawal history
         </div>
       </div>
     </div>
