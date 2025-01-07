@@ -4,7 +4,7 @@ import next from 'next'
 import { Server } from 'socket.io'
 
 const dev = process.env.NODE_ENV !== 'production'
-const hostname = 'https://aragontrade.com'
+const hostname = 'https://www.aragon-trade.com'
 const port = 3000
 const app = next({ dev, hostname, port })
 const handle = app.getRequestHandler()
