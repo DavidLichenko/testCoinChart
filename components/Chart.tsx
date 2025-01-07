@@ -1,3 +1,4 @@
+"use client"
 import React, { useEffect, useRef, useState } from "react";
 import { createChart, WatermarkOptions } from "lightweight-charts";
 import {GetStockData, GetWebSocketStockData} from "@/actions/form";
