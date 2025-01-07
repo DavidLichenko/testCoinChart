@@ -41,7 +41,6 @@ import ModalAccount from "@/components/ModalAccount";
 import Chart from "@/components/Chart";
 import {IoMdCash} from "react-icons/io";
 import {MdArrowDownward, MdArrowUpward} from "react-icons/md";
-import {socket} from "@/app/socket";
 import {Checkbox} from "@nextui-org/checkbox";
 import {formSchemaType} from "@/schemas/form";
 import {toast} from "@/components/ui/use-toast";
@@ -57,7 +56,7 @@ import {useMediaQuery} from "react-responsive";
 import {MobileNav} from "@/components/mobile-nav";
 import {Sidebar} from "@/components/sidebar";
 import {Loader2} from "lucide-react";
-import MarketTable, {DataTableDemo} from "@/components/TickersDataTable";
+import MarketTable from "@/components/TickersDataTable";
 
 
 function Trade () {

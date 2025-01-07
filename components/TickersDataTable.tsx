@@ -6,7 +6,7 @@ import {
     useReactTable,
     getCoreRowModel,
     getFilteredRowModel,
-    filterFns,
+    filterFns, flexRender,
 } from "@tanstack/react-table";
 import {Input} from "@nextui-org/input";
 import {SearchIcon} from "lucide-react";
@@ -41,12 +41,11 @@ const MarketTable = () => {
     const [globalFilter, setGlobalFilter] = useState("");
 
     const columnHelper = createColumnHelper();
-    const columns = useMemo(
-        () => [
+    const columns = [
             columnHelper.accessor("market", {
                 header: "Mercado",
                 cell: (info) => (
-                    <div className={'flex '}><Image src={'https://axaforex.com/images/feature/eurusd.svg'} alt={''}/><p
+                    <div className={'flex relative -left-5 items-center'}><Image className={'relative -left-2'} width={32} height={32} src={'https://axaforex.com/images/feature/eurusd.svg'} alt={''}/><p
                         className={'font-bold'}>{info.getValue()}</p></div>
                 )
 
@@ -59,10 +58,7 @@ const MarketTable = () => {
                 header: "Comprar",
                 cell: (info) => info.getValue().toFixed(5),
             }),
-        ],
-        []
-    );
-
+    ]
     const table = useReactTable({
         data,
         columns,
@@ -76,7 +72,7 @@ const MarketTable = () => {
     });
 
     return (
-        <div className="min-w-full p-4 rounded-md text-white">
+        <div className="min-w-full rounded-md text-white">
             <GlobalFilter globalFilter={globalFilter} setGlobalFilter={setGlobalFilter} />
             <table className="w-full text-left border-collapse">
                 <thead>
@@ -95,7 +91,10 @@ const MarketTable = () => {
                     <tr key={row.id} className="border-t border-gray-600">
                         {row.getVisibleCells().map((cell) => (
                             <td key={cell.id} className="p-4 w-full">
-                                {cell.renderValue()}
+                                {flexRender(
+                                    cell.column.columnDef.cell,
+                                    cell.getContext()
+                                )}
                             </td>
                         ))}
                     </tr>
