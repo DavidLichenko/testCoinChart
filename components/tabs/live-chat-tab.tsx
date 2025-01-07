@@ -10,8 +10,9 @@ import { Send, Paperclip } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { GetCurrentData } from '@/actions/form';
 
-const socket = io('https://srv677099.hstgr.cloud', {
-  secure: true
+const socket = io("https://srv677099.hstgr.cloud", {
+  withCredentials: true, // Ensure credentials (cookies) are sent if needed
+  transports: ["websocket", "polling"], // Ensure compatibility with transport methods
 });
 
 export default function UserChat() {
