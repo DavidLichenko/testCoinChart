@@ -10,6 +10,8 @@ import {
     FormMessage,
 } from '@/components/ui/form';
 import * as z from 'zod';
+import validator from "validator";
+
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -24,7 +26,7 @@ import {useMediaQuery} from "react-responsive";
 const FormSchema = z
     .object({
         email: z.string().min(1, 'Email is required').email('Invalid email'),
-        number: z.number().min(6, 'Phone number is not correct'),
+        number: z.string().refine(validator.isMobilePhone),
         password: z
             .string()
             .min(1, 'Password is required')

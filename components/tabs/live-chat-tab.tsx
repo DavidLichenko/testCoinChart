@@ -11,22 +11,23 @@ import { Label } from '@/components/ui/label';
 import { GetCurrentData } from '@/actions/form';
 
 const socket = io('https://srv677099.hstgr.cloud', {
-  path: '/socket.io', // Specify the correct Socket.IO path
-  transports: ['websocket'], // Use WebSocket transport
-  withCredentials: true, // Include credentials in requests
+  path: '/socket.io',
+  transports: ['websocket'],
+  withCredentials: true,
 });
+
 export default function UserChat() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [file, setFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const [currentUser, setCurrentUser] = useState({ id: null });
+  const [currentUser, setCurrentUser] = useState({ id: null, isSupport: false });
 
   // Fetch initial messages and current user
   const fetchMessages = async () => {
     try {
-      const res = await fetch('/api/messages?userId=' + currentUser.id);
+      const res = await fetch(`/api/messages?userId=${currentUser.id}`);
       const data = await res.json();
       setMessages(data);
     } catch (error) {
@@ -51,7 +52,11 @@ export default function UserChat() {
     if (currentUser.id) {
       fetchMessages();
 
+      // Listen for incoming chat messages
       socket.on('chat message', (msg) => {
+
+        console.log(msg);
+        console.log('CHAT_MESSAGE')
         setMessages((prevMessages) => [...prevMessages, msg]);
       });
     }
@@ -59,7 +64,7 @@ export default function UserChat() {
     return () => {
       socket.off('chat message');
     };
-  }, [currentUser]);
+  }, []);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -91,8 +96,7 @@ export default function UserChat() {
         }
 
         const data = await res.json();
-        // Assuming the server returns the full URL for the image
-        imageUrl = data.fileUrl; // Directly use the URL returned from the server
+        imageUrl = data.fileUrl;
       } catch (error) {
         console.error('Error uploading file:', error);
         return;
@@ -103,7 +107,7 @@ export default function UserChat() {
       content: input.trim(),
       userId: currentUser.id,
       imageUrl,
-      isSupportMessage: false,
+      isSupportMessage: currentUser.isSupport,
     };
 
     try {
@@ -119,10 +123,10 @@ export default function UserChat() {
 
       const savedMessage = await res.json();
 
-      // Emit the message via Socket.IO
+      // Emit the message via Socket.IO for real-time updates
       socket.emit('chat message', savedMessage);
+      console.log(savedMessage)
 
-      // Clear input and reset file state
       setInput('');
       setFile(null);
       if (fileInputRef.current) {
@@ -143,15 +147,9 @@ export default function UserChat() {
             {messages.map((message) => (
                 <div
                     key={message.id}
-                    className={`mb-4 message ${
-                        message.isSupportMessage  ? 'text-left' : 'text-right'
-                    }`}
+                    className={`mb-4 ${message.isSupportMessage ? 'text-left' : 'text-right'}`}
                 >
-                  <p
-                      className={`${
-                          message.isSupportMessage ? 'text-blue-500' : 'text-white'
-                      }`}
-                  >
+                  <p className={`${message.isSupportMessage ? 'text-blue-500' : 'text-white'}`}>
                     {message.isSupportMessage ? 'Support' : 'You'}: {message.content}
                   </p>
                   {message.imageUrl && (
