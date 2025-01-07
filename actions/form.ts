@@ -7,24 +7,6 @@ import {authOptions} from "@/lib/auth";
 
 
 const arraySearchData: string[] = [];
-export async function getSearchData(el) {
-    // console.log(el)
-    if (!el){
-        return []
-    }
-    const headers = {
-        'Authorization': 'Token 5c5398add0e123606bb40277f4cb66352b386185',
-        'Content-Type': 'application/json'
-    };
-    const url = `https://api.tiingo.com/tiingo/utilities/search/${el}`
-
-    const response = await fetch(url,{ headers: headers })
-
-    return await response.json();
-}
-
-
-
 
 let price = '';
 
@@ -150,14 +132,14 @@ export async function GetUserById(id) {
         }
     })
 }
-export async function GetUserBalanceById(id) {
+export async function GetUserBalanceById(id: any) {
     return await prisma.balances.findUnique({
         where: {
             userId:id
         }
     })
 }
-export async function GetUserTransById(id) {
+export async function GetUserTransById(id: any) {
     const getTradeTransaction = await prisma.trade_Transaction.findMany({
         where: {
             userId:id
@@ -185,7 +167,7 @@ export async function GetUserActiveTrans() {
         return false
     }
 }
-export async function addComments(id,messages) {
+export async function addComments(id: any, messages: any) {
     console.log(messages)
     const updatedMessages = await prisma.comments.update({
         where: {
@@ -199,7 +181,7 @@ export async function addComments(id,messages) {
         console.log(messages)
     }
 }
-export async function getComments(id) {
+export async function getComments(id: any) {
     const getUserComments = await prisma.comments.findFirst({
         where: {
             userId:id,
@@ -237,7 +219,7 @@ export async function updateDataAboutUser(user_crypto_address, deposit_message, 
         }
     })
 }
-export async function updateDataAboutUserBalace(balance, id) {
+export async function updateDataAboutUserBalace(balance: any, id: any) {
     await prisma.balances.update({
         where:{
             userId: id,
@@ -247,7 +229,7 @@ export async function updateDataAboutUserBalace(balance, id) {
         }
     })
 }
-export async function UpdateUserBalance(profit) {
+export async function UpdateUserBalance(profit: string | number) {
     const session = await getServerSession(authOptions)
 
     const user = session.user;
