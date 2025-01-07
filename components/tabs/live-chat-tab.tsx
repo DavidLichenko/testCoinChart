@@ -10,9 +10,10 @@ import { Send, Paperclip } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { GetCurrentData } from '@/actions/form';
 
-const socket = io('wss://srv677099.hstgr.cloud/socket.io', {
-  transports: ['websocket'],  // WebSocket transport
-  withCredentials: true,       // Ensure credentials (if any) are passed
+const socket = io('https://srv677099.hstgr.cloud', {
+  path: '/socket.io', // Specify the correct Socket.IO path
+  transports: ['websocket'], // Use WebSocket transport
+  withCredentials: true, // Include credentials in requests
 });
 export default function UserChat() {
   const [messages, setMessages] = useState([]);
@@ -49,10 +50,9 @@ export default function UserChat() {
   useEffect(() => {
     if (currentUser.id) {
       fetchMessages();
+
       socket.on('chat message', (msg) => {
-        if (msg.userId === currentUser.id) {
-          setMessages((prevMessages) => [...prevMessages, msg]);
-        }
+        setMessages((prevMessages) => [...prevMessages, msg]);
       });
     }
 
