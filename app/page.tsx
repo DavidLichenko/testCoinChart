@@ -18,8 +18,6 @@ import {
 } from "@/actions/form";
 import page from "@/app/page";
 import useWebSocket from "socket.io-client";
-import ChartElement from "@/components/chartElement";
-import Graph from "@/components/chartElement";
 import Logo from "@/components/Logo";
 import ThemeSwitcher from "@/components/ThemeSwitcher";
 import {Button, Input, Slider, Popover, PopoverTrigger, PopoverContent, Select, SelectItem} from "@nextui-org/react";
