@@ -4,12 +4,6 @@ import path from 'path';
 import formidable from 'formidable';
 import { IncomingMessage } from 'http';
 
-export const config = {
-    api: {
-        bodyParser: false, // Disable Next.js body parsing
-    },
-};
-
 export async function POST(req: IncomingMessage) {
     const uploadDir = '/var/www/photos';
 
