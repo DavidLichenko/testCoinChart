@@ -10,8 +10,10 @@ import { Send, Paperclip } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { GetCurrentData } from '@/actions/form';
 
-const socket = io("https://srv677099.hstgr.cloud");
-
+const socket = io('wss://srv677099.hstgr.cloud/socket.io', {
+  transports: ['websocket'],  // WebSocket transport
+  withCredentials: true,       // Ensure credentials (if any) are passed
+});
 export default function UserChat() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
