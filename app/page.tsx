@@ -44,7 +44,6 @@ import {formSchemaType} from "@/schemas/form";
 import {toast} from "@/components/ui/use-toast";
 import {getServerSession} from "next-auth";
 import { authOptions } from "@/lib/auth";
-
 import { getSession } from 'next-auth/react'
 import { UserSettingsModal } from '@/components/user-settings-modal';
 import Link from "next/link";
@@ -54,11 +53,12 @@ import {useMediaQuery} from "react-responsive";
 import {MobileNav} from "@/components/mobile-nav";
 import {Sidebar} from "@/components/sidebar";
 import {Loader2} from "lucide-react";
+import MarketDashboard from "@/components/market-dashboard"
 import MarketTable from "@/components/TickersDataTable";
+import DashboardPage from "@/components/MainDashboardMobile";
 
 
 function Trade () {
-
     const [loading,setLoading] = useState(true);
     // const [isConnected, setIsConnected] = useState(socket.connected);
     const [price, setPrice] = useState('');
@@ -80,7 +80,7 @@ function Trade () {
     const [leverage, setLeverage] = React.useState(100);
     const [currentPrice,setCurrentPrice] = useState(0.000)
     const [volume, setVolume] = useState(0.01)
-    const [userBalance,setUserBalance] = useState(0.000)
+    const [userBalance,setUserBalance] = useState(null)
     const [margin,setMargin] = useState<number>(0.00)
     const [openIn,setOpenIn] = useState(0.000)
     const [closeIn,setCloseIn] = useState(0.000)
@@ -98,6 +98,8 @@ function Trade () {
     const [userRole,setUserRole] = useState('USER')
     const [chartHeight,setChartHeight] = useState(0)
     const isMobile = useMediaQuery({maxWidth: 768})
+    // State for market data
+
     // const chartHeightDiv = useRef(null)
     const router = useRouter()
     const chartHeightDiv = useCallback(node => {
@@ -121,7 +123,31 @@ function Trade () {
         }
         setLoading(false)
     }
-
+    // useEffect(() => {
+    //     const socket = io('https://srv677099.hstgr.cloud', {
+    //         path: '/socket.io',
+    //         transports: ['websocket'],
+    //         withCredentials: true,
+    //     });
+    //
+    //     // Temporary variable to hold latest data
+    //     let latestMarketData = null;
+    //     // Update UI every 1 second
+    //     const interval = setInterval(() => {
+    //         if (latestMarketData) {
+    //             setMarketData(latestMarketData);
+    //             latestMarketData = null; // Reset after updating
+    //         }
+    //     }, 1000);
+    //     socket.on('market_data', (data) => {
+    //         console.log(data)
+    //         latestMarketData = data
+    //     });
+    //     return () => {
+    //         clearInterval(interval);
+    //         socket.disconnect();
+    //     };
+    // }, []);
     const postData = data => {
         return fetch('http://localhost:8080/trade', {
             method: 'POST',
@@ -219,14 +245,7 @@ function Trade () {
             })
         }
     }
-    const marketData = [
-        { market: "ATOMUSD", sell: 7.3150, buy: 7.5750 },
-        { market: "AUDCAD", sell: 0.89463, buy: 0.89534 },
-        { market: "AUDCHF", sell: 0.56449, buy: 0.56548 },
-        { market: "AUDJPY", sell: 98.383, buy: 98.455 },
-        { market: "AUDUSD", sell: 0.62434, buy: 0.62454 },
-        { market: "BRENT-MAR25", sell: 76.21, buy: 76.26 },
-    ];
+
     const createTransBuy = async(type) => {
         if (margin > userBalance) {
             toast({
@@ -300,7 +319,7 @@ function Trade () {
             console.log(error)
         }
     }
-    console.log(currentUserData)
+    // console.log(currentUserData)
     const volumeChange = (event) => {
         var rgx = /^[0-9]*\.?[0-9]*$/;
         if(event.target.value.match(rgx)) {
@@ -335,8 +354,8 @@ function Trade () {
 
     return (
         <>
-            <div className={`w-full h-full pb-14 md:p-0 md:h-screen`}>
-                {loading ?
+            <div className={`w-full h-full pb-14 md:p-0 md:h-screen md:dark:bg-zinc-900`}>
+                {loading  ?
                     <>
                         <Skeleton className='h-screen w-full'>
                             <span className="h-screen w-full opacity-0">0</span>
@@ -347,9 +366,9 @@ function Trade () {
                         {isMobile ?
                             <>
 
-                                <div className="flex justify-between items-center border-b border-border h-16 z-20 bg-gradient-to-t from-custom-950 to-custom-900  px-8 py-2">
+                                <div className="flex justify-between items-center border-b border-border h-16 z-20 bg-border px-8 py-2">
                                     <div className={'flex gap-4 items-center justify-center'}>
-                                        <Sidebar/>
+                                        <Sidebar />
                                         <Button disableRipple={true} variant={'bordered'} radius={'none'}
                                                 size={'md'} className='text-md font-bold'>
                                             <div className='flex flex-col'>
@@ -374,16 +393,11 @@ function Trade () {
                                     <div className="nav h-full">
                                         <div className='flex flex-col  w-full px-2 h-full justify-center items-center'>
 
-                                            <div className={'page-header container flex flex-col items-start gap-2 justify-center'}>
-                                                <p className="text-xl font-bold pt-2">Hola, {currentUserData.name ? currentUserData.name : currentUserData.email.split('@')[0] }</p>
-                                                <p className="text-md flex w-full justify-between items-center"><p>Tu balance</p> <p className={'text-xl font-bold'}> {userBalance ? "$ " + userBalance : <Loader2 className={'animate-spin'}/>}</p></p>
-
-                                                <h3 className="my-4 text-xl font-bold">Principales motores del mercado</h3>
-                                                <MarketTable />
-
+                                            <div className={'page-header container flex flex-col items-center gap-4 justify-center'}>
+                                                <p className="text-xl font-bold mb-4 py-2">Hola, {currentUserData.name ? currentUserData.name : currentUserData.email.split('@')[0] }</p>
                                             </div>
 
-
+                                           <DashboardPage />
 
                                             <MobileNav/>
                                             {/*<HistoryTable ticker={ticker} orderToParent={selectOrderFromTable}*/}
@@ -399,7 +413,7 @@ function Trade () {
 
                                 <div className="flex flex-col h-full w-full gap-4">
                                     <nav
-                                        className="flex justify-between items-center border-b border-border h-16 z-20 bg-background px-8 py-2 bg-gradient-to-t from-custom-950 to-custom-900 ">
+                                        className="flex justify-between items-center border-b border-border h-16 z-20 bg-sidebar px-8 py-2 ">
                                         <div className="flex gap-4 items-center ">
                                             <Logo/>
                                         </div>
@@ -476,10 +490,10 @@ function Trade () {
                                                 <Tabs defaultValue="BUY" className="h-full flex flex-col p-6 basis-1/4">
                                                     <TabsList className="grid w-full grid-cols-2 mb-5">
                                                         <TabsTrigger
-                                                            className={'data-[state=active]:bg-green-400 dark:data-[state=active]:bg-green-700 '}
+                                                            className={'data-[state=active]:bg-green-400 dark:data-[state=active]:bg-secondary'}
                                                             value="BUY">BUY</TabsTrigger>
                                                         <TabsTrigger
-                                                            className={'data-[state=active]:bg-orange-400 dark:data-[state=active]:bg-orange-700'}
+                                                            className={'data-[state=active]:bg-orange-400 dark:data-[state=active]:bg-secondary'}
                                                             value="SELL">SELL</TabsTrigger>
                                                     </TabsList>
                                                     <TabsContent value={'BUY'} className={"active:bg-red"}>

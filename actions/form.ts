@@ -6,6 +6,7 @@ import { getServerSession } from "next-auth"
 import {authOptions} from "@/lib/auth";
 
 
+
 const arraySearchData: string[] = [];
 
 let price = '';
@@ -271,4 +272,100 @@ export async function getNetworkAddress(token: string, network: string): Promise
     }
 }
 
+export async function getDashboard() {
+    const session = await getServerSession(authOptions)
 
+    const userId = session.user.id;
+    try {
+        const orders = await prisma.orders.findMany({
+            where: { userId },
+        });
+
+        const totalBalance = await prisma.balances.findUnique({
+            where:{ userId }
+        })
+
+        const trades = await prisma.trade_Transaction.findMany({
+            where: { userId },
+        });
+
+        const totalRevenue = orders.length > 0
+            ? orders.reduce((total, order) => total + order.amount, 0)
+            : 0;
+
+// Calculate totalProfit only if trades are not empty
+        const totalProfit = trades.length > 0
+            ? trades.reduce((total, trade) => total + (trade.profit || 0), 0)
+            : 0;
+
+// Calculate moneyInWork only if trades are not empty
+        const moneyInWork = trades.length > 0
+            ? trades.reduce((total, trade) => total + (trade.profit || 0), 0)
+            : 0;// Assuming this is the total profit in open trades
+
+
+        // Calculate last month's revenue and profit for chart
+        const lastMonthStart = new Date();
+        lastMonthStart.setMonth(lastMonthStart.getMonth() - 1);
+        lastMonthStart.setDate(1); // First day of the last month
+        const lastMonthEnd = new Date(lastMonthStart);
+        lastMonthEnd.setMonth(lastMonthEnd.getMonth() + 1);
+        lastMonthEnd.setDate(0); // Last day of the last month
+
+        const lastMonthOrders = await prisma.orders.findMany({
+            where: {
+                userId,
+                createdAt: {
+                    gte: lastMonthStart,
+                    lte: lastMonthEnd,
+                },
+            },
+        });
+
+        const lastMonthTrades = await prisma.trade_Transaction.findMany({
+            where: {
+                userId,
+                createdAt: {
+                    gte: lastMonthStart,
+                    lte: lastMonthEnd,
+                },
+            },
+        });
+
+        const lastMonthRevenue = lastMonthOrders.reduce((total, order) => total + order.amount, 0);
+        const lastMonthProfit = lastMonthTrades.reduce((total, trade) => total + (trade.profit || 0), 0);
+
+        const calculatePreviousBalance = (trades: any, totalBalance: number) => {
+            const previousBalance = trades
+                .filter((trade) => typeof trade.profit === 'number') // Exclude null profits
+                .reduce((total: number, trade) => total - (trade.profit || 0), totalBalance); // Initial value is a number
+
+            const profitChange = previousBalance !== 0
+                ? ((totalBalance - previousBalance) / previousBalance) * 100
+                : 0;
+
+            return { previousBalance, profitChange };
+        };
+
+// Example usage:
+        const { previousBalance, profitChange } = calculatePreviousBalance(trades, totalBalance.usd);
+
+        // Prepare data to send to frontend
+        const data = {
+            totalBalance: totalBalance.usd,
+            totalRevenue,
+            totalProfit,
+            moneyInWork,
+            lastMonthRevenue,
+            lastMonthProfit,
+            profitChange,
+            orders,
+            trades,
+            revenueDataLastMonth: lastMonthRevenue, // This can be passed to the chart component on the frontend
+        };
+
+        return data;
+    } catch (error) {
+        console.error(error);
+    }
+}

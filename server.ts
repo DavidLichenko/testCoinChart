@@ -1,41 +1,41 @@
 import { createServer } from 'http'
-import { parse } from 'url'
-import next from 'next'
 import { Server } from 'socket.io'
 
-const dev = process.env.NODE_ENV !== 'production'
-const hostname = 'https://www.aragon-trade.com'
+// VPS hostname and port where the server will listen for WebSocket connections
+const hostname = 'srv677099.hstgr.cloud' // Replace with your VPS IP or domain
 const port = 3000
-const app = next({ dev, hostname, port })
-const handle = app.getRequestHandler()
 
-app.prepare().then(() => {
-    const server = createServer(async (req, res) => {
-        try {
-            const parsedUrl = parse(req.url!, true)
-            await handle(req, res, parsedUrl)
-        } catch (err) {
-            console.error('Error occurred handling', req.url, err)
-            res.statusCode = 500
-            res.end('internal server error')
-        }
+// Create a basic HTTP server
+const server = createServer((req, res) => {
+    res.writeHead(200, { 'Content-Type': 'text/plain' })
+    res.end('WebSocket server is running.')
+})
+
+// Initialize Socket.io
+const io = new Server(server, {
+    cors: {
+        origin: '*', // Allow all domains (you can restrict this for production)
+        methods: ['GET', 'POST'],
+    },
+})
+
+// Handle WebSocket connections
+io.on('connection', (socket) => {
+    console.log('A user connected')
+
+    // Listen for 'chat message' events from the client
+    socket.on('chat message', (msg) => {
+        console.log('Message from client:', msg)
+        io.emit('chat message', msg) // Broadcast the message to all connected clients
     })
 
-    const io = new Server(server)
-
-    io.on('connection', (socket) => {
-        console.log('A user connected')
-
-        socket.on('chat message', (msg) => {
-            io.emit('chat message', msg)
-        })
-
-        socket.on('disconnect', () => {
-            console.log('User disconnected')
-        })
+    // Handle user disconnection
+    socket.on('disconnect', () => {
+        console.log('User disconnected')
     })
+})
 
-    server.listen(port, () => {
-        console.log(`> Ready on http://${hostname}:${port}`)
-    })
+// Start the server
+server.listen(port, () => {
+    console.log(`> WebSocket server running on http://${hostname}:${port}`)
 })

@@ -43,80 +43,82 @@ export function UserSettingsModal({totalAmount, totalProfit, totalDeposit, userD
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button variant="outline" size="icon">
-          <Settings className="h-4 w-4" />
-          <span className="sr-only">User Settings</span>
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-[900px] bg-secondary w-full h-[30vh] sm:h-[90vh] p-4 sm:p-6 flex flex-col">
-        <DialogHeader>
-          <DialogTitle>User Settings</DialogTitle>
-        </DialogHeader>
-        <div className="flex-grow overflow-y-auto max-h-[calc(90vh-4rem)]">
-          <Tabs defaultValue="dashboard" value={activeTab} onValueChange={handleTabChange} className="w-full h-full">
-            <TabsList className="grid w-full grid-cols-3 sm:grid-cols-6 gap-4 py-2 sticky top-0 h-full sm:h-auto bg-background z-10 shadow-sm">
-              <TabsTrigger value="dashboard" className="flex flex-col items-center justify-center p-2 text-xs sm:text-sm my-2">
-                <Dashboard className="h-12 w-12 my-2 sm:h-4 sm:w-4 sm:my-0" />
-                <span>Dashboard</span>
-              </TabsTrigger>
-              <TabsTrigger value="personal" className="flex flex-col items-center justify-center p-2 text-xs sm:text-sm my-2">
-                <User className="h-12 w-12 my-2 sm:h-4 sm:w-4 sm:my-0" />
-                <span>Personal</span>
-              </TabsTrigger>
-              <TabsTrigger value="withdrawal" className="flex flex-col items-center justify-center p-2 text-xs sm:text-sm my-2">
-                <Wallet className="h-12 w-12 my-2 sm:h-4 sm:w-4 sm:my-0" />
-                <span>Withdrawal</span>
-              </TabsTrigger>
-              <TabsTrigger value="verification" className="flex flex-col items-center justify-center p-2 text-xs sm:text-sm my-2">
-                <Shield className="h-12 w-12 my-2 sm:h-4 sm:w-4 sm:my-0" />
-                <span>Verification</span>
-              </TabsTrigger>
-              <TabsTrigger value="livechat" className="flex flex-col items-center justify-center p-2 text-xs sm:text-sm my-2">
-                <MessageCircle className="h-12 w-12 my-2 sm:h-4 sm:w-4 sm:my-0" />
-                <span>Live Chat</span>
-              </TabsTrigger>
-              <TabsTrigger value="settings" className="flex flex-col items-center justify-center p-2 text-xs sm:text-sm my-2">
-                <Settings className="h-12 w-12 my-2 sm:h-4 sm:w-4 sm:my-0" />
-                <span>Settings</span>
-              </TabsTrigger>
-            </TabsList>
-            {!isMobile && (
-              <>
-                <TabsContent value="dashboard">
-                  <DashboardTab totalAmount={totalAmount} totalProfit={totalProfit} totalDeposit={totalDeposit}/>
-                </TabsContent>
-                <TabsContent value="personal">
-                  <PersonalInfoTab userData={userData} />
-                </TabsContent>
-                <TabsContent value="withdrawal">
-                  <WithdrawalTab />
-                </TabsContent>
-                <TabsContent value="verification">
-                  <VerificationTab />
-                </TabsContent>
-                <TabsContent value="livechat">
-                  <LiveChatTab />
-                </TabsContent>
-                <TabsContent value="settings">
-                  <SettingsTab />
-                </TabsContent>
-              </>
-            )}
-          </Tabs>
-        </div>
-      </DialogContent>
-      {isMobile && (
-        <MobileTabContent
-          isOpen={mobileContentOpen}
-          onClose={() => setMobileContentOpen(false)}
-          title={tabContent[activeTab as keyof typeof tabContent].title}
-        >
-          {tabContent[activeTab as keyof typeof tabContent].content}
-        </MobileTabContent>
-      )}
-    </Dialog>
+      <>
+        <Dialog open={open} onOpenChange={setOpen}>
+          <DialogTrigger asChild>
+            <Button variant="outline" size="icon">
+              <Settings className="h-4 w-4" />
+              <span className="sr-only">User Settings</span>
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[900px] bg-sidebar w-full h-[30vh] sm:h-[90vh] p-4 sm:p-6 flex flex-col">
+            <DialogHeader>
+              <DialogTitle>User Settings</DialogTitle>
+            </DialogHeader>
+            <div className="flex-grow overflow-y-auto max-h-[calc(90vh-4rem)]">
+              <Tabs defaultValue="dashboard" value={activeTab} onValueChange={handleTabChange} className="w-full h-full">
+                <TabsList className="grid w-full grid-cols-3 sm:grid-cols-6 gap-4 py-2 sticky top-0 h-full sm:h-auto bg-background z-10 shadow-sm">
+                  <TabsTrigger value="dashboard" className="flex flex-col items-center justify-center p-2 text-xs sm:text-sm my-2">
+                    <Dashboard className="h-12 w-12 my-2 sm:h-4 sm:w-4 sm:my-0" />
+                    <span>Dashboard</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="personal" className="flex flex-col items-center justify-center p-2 text-xs sm:text-sm my-2">
+                    <User className="h-12 w-12 my-2 sm:h-4 sm:w-4 sm:my-0" />
+                    <span>Personal</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="withdrawal" className="flex flex-col items-center justify-center p-2 text-xs sm:text-sm my-2">
+                    <Wallet className="h-12 w-12 my-2 sm:h-4 sm:w-4 sm:my-0" />
+                    <span>Withdrawal</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="verification" className="flex flex-col items-center justify-center p-2 text-xs sm:text-sm my-2">
+                    <Shield className="h-12 w-12 my-2 sm:h-4 sm:w-4 sm:my-0" />
+                    <span>Verification</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="livechat" className="flex flex-col items-center justify-center p-2 text-xs sm:text-sm my-2">
+                    <MessageCircle className="h-12 w-12 my-2 sm:h-4 sm:w-4 sm:my-0" />
+                    <span>Live Chat</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="settings" className="flex flex-col items-center justify-center p-2 text-xs sm:text-sm my-2">
+                    <Settings className="h-12 w-12 my-2 sm:h-4 sm:w-4 sm:my-0" />
+                    <span>Settings</span>
+                  </TabsTrigger>
+                </TabsList>
+                {!isMobile && (
+                    <>
+                      <TabsContent value="dashboard">
+                        <DashboardTab totalAmount={totalAmount} totalProfit={totalProfit} totalDeposit={totalDeposit}/>
+                      </TabsContent>
+                      <TabsContent value="personal">
+                        <PersonalInfoTab userData={userData} />
+                      </TabsContent>
+                      <TabsContent value="withdrawal">
+                        <WithdrawalTab />
+                      </TabsContent>
+                      <TabsContent value="verification">
+                        <VerificationTab />
+                      </TabsContent>
+                      <TabsContent value="livechat">
+                        <LiveChatTab />
+                      </TabsContent>
+                      <TabsContent value="settings">
+                        <SettingsTab />
+                      </TabsContent>
+                    </>
+                )}
+              </Tabs>
+            </div>
+          </DialogContent>
+        </Dialog>
+        {isMobile && (
+            <MobileTabContent
+                isOpen={mobileContentOpen}
+                onClose={() => setMobileContentOpen(false)}
+                title={tabContent[activeTab as keyof typeof tabContent].title}
+            >
+              {tabContent[activeTab as keyof typeof tabContent].content}
+            </MobileTabContent>
+        )}
+      </>
   )
 }
 

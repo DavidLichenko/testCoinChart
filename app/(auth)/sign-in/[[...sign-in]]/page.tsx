@@ -59,7 +59,7 @@ const SignInForm = () => {
             {
                 isMobile ? <div>
                         <nav
-                            className="flex justify-between items-center border-b border-border h-16 bg-gradient-to-t from-custom-950 to-custom-900 px-8 py-4 fixed w-full top-0 z-50">
+                            className="flex justify-between items-center border-b border-border h-16 bg-sidebar px-8 py-4 fixed w-full top-0 z-50">
                             <div className="flex gap-2 items-center ">
                                 <Logo/>
                                 <h2 className={'text-2xl font-bold'}><p>{isMobile ? "AT" : "Aragon Trade"}</p></h2>
@@ -134,7 +134,7 @@ const SignInForm = () => {
 
                     <div className={'h-screen flex-col flex justify-center font-bold'}>
                         <nav
-                            className="flex justify-between items-center border-b border-border h-16 bg-gradient-to-t from-custom-950 to-custom-900 px-8 py-4 fixed w-full top-0 z-50">
+                            className="flex justify-between items-center border-b border-border h-16 bg-sidebar px-8 py-4 fixed w-full top-0 z-50">
                             <div className="flex gap-2 items-center ">
                                 <Logo/>
                                 <h2 className={'text-2xl font-bold'}><p>{isMobile ? "AT" : "Aragon Trade"}</p></h2>

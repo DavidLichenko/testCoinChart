@@ -4,6 +4,12 @@
     display: block;
     zoom: .70;
 }
+.symbol_zoom_mobile {
+    background-image: url(../components/images/symbols.59930972.png);
+    background-repeat: no-repeat;
+    display: block;
+    zoom: .40;
+}
 .symbol {
     background-image: url(../components/images/symbols.59930972.png);
     background-repeat: no-repeat;

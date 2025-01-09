@@ -3,8 +3,8 @@
 import { useState } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Sheet, SheetContent, SheetHeader, SheetTrigger } from "@/components/ui/sheet"
-import { Dialog, DialogContent } from "@/components/ui/dialog"
+import { Sheet, SheetContent, SheetHeader, SheetTrigger, SheetTitle } from "@/components/ui/sheet"
+import {Dialog, DialogContent, DialogHeader, DialogTitle} from "@/components/ui/dialog"
 import {
   Home,
   Wallet,
@@ -24,6 +24,7 @@ import {
 import CryptoDeposit from "@/components/crypto-deposit"
 import { WithdrawForm } from "@/components/withdraw-form"
 import {RiProfileFill} from "react-icons/ri";
+import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 
 const menuItems = [
   { name: "Home", href: "/", icon: Home },
@@ -59,8 +60,11 @@ export function Sidebar() {
         </SheetTrigger>
         <SheetContent
           side="left" 
-          className="w-80 p-0 bg-gray-900 text-gray-100 border-r-gray-800"
+          className="w-80 p-0 bg-sidebar border-r-border"
         >
+          <SheetTitle className="hidden">
+            <VisuallyHidden.Root>x</VisuallyHidden.Root>
+          </SheetTitle>
           <SheetHeader className="p-4 border-b border-gray-800">
             <div className="flex justify-between items-center">
               <Button variant="ghost" size="sm" className="text-blue-500">
@@ -145,12 +149,22 @@ export function Sidebar() {
 
       <Dialog open={showDeposit} onOpenChange={setShowDeposit}>
         <DialogContent className="sm:max-w-[425px] bg-gray-900 text-gray-100 border-gray-800">
+          <DialogHeader>
+          <DialogTitle>
+            <span className="sr-only">Deposit Funds</span> {/* Visually hidden for accessibility */}
+          </DialogTitle>
+          </DialogHeader>
           <CryptoDeposit />
         </DialogContent>
       </Dialog>
 
       <Dialog open={showWithdraw} onOpenChange={setShowWithdraw}>
         <DialogContent className="sm:max-w-[425px] p-0 bg-gray-900 text-gray-100 border-gray-800">
+          <DialogHeader>
+          <DialogTitle>
+            <span className="sr-only">Withdraw Funds</span> {/* Visually hidden for accessibility */}
+          </DialogTitle>
+          </DialogHeader>
           <WithdrawForm />
         </DialogContent>
       </Dialog>

@@ -112,7 +112,7 @@ const HistoryTable = ({ticker,orderToParent, closeOrder, currentPrice, counter})
             cell: ({ row }) => {
                 return <Button
                     variant={'outline'}
-                    className="font-medium hover:bg-danger-300"
+                    className="font-medium hover:bg-destructive"
                     onClick={()=>{
                         closeOrder(table.getRow(row.id).original)
 

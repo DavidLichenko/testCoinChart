@@ -154,7 +154,7 @@ const NavContainer = ({sendDataToParent}) => {
             clearInterval(intervalTicker);
         }
     },[ticker])
-    console.log(marketData)
+    // console.log(marketData)
     const getTickersData = async () => {
         const response = await fetch('https://api.bitget.com/api/spot/v1/market/tickers')
         const {data} = await response.json();
@@ -191,7 +191,7 @@ const NavContainer = ({sendDataToParent}) => {
                         <div className='text-center pt-2 uppercase text-pretty'>Market Watch</div>
                     </div>
                 }>
-                    <Card radius='none' className='bg-popover border-border h-full border-2 p-0 '>
+                    <Card radius='none' className='bg-sidebar border-border h-full border-2 p-0 '>
                         <CardBody className='h-full py-3 px-0'>
                             <div className="search_list flex flex-col h-[80vh] w-full items-start relative justify-start pt-2 overscroll-x-none overscroll-y-auto overflow-x-hidden overflow-y-auto">
                                 <p className='text-xl font-bold text-center mx-auto w-full pb-6'>Market

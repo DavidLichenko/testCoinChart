@@ -74,7 +74,7 @@ const SignUpForm = () => {
         <>
             { isMobile ? <div>
                     <nav
-                        className="flex justify-between items-center border-b border-border h-16 bg-gradient-to-t from-custom-950 to-custom-900 px-8 py-4 fixed w-full top-0 z-50">
+                        className="flex justify-between items-center border-b border-border h-16 bg-sidebar px-8 py-4 fixed w-full top-0 z-50">
                         <div className="flex gap-2 items-center ">
                             <Logo/>
                             <h2 className={'text-2xl font-bold'}><p>{isMobile ? "AT" : "Aragon Trade"}</p></h2>
@@ -86,7 +86,7 @@ const SignUpForm = () => {
                                 Sign in
                             </Link>
                             <Link
-                                className='text-white border-border font-bold border-2 rounded-md px-6 py-1 opacity-85 bg-gradient-to-r from-indigo-700 to-indigo-500 transition-all hover:opacity-100'
+                                className='text-white border-border font-bold border-2 rounded-md px-6 py-1 opacity-85 bg-gradient-to-r from-accent-700 to-accent-500 transition-all hover:opacity-100'
                                 href="/sign-up">
                                 Sign up
                             </Link>
@@ -177,7 +177,7 @@ const SignUpForm = () => {
                 </div> :
                 <div className={'h-screen flex-col flex justify-center font-bold'}>
                     <nav
-                        className="flex justify-between items-center border-b border-border h-16 bg-gradient-to-t from-custom-950 to-custom-900 px-8 py-4 fixed w-full top-0 z-50">
+                        className="flex justify-between items-center border-b border-border h-16 bg-sidebar px-8 py-4 fixed w-full top-0 z-50">
                         <div className="flex gap-2 items-center ">
                             <Logo/>
                             <h2 className={'text-2xl font-bold'}><p>{isMobile ? "AT" : "Aragon Trade"}</p></h2>
@@ -189,7 +189,7 @@ const SignUpForm = () => {
                                 Sign in
                             </Link>
                             <Link
-                                className='text-white border-border font-bold border-2 rounded-md px-6 py-1 opacity-85 bg-gradient-to-r from-indigo-700 to-indigo-500 transition-all hover:opacity-100'
+                                className='text-white border-border font-bold border-2 rounded-md px-6 py-1 opacity-85 bg-gradient-to-r from-accent-700 to-accent-500 transition-all hover:opacity-100'
                                 href="/sign-up">
                                 Sign up
                             </Link>

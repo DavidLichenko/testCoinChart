@@ -9,7 +9,11 @@ import { Send, Paperclip } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import {GetCurrentData} from "@/actions/form";
 
-const socket = io();
+const socket = io('https://srv677099.hstgr.cloud', {
+    path: '/socket.io',
+    transports: ['websocket'],
+    withCredentials: true,
+});
 
 export default function SupportChat({
                                         params,
@@ -33,11 +37,16 @@ export default function SupportChat({
     const getUserId = async () => {
         const user = await GetCurrentData();
         setCurrentUser(user);
+        if (user?.id) {
+            socket.emit('register', "support"); // Emit the register event with the user's ID
+            console.log(`Registered user with ID: ${user.id}`);
+        }
     };
     useEffect(() => {
         fetchMessages();
 
         socket.on("chat message", (msg) => {
+            console.log(msg)
             if (msg.userId === id) {
                 setMessages((prev) => [...prev, msg]);
             }
@@ -87,7 +96,7 @@ export default function SupportChat({
 
         const messageData = {
             content: input.trim(),
-            userId: currentUser.id,
+            userId: id,
             imageUrl,
             isSupportMessage: true, // Mark as support message
         };
@@ -105,8 +114,8 @@ export default function SupportChat({
 
             const savedMessage = await res.json();
 
-            socket.emit("chat message", savedMessage);
-
+            socket.emit("support message", savedMessage);
+            setMessages((prev) => [...prev, savedMessage]);
             setInput("");
             setFile(null);
             if (fileInputRef.current) {
@@ -116,7 +125,7 @@ export default function SupportChat({
             console.error("Error sending message:", error);
         }
     };
-
+    console.log(messages)
     return (
         <div className="grid grid-cols-1 gap-4">
             <Card>

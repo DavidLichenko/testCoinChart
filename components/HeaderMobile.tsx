@@ -1,0 +1,56 @@
+"use client"
+import React, {useEffect, useState} from 'react';
+import {Sidebar} from "@/components/sidebar";
+import {Button} from "@nextui-org/react";
+import {UserSettingsModal} from "@/components/user-settings-modal";
+import {GetCurrentData, GetUserBalance} from "@/actions/form";
+import {Skeleton} from "@/components/ui/skeleton";
+
+const HeaderMobile = () => {
+    const [currentUserData,setCurrentUserData] = useState({})
+    const [userBalance,setUserBalance] = useState(null)
+    const [loading,setIsLoading] = useState(true)
+    async function currentSeesion() {
+        setCurrentUserData(await GetCurrentData())
+        const getBalance = await GetUserBalance()
+        setUserBalance(getBalance.usd)
+
+        setIsLoading(false)
+    }
+
+    useEffect(() => {
+        currentSeesion()
+    }, []);
+    return (
+        <>
+            {loading ? <Skeleton className={'h-screen w-full'}><span className={'opacity-0'}>0</span></Skeleton> :
+            <div
+                className="flex justify-between items-center border-b border-border h-16 z-20 bg-sidebar  px-8 py-2">
+                <div className={'flex gap-4 items-center justify-center'}>
+                    <Sidebar/>
+                    <Button className='text-md font-bold  bg-sidebar-accent'>
+                        <div className='flex flex-col'>
+                            <div className='flex flex-row items-center justify-between w-full'>
+                                {userBalance ?
+                                    <span className={'text-md'}>$ {userBalance}</span> :
+                                    <span className={'text-md'}>$0.00</span>
+                                }
+                            </div>
+                        </div>
+                    </Button>
+                </div>
+                <div className="flex gap-4 items-center">
+                    {userBalance ?
+                        <UserSettingsModal totalAmount={userBalance} totalDeposit={0} totalProfit={0}
+                                           userData={currentUserData}/> :
+                        <UserSettingsModal totalAmount={0} totalDeposit={0} totalProfit={0} userData={{}}/>
+                    }
+                </div>
+
+            </div>
+            }
+        </>
+    );
+};
+
+export default HeaderMobile;

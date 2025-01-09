@@ -10,11 +10,6 @@ import { Send, Paperclip } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { GetCurrentData } from '@/actions/form';
 
-const socket = io('https://srv677099.hstgr.cloud', {
-  path: '/socket.io',
-  transports: ['websocket'],
-  withCredentials: true,
-});
 
 export default function UserChat() {
   const [messages, setMessages] = useState([]);
@@ -42,6 +37,10 @@ export default function UserChat() {
       const data = await res.json();
       setMessages(data);
       setCurrentUser(user);
+      if (user?.id) {
+        socket.emit('register', user.id); // Emit the register event with the user's ID
+        console.log(`Registered user with ID: ${user.id}`);
+      }
     } catch (error) {
       console.error('Error fetching current user:', error);
     }
@@ -53,26 +52,30 @@ export default function UserChat() {
   }, []);
 
   useEffect(() => {
-    if (currentUser.id) {
-
-      console.log(currentUser.role)
-      // Listen for incoming chat messages
-
-    }
-    socket.on('chat message', (msg) => {
-
-      console.log(msg);
-      console.log('CHAT_MESSAGE')
-      setMessages((prevMessages) => [...prevMessages, msg]);
+    const socket = io('https://srv677099.hstgr.cloud', {
+      path: '/socket.io',
+      transports: ['websocket'],
+      withCredentials: true,
     });
+
+    socket.on('chat message', (msg) => {
+      console.log(msg)
+      if (msg.userId === currentUser.id) {
+        setMessages((prev) => [...prev, msg]);
+      }
+    });
+
     return () => {
       socket.off('chat message');
     };
-  }, [currentUser]);
+  }, [currentUser.id]);
+
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -90,7 +93,7 @@ export default function UserChat() {
       formData.append('file', file);
 
       try {
-        const res = await fetch('http://srv677099.hstgr.cloud:5000/upload', {
+        const res = await fetch('https://srv677099.hstgr.cloud/upload/', {
           method: 'POST',
           body: formData,
         });
@@ -111,7 +114,7 @@ export default function UserChat() {
       content: input.trim(),
       userId: currentUser.id,
       imageUrl,
-      isSupportMessage: currentUser.isSupport,
+      isSupportMessage: false,
     };
 
     try {
@@ -126,7 +129,6 @@ export default function UserChat() {
       }
 
       const savedMessage = await res.json();
-
       // Emit the message via Socket.IO for real-time updates
       socket.emit('chat message', savedMessage);
       console.log(savedMessage)
@@ -140,7 +142,7 @@ export default function UserChat() {
       console.error('Error sending message:', error);
     }
   };
-
+  console.log(messages)
   return (
       <div className="grid grid-cols-1 gap-4">
         <Card>
@@ -151,7 +153,7 @@ export default function UserChat() {
             {messages.map((message) => (
                 <div
                     key={message.id}
-                    className={`mb-4 ${message.isSupportMessage ? 'text-left' : 'text-right'}`}
+                    className={`mb-4 ${message.isSupportMessage ? 'text-left' : 'text-right'} message`}
                 >
                   <p className={`${message.isSupportMessage ? 'text-blue-500' : 'text-white'}`}>
                     {message.isSupportMessage ? 'Support' : 'You'}: {message.content}
