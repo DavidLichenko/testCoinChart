@@ -189,6 +189,9 @@ export default  function Page({params}: { params: Promise<{ ticker: string }> })
                                         <div className="flex justify-between items-center">
                                             <h3 className={'font-bold text-2xl'}>SELL</h3>
 
+
+
+
                                             <Button
                                                 variant="ghost"
                                                 onClick={() => setOpen(false)}
