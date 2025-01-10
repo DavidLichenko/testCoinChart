@@ -32,7 +32,7 @@ export default  function Page({params}: { params: Promise<{ ticker: string }> })
     const [openBuy, setOpenBuy] = useState(false)
     const { balance } = useBalance()
     const [transType,setTransType] = useState('')
-    const getPrice = (price) => {
+    const onCurrentPriceChange = (price) => {
         setLivePrice(price)
     }
 
@@ -44,7 +44,7 @@ export default  function Page({params}: { params: Promise<{ ticker: string }> })
                     <div className="h-screen w-full pt-20 pb-20 flex-1 flex flex-col justify-between items-center">
                         <div className="h-full w-full container bg-sidebar">
                             <ChartMobile ticker={ticker} type={type} addTPPriceLine={null} addSLPriceLine={null}
-                                         currentPrice={getPrice}/>
+                                         onCurrentPriceChange={onCurrentPriceChange}/>
                         </div>
                         <div className="flex gap-6 px-4 pt-4  w-full h-20 items-center justify-center">
                             <Sheet open={openBuy} onOpenChange={setOpenBuy}>

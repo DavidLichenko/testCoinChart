@@ -52,7 +52,7 @@ export async function closeAllTransactions() {
     const openTransactions = await prisma.trade_Transaction.findMany({
       where: { status: 'OPEN' },
     })
-
+  
     for (const transaction of openTransactions) {
       const currentPrice = await getCurrentPrice(transaction.ticker, transaction.assetType)
       const profit = calculateProfit(transaction, currentPrice)
@@ -81,7 +81,7 @@ export async function closeAllTransactions() {
     return { success: true, message: 'All open transactions have been closed.' }
   } catch (error) {
     console.error('Failed to close all transactions:', error)
-    return { success: false, message: 'Failed to close all transactions.' }
+    return { success: false, message: 'Place transaction before closed.' }
   }
 }
 

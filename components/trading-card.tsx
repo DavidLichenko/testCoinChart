@@ -88,6 +88,7 @@ export default function TradingCard({livePrice, type, assetType, userBalance,tic
         }
     }
     useEffect(() => {
+        console.log(livePrice, type, assetType, userBalance,ticker)
         calculateMargin(0.01,livePrice,leverage)
     }, []);
     return (

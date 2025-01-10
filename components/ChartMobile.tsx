@@ -27,7 +27,7 @@ const timeframes = {
 const ChartMobile: React.FC<ChartMobileProps> = ({
                                                      ticker,
                                                      type,
-                                                     onCurrentPriceChange
+                                                     onCurrentPriceChange,
                                                  }) => {
     const chartRef = useRef<HTMLDivElement>(null)
     const { theme } = useTheme()
@@ -103,6 +103,7 @@ const ChartMobile: React.FC<ChartMobileProps> = ({
                     const json = await response.json();
                     const filledCandles = connectCandles(json.data);
                     let jsonArr = filledCandles.sort((a, b) => a.time - b.time);
+                    updateCurrentPrice(jsonArr[jsonArr.length - 1].close)
                     data = jsonArr
                     break
 
@@ -116,6 +117,7 @@ const ChartMobile: React.FC<ChartMobileProps> = ({
                         low: parseFloat(d[3]),
                         close: parseFloat(d[4]),
                     }))
+                    updateCurrentPrice(data[data.length - 1].close)
                     break
 
                 case 'Forex':
@@ -142,6 +144,7 @@ const ChartMobile: React.FC<ChartMobileProps> = ({
                         low: parseFloat(d.low),
                         close: parseFloat(d.close),
                     }))
+                    updateCurrentPrice(data[data.length - 1].close)
                     break
             }
 

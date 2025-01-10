@@ -1,72 +1,73 @@
-import NextAuth, {NextAuthOptions} from "next-auth";
+import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import {PrismaAdapter} from "@next-auth/prisma-adapter";
-import {prisma} from "@/prisma/prisma-client";
+import { PrismaAdapter } from "@next-auth/prisma-adapter";
+import { prisma } from "@/prisma/prisma-client";
+
 export const authOptions: NextAuthOptions = {
     adapter: PrismaAdapter(prisma),
     secret: process.env.NEXTAUTH_SECRET,
     session: {
-        strategy:'jwt'
+        strategy: 'jwt'
     },
     pages: {
-        signIn:'/sign-in',
+        signIn: '/sign-in',
     },
     providers: [
         CredentialsProvider({
             name: "Credentials",
             credentials: {
-                email: { label: "Email", type: "text", placeholder: "jonh@mail.com" },
+                email: { label: "Email", type: "text", placeholder: "john@example.com" },
                 password: { label: "Password", type: "password" }
             },
             async authorize(credentials, req) {
                 if (!credentials?.email || !credentials?.password) {
                     return null
                 }
-                const  exitingUser = await prisma.user.findUnique({
+                const existingUser = await prisma.user.findUnique({
                     where: {
                         email: credentials.email
+                    },
+                    select: {
+                        id: true,
+                        email: true,
+                        password: true,
+                        role: true
                     }
                 })
-                if (!exitingUser) {
+                if (!existingUser) {
                     return null
                 }
-                const passwordMatch = await credentials.password === exitingUser.password
+                const passwordMatch = credentials.password === existingUser.password
 
                 if (!passwordMatch) {
                     return null
                 }
 
                 return {
-                    id: exitingUser.id.toString(),
-                    email: exitingUser.email,
+                    id: existingUser.id.toString(),
+                    email: existingUser.email,
+                    role: existingUser.role,
                 }
-
-
-
             }
         })
     ],
     callbacks: {
         async jwt({ token, user }) {
             if(user) {
-                return {
-                    ...token,
-                    id:user.id,
-                    email: user.email,
-                }
+                token.id = user.id
+                token.email = user.email
+                token.role = user.role
             }
-
             return token
         },
-        async session({ session, user, token }) {
-            return {
-                ...session,
-                user:{
-                    ...session.user,
-                    id: token.id,
-                    email: token.email,
-                }
+        async session({ session, token }) {
+            if (session?.user) {
+                session.user.id = token.id as string
+                session.user.email = token.email as string
+                session.user.role = token.role as string
             }
+            return session
         }
     }
 }
+

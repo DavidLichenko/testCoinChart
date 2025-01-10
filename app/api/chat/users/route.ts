@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { getServerSession } from "next-auth"
+import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/lib/auth"
 import { prisma } from '@/prisma/prisma-client'
 
@@ -7,15 +7,20 @@ export async function GET() {
     try {
         const session = await getServerSession(authOptions)
 
-        if (!session?.user || session.user.role !== 'ADMIN') {
+        if (!session?.user) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+        }
+
+        // Check if the user has the ADMIN role
+        if (session.user.role !== 'ADMIN') {
+            return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
         }
 
         // Fetch all users with their last message
         const users = await prisma.user.findMany({
             where: {
                 role: {
-                    equals: 'USER'  // Exclude admin users
+                    not: 'ADMIN'  // Exclude admin users
                 }
             },
             select: {
