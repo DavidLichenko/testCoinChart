@@ -28,7 +28,7 @@ import {
 } from "@/components/ui/select"
 import {useEffect, useState} from "react";
 import {toast} from "@/components/ui/use-toast";
-import {CreateTradeTransaction, GetTradeTransaction} from "@/actions/form";
+import {CreateTradeTransaction} from "@/actions/form";
 
 const formSchema = z.object({
     volume: z.coerce.number().min(0.0001, "Volume must be at least 0.0001"),

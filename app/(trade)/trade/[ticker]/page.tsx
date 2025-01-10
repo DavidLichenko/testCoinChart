@@ -16,6 +16,7 @@ import {AccordionHeader} from "@radix-ui/react-accordion";
 import TradingCard from "@/components/trading-card";
 import Wrapper from "@/components/Wrapper";
 import {GetUserBalance} from "@/actions/form";
+import {useBalance} from "@/context/BalanceContext";
 
 export default  function Page({params}: { params: Promise<{ ticker: string }> }) {
     // @ts-ignore
@@ -29,17 +30,12 @@ export default  function Page({params}: { params: Promise<{ ticker: string }> })
     const searchParams = useSearchParams()
     const [openSell, setOpenSell] = useState(false)
     const [openBuy, setOpenBuy] = useState(false)
+    const { balance } = useBalance()
     const [transType,setTransType] = useState('')
     const getPrice = (price) => {
         setLivePrice(price)
     }
-    const getBal = async() => {
-        const getBalance = await GetUserBalance()
-        setUserBalance(getBalance.usd)
-    }
-    useEffect(() => {
-        getBal()
-    }, []);
+
     const type = searchParams.get('type')
     return (
         <>
@@ -74,7 +70,7 @@ export default  function Page({params}: { params: Promise<{ ticker: string }> })
                                         </div>
                                     </SheetHeader>
                                     <div className={'flex flex-col h-full items-center justify-between pt-2 mb-4 px-5 gap-6'}>
-                                        <TradingCard livePrice={livePrice} type={"BUY"} ticker={ticker} userBalance={userBalance}/>
+                                        <TradingCard livePrice={livePrice} type={"SELL"} assetType={type} ticker={ticker} userBalance={balance}/>
                                     </div>
                                 </SheetContent>
                             </Sheet>
@@ -103,7 +99,7 @@ export default  function Page({params}: { params: Promise<{ ticker: string }> })
                                         </div>
                                     </SheetHeader>
 
-                                    <TradingCard livePrice={livePrice} type={"SELL"} assetType={type} ticker={ticker} userBalance={userBalance}/>
+                                    <TradingCard livePrice={livePrice} type={"SELL"} assetType={type} ticker={ticker} userBalance={balance}/>
 
                                 </SheetContent>
                             </Sheet>
