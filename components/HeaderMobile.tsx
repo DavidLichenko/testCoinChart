@@ -31,10 +31,10 @@ const HeaderMobile = () => {
         <>
             {!ses ? <></> :
                 <>
-                    {loading ? <Skeleton className={'h-screen w-full'}><span className={'opacity-0'}>0</span></Skeleton> :
+                    {loading ? <Skeleton className={'h-screen w-full block md:hidden '}><span className={'opacity-0'}>0</span></Skeleton> :
                         <>
                             <div
-                                className="flex justify-between fixed top-0 z-[9000] w-full items-center border-b border-border bg-sidebar  px-8 py-2">
+                                className="flex justify-between md:hidden  fixed top-0 z-[9000] w-full items-center border-b border-border bg-sidebar  px-8 py-2">
                                 <div className={'flex gap-4 items-center justify-center'}>
                                     <Sidebar/>
                                     <Button className='text-md font-bold  bg-sidebar-accent'>
@@ -57,7 +57,7 @@ const HeaderMobile = () => {
                                 </div>
 
                             </div>
-                            <div className={'h-16'}></div>
+                            <div className={'h-16 block md:hidden'}></div>
                         </>
                     }
                 </>

@@ -32,5 +32,5 @@ export function middleware(req: NextRequest) {
 
 // Apply middleware only to specific routes
 export const config = {
-    matcher: ['/', '/funds','/history', '/admin_panel', '/trade'], // Include all necessary routes
+    matcher: ['/funds','/history', '/admin_panel', '/trade'], // Include all necessary routes
 };
