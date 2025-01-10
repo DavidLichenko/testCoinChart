@@ -15,6 +15,7 @@ import {
 import {AccordionHeader} from "@radix-ui/react-accordion";
 import TradingCard from "@/components/trading-card";
 import Wrapper from "@/components/Wrapper";
+import {GetUserBalance} from "@/actions/form";
 
 export default  function Page({params}: { params: Promise<{ ticker: string }> }) {
     // @ts-ignore
@@ -24,26 +25,39 @@ export default  function Page({params}: { params: Promise<{ ticker: string }> })
     const [TPPrice,setTPPrice] = useState(0)
     const [SLPrice,setSLPrice] = useState(0)
     const [livePrice,setLivePrice] = useState(0)
+    const [userBalance,setUserBalance] = useState(0)
     const searchParams = useSearchParams()
-    const [open, setOpen] = useState(false)
+    const [openSell, setOpenSell] = useState(false)
+    const [openBuy, setOpenBuy] = useState(false)
     const [transType,setTransType] = useState('')
     const getPrice = (price) => {
         setLivePrice(price)
     }
-
+    const getBal = async() => {
+        const getBalance = await GetUserBalance()
+        setUserBalance(getBalance.usd)
+    }
+    useEffect(() => {
+        getBal()
+    }, []);
     const type = searchParams.get('type')
     return (
         <>
 
                 <div className={'h-screen'}>
-                    <div className="h-full w-full flex flex-col items-center">
+                    <div className="h-full w-full flex flex-col justify-center items-center">
                         <div className=" w-full container bg-sidebar">
-                            <ChartMobile ticker={ticker} type={type} addTPPriceLine={null} addSLPriceLine={null} currentPrice={getPrice}/>
+                            <div
+                                className='relative w-full capitalize top-4 px-4 py-1.5 rounded-lg border-border border-1 left-0 z-[30] bg-sidebar text-muted-foreground font-bold'>
+                                {ticker} ~ {type} ~ 1 ~ AragonTrade
+                            </div>
+                            <ChartMobile ticker={ticker} type={type} addTPPriceLine={null} addSLPriceLine={null}
+                                         currentPrice={getPrice}/>
                         </div>
                         <div className="flex gap-6 px-4 pt-4  w-full h-20 items-center justify-center">
-                            <Sheet open={open} onOpenChange={setOpen}>
+                            <Sheet open={openBuy} onOpenChange={setOpenBuy}>
                                 <SheetTrigger asChild>
-                                    <Button className={'bg-success-500 w-full font-bold'} onClick={()=>setTransType('BUY')}>Buy</Button>
+                                <Button className={'bg-success-500 w-full font-bold'} onClick={()=>setTransType('BUY')}>Buy</Button>
                                 </SheetTrigger>
                                 <SheetContent
                                     side="bottom"
@@ -55,14 +69,12 @@ export default  function Page({params}: { params: Promise<{ ticker: string }> })
                                     <SheetHeader className="p-4 border-b border-gray-800">
                                         <div className="flex justify-between items-center">
                                             <h3 className={'font-bold text-2xl'}>BUY</h3>
-
                                             <Button
                                                 variant="ghost"
-                                                onClick={() => setOpen(false)}
+                                                onClick={() => setOpenBuy(false)}
                                             >
                                                 <X className="h-5 w-5"/>
                                             </Button>
-
                                         </div>
                                     </SheetHeader>
                                     <div className={'flex flex-col h-full items-center justify-between pt-2 mb-4 px-5 gap-6'}>
@@ -170,11 +182,11 @@ export default  function Page({params}: { params: Promise<{ ticker: string }> })
                                         {/*</div>*/}
                                         {/*<Button className={'bg-accent w-full font-bold mx-4 my-6'}>Place order</Button>*/}
 
-                                        <TradingCard livePrice={livePrice} type={"BUY"}/>
+                                        <TradingCard livePrice={livePrice} type={"BUY"} ticker={ticker} userBalance={userBalance}/>
                                     </div>
                                 </SheetContent>
                             </Sheet>
-                            <Sheet open={open} onOpenChange={setOpen}>
+                            <Sheet open={openSell} onOpenChange={setOpenSell}>
                                 <SheetTrigger asChild>
                                     <Button className={'bg-danger w-full font-bold'} onClick={()=>setTransType('SELL')}>Sell</Button>
                                 </SheetTrigger>
@@ -191,7 +203,7 @@ export default  function Page({params}: { params: Promise<{ ticker: string }> })
 
                                             <Button
                                                 variant="ghost"
-                                                onClick={() => setOpen(false)}
+                                                onClick={() => setOpenSell(false)}
                                             >
                                                 <X className="h-5 w-5"/>
                                             </Button>
@@ -199,7 +211,7 @@ export default  function Page({params}: { params: Promise<{ ticker: string }> })
                                         </div>
                                     </SheetHeader>
 
-                                    <TradingCard livePrice={livePrice} type={"SELL"}/>
+                                    <TradingCard livePrice={livePrice} type={"SELL"} ticker={ticker} userBalance={userBalance}/>
 
                                 </SheetContent>
                             </Sheet>

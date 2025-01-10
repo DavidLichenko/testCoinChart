@@ -31,7 +31,6 @@ export function MobileNav() {
     }, []);
     return (
         <>
-            {!ses ? <></> :
                 <nav className="fixed bottom-0 block md:hidden left-0 right-0 z-50 bg-custom-800 border-t border-custom-400">
                     <div className="flex h-16">
                         {navigation.map((item) => {
@@ -54,7 +53,6 @@ export function MobileNav() {
                         })}
                     </div>
                 </nav>
-            }
         </>
     )
 }

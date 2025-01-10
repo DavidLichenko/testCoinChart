@@ -2,6 +2,9 @@
 import React, { useEffect, useRef, useState } from "react";
 import { createChart, WatermarkOptions } from "lightweight-charts";
 import { useTheme } from 'next-themes'
+import {Skeleton} from "@/components/ui/skeleton";
+import {Spinner} from "@nextui-org/spinner";
+import {LoaderCircle} from "lucide-react";
 
 const ChartMobile = ({ticker, type,addTPPriceLine,addSLPriceLine, currentPrice}) => {
     const ref = useRef();
@@ -13,7 +16,7 @@ const ChartMobile = ({ticker, type,addTPPriceLine,addSLPriceLine, currentPrice})
     const [TPLinePrice,setTPLinePrice] = useState(0)
     const [OpenInLine,setOpenInLine] = useState(false)
     const [OpenInLinePrice,setOpenInLinePrice] = useState(0)
-
+    const [loading,setLoading] = useState(true)
 
     const ws = new WebSocket(
         `wss://stream.binance.com:9443/ws/${ticker}@kline_1m`
@@ -228,7 +231,7 @@ const ChartMobile = ({ticker, type,addTPPriceLine,addSLPriceLine, currentPrice})
 
     useEffect(() => {
         const chart = createChart(ref.current, {
-            height: 440,
+            height: 400,
             layout: {
                 textColor: theme === 'light' ? '#000' : 'white',
                 background: { color: theme === 'light' ? '#ffffff' : 'hsl(240, 5%, 8%)'},
@@ -248,19 +251,20 @@ const ChartMobile = ({ticker, type,addTPPriceLine,addSLPriceLine, currentPrice})
         });
         chart.timeScale().fitContent()
         prepareChart(chart, ws);
+        setLoading(false)
     }, [ticker,theme]);
 
 
 
 
     return (
-        <div className="h-full w-full">
-            <div
-                className='sticky w-full capitalize top-16 px-4 py-1.5 rounded-lg border-border border-1 left-6 z-[30] bg-sidebar text-muted-foreground font-bold'>
-                {ticker} ~ {type} ~ 1 ~ AragonTrade
-            </div>
+        <div>
             <div ref={ref} className='relative'>
+                {loading && <Skeleton className={'w-full h-[400px] flex items-center justify-center'}>
+                 <LoaderCircle className={'animate-spin'}></LoaderCircle>
 
+                </Skeleton>
+                }
             </div>
 
         </div>

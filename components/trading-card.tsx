@@ -27,6 +27,8 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import {useEffect, useState} from "react";
+import {toast} from "@/components/ui/use-toast";
+import {CreateTradeTransaction, GetTradeTransaction} from "@/actions/form";
 
 const formSchema = z.object({
     volume: z.coerce.number().min(0.0001, "Volume must be at least 0.0001"),
@@ -35,7 +37,7 @@ const formSchema = z.object({
     leverage: z.string().default("1:20"),
 })
 
-export default function TradingCard({livePrice, type}) {
+export default function TradingCard({livePrice, type,userBalance,ticker}) {
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
@@ -46,18 +48,45 @@ export default function TradingCard({livePrice, type}) {
         },
     })
     const [margin, setMargin] = useState(0)
+    const [volume, setVolume] = useState('0.01')
     const [leverage,setLeverage] = useState(20)
+    const [counter,setCounter] = useState(20)
     function onSubmit(values: z.infer<typeof formSchema>) {
-        console.log(values)
+        createTransBuy(values.takeProfit,values.stopLoss,parseInt(values.leverage.split(":")[1]),values.volume)
     }
 
     function calculateMargin(volumeEUR, marketPrice, leverage) {
         const margin = (volumeEUR * marketPrice) / leverage;
-        console.log(`${volumeEUR} ` + ` ${marketPrice} ` + ` ${leverage} `)
         setMargin(margin)
         // return margin;
     }
 
+    const createTransBuy = async(TPPrice,SLPrice,leverage,volume) => {
+        if (margin > userBalance) {
+            toast({
+                title: "Error",
+                description: "Your balance is not enough to open an order!" +
+                    "Lower the volume",
+                variant: "destructive"
+            })
+            return
+        }
+        try {
+            CreateTradeTransaction('OPEN',type,TPPrice !== 0 ? TPPrice : null, null, ticker, leverage, livePrice,null,SLPrice !== 0 ? SLPrice : null, parseFloat(String(volume)))
+            setCounter(counter + 1)
+            toast({
+                title: "Success",
+                description: "Order has been placed!",
+
+            })
+        } catch (error) {
+            toast({
+                title: "Error",
+                description: "Something went wrong, please try again later",
+                variant: "destructive"
+            })
+        }
+    }
     useEffect(() => {
         calculateMargin(0.01,livePrice,leverage)
     }, []);
@@ -82,6 +111,7 @@ export default function TradingCard({livePrice, type}) {
                                                 onChange={(e) => {
                                                     const value = e.target.value.replace(/[^0-9.]/g, '');
                                                     field.onChange(value);
+                                                    setVolume(value)
                                                     calculateMargin(value, livePrice, leverage)
                                                     // console.log(form.getValues())
                                                 }}
@@ -132,6 +162,10 @@ export default function TradingCard({livePrice, type}) {
                                             inputMode="decimal"
                                             pattern="[0-9]*\.?[0-9]*"
                                             {...field}
+                                            onClick={()=>{
+                                                const value = livePrice - (livePrice / 1000);
+                                                field.onChange(value);
+                                            }}
                                             onChange={(e) => {
                                                 const value = e.target.value.replace(/[^0-9.]/g, '');
                                                 field.onChange(value);
@@ -155,6 +189,10 @@ export default function TradingCard({livePrice, type}) {
                                             inputMode="decimal"
                                             pattern="[0-9]*\.?[0-9]*"
                                             {...field}
+                                            onClick={()=>{
+                                                const value = livePrice + (livePrice / 1000);
+                                                field.onChange(value);
+                                            }}
                                             onChange={(e) => {
                                                 const value = e.target.value.replace(/[^0-9.]/g, '');
                                                 field.onChange(value);
