@@ -4,8 +4,7 @@ import {prisma} from "@/prisma/prisma-client";
 import yahooFinance from "yahoo-finance2";
 import { getServerSession } from "next-auth"
 import {authOptions} from "@/lib/auth";
-import {redirect} from "next/navigation";
-const headerList = headers();
+
 
 // export const CheckAuth = async() => {
 //     const session = await getServerSession(authOptions)
@@ -21,7 +20,10 @@ const headerList = headers();
 // }
 
 
+export async function GetSession() {
+    return await getServerSession(authOptions)
 
+}
 export async function GetStockData(ticker:string) {
     let result;
     try {
