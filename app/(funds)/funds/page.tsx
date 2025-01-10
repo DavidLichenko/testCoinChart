@@ -1,11 +1,26 @@
-import React from 'react';
+'use client'
+import React, {useEffect, useState} from 'react';
+import {OrderHistoryTable} from "@/components/OrderHistoryTable";
+import {getOrders} from "@/actions/form";
 
 
 const Page = () => {
-    return (
-        <div>
+    const [orders, setOrders] = useState([])
+    const fetchOrders = async () => {
+        const data = await getOrders()
+        setOrders(data)
+    }
 
-                <div></div>
+    useEffect(() => {
+        fetchOrders()
+    }, [])
+
+
+    return (
+        <div className="container mx-auto p-4">
+            <OrderHistoryTable data={orders} refreshOrders={async () => {
+               
+            }}/>
 
         </div>
     );

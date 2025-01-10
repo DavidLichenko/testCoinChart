@@ -47,7 +47,7 @@
     --card-foreground: 0, 0%, 85%; /* Slightly softer white for card text */
     --popover: 240, 5%, 14%; /* Slight contrast for popovers */
     --popover-foreground: 0, 0%, 85%;
-    --primary: 50, 40%, 50%; /* Muted green as primary */
+    --primary: 30, 50%, 45%; /* Muted green as primary */
     --primary-foreground: 0, 0%, 95%; /* High contrast text on primary */
     --secondary: 27, 87%, 37%; /* Warm brownish shade for secondary */
     --secondary-foreground: 0, 0%, 85%;

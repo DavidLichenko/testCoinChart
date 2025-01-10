@@ -248,6 +248,11 @@ function Trade () {
     }
 
     const createTransBuy = async(type) => {
+        let assetType = tickerType;
+        if(tickerType === 'Stocks') {
+            assetType = 'IEX'
+        }
+
         if (margin > userBalance) {
             toast({
                 title: "Error",
@@ -258,7 +263,7 @@ function Trade () {
             return
         }
         try {
-            CreateTradeTransaction('OPEN',type,TPPrice !== 0 ? TPPrice : null, null, ticker, leverage, currentPrice,null,SLPrice !== 0 ? SLPrice : null, parseFloat(String(volume)))
+            CreateTradeTransaction('OPEN',type,TPPrice !== 0 ? TPPrice : null, null, ticker, leverage, currentPrice,null,SLPrice !== 0 ? SLPrice : null, parseFloat(String(volume)),assetType)
             await getTradeTrans()
             setCounter(counter + 1)
             toast({
@@ -352,10 +357,9 @@ function Trade () {
 
     }
     // @ts-ignore
-
     return (
         <>
-            <div className={`w-full h-full pb-14 md:p-0 md:h-screen md:dark:bg-zinc-900`}>
+            <div className={`w-full h-full pb-16 md:pt-4 pt-20 md:p-0 md:h-screen md:dark:bg-zinc-900`}>
                 {loading  ?
                     <>
                         <Skeleton className='h-screen w-full'>
@@ -369,13 +373,10 @@ function Trade () {
 
                                     {/*</div>*/}
                                     <div className="flex flex-col h-full w-full p-2">
-                                        <div className="nav h-full">
                                             <div className='flex flex-col  w-full px-2 h-full justify-center items-center'>
-
-                                                <div className={'page-header container flex flex-col items-center gap-4 justify-center'}>
+                                                <div className={'page-header container flex flex-col  h-full items-center gap-4 justify-center'}>
                                                     <p className="text-xl font-bold mb-4 py-2">Hola, {currentUserData.name ? currentUserData.name : currentUserData.email.split('@')[0] }</p>
                                                 </div>
-
                                                 <DashboardPage />
 
                                                 {/*<MobileNav/>*/}
@@ -383,7 +384,6 @@ function Trade () {
                                                 {/*              closeOrder={selectCloseOrderFromTable} currentPrice={currentPrice}*/}
                                                 {/*              counter={counter}/>*/}
                                             </div>
-                                        </div>
                                     </div>
 
                             </>

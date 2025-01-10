@@ -24,6 +24,36 @@ export async function GetSession() {
     return await getServerSession(authOptions)
 
 }
+export async function TradeTransactions() {
+    const session = await getServerSession(authOptions)
+    const user = session.user;
+    const userId : string = user.id;
+    const transactions = await prisma.trade_Transaction.findMany({
+        where:{
+            userId,
+        },
+        orderBy: {
+            createdAt: 'desc',
+        },
+    })
+
+    return transactions.length > 0 ? transactions : []
+
+}
+export async function getOrders() {
+    const session = await getServerSession(authOptions)
+    const user = session.user;
+    const userId : string = user.id;
+    const orders = await prisma.orders.findMany({
+        where:{
+            userId,
+        },
+        orderBy: {
+            createdAt: 'desc',
+        },
+    })
+    return orders.length > 0 ? orders : []
+}
 export async function GetStockData(ticker:string) {
     let result;
     try {
@@ -44,7 +74,7 @@ export async function GetWebSocketStockData(ticker:string) {
     }
     return await result
 }
-export async function CreateTradeTransaction(status: string, type: any, takeProfit: string | number | null, profit: null, ticker: string, leverage: string | number, openIn: string | number, closeIn: string | null, stopLoss: string | number | null, volume: number) {
+export async function CreateTradeTransaction(status: string, type: any, takeProfit: string | number | null, profit: null, margin:any, ticker: string, leverage: string | number, openIn: string | number, closeIn: string | null, stopLoss: string | number | null, volume: number, assetType:any) {
     const session = await getServerSession(authOptions)
 
     const user = session.user;
@@ -58,6 +88,7 @@ export async function CreateTradeTransaction(status: string, type: any, takeProf
             status:curStatus,
             type:type,
             profit:profit,
+            margin:margin,
             ticker:ticker,
             leverage:parseFloat(leverage),
             openIn:parseFloat(openIn),
@@ -65,6 +96,7 @@ export async function CreateTradeTransaction(status: string, type: any, takeProf
             closeIn:parseFloat(closeIn),
             stopLoss:parseFloat(stopLoss),
             volume:volume,
+            assetType:assetType
         }
     })
 

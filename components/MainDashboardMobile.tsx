@@ -71,9 +71,9 @@ export default  function DashboardPage() {
     return (
         <>
             { loading ? <Skeleton className={'w-full h-screen fixed top-0 left-0 z-[9000]'}><LoaderCircle className={'animate-spin'}></LoaderCircle></Skeleton> :
-                <div className={'container w-full h-full mb-16'}>
+                <div className={'container w-full h-full '}>
                     <h1 className="text-2xl font-bold mb-6 text-center">Dashboard</h1>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1  h-full  md:grid-cols-3 gap-6">
                         <DashboardCard
                             title="Balance total"
                             value={`$${formatValue(data.totalBalance)}`}
@@ -93,7 +93,7 @@ export default  function DashboardPage() {
                     {/*</div>*/}
 
                     {/* Profit and Profit Change for All Time */}
-                    <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="mt-6 grid grid-cols-1  h-full  md:grid-cols-2 gap-6">
                         <DashboardCard
                             title="Ganancia este mes"
                             value={`$${formatValue(totalProfit)}`}

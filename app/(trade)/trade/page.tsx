@@ -16,7 +16,7 @@ const Page = () => {
 
                 <div className={'h-full'}>
                     {/*<HeaderMobile />*/}
-                    <div className="flex container h-full mb-12 w-full pt-2 gap-6  flex-col justify-start">
+                    <div className="flex container h-full mb-12 w-full pt-20  gap-6  flex-col justify-start">
                         {/*<p className={'text-left text-4xl font-bold'}>TRADE</p>*/}
                         <span className={'text-center w-full mx-auto text-2xl pt-2 font-semibold'}>Lista de mercados</span>
                         <TickerTable/>

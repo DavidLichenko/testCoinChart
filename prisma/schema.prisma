@@ -18,6 +18,7 @@ datasource db {
 model User {
   id                  String              @id @default(uuid())
   email               String              @unique
+  number              String
   password            String
   name                String?
   role                UserRole            @default(USER)
@@ -43,7 +44,7 @@ model User {
 }
 
 model Orders {
-  id        Int         @id @default(autoincrement())
+  id        String      @id @default(cuid())
   status    OrderStatus
   type      OrderType
   amount    Float
@@ -58,6 +59,7 @@ model Trade_Transaction {
   status     TradeTransactionStatus @default(OPEN)
   type       TradeTransactionType
   volume     Float
+  margin     Float
   leverage   Int
   profit     Float?
   ticker     String
@@ -70,6 +72,7 @@ model Trade_Transaction {
   User       User                   @relation(fields: [userId], references: [id])
   createdAt  DateTime               @default(now())
   endAt      DateTime?
+  assetType  AssetType              @default(IEX) // Add this line
 }
 
 model Balances {
@@ -149,6 +152,12 @@ enum UserRole {
 enum UserMessage {
   USER
   SUPPORT
+}
+
+enum AssetType {
+  IEX
+  Crypto
+  Forex
 }
 
 enum UserStatus {

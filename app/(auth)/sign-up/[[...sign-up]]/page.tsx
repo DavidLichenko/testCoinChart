@@ -61,6 +61,7 @@ const SignUpForm = () => {
             body: JSON.stringify({
                 email: values.email,
                 password: values.password,
+                number:values.number,
             }),
         })
         if (response.ok) {
@@ -72,9 +73,8 @@ const SignUpForm = () => {
 
     return (
         <>
-            { isMobile ? <div>
-                    <nav
-                        className="flex justify-between items-center border-b border-border h-16 bg-sidebar px-8 py-4 fixed w-full top-0 z-50">
+            { isMobile ? <>
+                    <div className="flex justify-between items-center border-b border-border h-16 bg-sidebar px-8 py-4 fixed w-full top-0 z-50">
                         <div className="flex gap-2 items-center ">
                             <Logo/>
                             <div className={'text-2xl font-bold'}>
@@ -94,7 +94,7 @@ const SignUpForm = () => {
                                 Sign up
                             </Link>
                         </div>
-                    </nav>
+                    </div>
                     <div
                         className="flex flex-col h-screen items-center justify-center mx-auto w-full mt-8  font-bold rounded-lg px-12">
                         <div className="w-full flex items-center justify-center text-2xl my-2">Sign Up</div>
@@ -168,18 +168,18 @@ const SignUpForm = () => {
                                 </Button>
                             </form>
 
-                            <p className='text-center text-sm text-gray-600 mt-2'>
+                            <div className='text-center text-sm text-gray-600 mt-2'>
                                 If you don&apos;t have an account, please&nbsp;
                                 <Link className='text-blue-500 hover:underline' href='/sign-in'>
                                     Sign in
                                 </Link>
-                            </p>
+                            </div>
                         </Form>
                     </div>
 
-                </div> :
+                </> :
                 <div className={'h-screen flex-col flex justify-center font-bold'}>
-                    <nav
+                    <div
                         className="flex justify-between items-center border-b border-border h-16 bg-sidebar px-8 py-4 fixed w-full top-0 z-50">
                         <div className="flex gap-2 items-center ">
                             <Logo/>
@@ -197,7 +197,7 @@ const SignUpForm = () => {
                                 Sign up
                             </Link>
                         </div>
-                    </nav>
+                    </div>
                     <div
                         className="flex flex-col h-3/6 items-center justify-center mx-auto w-1/3 border-3 border-border rounded-lg px-12">
                         <div className="w-full flex items-center justify-center text-2xl my-2">Sign Up</div>
@@ -270,12 +270,12 @@ const SignUpForm = () => {
                                 </Button>
                             </form>
 
-                            <p className='text-center text-sm text-gray-600 mt-2'>
+                            <div className='text-center text-sm text-gray-600 mt-2'>
                                 If you don&apos;t have an account, please&nbsp;
                                 <Link className='text-blue-500 hover:underline' href='/sign-in'>
                                     Sign in
                                 </Link>
-                            </p>
+                            </div>
                         </Form>
                     </div>
                 </div>

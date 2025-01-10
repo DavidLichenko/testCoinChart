@@ -1,12 +1,14 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/prisma/prisma-client";
 import * as z from 'zod'
+import validator from "validator";
 
 export const dynamic = 'force-dynamic'
 
 const userSchema = z
     .object({
         email: z.string().min(1, 'Email is required').email('Invalid email'),
+        number: z.string().refine(validator.isMobilePhone),
         password: z
             .string()
             .min(1, 'Password is required')
@@ -17,7 +19,7 @@ export async function POST(req: Request) {
     try {
         const body = await req.json()
 
-        const {email, password} = userSchema.parse(body)
+        const {email, password, number} = userSchema.parse(body)
 
 
         const userId = Math.random().toString(16).slice(2)
@@ -34,6 +36,7 @@ export async function POST(req: Request) {
                 id:userId.toString(),
                 email,
                 password,
+                number,
                 comments:{
                     create:{
 

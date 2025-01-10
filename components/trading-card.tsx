@@ -37,7 +37,7 @@ const formSchema = z.object({
     leverage: z.string().default("1:20"),
 })
 
-export default function TradingCard({livePrice, type,userBalance,ticker}) {
+export default function TradingCard({livePrice, type, assetType, userBalance,ticker}) {
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
@@ -72,12 +72,12 @@ export default function TradingCard({livePrice, type,userBalance,ticker}) {
             return
         }
         try {
-            CreateTradeTransaction('OPEN',type,TPPrice !== 0 ? TPPrice : null, null, ticker, leverage, livePrice,null,SLPrice !== 0 ? SLPrice : null, parseFloat(String(volume)))
+            CreateTradeTransaction('OPEN',type,TPPrice !== 0 ? TPPrice : null, null,margin, ticker, leverage, livePrice,null,SLPrice !== 0 ? SLPrice : null, parseFloat(String(volume)), assetType)
             setCounter(counter + 1)
             toast({
                 title: "Success",
                 description: "Order has been placed!",
-
+                variant: 'default'
             })
         } catch (error) {
             toast({
