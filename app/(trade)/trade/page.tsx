@@ -4,6 +4,7 @@ import React, { useState} from 'react';
 import HeaderMobile from "@/components/HeaderMobile";
 import {MobileNav} from "@/components/mobile-nav";
 import TickerTable from "@/components/market-dashboard";
+import Wrapper from "@/components/Wrapper";
 
 const Page = () => {
     const [currentUserData,setCurrentUserData] = useState({})
@@ -12,6 +13,7 @@ const Page = () => {
 
     return (
         <>
+
                 <div className={'h-full'}>
                     {/*<HeaderMobile />*/}
                     <div className="flex container h-full mb-12 w-full pt-2 gap-6  flex-col justify-start">
@@ -24,6 +26,7 @@ const Page = () => {
                         {/*<MobileNav/>*/}
                     </div>
                 </div>
+
         </>
     )
 }

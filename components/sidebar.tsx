@@ -126,6 +126,7 @@ export function Sidebar() {
                             setOpen(false)
                             signOut({ redirect: false }).then(() => {
                               router.push("/welcome");
+                              location.reload();
                             });
                           } else {
                             setOpen(false)

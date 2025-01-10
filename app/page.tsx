@@ -56,6 +56,7 @@ import {Loader2} from "lucide-react";
 import MarketDashboard from "@/components/market-dashboard"
 import MarketTable from "@/components/TickersDataTable";
 import DashboardPage from "@/components/MainDashboardMobile";
+import Wrapper from "@/components/Wrapper";
 
 
 function Trade () {
@@ -366,48 +367,26 @@ function Trade () {
                         {isMobile ?
                             <>
 
-                                {/*<div className="flex justify-between items-center border-b border-border h-16 z-20 bg-border px-8 py-2">*/}
-                                {/*    <div className={'flex gap-4 items-center justify-center'}>*/}
-                                {/*        <Sidebar />*/}
-                                {/*        <Button disableRipple={true} variant={'bordered'} radius={'none'}*/}
-                                {/*                size={'md'} className='text-md font-bold'>*/}
-                                {/*            <div className='flex flex-col'>*/}
-                                {/*                <div className='flex flex-row items-center justify-between w-full'>*/}
-                                {/*                    {userBalance ?*/}
-                                {/*                        <span className={'text-md'}>$ {userBalance}</span> :*/}
-                                {/*                        <span className={'text-md'}>$0.00</span>*/}
-                                {/*                    }*/}
-                                {/*                </div>*/}
-                                {/*            </div>*/}
-                                {/*        </Button>*/}
-                                {/*    </div>*/}
-                                {/*    <div className="flex gap-4 items-center">*/}
-                                {/*        {userBalance ?*/}
-                                {/*            <UserSettingsModal totalAmount={userBalance} totalDeposit={0} totalProfit={0} userData={currentUserData} /> :*/}
-                                {/*            <UserSettingsModal totalAmount={0} totalDeposit={0} totalProfit={0} userData={{}} />*/}
-                                {/*        }*/}
-                                {/*    </div>*/}
+                                    {/*</div>*/}
+                                    <div className="flex flex-col h-full w-full p-2">
+                                        <div className="nav h-full">
+                                            <div className='flex flex-col  w-full px-2 h-full justify-center items-center'>
 
-                                {/*</div>*/}
-                                <div className="flex flex-col h-full w-full p-2">
-                                    <div className="nav h-full">
-                                        <div className='flex flex-col  w-full px-2 h-full justify-center items-center'>
+                                                <div className={'page-header container flex flex-col items-center gap-4 justify-center'}>
+                                                    <p className="text-xl font-bold mb-4 py-2">Hola, {currentUserData.name ? currentUserData.name : currentUserData.email.split('@')[0] }</p>
+                                                </div>
 
-                                            <div className={'page-header container flex flex-col items-center gap-4 justify-center'}>
-                                                <p className="text-xl font-bold mb-4 py-2">Hola, {currentUserData.name ? currentUserData.name : currentUserData.email.split('@')[0] }</p>
+                                                <DashboardPage />
+
+                                                {/*<MobileNav/>*/}
+                                                {/*<HistoryTable ticker={ticker} orderToParent={selectOrderFromTable}*/}
+                                                {/*              closeOrder={selectCloseOrderFromTable} currentPrice={currentPrice}*/}
+                                                {/*              counter={counter}/>*/}
                                             </div>
-
-                                           <DashboardPage />
-
-                                            {/*<MobileNav/>*/}
-                                            {/*<HistoryTable ticker={ticker} orderToParent={selectOrderFromTable}*/}
-                                            {/*              closeOrder={selectCloseOrderFromTable} currentPrice={currentPrice}*/}
-                                            {/*              counter={counter}/>*/}
                                         </div>
                                     </div>
-                                </div>
-                            </>
 
+                            </>
                             :
                             <div className="w-full  flex flex-col gap-4 h-full">
 

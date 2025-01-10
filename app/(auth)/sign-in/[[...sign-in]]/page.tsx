@@ -50,7 +50,8 @@ const SignInForm = () => {
         if(signInData?.error) {
             console.log(signInData.error)
         } else {
-            router.push('/')
+            router.push("/");
+            // location.reload();
         }
     };
 
@@ -58,14 +59,17 @@ const SignInForm = () => {
         <>
             {
                 isMobile ? <div>
-                        <nav
+                        <div
                             className="flex justify-between items-center border-b border-border h-16 bg-sidebar px-8 py-4 fixed w-full top-0 z-50">
                             <div className="flex gap-2 items-center ">
                                 <Logo/>
-                                <h2 className={'text-2xl font-bold'}><p>{isMobile ? "AT" : "Aragon Trade"}</p></h2>
+                                <div className={'text-2xl font-bold'}>
+                                    <span className={'block md:hidden'}>AT</span>
+                                    <span className={'hidden md:block'}>Aragon Trade</span>
+                                </div>
                             </div>
                             <div className="flex gap-2 items-center ">
-                                <Link
+                            <Link
                                     className='text-white border-border font-bold border-2 rounded-md px-6 py-1 transition-all  bg-transparent hover:bg-gray-200 hover:text-background'
                                     href="/sign-in">
                                     Sign in
@@ -76,10 +80,10 @@ const SignInForm = () => {
                                     Sign up
                                 </Link>
                             </div>
-                        </nav>
+                        </div>
 
                         <div
-                            className="flex flex-col h-screen items-center justify-center mx-auto w-full mt-8 border-3 border-border rounded-lg px-12 font-bold">
+                            className="flex flex-col h-screen items-center justify-center mx-auto w-full mt-8 rounded-lg px-12 font-bold">
                             <div className="w-full flex items-center justify-center text-2xl my-2">Sign In</div>
 
                             <Form {...form}>
@@ -120,12 +124,12 @@ const SignInForm = () => {
                                         Sign in
                                     </Button>
                                 </form>
-                                <p className='text-center text-sm text-gray-600 mt-2'>
+                                <div className='text-center text-sm text-gray-600 mt-2'>
                                     If you don&apos;t have an account, please&nbsp;
                                     <Link className='text-blue-500 hover:underline' href='/sign-up'>
                                         Sign up
                                     </Link>
-                                </p>
+                                </div>
                             </Form>
                         </div>
 
@@ -133,11 +137,14 @@ const SignInForm = () => {
                     </div> :
 
                     <div className={'h-screen flex-col flex justify-center font-bold'}>
-                        <nav
+                        <div
                             className="flex justify-between items-center border-b border-border h-16 bg-sidebar px-8 py-4 fixed w-full top-0 z-50">
                             <div className="flex gap-2 items-center ">
                                 <Logo/>
-                                <h2 className={'text-2xl font-bold'}><p>{isMobile ? "AT" : "Aragon Trade"}</p></h2>
+                                <div className={'text-2xl font-bold'}>
+                                    <span className={'block md:hidden'}>AT</span>
+                                    <span className={'hidden md:block'}>Aragon Trade</span>
+                                </div>
                             </div>
                             <div className="flex gap-2 items-center ">
                                 <Link
@@ -151,7 +158,7 @@ const SignInForm = () => {
                                     Sign up
                                 </Link>
                             </div>
-                        </nav>
+                        </div>
                         <div
                             className="flex flex-col h-3/6 items-center justify-center mx-auto w-1/3 border-3 border-border rounded-lg px-12">
                             <div className="w-full flex items-center justify-center text-2xl my-2">Sign In</div>
@@ -193,12 +200,12 @@ const SignInForm = () => {
                                         Sign in
                                     </Button>
                                 </form>
-                                <p className='text-center text-sm text-gray-600 mt-2'>
+                                <div className='text-center text-sm text-gray-600 mt-2'>
                                     If you don&apos;t have an account, please&nbsp;
                                     <Link className='text-blue-500 hover:underline' href='/sign-up'>
                                         Sign up
                                     </Link>
-                                </p>
+                                </div>
                             </Form>
                         </div>
                     </div>

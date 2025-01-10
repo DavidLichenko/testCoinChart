@@ -4,7 +4,7 @@ import Image from "next/image";
 import Logo from "@/components/Logo";
 import Link from "next/link";
 import ThemeSwitcher from "@/components/ThemeSwitcher";
-import React from "react";
+import React, {useEffect, useState} from "react";
 import HeroImg from "@/components/images/welcome/intro-img.webp"
 import BuiltIn from "@/components/images/welcome/profits-platform.webp"
 import AssetsTrade from "@/components/images/welcome/profits-weekends.webp"
@@ -20,14 +20,23 @@ import {useMediaQuery} from "react-responsive";
 
 
 export default function Home() {
-    const isMobile = useMediaQuery({maxWidth: 768})
+    // const isMobile = useMediaQuery({maxWidth: 768})
+    const [isMobile,setIsMobile] = useState(false);
+    useEffect(() => {
+        if(window.innerWidth <= 768) {
+            setIsMobile(true);
+        }
+    }, []);
     return (
         <>
             <nav
                 className="flex justify-between items-center border-b border-border h-16 bg-gradient-to-b from-custom-950 to-custom-900 px-8 py-4 fixed w-full top-0 z-50">
                 <div className="flex gap-2 items-center ">
                     <Logo/>
-                    <h2 className={'text-2xl font-bold'}><p>{isMobile ? "AT" : "Aragon Trade"}</p></h2>
+                    <div className={'text-2xl font-bold'}>
+                        <span className={'block md:hidden'}>AT</span>
+                        <span className={'hidden md:block'}>Aragon Trade</span>
+                    </div>
                 </div>
                 <div className="flex gap-2 items-center ">
                     <Link

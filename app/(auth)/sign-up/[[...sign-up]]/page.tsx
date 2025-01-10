@@ -77,7 +77,10 @@ const SignUpForm = () => {
                         className="flex justify-between items-center border-b border-border h-16 bg-sidebar px-8 py-4 fixed w-full top-0 z-50">
                         <div className="flex gap-2 items-center ">
                             <Logo/>
-                            <h2 className={'text-2xl font-bold'}><p>{isMobile ? "AT" : "Aragon Trade"}</p></h2>
+                            <div className={'text-2xl font-bold'}>
+                                <span className={'block md:hidden'}>AT</span>
+                                <span className={'hidden md:block'}>Aragon Trade</span>
+                            </div>
                         </div>
                         <div className="flex gap-2 items-center ">
                             <Link
@@ -93,7 +96,7 @@ const SignUpForm = () => {
                         </div>
                     </nav>
                     <div
-                        className="flex flex-col h-screen items-center justify-center mx-auto w-full mt-8  border-3 border-border  font-bold rounded-lg px-12">
+                        className="flex flex-col h-screen items-center justify-center mx-auto w-full mt-8  font-bold rounded-lg px-12">
                         <div className="w-full flex items-center justify-center text-2xl my-2">Sign Up</div>
                         <Form {...form}>
                             <form onSubmit={form.handleSubmit(onSubmit)} className='w-full'>

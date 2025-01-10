@@ -29,7 +29,7 @@ const HeaderMobile = () => {
     }, []);
     return (
         <>
-            {!ses ? <Skeleton className={'h-screen w-full'}><span className={'opacity-0'}>0</span></Skeleton> :
+            {!ses ? <></> :
                 <>
                     {loading ? <Skeleton className={'h-screen w-full'}><span className={'opacity-0'}>0</span></Skeleton> :
                         <>
