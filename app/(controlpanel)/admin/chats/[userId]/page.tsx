@@ -1,22 +1,32 @@
-import { AdminChatWindow } from '@/components/admin/admin-chat-window'
+import { AdminChatWindow } from '@/components/admin/chat/admin-chat-window'
 import { prisma } from '@/prisma/prisma-client'
+import { notFound } from 'next/navigation'
+
+async function getUser(userId: string) {
+  const user = await prisma.user.findUnique({
+    where: { id: userId }
+  })
+  
+  if (!user) {
+    notFound()
+  }
+  
+  return user
+}
 
 async function getMessages(userId: string) {
   return await prisma.message.findMany({
     where: { userId },
-    orderBy: { createdAt: 'asc' },
-    include: { user: true }
+    orderBy: { createdAt: 'asc' }
   })
 }
 
-export default async function AdminChatPage({ params }: { params: { userId: string } }) {
-  const messages = await getMessages(params.userId)
+export default async function ChatPage({ params }: { params: { userId: string } }) {
+  const [user, messages] = await Promise.all([
+    getUser(params.userId),
+    getMessages(params.userId)
+  ])
 
-  return (
-    <div className="space-y-4">
-      <h1 className="text-2xl font-bold">Chat with User {params.userId}</h1>
-      <AdminChatWindow initialMessages={messages} userId={params.userId} />
-    </div>
-  )
+  return <AdminChatWindow user={user} initialMessages={messages} />
 }
 
