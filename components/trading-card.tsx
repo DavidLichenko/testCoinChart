@@ -206,7 +206,7 @@ export default function TradingCard({livePrice, type,userBalance,ticker}) {
                     </form>
                 </Form>
 
-                <Button className="w-full mt-4" type="submit" onClick={form.handleSubmit(onSubmit)}>
+                <Button className="w-full mt-4 bg-sidebar-accent" type="submit" onClick={form.handleSubmit(onSubmit)}>
                     Place Order
                 </Button>
             </CardContent>
