@@ -366,29 +366,29 @@ function Trade () {
                         {isMobile ?
                             <>
 
-                                <div className="flex justify-between items-center border-b border-border h-16 z-20 bg-border px-8 py-2">
-                                    <div className={'flex gap-4 items-center justify-center'}>
-                                        <Sidebar />
-                                        <Button disableRipple={true} variant={'bordered'} radius={'none'}
-                                                size={'md'} className='text-md font-bold'>
-                                            <div className='flex flex-col'>
-                                                <div className='flex flex-row items-center justify-between w-full'>
-                                                    {userBalance ?
-                                                        <span className={'text-md'}>$ {userBalance}</span> :
-                                                        <span className={'text-md'}>$0.00</span>
-                                                    }
-                                                </div>
-                                            </div>
-                                        </Button>
-                                    </div>
-                                    <div className="flex gap-4 items-center">
-                                        {userBalance ?
-                                            <UserSettingsModal totalAmount={userBalance} totalDeposit={0} totalProfit={0} userData={currentUserData} /> :
-                                            <UserSettingsModal totalAmount={0} totalDeposit={0} totalProfit={0} userData={{}} />
-                                        }
-                                    </div>
+                                {/*<div className="flex justify-between items-center border-b border-border h-16 z-20 bg-border px-8 py-2">*/}
+                                {/*    <div className={'flex gap-4 items-center justify-center'}>*/}
+                                {/*        <Sidebar />*/}
+                                {/*        <Button disableRipple={true} variant={'bordered'} radius={'none'}*/}
+                                {/*                size={'md'} className='text-md font-bold'>*/}
+                                {/*            <div className='flex flex-col'>*/}
+                                {/*                <div className='flex flex-row items-center justify-between w-full'>*/}
+                                {/*                    {userBalance ?*/}
+                                {/*                        <span className={'text-md'}>$ {userBalance}</span> :*/}
+                                {/*                        <span className={'text-md'}>$0.00</span>*/}
+                                {/*                    }*/}
+                                {/*                </div>*/}
+                                {/*            </div>*/}
+                                {/*        </Button>*/}
+                                {/*    </div>*/}
+                                {/*    <div className="flex gap-4 items-center">*/}
+                                {/*        {userBalance ?*/}
+                                {/*            <UserSettingsModal totalAmount={userBalance} totalDeposit={0} totalProfit={0} userData={currentUserData} /> :*/}
+                                {/*            <UserSettingsModal totalAmount={0} totalDeposit={0} totalProfit={0} userData={{}} />*/}
+                                {/*        }*/}
+                                {/*    </div>*/}
 
-                                </div>
+                                {/*</div>*/}
                                 <div className="flex flex-col h-full w-full p-2">
                                     <div className="nav h-full">
                                         <div className='flex flex-col  w-full px-2 h-full justify-center items-center'>
@@ -399,7 +399,7 @@ function Trade () {
 
                                            <DashboardPage />
 
-                                            <MobileNav/>
+                                            {/*<MobileNav/>*/}
                                             {/*<HistoryTable ticker={ticker} orderToParent={selectOrderFromTable}*/}
                                             {/*              closeOrder={selectCloseOrderFromTable} currentPrice={currentPrice}*/}
                                             {/*              counter={counter}/>*/}
@@ -518,39 +518,7 @@ function Trade () {
                                                                 ${
                                                                     // @ts-ignore
                                                                     (parseFloat(margin)).toFixed(2)}</div>
-                                                            {/*<Slider*/}
-                                                            {/*    onWheel={(el) => {*/}
-                                                            {/*        if (el.nativeEvent.wheelDeltaY > 0 && sliderValue !== 100) {*/}
-                                                            {/*            setSliderValue(sliderValue + 5)*/}
-                                                            {/*        }*/}
-                                                            {/*        if (el.nativeEvent.wheelDeltaY < 0 && sliderValue !== 0) {*/}
-                                                            {/*            setSliderValue(sliderValue - 5)*/}
-                                                            {/*        }*/}
 
-                                                            {/*    }}*/}
-                                                            {/*    onChange={setSliderValue}*/}
-                                                            {/*    color="foreground"*/}
-                                                            {/*    size="sm"*/}
-                                                            {/*    step={5}*/}
-                                                            {/*    value={sliderValue}*/}
-                                                            {/*    marks={[*/}
-                                                            {/*        {*/}
-                                                            {/*            value: 20,*/}
-                                                            {/*            label: "20%",*/}
-                                                            {/*        },*/}
-                                                            {/*        {*/}
-                                                            {/*            value: 50,*/}
-                                                            {/*            label: "50%",*/}
-                                                            {/*        },*/}
-                                                            {/*        {*/}
-                                                            {/*            value: 80,*/}
-                                                            {/*            label: "80%",*/}
-                                                            {/*        },*/}
-                                                            {/*    ]}*/}
-                                                            {/*    defaultValue={0}*/}
-                                                            {/*    showTooltip={true}*/}
-                                                            {/*    className="max-w-md mt-5"*/}
-                                                            {/*/>*/}
                                                             <Select label={`Leverage 1:` + leverage}
                                                                     defaultSelectedKeys={['100']}
                                                                     value={100} variant={'bordered'} radius={'none'}

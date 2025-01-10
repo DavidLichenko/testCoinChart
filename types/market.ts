@@ -1,25 +1,11 @@
-export interface MarketData {
-  ticker: string
-  price: number
-  timestamp: string
-  high: number
-  low: number
+export type MarketType = 'Forex' | 'Crypto' | 'IEX'
+
+export interface Market {
+  symbol: string
+  price: number // New field to represent the price
   volume: number
-  prevClose: number
   change: number
-  changePercent: number
+  type: MarketType
+  flag1: string
+  flag2: string
 }
-
-export interface SearchResult {
-  ticker: string
-  name: string
-  description: string
-}
-
-// Add any missing types
-export interface MarketSocketHookResult {
-  data: Record<string, MarketData>
-  error: string | null
-  isConnected: boolean
-}
-

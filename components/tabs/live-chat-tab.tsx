@@ -9,7 +9,11 @@ import { Button } from '@/components/ui/button';
 import { Send, Paperclip } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { GetCurrentData } from '@/actions/form';
-
+const socket = io('https://srv677099.hstgr.cloud', {
+  path: '/socket.io',
+  transports: ['websocket'],
+  withCredentials: true,
+});
 
 export default function UserChat() {
   const [messages, setMessages] = useState([]);
@@ -37,10 +41,7 @@ export default function UserChat() {
       const data = await res.json();
       setMessages(data);
       setCurrentUser(user);
-      if (user?.id) {
-        socket.emit('register', user.id); // Emit the register event with the user's ID
-        console.log(`Registered user with ID: ${user.id}`);
-      }
+
     } catch (error) {
       console.error('Error fetching current user:', error);
     }
@@ -52,12 +53,11 @@ export default function UserChat() {
   }, []);
 
   useEffect(() => {
-    const socket = io('https://srv677099.hstgr.cloud', {
-      path: '/socket.io',
-      transports: ['websocket'],
-      withCredentials: true,
-    });
 
+    if (currentUser?.id) {
+      socket.emit('register', currentUser.id); // Emit the register event with the user's ID
+      console.log(`Registered user with ID: ${currentUser.id}`);
+    }
     socket.on('chat message', (msg) => {
       console.log(msg)
       if (msg.userId === currentUser.id) {

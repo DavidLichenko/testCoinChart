@@ -1,15 +1,26 @@
 "use server";
-
+import { headers } from "next/headers";
 import {prisma} from "@/prisma/prisma-client";
 import yahooFinance from "yahoo-finance2";
 import { getServerSession } from "next-auth"
 import {authOptions} from "@/lib/auth";
+import {redirect} from "next/navigation";
+const headerList = headers();
+
+// export const CheckAuth = async() => {
+//     const session = await getServerSession(authOptions)
+//     // console.log(session)
+//     const pathname = headerList.get("x-current-path");
+//     // const user = session.user;
+//     // const userId : string = user.id;
+//     console.log(pathname)
+//     if (!session && pathname !== '/welcome' && pathname !== '/sign-in' && pathname !== '/sign-up') {
+//         redirect("/welcome");
+//     }
+//     return session
+// }
 
 
-
-const arraySearchData: string[] = [];
-
-let price = '';
 
 export async function GetStockData(ticker:string) {
     let result;

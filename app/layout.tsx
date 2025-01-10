@@ -4,6 +4,10 @@ import "./globals.css";
 import "./icons.css"
 import {ThemeProvider} from "@/components/providers/ThemeProvider";
 import {Toaster} from "@/components/ui/toaster";
+import HeaderMobile from "@/components/HeaderMobile";
+import React from "react";
+import {MobileNav} from "@/components/mobile-nav";
+// import {CheckAuth} from "@/actions/form";
 
 
 
@@ -22,16 +26,23 @@ export default function RootLayout({
                                    }: Readonly<{
     children: React.ReactNode;
 }>) {
+    // CheckAuth()
     return (
         <>
-            <html lang="en" suppressHydrationWarning={true}>
+            <html lang="en" suppressHydrationWarning={true} >
             <body className={roboto.className} suppressHydrationWarning={true}>
             <ThemeProvider
                 attribute="class"
                 defaultTheme="dark"
                 enableSystem
             >
-                {children}
+
+                    <HeaderMobile />
+                {/*<div className="h-screen">*/}
+                    {children}
+                {/*</div>*/}
+                    <MobileNav/>
+
                 <Toaster />
             </ThemeProvider>
             </body>

@@ -44,6 +44,7 @@ export default function SupportChat({
     };
     useEffect(() => {
         fetchMessages();
+        getUserId();
 
         socket.on("chat message", (msg) => {
             console.log(msg)
@@ -51,7 +52,6 @@ export default function SupportChat({
                 setMessages((prev) => [...prev, msg]);
             }
         });
-        getUserId();
         return () => {
             socket.off("chat message");
         };
@@ -113,7 +113,7 @@ export default function SupportChat({
             }
 
             const savedMessage = await res.json();
-
+            console.log(savedMessage)
             socket.emit("support message", savedMessage);
             setMessages((prev) => [...prev, savedMessage]);
             setInput("");

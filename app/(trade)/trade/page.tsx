@@ -12,16 +12,16 @@ const Page = () => {
 
     return (
         <>
-                <div>
-                    <HeaderMobile />
-                    <div className="flex container h-screen mb-12 w-full pt-2 gap-6  flex-col justify-start">
+                <div className={'h-full'}>
+                    {/*<HeaderMobile />*/}
+                    <div className="flex container h-full mb-12 w-full pt-2 gap-6  flex-col justify-start">
                         {/*<p className={'text-left text-4xl font-bold'}>TRADE</p>*/}
                         <span className={'text-center w-full mx-auto text-2xl pt-2 font-semibold'}>Lista de mercados</span>
                         <TickerTable/>
                     </div>
                     <div className={'content flex flex-col items-start gap-2 justify-center'}>
                         {/*<DashboardPage />*/}
-                        <MobileNav/>
+                        {/*<MobileNav/>*/}
                     </div>
                 </div>
         </>

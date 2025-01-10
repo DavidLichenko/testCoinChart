@@ -1,93 +1,32 @@
 "use client"
 import React, { useEffect, useRef, useState } from "react";
 import { createChart, WatermarkOptions } from "lightweight-charts";
-import {GetStockData, GetWebSocketStockData} from "@/actions/form";
-import {Ping} from "@uiball/loaders";
 import { useTheme } from 'next-themes'
-import {Skeleton} from "@/components/ui/skeleton";
 
-
-const Chart = ({ticker,tickerType,sendCurrentPrice,OpenIn,CloseIn,addTPPriceLine,addSLPriceLine, currentHeight, tickerName}) => {
+const ChartMobile = ({ticker, type,addTPPriceLine,addSLPriceLine, currentPrice}) => {
     const ref = useRef();
-    const [chartHeight, setChartHeight] = useState(0);
-    const [currentPrice,setCurrentPrice] = useState(0.000)
-    const [currentChart,setCurrentChart] = useState(0)
     const { theme, setTheme } = useTheme()
+    const [currentChart,setCurrentChart] = useState(0)
     const [TPLine,setTPLine] = useState(false)
     const [SLLine,setSLLine] = useState(false)
     const [SLLinePrice,setSLLinePrice] = useState(0)
     const [TPLinePrice,setTPLinePrice] = useState(0)
     const [OpenInLine,setOpenInLine] = useState(false)
-    const [candlesticks, setCandlesticks] = useState([]);
     const [OpenInLinePrice,setOpenInLinePrice] = useState(0)
-    const [eventSource,setEventSource] = useState<EventSource>();
-    const chartProperties = {
-        height: currentHeight,
-        autosize:true,
-        layout: {
-            textColor: theme === 'light' ? 'black' : 'white',
-            background: { color: theme === 'light' ? '#ffffff' : '#fff'},
-        },
 
-        backgroundColor:'white',
-        disabled_features: ['widget_logo'],
-        timeScale: {
-            timeVisible: true,
-            secondsVisible: false,
-        },
-    };
 
-    const [prevTicket, setPrevTicket] = useState('');
-    // const [chartData, setChartData] = useState([]);
     const ws = new WebSocket(
         `wss://stream.binance.com:9443/ws/${ticker}@kline_1m`
     );
 
 
-    // const wSocket = new WebSocket(`ws://127.0.0.1:8000/api/stocks/${ticker}/ws`);
 
 
-    const postData = data => {
-        return fetch('http://localhost:8080/stocks', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(data)
-        })
-            .then(response => response.json()) // parses JSON response into native JavaScript objects
-    }
 
 
-    async function ForexCh({chart}) {
-        const candlestickSeries = chart.addCandlestickSeries();
-        fetch(
-            `https://marketdata.tradermade.com/api/v1/timeseries?currency=EURUSD&api_key=FvZ0U8fmsqsqsH95WU3b&start_date=2024-4-10&format=records`
-        )
-            .then((res) => res.json())
-            .then((data) => {
-                // const timestamp = data.date_time.split('-')[0]
-                // console.log(data)
-                const cdata = data.quotes.map((d) => {
-
-                    return {
-                        time: Date.parse(d.date) / 1000,
-                        open: parseFloat(d.open),
-                        high: parseFloat(d.high),
-                        low: parseFloat(d.low),
-                        close: parseFloat(d.close),
-                    };
-                });
 
 
-                candlestickSeries.setData(cdata);
-            })
-            .catch((err) => console.log(err));
-    }
-    // function handler(params,chart) {
-    //     const line = params.customPriceLine;
-    // }
-    // console.log(ref.current.parentElement)
+
     const prepareChart = (chart, ws) => {
         const series = chart.addLineSeries({
             color: '#2962FF',
@@ -103,7 +42,7 @@ const Chart = ({ticker,tickerType,sendCurrentPrice,OpenIn,CloseIn,addTPPriceLine
                 visible: false,
             },
             layout: {
-                background: {color: '#030712'},
+                background: {color: 'hsl(240, 5%, 8%)'},
                 textColor: '#DDD',
             },
             grid: {
@@ -154,7 +93,7 @@ const Chart = ({ticker,tickerType,sendCurrentPrice,OpenIn,CloseIn,addTPPriceLine
         }
 
 
-        if (tickerType === "S") {
+        if (type === "IEX") {
             const fetchTest = async () => {
                 try {
                     const response = await fetch(`https://srv677099.hstgr.cloud/api/stocks/${ticker}/candlesticks/`, {
@@ -166,8 +105,10 @@ const Chart = ({ticker,tickerType,sendCurrentPrice,OpenIn,CloseIn,addTPPriceLine
                     const json = await response.json();
                     const filledCandles = connectCandles(json.data);
                     let jsonArr = filledCandles.sort((a, b) => a.time - b.time);
-                    sendCurrentPrice(jsonArr[jsonArr.length - 1].close)
                     // console.log(jsonArr)
+                    jsonArr.forEach((item)=>{
+                        currentPrice(item.close)
+                    })
                     candlestickSeries.setData(jsonArr);
                 } catch (error) {
                     console.error("Error fetching todos:", error);
@@ -175,15 +116,14 @@ const Chart = ({ticker,tickerType,sendCurrentPrice,OpenIn,CloseIn,addTPPriceLine
             }
             fetchTest()
         }
-        if (tickerType == 'C') {
+        if (type == 'Crypto') {
             fetch(
                 `https://api.binance.com/api/v3/klines?symbol=${ticker.toUpperCase()}&interval=1m&limit=1000`
             )
                 .then((res) => res.json())
                 .then((data) => {
                     const cdata = data.map((d) => {
-                        setCurrentPrice(parseFloat(d[4]))
-                        sendCurrentPrice(parseFloat(d[4]))
+                        currentPrice(parseFloat(d[4]))
                         return {
                             time: d[0] / 1000,
                             open: parseFloat(d[1]),
@@ -199,10 +139,8 @@ const Chart = ({ticker,tickerType,sendCurrentPrice,OpenIn,CloseIn,addTPPriceLine
             ws.onmessage = (event) => {
                 const responseObject = JSON.parse(event.data);
                 // console.log(chartData)
-                setPrevTicket(responseObject.s)
                 const {t, o, h, l, c} = responseObject.k;
-                setCurrentPrice(parseFloat(c))
-                sendCurrentPrice(parseFloat(c))
+
                 const kData = {
                     time: t,
                     open: parseFloat(o),
@@ -210,11 +148,11 @@ const Chart = ({ticker,tickerType,sendCurrentPrice,OpenIn,CloseIn,addTPPriceLine
                     low: parseFloat(l),
                     close: parseFloat(c),
                 };
-
+                currentPrice(parseFloat(c))
                 candlestickSeries.update(kData);
             };
         }
-        if (tickerType == 'F') {
+        if (type == 'Forex') {
             const candlestickSeries = chart.addCandlestickSeries();
             fetch(
                 `https://marketdata.tradermade.com/api/v1/timeseries?currency=${ticker}&api_key=FvZ0U8fmsqsqsH95WU3b&start_date=2024-4-10&format=records`
@@ -233,14 +171,15 @@ const Chart = ({ticker,tickerType,sendCurrentPrice,OpenIn,CloseIn,addTPPriceLine
                         };
                     });
 
-                    sendCurrentPrice(parseFloat(cdata[cdata.length-1].close))
-                    setCurrentPrice(parseFloat(cdata[cdata.length-1].close))
+                    currentPrice(parseFloat(cdata[cdata.length-1].close))
+
                     candlestickSeries.setData(cdata);
                 })
                 .catch((err) => console.log(err));
         }
 
     }
+
     if(addTPPriceLine) {
         if (currentChart) {
             // console.log(TPLinePrice)
@@ -286,35 +225,17 @@ const Chart = ({ticker,tickerType,sendCurrentPrice,OpenIn,CloseIn,addTPPriceLine
             }
         }
     }
-    if(OpenIn) {
-        if(!OpenInLine) {
-            // @ts-ignore
-            const priceLine = currentChart.createPriceLine({price:parseFloat(OpenIn), color:'rgb(64,99,211)'})
-            setOpenInLine(true)
-            setOpenInLinePrice(priceLine)
-        }
-        if(OpenInLinePrice !== 0) {
-            // @ts-ignore
-            OpenInLinePrice.applyOptions({
-                price: OpenIn,
-            })
-        }
-    }
+
     useEffect(() => {
-        if(!currentHeight) {
-            return;
-        }
-        if(prevTicket !== ticker.toUpperCase()) {
-            setPrevTicket(ticker)
-        }
-        // if (ref.current) {
-        //     setChartHeight(ref.current.parentElement.offsetHeight);
-        // }
         const chart = createChart(ref.current, {
-            height: currentHeight,
+            height: 440,
             layout: {
                 textColor: theme === 'light' ? '#000' : 'white',
-                background: { color: theme === 'light' ? '#ffffff' : 'hsl(224 71.4% 4.1%)'},
+                background: { color: theme === 'light' ? '#ffffff' : 'hsl(240, 5%, 8%)'},
+            },
+            rightPriceScale: {
+                minimumWidth: 45,
+                borderVisible: false
             },
             timeScale: {
                 timeVisible: true,
@@ -325,73 +246,25 @@ const Chart = ({ticker,tickerType,sendCurrentPrice,OpenIn,CloseIn,addTPPriceLine
                 uniformDistribution:true
             },
         });
-
-
-        // setCurrentChart(chart)
         chart.timeScale().fitContent()
+        prepareChart(chart, ws);
+    }, [ticker,theme]);
 
-        if (tickerType === 'C') {
-            prepareChart(chart, ws);
-            chart.applyOptions({
-                layout: {
-                    textColor: theme === 'light' ? '#000' : 'white',
-                    background: { color: theme === 'light' ? '#ffffff' : 'hsl(240, 5%, 8%)'},
-                },
-            })
-        }
-        if(tickerType === 'Forex' || tickerType === 'F') {
-            prepareChart(chart, ws);
-            chart.applyOptions({
-                layout: {
-                    textColor: theme === 'light' ? '#000' : 'white',
-                    background: { color: theme === 'light' ? '#ffffff' : 'hsl(240, 5%, 8%)'},
-                },
-            })
-        }
-        if(tickerType === 'Stocks' || tickerType === 'S') {
-            prepareChart(chart, ws);
-            chart.applyOptions({
-                layout: {
-                    textColor: theme === 'light' ? '#000' : 'white',
-                    background: { color: theme === 'light' ? '#ffffff' : 'hsl(240, 5%, 8%)'},
-                },
-            })
-        }
 
-        if (ticker) {
-            // @ts-ignore
-            if (ref.current.children.length > 1) {
-                // @ts-ignore
-                ref.current.removeChild(ref.current.children[0])
-            }
-        }
 
-        return ()=>{
-            ws.close()
-        }
-    }, [ticker,currentHeight,theme]);
 
     return (
-        <>
-            {currentHeight ?
-                <>
-                    <div
-                        className='sticky capitalize top-5 pl-6 pr-12 py-1.5 border-border border-1 left-6 z-[30] bg-background text-muted-foreground font-bold'>
-                        {tickerName} ~ 1 ~ AragonTrade
-                    </div>
-                    <div ref={ref} className='relative'>
+        <div className="h-full w-full">
+            <div
+                className='sticky w-full capitalize top-16 px-4 py-1.5 rounded-lg border-border border-1 left-6 z-[30] bg-sidebar text-muted-foreground font-bold'>
+                {ticker} ~ {type} ~ 1 ~ AragonTrade
+            </div>
+            <div ref={ref} className='relative'>
 
-                    </div>
+            </div>
 
-                </>
-                :
-                <Skeleton
-                    className='w-full h-[750px]  border-2  bg-background flex items-center justify-center basis-full grow'>
-                    <span className=''><Ping speed={1.8} size={64} color={'gray'}/></span>
-                </Skeleton>
-            }
-        </>
+        </div>
     );
 };
 
-export default Chart;
+export default ChartMobile;

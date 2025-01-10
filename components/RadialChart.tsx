@@ -10,7 +10,7 @@ const RadialProfitLossChart = ({ totalProfit }) => {
 
     const data = [
         {
-            name: isProfit ? 'Profit' : 'Loss',
+            name: isProfit ? 'Ganancia' : 'Perdida',
             value: profitPercentage,
             fill: isProfit ? '#4CAF50' : '#F44336', // Green for profit, red for loss
         },
@@ -19,14 +19,14 @@ const RadialProfitLossChart = ({ totalProfit }) => {
     return (
         <div className="flex flex-col items-center justify-center">
             <h2 className="text-lg font-semibold mb-4">
-                {isProfit ? 'Total Profit' : 'Total Loss'}
+                {isProfit ? 'Ganancia total' : 'Perdida total'}
             </h2>
             <RadialBarChart
                 width={200}
                 height={200}
                 cx="50%"
-                cy="50%"
-                innerRadius="40%"
+                cy="40%"
+                innerRadius="60%"
                 outerRadius="80%"
                 barSize={20}
                 data={data}

@@ -5,6 +5,7 @@ import RevenueChart from "@/components/RevenueChart";
 import {useEffect, useState} from "react";
 import {Skeleton} from "@/components/ui/skeleton";
 import RadialProfitLossChart from "@/components/RadialChart";
+import {LoaderCircle} from "lucide-react";
 
 async function fetchData() {
     return await getDashboard()
@@ -55,7 +56,7 @@ export default  function DashboardPage() {
     }, []);
 
     if (!data) {
-        return <div>Loading...</div>;
+        return  <Skeleton className={'w-full h-screen flex items-center justify-center'}><LoaderCircle className={'animate-spin'}></LoaderCircle></Skeleton>;
     }
     // Calculate values for total revenue, money in work, and profit
     const totalRevenue = calculateRevenue(data.orders);
@@ -69,18 +70,18 @@ export default  function DashboardPage() {
     console.log(data)
     return (
         <>
-            { loading ? <Skeleton className={'w-full h-full'}><span className={'opacity-0'}>0</span></Skeleton> :
+            { loading ? <Skeleton className={'w-full h-screen fixed top-0 left-0 z-[9000]'}><LoaderCircle className={'animate-spin'}></LoaderCircle></Skeleton> :
                 <div className={'container w-full h-full mb-16'}>
                     <h1 className="text-2xl font-bold mb-6 text-center">Dashboard</h1>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <DashboardCard
-                            title="Total Balance"
+                            title="Balance total"
                             value={`$${formatValue(data.totalBalance)}`}
                             change={null}
                         />
 
                         <DashboardCard
-                            title="Total Profit"
+                            title="Ganancia total"
                             value={`$${formatValue(totalProfit)}`} // All-time total profit
                             change={null} // No change for this card
                         />
@@ -94,12 +95,12 @@ export default  function DashboardPage() {
                     {/* Profit and Profit Change for All Time */}
                     <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
                         <DashboardCard
-                            title="Profit This Month"
+                            title="Ganancia este mes"
                             value={`$${formatValue(totalProfit)}`}
                             change={null}// All-time profit
                         />
                         <DashboardCard
-                            title="Profit Change"
+                            title="Ultimas operaciones"
                             value={`${formatValue(data.profitChange)}%`} // Percentage change from last month to current
                             change={data.profitChange}
                         />

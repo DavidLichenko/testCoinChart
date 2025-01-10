@@ -107,6 +107,7 @@
 .highcharts-credits {
   display: none!important;
 }
+
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -121,6 +122,7 @@
 .message {
   animation: fadeIn 0.3s ease-out;
 }
+
 /* custom scrollbar */
 ::-webkit-scrollbar {
   width: 20px;
