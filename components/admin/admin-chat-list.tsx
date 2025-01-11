@@ -11,15 +11,16 @@ export function AdminChatList({ chats }) {
         <CardTitle>Recent Chats</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="space-y-8">
+        <div className="space-y-8 gap-4">
           {chats.map((chat) => (
-            <div key={chat.id} className="flex items-center">
+            <div key={chat.id} className="flex items-center gap-4">
               <Avatar className="h-9 w-9">
                 <AvatarImage src={chat.user.imageUrl || '/placeholder.svg'} alt="Avatar" />
                 <AvatarFallback>{chat.user.name?.[0] || chat.user.email[0]}</AvatarFallback>
               </Avatar>
               <div className="ml-4 space-y-1">
-                <p className="text-sm font-medium leading-none">{chat.user.name || chat.user.email}</p>
+                <p className="text-sm font-medium leading-none">{chat.user.email}</p>
+                <p className="text-sm font-medium leading-none">{chat.user.name}</p>
                 <p className="text-sm text-muted-foreground">{chat.content.substring(0, 50)}...</p>
               </div>
               <Link href={`/admin/chats/${chat.userId}`} className="ml-auto font-medium">

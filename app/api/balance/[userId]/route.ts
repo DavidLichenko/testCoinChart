@@ -1,28 +1,49 @@
-import { NextResponse } from 'next/server'
-import { prisma } from '@/prisma/prisma-client'
+import { NextRequest, NextResponse } from "next/server";
+import {prisma} from "@/prisma/prisma-client";
 
-export async function GET(
-    request: Request,
-    { params }: { params: { userId: string } }
-) {
+// Fetch balance for a specific user
+export async function GET(req: NextRequest, { params }: { params: { userId: string } }) {
+    const { userId } = params;
+
+    if (!userId) {
+        return NextResponse.json({ error: "User ID is required" }, { status: 400 });
+    }
+
     try {
-        const userId = params.userId
+        const balance = await prisma.balances.findUnique({
+            where: { userId },
+        });
 
-        const user = await prisma.user.findUnique({
-            where: { id: userId },
-            include: { balance: true },
-        })
-
-        if (!user) {
-            return NextResponse.json({ error: 'User not found' }, { status: 404 })
+        if (!balance) {
+            return NextResponse.json({ error: "Balance not found" }, { status: 404 });
         }
 
-        const balance = user.balance[0]?.usd ?? user.TotalBalance ?? 0
-
-        return NextResponse.json({ balance })
+        return NextResponse.json({ usd: balance.usd });
     } catch (error) {
-        console.error('Error fetching balance:', error)
-        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
+        console.error("Error fetching balance:", error);
+        return NextResponse.json({ error: "Internal server error" }, { status: 500 });
     }
 }
 
+// Update balance for a specific user
+export async function PUT(req: NextRequest, { params }: { params: { userId: string } }) {
+    const { userId } = params;
+    const body = await req.json();
+    const { usd } = body;
+
+    if (!userId || typeof usd !== "number") {
+        return NextResponse.json({ error: "Invalid input" }, { status: 400 });
+    }
+
+    try {
+        const updatedBalance = await prisma.balances.update({
+            where: { userId },
+            data: { usd },
+        });
+
+        return NextResponse.json({ usd: updatedBalance.usd });
+    } catch (error) {
+        console.error("Error updating balance:", error);
+        return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    }
+}

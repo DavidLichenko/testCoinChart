@@ -11,7 +11,7 @@ import {Loader, LoaderCircle, LoaderIcon} from "lucide-react";
 const HeaderMobile = () => {
     const [currentUserData,setCurrentUserData] = useState({})
     const [userBalance,setUserBalance] = useState(null)
-    const { balance } = useBalance();
+    const { balance, isLoading } = useBalance();
     const [loading,setIsLoading] = useState(true)
     const [ses,setSes] = useState(false)
     async function currentSeesion() {
@@ -26,7 +26,7 @@ const HeaderMobile = () => {
 
     useEffect(() => {
         currentSeesion()
-    }, []);
+    }, [isLoading]);
     return (
         <>
                     <div

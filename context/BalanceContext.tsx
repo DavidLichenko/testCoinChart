@@ -1,50 +1,72 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { useSession } from "next-auth/react"; // For getting user session (userId)
-import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 
 interface BalanceContextType {
     balance: number;
     isLoading: boolean;
     error: string | null;
+    setBalanceUser: (balance: number, userId: string) => void;
 }
 
-const BalanceContext = createContext<BalanceContextType | undefined>(undefined);
+export const BalanceContext = createContext<BalanceContextType | undefined>(undefined);
 
 export const BalanceProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const { data: session, status } = useSession(); // To get the user session and userId
+    const { data: session, status } = useSession();
     const [balance, setBalance] = useState<number>(0);
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
-    const router = useRouter();
+
+    const fetchBalance = async () => {
+        try {
+            const response = await fetch(`/api/balance/${session.user.id}`);
+            if (!response.ok) {
+                throw new Error("Failed to fetch balance");
+            }
+            const data = await response.json();
+            console.log("Fetched balance data:", data);
+            setBalance(data.usd);
+        } catch (error: any) {
+            console.error("Error fetching balance:", error);
+            setError(error.message);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    // Custom method to update balance for a specific user
+    const setBalanceUser = async (newBalance: number, userId: string) => {
+        try {
+            const response = await fetch(`/api/balance/${userId}`, {
+                method: "PUT", // Assuming you implement a PUT endpoint for updates
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ usd: newBalance }),
+            });
+
+            if (!response.ok) {
+                throw new Error("Failed to update balance");
+            }
+
+            setBalance(newBalance); // Update context state
+        } catch (error: any) {
+            console.error("Error updating balance:", error);
+            setError(error.message);
+        }
+    };
 
     useEffect(() => {
-        // Don't fetch balance if the user is not authenticated
         if (status === "loading" || !session?.user?.id) {
             return;
         }
 
-        const fetchBalance = async () => {
-            try {
-                const response = await fetch(`/api/balance/${session.user.id}`);
-                if (!response.ok) {
-                    throw new Error("Failed to fetch balance");
-                }
-                const data = await response.json();
-                setBalance(data.usd);
-            } catch (error) {
-                setError(error.message);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-
         fetchBalance();
-    }, [session, status]); // Re-run if session changes or status changes
+    }, [session, status]);
 
     return (
-        <BalanceContext.Provider value={{ balance, isLoading, error }}>
+        <BalanceContext.Provider value={{ balance, isLoading, error, setBalanceUser }}>
             {children}
         </BalanceContext.Provider>
     );
