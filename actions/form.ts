@@ -101,7 +101,13 @@ export async function CreateTradeTransaction(status: string, type: any, takeProf
     })
 
 }
-
+export async function GetChats() {
+    return await prisma.user.findMany({
+        where:{
+            role: 'USER'
+        }
+    })
+}
 export async function GetTradeTransaction(ticker) {
     const session = await getServerSession(authOptions)
 

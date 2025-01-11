@@ -11,6 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { User } from '@prisma/client'
 
 export const columns: ColumnDef<User>[] = [
   {

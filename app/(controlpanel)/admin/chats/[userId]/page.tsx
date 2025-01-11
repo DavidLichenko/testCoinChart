@@ -6,11 +6,11 @@ async function getUser(userId: string) {
   const user = await prisma.user.findUnique({
     where: { id: userId }
   })
-  
+
   if (!user) {
     notFound()
   }
-  
+
   return user
 }
 

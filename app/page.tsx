@@ -263,7 +263,7 @@ function Trade () {
             return
         }
         try {
-            CreateTradeTransaction('OPEN',type,TPPrice !== 0 ? TPPrice : null, null, ticker, leverage, currentPrice,null,SLPrice !== 0 ? SLPrice : null, parseFloat(String(volume)),assetType)
+            CreateTradeTransaction('OPEN',type,TPPrice !== 0 ? TPPrice : null, null, margin, ticker, leverage, currentPrice,null,SLPrice !== 0 ? SLPrice : null, parseFloat(String(volume)),assetType)
             await getTradeTrans()
             setCounter(counter + 1)
             toast({
@@ -405,8 +405,7 @@ function Trade () {
                                                         <Button disableRipple={true} variant={'bordered'} title={'Deposit'}
                                                                 radius={'none'}
                                                                 size={'md'} startContent={<BiSolidCabinet/>}
-                                                                className='text-lg font-bold px-6'> <Link href={'/admin_panel'}>Admin
-                                                            Panel</Link></Button>
+                                                                className='text-lg font-bold px-6'> <Link href={'/admin'}>CRM</Link></Button>
                                                     </div> : ''
                                             }
 

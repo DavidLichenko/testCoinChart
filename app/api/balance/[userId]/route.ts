@@ -1,25 +1,28 @@
-import { NextResponse } from "next/server";
-import {prisma} from "@/prisma/prisma-client";
+import { NextResponse } from 'next/server'
+import { prisma } from '@/prisma/prisma-client'
 
-export async function GET(req: Request, { params }: { params: { userId: string } }) {
-    const { userId } = params;
-
-    if (!userId || typeof userId !== "string") {
-        return NextResponse.json({ error: "Invalid user ID" }, { status: 400 });
-    }
-
+export async function GET(
+    request: Request,
+    { params }: { params: { userId: string } }
+) {
     try {
-        const balance = await prisma.balances.findUnique({
-            where: { userId },
-        });
+        const userId = params.userId
 
-        if (!balance) {
-            return NextResponse.json({ error: "Balance not found" }, { status: 404 });
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+            include: { balance: true },
+        })
+
+        if (!user) {
+            return NextResponse.json({ error: 'User not found' }, { status: 404 })
         }
-        console.log(balance)
-        return NextResponse.json({ usd: balance.usd });
+
+        const balance = user.balance[0]?.usd ?? user.TotalBalance ?? 0
+
+        return NextResponse.json({ balance })
     } catch (error) {
-        console.error("Error fetching balance:", error);
-        return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+        console.error('Error fetching balance:', error)
+        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
     }
 }
+

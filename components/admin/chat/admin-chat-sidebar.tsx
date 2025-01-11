@@ -2,13 +2,13 @@
 
 import { useState, useEffect } from 'react'
 import { usePathname } from 'next/navigation'
+import { useSession } from "next-auth/react"
 import { Search } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { ChatUserItem } from './chat-user-item'
 import { useSocket } from '@/hooks/use-socket'
-import { useSession } from "next-auth/react"
-import { useToast } from "@/components/ui/use-toast"
+import {GetChats} from "@/actions/form";
 
 interface ChatUser {
   id: string
@@ -28,37 +28,21 @@ export function AdminChatSidebar() {
   const pathname = usePathname()
   const socket = useSocket()
   const { data: session, status } = useSession()
-  const { toast } = useToast()
 
   useEffect(() => {
     const fetchUsers = async () => {
-      try {
-        const res = await fetch('/api/chat/users')
-        if (!res.ok) {
-          if (res.status === 401) {
-            throw new Error('You must be logged in to view this page')
-          } else if (res.status === 403) {
-            throw new Error('You do not have permission to view this page')
-          }
-          throw new Error('Failed to fetch users')
+      if (status === "authenticated") {
+        try {
+          const data = await GetChats()
+          setUsers(Array.isArray(data) ? data : [])
+        } catch (error) {
+          console.error('Error fetching users:', error)
+          setUsers([])
         }
-        const data = await res.json()
-        setUsers(Array.isArray(data) ? data : [])
-      } catch (error) {
-        console.error('Error fetching users:', error)
-        toast({
-          title: "Error",
-          description: error.message || "Failed to fetch users",
-          variant: "destructive",
-        })
-        setUsers([])
       }
     }
-
-    if (status === "authenticated" && session?.user?.role === "ADMIN") {
-      fetchUsers()
-    }
-  }, [status, session, toast])
+    fetchUsers()
+  }, [status])
 
   useEffect(() => {
     if (!socket) return
@@ -77,13 +61,21 @@ export function AdminChatSidebar() {
     }
   }, [socket])
 
-  const filteredUsers = Array.isArray(users) ? users.filter(user => {
+  const filteredUsers = users.filter(user => {
     const searchLower = search.toLowerCase()
     return (
         user.name?.toLowerCase().includes(searchLower) ||
         user.email.toLowerCase().includes(searchLower)
     )
-  }) : []
+  })
+
+  if (status === "loading") {
+    return <div>Loading...</div>
+  }
+
+  if (status === "unauthenticated") {
+    return <div>Access Denied</div>
+  }
 
   return (
       <div className="flex flex-col h-[calc(100vh-8rem)] border rounded-lg">

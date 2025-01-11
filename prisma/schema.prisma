@@ -41,6 +41,7 @@ model User {
   verification        Verification[]
   TotalBalance        Float?              @default(0)
   messages            Message[]
+  assignedTo          String? // ID of the worker this user is assigned to
 }
 
 model Orders {
