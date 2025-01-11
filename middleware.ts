@@ -3,7 +3,7 @@ import type { NextRequest } from 'next/server';
 
 export function middleware(req: NextRequest) {
     // FOR DEPLOY __Secure-next-auth.session-token
-    const session = req.cookies.get('next-auth.session-token'); // Adjust based on your session cookie key
+    const session = req.cookies.get('__Secure-next-auth.session-token'); // Adjust based on your session cookie key
     const pathname = req.nextUrl.pathname;
 
     // Allow static files and Next.js internals to pass through
