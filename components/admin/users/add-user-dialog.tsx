@@ -106,7 +106,7 @@ export function AddUserDialog({
                 <DialogHeader>
                     <DialogTitle>Add New User</DialogTitle>
                     <DialogDescription>
-                        Create a new user account. Click save when you're done.
+                        Create a new user account. Click save when youre done.
                     </DialogDescription>
                 </DialogHeader>
                 <Form {...form}>
