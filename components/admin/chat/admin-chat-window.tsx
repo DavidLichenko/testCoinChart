@@ -124,7 +124,7 @@ export function AdminChatWindow({ user, initialMessages }: AdminChatWindowProps)
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto py-4 px-6 space-y-6">
+        <div className="flex-1 overflow-y-auto p-4 space-y-6">
           <AnimatePresence initial={false}>
             {messages.map((message, index) => (
                 <motion.div
@@ -150,7 +150,7 @@ export function AdminChatWindow({ user, initialMessages }: AdminChatWindowProps)
                     )}
                     <div
                         className={cn(
-                            "rounded-2xl px-4 py-2 text-sm gap-4",
+                            "rounded-2xl px-4 py-2 text-sm",
                             message.isSupportMessage
                                 ? "bg-primary text-primary-foreground rounded-tr-none"
                                 : "bg-muted rounded-tl-none"
@@ -184,4 +184,3 @@ export function AdminChatWindow({ user, initialMessages }: AdminChatWindowProps)
       </Card>
   )
 }
-

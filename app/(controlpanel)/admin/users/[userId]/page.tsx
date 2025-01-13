@@ -45,7 +45,7 @@ export default async function UserPage({ params }: { params: { userId: string } 
 
             <UserTradeTransactions transactions={user.trade_transaction} userId={user.id} />
 
-            <UserComments comments={user.comments[0]?.messages || []} userId={user.id} />
+            <UserComments userId={user.id} />
         </div>
     )
 }

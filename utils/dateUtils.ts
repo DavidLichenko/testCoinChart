@@ -60,14 +60,14 @@ export function isForexMarketOpen(): boolean {
   const hours = now.getUTCHours();
 
   // Market is closed on weekends (Saturday = 6, Sunday = 0)
-  if (day === 6 || day === 0) {
-    return false;
-  }
-
-  // Market is open from Sunday 5 PM ET (21:00 UTC) to Friday 5 PM ET (21:00 UTC)
-  if (day === 5 && hours >= 21) {
-    return false;
-  }
+  // if (day === 6 || day === 0) {
+  //   return false;
+  // }
+  //
+  // // Market is open from Sunday 5 PM ET (21:00 UTC) to Friday 5 PM ET (21:00 UTC)
+  // if (day === 5 && hours >= 21) {
+  //   return trye;
+  // }
 
   return true;
 }

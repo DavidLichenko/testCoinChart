@@ -5,12 +5,11 @@ export async function getCurrentPrice(ticker: string, assetType: 'IEX' | 'Forex'
         switch (assetType) {
             case 'IEX':
             case 'Forex':
-                const tiingoResponse = await fetch(
-                    `https://api.tiingo.com/tiingo/${assetType === 'IEX' ? 'daily' : 'fx'}/` +
-                    `${ticker}/prices?token=${TIINGO_API_KEY}`
-                )
+                const tiingoResponse = await fetch(`https://api.tiingo.com/${assetType === 'IEX' ? `iex/?tickers=${ticker}&token=${TIINGO_API_KEY}` : `tiingo/fx/top?tickers=${ticker}&token=${TIINGO_API_KEY}`}`)
                 const tiingoData = await tiingoResponse.json()
-                return tiingoData[0]?.close || 0
+                const price = assetType === 'IEX' ? tiingoData[0].last : tiingoData[0].midPrice
+                console.log(price)
+                return price
 
             case 'Crypto':
                 const binanceResponse = await fetch(
@@ -39,6 +38,6 @@ export function calculateProfit(
         ? currentPrice - openPrice
         : openPrice - currentPrice
 
-    return difference * volume * leverage
+    return volume * difference / leverage
 }
 

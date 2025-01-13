@@ -1,11 +1,34 @@
-import { AdminChatWindow } from '@/components/admin/chat/admin-chat-window'
-import { prisma } from '@/prisma/prisma-client'
 import { notFound } from 'next/navigation'
+import { prisma } from '@/prisma/prisma-client'
+import { AdminChatWindow } from '@/components/admin/chat/admin-chat-window'
+import { getServerSession } from "next-auth/next"
+import { authOptions } from "@/lib/auth"
 
-async function getUser(userId: string) {
-  const user = await prisma.user.findUnique({
-    where: { id: userId }
-  })
+async function getUserData(userId: string, currentUserRole: string, currentUserId: string) {
+  let user;
+
+  if (currentUserRole === 'WORKER') {
+    user = await prisma.user.findFirst({
+      where: {
+        id: userId,
+        assignedTo: currentUserId
+      },
+      include: {
+        messages: {
+          orderBy: { createdAt: 'asc' }
+        }
+      }
+    })
+  } else {
+    user = await prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        messages: {
+          orderBy: { createdAt: 'asc' }
+        }
+      }
+    })
+  }
 
   if (!user) {
     notFound()
@@ -14,19 +37,15 @@ async function getUser(userId: string) {
   return user
 }
 
-async function getMessages(userId: string) {
-  return await prisma.message.findMany({
-    where: { userId },
-    orderBy: { createdAt: 'asc' }
-  })
-}
-
 export default async function ChatPage({ params }: { params: { userId: string } }) {
-  const [user, messages] = await Promise.all([
-    getUser(params.userId),
-    getMessages(params.userId)
-  ])
+  const session = await getServerSession(authOptions)
 
-  return <AdminChatWindow user={user} initialMessages={messages} />
+  if (!session?.user) {
+    notFound()
+  }
+
+  const user = await getUserData(params.userId, session.user.role, session.user.id)
+
+  return <AdminChatWindow user={user} initialMessages={user.messages} />
 }
 

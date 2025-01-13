@@ -1,26 +1,91 @@
 'use client'
 
-import { useState } from 'react'
+import {useEffect, useState} from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { EditTransactionDialog } from './edit-transaction-dialog'
+import { CreateTransactionDialog } from './create-transaction-dialog'
+import {calculateProfit} from "@/lib/price-utils";
 
-export function UserTradeTransactions({ transactions, userId }) {
-  const [localTransactions, setLocalTransactions] = useState(transactions)
-  const [editingTransaction, setEditingTransaction] = useState(null)
+interface Transaction {
+  id: string
+  userId: string
+  type: 'BUY' | 'SELL'
+  volume: number
+  margin: number
+  leverage: number
+  ticker: string
+  openInA: number
+  profit: number | null
+  assetType: 'IEX' | 'Forex' | 'Crypto'
+  status: 'OPEN' | 'CLOSE'
+  createdAt: string
+}
+export function UserTradeTransactions({ transactions, userId }: { transactions: Transaction[], userId: string }) {
+  const [localTransactions, setLocalTransactions] = useState<Transaction[]>(transactions)
+  const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null)
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
 
-  const handleTransactionUpdate = (updatedTransaction) => {
+  const [currentProfit,setCurrentProfit] = useState(0)
+
+  useEffect(() => {
+    localTransactions.map((item)=> {
+      if(item.status === 'OPEN') {
+          if(item.assetType === 'Crypto') {
+            const getCurrentProfit = async(type,openInA,volume,leverage,ticker) => {
+              const response = await fetch(`https://api.binance.com/api/v3/ticker/price?symbol=${ticker}`)
+              const data = await response.json()
+              const price = await data.price
+              const profit = calculateProfit(
+                  type,
+                  openInA,
+                  price,
+                  volume,
+                  leverage
+              )
+              setCurrentProfit(profit)
+              item.profit = profit
+            }
+            getCurrentProfit(item.type, item.openInA, item.volume, item.leverage, item.ticker)
+          } else {
+            const getCurrentProfit = async(type,openInA,volume,leverage,ticker) => {
+              const response2 = await fetch(
+                  `/api/profit-market/${item.assetType}/${ticker}`,
+              );
+              const price = await response2.json();
+              const profit = calculateProfit(
+                  type,
+                  openInA,
+                  price,
+                  volume,
+                  leverage
+              )
+              setCurrentProfit(profit)
+              item.profit = profit
+            }
+            getCurrentProfit(item.type, item.openInA, item.volume, item.leverage, item.ticker)
+          }
+      }
+    })
+  }, []);
+  const handleTransactionUpdate = (updatedTransaction: Transaction) => {
     setLocalTransactions(prev =>
         prev.map(t => t.id === updatedTransaction.id ? updatedTransaction : t)
     )
   }
 
+  const handleTransactionCreate = (newTransaction: Transaction) => {
+    setLocalTransactions(prev => [newTransaction, ...prev])
+  }
   return (
       <Card>
         <CardHeader>
-          <CardTitle>Trade Transactions</CardTitle>
+          <div className="flex justify-between items-center">
+            <CardTitle>Trade Transactions</CardTitle>
+            <Button onClick={() => setIsCreateDialogOpen(true)}>Create Transaction</Button>
+          </div>
         </CardHeader>
         <CardContent>
           <Table>
@@ -30,7 +95,9 @@ export function UserTradeTransactions({ transactions, userId }) {
                 <TableHead>Type</TableHead>
                 <TableHead>Ticker</TableHead>
                 <TableHead>Volume</TableHead>
+                <TableHead>Margin</TableHead>
                 <TableHead>Leverage</TableHead>
+                <TableHead>Open Price</TableHead>
                 <TableHead>Profit</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Actions</TableHead>
@@ -49,7 +116,9 @@ export function UserTradeTransactions({ transactions, userId }) {
                     </TableCell>
                     <TableCell>{transaction.ticker}</TableCell>
                     <TableCell>${transaction.volume.toFixed(2)}</TableCell>
+                    <TableCell>${transaction.margin.toFixed(2)}</TableCell>
                     <TableCell>{transaction.leverage}x</TableCell>
+                    <TableCell>${transaction.openInA.toFixed(2)}</TableCell>
                     <TableCell className={
                       transaction.profit
                           ? transaction.profit >= 0
@@ -87,8 +156,14 @@ export function UserTradeTransactions({ transactions, userId }) {
               onOpenChange={(open) => !open && setEditingTransaction(null)}
               onSuccess={handleTransactionUpdate}
           />
+
+          <CreateTransactionDialog
+              open={isCreateDialogOpen}
+              onOpenChange={setIsCreateDialogOpen}
+              onSuccess={handleTransactionCreate}
+              userId={userId}
+          />
         </CardContent>
       </Card>
   )
 }
-

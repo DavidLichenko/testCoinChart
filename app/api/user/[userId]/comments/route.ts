@@ -8,7 +8,8 @@ export async function POST(
     try {
         const { userId } = params
         const { content } = await request.json()
-
+        console.log(userId)
+        console.log(content)
         const user = await prisma.user.findUnique({
             where: { id: userId },
             include: { comments: true },

@@ -52,18 +52,43 @@ export function EditTransactionDialog({
 
     if (transaction && open) {
       const fetchPrice = async () => {
-        const price = await getCurrentPrice(transaction.ticker, transaction.assetType)
-        setCurrentPrice(price)
+        if(transaction.assetType !== 'Crypto') {
+          if (transaction.status === "CLOSE") {
+            return transaction.profit
+          }
+          const response2 = await fetch(
+              `/api/profit-market/${transaction.assetType}/${transaction.ticker}`,
+          );
+          const price = await response2.json();
+          setCurrentPrice(price)
 
-        if (price && editedTransaction) {
-          const profit = calculateProfit(
-              editedTransaction.type,
-              editedTransaction.openInA,
-              price,
-              editedTransaction.volume,
-              editedTransaction.leverage
-          )
-          setEditedTransaction(prev => prev ? {...prev, profit} : null)
+          if (price && editedTransaction) {
+            const profit = calculateProfit(
+                editedTransaction.type,
+                editedTransaction.openInA,
+                price,
+                editedTransaction.volume,
+                editedTransaction.leverage
+            )
+            setEditedTransaction(prev => prev ? {...prev, profit} : null)
+          }
+        } else {
+          if (transaction.status === "CLOSE") {
+            return transaction.profit
+          }
+          const price = await getCurrentPrice(transaction.ticker, transaction.assetType)
+          setCurrentPrice(price)
+
+          if (price && editedTransaction) {
+            const profit = calculateProfit(
+                editedTransaction.type,
+                editedTransaction.openInA,
+                price,
+                editedTransaction.volume,
+                editedTransaction.leverage
+            )
+            setEditedTransaction(prev => prev ? {...prev, profit} : null)
+          }
         }
       }
 
@@ -144,6 +169,14 @@ export function EditTransactionDialog({
                   type="number"
                   value={editedTransaction.leverage}
                   onChange={(e) => setEditedTransaction(prev => prev ? {...prev, leverage: parseInt(e.target.value)} : null)}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label>Open Price</Label>
+              <Input
+                  type="number"
+                  value={editedTransaction.openInA}
+                  onChange={(e) => setEditedTransaction(prev => prev ? {...prev, openInA: parseFloat(e.target.value)} : null)}
               />
             </div>
             <div className="grid gap-2">

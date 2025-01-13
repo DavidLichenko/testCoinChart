@@ -37,7 +37,7 @@ const HeaderMobile = () => {
                                 <Button className='text-md font-bold  bg-sidebar-accent'>
                                     <div className='flex flex-col'>
                                         <div className='flex flex-row items-center justify-between w-full'>
-                                            <span className={'text-md'}> {loading ? <Skeleton className={'w-8 h-2 flex items-center justify-center'}><LoaderCircle className={'animate-spin'} /></Skeleton>: '$ ' + balance}</span>
+                                            <span className={'text-md'}> {loading ? <Skeleton className={'w-8 h-2 flex items-center justify-center'}><LoaderCircle className={'animate-spin'} /></Skeleton>: '$ ' + balance.toFixed(2)}</span>
                                         </div>
                                     </div>
                                 </Button>

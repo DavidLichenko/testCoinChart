@@ -11,35 +11,56 @@ export async function GET() {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
 
-        // Check if the user has the ADMIN role
-        if (session.user.role !== 'ADMIN') {
-            return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-        }
+        let users;
 
-        // Fetch all users with their last message
-        const users = await prisma.user.findMany({
-            where: {
-                role: {
-                    not: 'ADMIN'  // Exclude admin users
-                }
-            },
-            select: {
-                id: true,
-                name: true,
-                email: true,
-                imageUrl: true,
-                messages: {
-                    orderBy: {
-                        createdAt: 'desc'
-                    },
-                    take: 1,
-                    select: {
-                        content: true,
-                        createdAt: true
+        if (session.user.role === 'WORKER') {
+            // Fetch only assigned users for workers
+            users = await prisma.user.findMany({
+                where: {
+                    assignedTo: session.user.id,
+                    role: 'USER',
+                },
+                select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                    imageUrl: true,
+                    messages: {
+                        orderBy: {
+                            createdAt: 'desc'
+                        },
+                        take: 1,
+                        select: {
+                            content: true,
+                            createdAt: true
+                        }
                     }
                 }
-            }
-        })
+            })
+        } else {
+            // Fetch all users for admins and other roles
+            users = await prisma.user.findMany({
+                where: {
+                    role: 'USER',
+                },
+                select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                    imageUrl: true,
+                    messages: {
+                        orderBy: {
+                            createdAt: 'desc'
+                        },
+                        take: 1,
+                        select: {
+                            content: true,
+                            createdAt: true
+                        }
+                    }
+                }
+            })
+        }
 
         // Format the response
         const formattedUsers = users.map(user => ({

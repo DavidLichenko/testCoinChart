@@ -32,8 +32,9 @@ import { ChevronDown, MoreHorizontal, Plus } from 'lucide-react'
 import { useToast } from '@/components/ui/use-toast'
 import { AddUserDialog } from '@/components/admin/users/add-user-dialog'
 import { EditUserDialog } from './edit-user-dialog'
-import {deleteUser, updateBulkUsers} from '@/app/(controlpanel)/admin/users/actions'
+import { updateBulkUsers } from '@/app/(controlpanel)/admin/users/actions'
 import React from 'react';
+import { AssignToDialog } from './assign-to-dialog'
 
 enum UserStatus {
   WRONGNUMBER = "WRONGNUMBER",
@@ -75,6 +76,7 @@ export function UsersTable({ initialUsers, userRole, userId }: UsersTableProps) 
   const [users, setUsers] = useState<User[]>(initialUsers)
   const [isAddOpen, setIsAddOpen] = useState(false)
   const [editingUser, setEditingUser] = useState<User | null>(null)
+  const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false)
   const { toast } = useToast()
   const router = useRouter()
 
@@ -185,9 +187,11 @@ export function UsersTable({ initialUsers, userRole, userId }: UsersTableProps) 
                     className="text-destructive"
                     onClick={async () => {
                       try {
-                        const response = await deleteUser(user.id)
+                        const response = await fetch(`/api/users/${user.id}`, {
+                          method: 'DELETE',
+                        })
 
-                        if (!response) {
+                        if (!response.ok) {
                           throw new Error('Failed to delete user')
                         }
 
@@ -353,6 +357,12 @@ export function UsersTable({ initialUsers, userRole, userId }: UsersTableProps) 
                   ))}
                 </DropdownMenuContent>
               </DropdownMenu>
+              <Button
+                  variant="outline"
+                  onClick={() => setIsAssignDialogOpen(true)}
+              >
+                Assign To Worker
+              </Button>
             </div>
         )}
 
@@ -440,6 +450,15 @@ export function UsersTable({ initialUsers, userRole, userId }: UsersTableProps) 
               if (!open) setEditingUser(null)
             }}
             onSuccess={handleUserUpdate}
+        />
+        <AssignToDialog
+            open={isAssignDialogOpen}
+            onOpenChange={setIsAssignDialogOpen}
+            selectedUsers={table.getFilteredSelectedRowModel().rows.map(row => row.original)}
+            onSuccess={() => {
+              table.toggleAllPageRowsSelected(false)
+              router.refresh()
+            }}
         />
       </div>
   )

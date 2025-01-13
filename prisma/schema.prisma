@@ -42,17 +42,24 @@ model User {
   TotalBalance        Float?              @default(0)
   messages            Message[]
   assignedTo          String? // ID of the worker this user is assigned to
+  assignedAgentTo     String? // ID of the teamLeader this agent is assigned to
 }
 
 model Orders {
-  id        String      @id @default(cuid())
-  status    OrderStatus
-  type      OrderType
-  amount    Float
-  User      User        @relation(fields: [userId], references: [id])
-  userId    String
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
+  id             String      @id @default(cuid())
+  status         OrderStatus
+  type           OrderType
+  amount         Float
+  User           User        @relation(fields: [userId], references: [id])
+  userId         String
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  depositFrom    String? // Crypto type for deposits (BTC, ETH, USDT)
+  withdrawMethod String? // Bank, Crypto, or Card
+  bankName       String? // For bank withdrawals
+  cryptoAddress  String? // For crypto withdrawals
+  cryptoNetwork  String? // For crypto withdrawals
+  cardNumber     String? // For card withdrawals
 }
 
 model Trade_Transaction {
@@ -70,6 +77,7 @@ model Trade_Transaction {
   takeProfit Float?
   stopLoss   Float?
   userId     String
+  isPaid     Boolean                @default(false)
   User       User                   @relation(fields: [userId], references: [id])
   createdAt  DateTime               @default(now())
   endAt      DateTime?

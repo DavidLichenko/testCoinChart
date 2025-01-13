@@ -8,7 +8,6 @@ import { Input } from '@/components/ui/input'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { ChatUserItem } from './chat-user-item'
 import { useSocket } from '@/hooks/use-socket'
-import {GetChats} from "@/actions/form";
 
 interface ChatUser {
   id: string
@@ -33,7 +32,11 @@ export function AdminChatSidebar() {
     const fetchUsers = async () => {
       if (status === "authenticated") {
         try {
-          const data = await GetChats()
+          const res = await fetch('/api/chat/users')
+          if (!res.ok) {
+            throw new Error('Failed to fetch users')
+          }
+          const data = await res.json()
           setUsers(Array.isArray(data) ? data : [])
         } catch (error) {
           console.error('Error fetching users:', error)
@@ -105,4 +108,3 @@ export function AdminChatSidebar() {
       </div>
   )
 }
-

@@ -29,28 +29,31 @@ const UserUpdateSchema = z.object({
 })
 
 export async function getUsers() {
-  try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user) {
-      throw new Error('Unauthorized: Please sign in to access this resource')
-    }
+  const session = await getServerSession(authOptions)
+  if (!session?.user) throw new Error('Unauthorized')
 
-    const users = await prisma.user.findMany({
+  // If the user is a worker, only show assigned users
+  if (session.user.role === 'WORKER') {
+    return await prisma.user.findMany({
+      where: {
+        assignedTo: session.user.id
+      },
       include: {
         balance: true
       },
       orderBy: { createdAt: 'desc' },
     })
-
-    return { success: true, data: users }
-  } catch (error) {
-    console.error('Error fetching users:', error)
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : 'Failed to fetch users'
-    }
   }
+
+  // For admin and other roles, show all users
+  return await prisma.user.findMany({
+    include: {
+      balance: true
+    },
+    orderBy: { createdAt: 'desc' },
+  })
 }
+
 
 export async function createUser(data: z.infer<typeof UserCreateSchema>) {
   try {

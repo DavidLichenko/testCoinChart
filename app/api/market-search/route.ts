@@ -6,6 +6,7 @@ const TIINGO_API_KEY = "5c5398add0e123606bb40277f4cb66352b386185";
 function formatData(data: any[], type: string, flag1: string, flag2: string) {
   return data.map((item: any) => {
     let price = 0;
+    let percentage = 0;
 
     // For Crypto, use the `topOfBookData` if available
     if (type === 'Crypto' && item.topOfBookData && item.topOfBookData.length > 0) {
@@ -17,12 +18,13 @@ function formatData(data: any[], type: string, flag1: string, flag2: string) {
     } else {
       // For IEX, use the 'last' price
       price = item.last || 0;
+      percentage = (item.prevClose - item.last) / item.last * 100
     }
-
+    console.log(item)
     return {
       symbol: item.ticker.toUpperCase(),
       price,  // Price field instead of bid/ask
-      change: item.percentChange || 0,  // You can also calculate change if needed
+      change: percentage || 0,  // You can also calculate change if needed
       volume: item.volumeNotional || item.volume || 0,
       type: type as string,
       flag1: flag1,

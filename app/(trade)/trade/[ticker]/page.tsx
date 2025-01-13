@@ -70,7 +70,7 @@ export default  function Page({params}: { params: Promise<{ ticker: string }> })
                                         </div>
                                     </SheetHeader>
                                     <div className={'flex flex-col h-full items-center justify-between pt-2 mb-4 px-5 gap-6'}>
-                                        <TradingCard livePrice={livePrice} type={"SELL"} assetType={type} ticker={ticker} userBalance={balance}/>
+                                        <TradingCard livePrice={livePrice} type={"BUY"} assetType={type} ticker={ticker} userBalance={balance}/>
                                     </div>
                                 </SheetContent>
                             </Sheet>

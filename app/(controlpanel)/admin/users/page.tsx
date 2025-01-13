@@ -7,18 +7,29 @@ import { redirect } from 'next/navigation'
 import { prisma } from '@/prisma/prisma-client'
 
 async function getUsers() {
-    try {
-        const users = await prisma.user.findMany({
+    const session = await getServerSession(authOptions)
+    if (!session?.user) throw new Error('Unauthorized')
+
+    // If the user is a worker, only show assigned users
+    if (session.user.role === 'WORKER') {
+        return await prisma.user.findMany({
+            where: {
+                assignedTo: session.user.id
+            },
             include: {
                 balance: true
             },
             orderBy: { createdAt: 'desc' },
         })
-        return users
-    } catch (error) {
-        console.error('Error fetching users:', error)
-        return []
     }
+
+    // For admin and other roles, show all users
+    return await prisma.user.findMany({
+        include: {
+            balance: true
+        },
+        orderBy: { createdAt: 'desc' },
+    })
 }
 
 export default async function UsersPage() {

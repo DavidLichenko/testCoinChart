@@ -5,19 +5,20 @@ import { prisma } from "@/prisma/prisma-client"
 import { getForexDateRange, isForexMarketOpen } from "@/utils/dateUtils"
 
 async function getCurrentPrice(ticker: string, type: 'IEX' | 'Crypto' | 'Forex'): Promise<number> {
+  console.log(type)
   switch (type) {
     case 'IEX':
-      const iexResponse = await fetch(`https://srv677099.hstgr.cloud/api/stocks/${ticker}/candlesticks/`)
+
+      const iexResponse = await fetch(`https://api.tiingo.com/iex/${ticker}?token=5c5398add0e123606bb40277f4cb66352b386185`)
+      console.log(iexResponse)
       const iexData = await iexResponse.json()
-      return parseFloat(iexData.data[iexData.data.length - 1].close)
+      console.log(iexData)
+      return parseFloat(iexData[0].last)
     case 'Crypto':
       const cryptoResponse = await fetch(`https://api.binance.com/api/v3/ticker/price?symbol=${ticker.toUpperCase()}`)
       const cryptoData = await cryptoResponse.json()
       return parseFloat(cryptoData.price)
     case 'Forex':
-      if (!isForexMarketOpen()) {
-        throw new Error('Forex market is currently closed')
-      }
       const { start_date, end_date } = getForexDateRange('minute')
       const forexResponse = await fetch(
           `https://marketdata.tradermade.com/api/v1/timeseries?currency=${ticker}&api_key=FvZ0U8fmsqsqsH95WU3b&start_date=${start_date}&end_date=${end_date}&format=records&interval=minute`
@@ -106,7 +107,7 @@ export async function closeTransaction(id: string) {
         status: 'CLOSE',
         endAt: currentDate,
         closeIn: currentPrice,
-        profit: profit,
+        profit: profit??0,
       }
     })
 

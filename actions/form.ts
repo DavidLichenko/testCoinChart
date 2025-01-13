@@ -24,6 +24,11 @@ export async function GetSession() {
     return await getServerSession(authOptions)
 
 }
+export async function currentUsedRole() {
+    const session = await getServerSession(authOptions)
+    const user = session.user;
+    return user.role;
+}
 export async function TradeTransactions() {
     const session = await getServerSession(authOptions)
     const user = session.user;
