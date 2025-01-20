@@ -32,8 +32,6 @@ import UserChat from "@/components/tabs/live-chat-tab";
 const menuItems = [
   { name: "Home", href: "/", icon: Home },
   { name: "Funds", href: "/funds", icon: Wallet },
-  { name: "Personal Settings", href: "/settings", icon: Settings },
-  { name: "Upload documents", href: "/documents", icon: FileUp },
 ]
 
 const bottomItems = [
@@ -180,7 +178,7 @@ export function Sidebar() {
 
 
         <Dialog open={showWithdraw} onOpenChange={setShowWithdraw}>
-          <DialogContent className="sm:max-w-[425px] p-0 bg-gray-900 text-gray-100 border-gray-800">
+          <DialogContent className="sm:max-w-[425px] p-0 bg-sidebar text-gray-100 border-gray-800">
             <DialogHeader>
               <DialogTitle>
                 <span className="sr-only">Withdraw Funds</span> {/* Visually hidden for accessibility */}

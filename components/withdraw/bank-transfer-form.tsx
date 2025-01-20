@@ -65,10 +65,10 @@ export function BankTransferForm() {
       <div className="space-y-2">
         <Label className="text-custom-100">Select Currency</Label>
         <Select onValueChange={setSelectedToken}>
-          <SelectTrigger className="bg-custom-900 border-custom-800 text-custom-100">
+          <SelectTrigger className="bg-sidebar border-custom-800 text-custom-100">
             <SelectValue placeholder="Select token" />
           </SelectTrigger>
-          <SelectContent className="bg-custom-900 border-custom-800">
+          <SelectContent className="bg-sidebar border-custom-800">
             <SelectGroup>
               {tokens.map((token) => (
                 <SelectItem
@@ -92,10 +92,10 @@ export function BankTransferForm() {
         <div className="space-y-2">
           <Label className="text-custom-100">Select Network</Label>
           <Select onValueChange={setSelectedNetwork}>
-            <SelectTrigger className="bg-custom-900 border-custom-800 text-custom-100">
+            <SelectTrigger className="bg-sidebar border-custom-800 text-custom-100">
               <SelectValue placeholder="Select network" />
             </SelectTrigger>
-            <SelectContent className="bg-custom-900 border-custom-800">
+            <SelectContent className="bg-sidebar border-custom-800">
               <SelectGroup>
                 {token.networks.map((network) => (
                   <SelectItem
@@ -117,7 +117,7 @@ export function BankTransferForm() {
           <Label className="text-custom-100">Wallet Address</Label>
           <Input
             placeholder="Enter wallet address"
-            className="bg-custom-900 border-custom-800 text-custom-100"
+            className="bg-sidebar border-custom-800 text-custom-100"
           />
         </div>
       )}
@@ -128,12 +128,6 @@ export function BankTransferForm() {
         </Button>
       </div>
 
-      <div className="mt-8">
-        <h3 className="text-lg font-semibold text-custom-100 mb-4">Withdrawal History</h3>
-        <div className="rounded-lg bg-custom-900/50 p-4 text-custom-300 text-center">
-          You don`&apos;`t have any withdrawal history
-        </div>
-      </div>
     </div>
   )
 }

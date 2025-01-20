@@ -10,19 +10,13 @@ import { CryptoForm } from "./withdraw/crypto-form"
 
 export function WithdrawForm() {
   return (
-    <Card className="w-full max-w-md mx-auto bg-custom-950 border-custom-800">
+    <Card className="w-full max-w-md mx-auto bg-sidebar">
       <Tabs defaultValue="credit-card" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 bg-custom-900">
+        <TabsList className="grid w-full grid-cols-3 bg-sidebar">
           <TabsTrigger value="credit-card" className="data-[state=active]:bg-custom-800">
             <div className="flex flex-col items-center gap-2">
               <CreditCard className="h-4 w-4" />
               <span>Credit Card</span>
-            </div>
-          </TabsTrigger>
-          <TabsTrigger value="bank" className="data-[state=active]:bg-custom-800">
-            <div className="flex flex-col items-center gap-2">
-              <Building2 className="h-4 w-4" />
-              <span>Bank Connect</span>
             </div>
           </TabsTrigger>
           <TabsTrigger value="crypto" className="data-[state=active]:bg-custom-800">
@@ -34,9 +28,6 @@ export function WithdrawForm() {
         </TabsList>
         <TabsContent value="credit-card">
           <CreditCardForm />
-        </TabsContent>
-        <TabsContent value="bank">
-          <BankTransferForm />
         </TabsContent>
         <TabsContent value="crypto">
           <CryptoForm />

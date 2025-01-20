@@ -43,11 +43,11 @@ const HeaderMobile = () => {
                                 </Button>
                             </div>
                             <div className="flex gap-4 items-center">
-                                {userBalance ?
-                                    <UserSettingsModal totalAmount={balance} totalDeposit={0} totalProfit={0}
-                                                       userData={currentUserData}/> :
-                                    <UserSettingsModal totalAmount={0} totalDeposit={0} totalProfit={0} userData={{}}/>
-                                }
+                                {/*{userBalance ?*/}
+                                {/*    <UserSettingsModal totalAmount={balance} totalDeposit={0} totalProfit={0}*/}
+                                {/*                       userData={currentUserData}/> :*/}
+                                {/*    <UserSettingsModal totalAmount={0} totalDeposit={0} totalProfit={0} userData={{}}/>*/}
+                                {/*}*/}
                             </div>
 
                         </div>
