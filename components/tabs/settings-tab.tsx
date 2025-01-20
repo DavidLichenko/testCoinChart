@@ -9,6 +9,9 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import {Send} from "lucide-react";
 import ThemeSwitcher from "@/components/ThemeSwitcher";
+import {updateUserPassword} from "@/actions/form";
+import { useToast } from "@/components/ui/use-toast"
+
 
 const formSchema = z.object({
     password: z.string().min(8, {
@@ -23,6 +26,7 @@ const formSchema = z.object({
 export default function SettingsTab() {
     const [currency, setCurrency] = useState('USD')
     const [language, setLanguage] = useState('EN')
+    const { toast } = useToast()
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -31,9 +35,17 @@ export default function SettingsTab() {
             confirmPassword: "",
         },
     })
-
+    const updatePassword = async (password) => {
+        await updateUserPassword(password)
+        toast({
+            title: 'Success',
+            description: 'Password changed successfully',
+        })
+    }
     function onSubmit(values: z.infer<typeof formSchema>) {
-        console.log(values)
+        if (values.password === values.confirmPassword) {
+            updatePassword(values.password)
+        }
     }
 
     return (
@@ -79,24 +91,24 @@ export default function SettingsTab() {
             <Card>
                 <CardContent className="p-4">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <Select value={currency} onValueChange={setCurrency}>
-                            <SelectTrigger className="w-full border-background border-2">
-                                <SelectValue placeholder="Select currency"/>
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="USD">🇺🇸 USD</SelectItem>
-                                <SelectItem value="EUR">🇪🇺 EUR</SelectItem>
-                            </SelectContent>
-                        </Select>
-                        <Select value={language} onValueChange={setLanguage}>
-                            <SelectTrigger className="w-full bg-background">
-                                <SelectValue placeholder="Select language"/>
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="EN">🇬🇧 English</SelectItem>
-                                <SelectItem value="SP">🇪🇸 Spanish</SelectItem>
-                            </SelectContent>
-                        </Select>
+                        {/*<Select value={currency} onValueChange={setCurrency}>*/}
+                        {/*    <SelectTrigger className="w-full border-background border-2">*/}
+                        {/*        <SelectValue placeholder="Select currency"/>*/}
+                        {/*    </SelectTrigger>*/}
+                        {/*    <SelectContent>*/}
+                        {/*        <SelectItem value="USD">🇺🇸 USD</SelectItem>*/}
+                        {/*        <SelectItem value="EUR">🇪🇺 EUR</SelectItem>*/}
+                        {/*    </SelectContent>*/}
+                        {/*</Select>*/}
+                        {/*<Select value={language} onValueChange={setLanguage}>*/}
+                        {/*    <SelectTrigger className="w-full bg-background">*/}
+                        {/*        <SelectValue placeholder="Select language"/>*/}
+                        {/*    </SelectTrigger>*/}
+                        {/*    <SelectContent>*/}
+                        {/*        <SelectItem value="EN">🇬🇧 English</SelectItem>*/}
+                        {/*        <SelectItem value="SP">🇪🇸 Spanish</SelectItem>*/}
+                        {/*    </SelectContent>*/}
+                        {/*</Select>*/}
                         <div className={'block sm:hidden'}>
                             <ThemeSwitcher/>
                         </div>

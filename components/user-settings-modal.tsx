@@ -35,7 +35,6 @@ export function UserSettingsModal({totalAmount, totalProfit, totalDeposit, userD
 
   const tabContent = {
     dashboard: { title: 'Dashboard', content: <DashboardTab totalAmount={totalAmount} totalProfit={totalProfit} totalDeposit={totalDeposit} /> },
-    personal: { title: 'Personal Information', content: <PersonalInfoTab userData={userData} /> },
     withdrawal: { title: 'Withdrawal', content: <WithdrawalTab /> },
     verification: { title: 'Verification', content: <VerificationTab /> },
     livechat: { title: 'Live Chat', content: <LiveChatTab /> },

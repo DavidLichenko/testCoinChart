@@ -106,20 +106,16 @@ export async function CreateTradeTransaction(status: string, type: any, takeProf
     })
 
 }
-export async function CreateWithdrawOrder(amount,withdrawMethon) {
+export async function updateUserPassword(password) {
     const session = await getServerSession(authOptions)
     const user = session.user;
     const userId : string = user.id;
-    const createWithdraw = await prisma.orders.create({
-        data:{
+    const changePass = await prisma.user.update({
+        where:{
             userId:userId,
-            type:"WITHDRAW",
-            status:"PENDING",
-            amount:amount,
-            withdrawMethod:withdrawMethon,
-            cardNumber:cardNumber|null,
-
-
+        },
+        data: {
+            password:password
         }
     })
 }

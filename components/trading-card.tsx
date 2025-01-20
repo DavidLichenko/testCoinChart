@@ -48,7 +48,7 @@ export default function TradingCard({livePrice, type, assetType, userBalance,tic
         },
     })
     const [margin, setMargin] = useState(0)
-    const [volume, setVolume] = useState('0.01')
+    const [volume, setVolume] = useState(0.01)
     const [leverage,setLeverage] = useState(20)
     const [counter,setCounter] = useState(20)
     function onSubmit(values: z.infer<typeof formSchema>) {
@@ -88,9 +88,8 @@ export default function TradingCard({livePrice, type, assetType, userBalance,tic
         }
     }
     useEffect(() => {
-        console.log(livePrice, type, assetType, userBalance,ticker)
-        calculateMargin(0.01,livePrice,leverage)
-    }, []);
+        calculateMargin(volume,livePrice,leverage)
+    }, [leverage, volume]);
     return (
         <Card className="w-full p-2 pt-4 bg-background">
             <CardContent className={'h-full '}>
