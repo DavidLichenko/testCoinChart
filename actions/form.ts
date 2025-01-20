@@ -305,14 +305,21 @@ interface NetworkAddress {
 }
 
 export async function getNetworkAddress(token: string, network: string): Promise<NetworkAddress> {
-    const btcAddress = await prisma.cryptoAddresses.findMany()
-    btcAddress[0].btc_BTCaddress
+    // Simulated database fetch - replace with your actual Prisma query
+    // const address = await prisma.networkAddresses.findFirst({
+    //   where: {
+    //     token,
+    //     network,
+    //   },
+    // });
+
+    // For demonstration, returning mock addresses
     const addresses = {
-        btc: { bitcoin: btcAddress[0].btc_BTCaddress },
-        eth: { erc20: "0x742d35Cc6634C0532925a3b844Bc454e4438f44e" },
+        btc: { bitcoin: "bc1qylsr0j8f3fwde3qgp40hzflfcteaqxr9vqqskm" },
+        eth: { erc20: "0x1Da75d63Ed169A24E7A18CC6d678B3b80A4710bf" },
         usdt: {
-            erc20: "0x742d35Cc6634C0532925a3b844Bc454e4438f44e",
-            trc20: "TJRyFcr8j1GXm9TJhBwCYRQUZSJzHsiqxL"
+            erc20: "0x1Da75d63Ed169A24E7A18CC6d678B3b80A4710bf",
+            trc20: "TQzwRnkgX35RLqKdsCBmv2a4rL5Kkhha7M"
         }
     }
 
