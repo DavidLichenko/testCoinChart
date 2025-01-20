@@ -33,10 +33,11 @@ export async function middleware(req: NextRequest) {
 
     // Extract role from session token
     const userRole = sessionToken.role;
-
     // Restrict access to /admin for non-ADMIN users
-    if (pathname.startsWith("/admin") && userRole === "USER") {
+    if (pathname.startsWith("/admin")) {
+        if (userRole === "USER") {
         return NextResponse.redirect(new URL("/", req.url));
+        }
     }
 
     return NextResponse.next();
