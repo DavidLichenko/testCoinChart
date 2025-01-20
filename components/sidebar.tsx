@@ -19,32 +19,31 @@ import {
   LogOut,
   Globe,
   X,
-  UserCircleIcon
+  UserCircleIcon,
+  MessageSquare
 } from 'lucide-react'
 import CryptoDeposit from "@/components/crypto-deposit"
 import { WithdrawForm } from "@/components/withdraw-form"
 import {RiProfileFill} from "react-icons/ri";
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import {useRouter} from "next/navigation";
+import UserChat from "@/components/tabs/live-chat-tab";
 
 const menuItems = [
   { name: "Home", href: "/", icon: Home },
   { name: "Funds", href: "/funds", icon: Wallet },
-  { name: "Help Center", href: "/help", icon: HelpCircle },
   { name: "Personal Settings", href: "/settings", icon: Settings },
   { name: "Upload documents", href: "/documents", icon: FileUp },
 ]
 
 const bottomItems = [
-  { name: "Light Mode", href: "#", icon: Sun },
-  { name: "App for iOS", href: "#", icon: Apple },
-  { name: "App for Android", href: "#", icon: Android },
   { name: "Log out", href: "/logout", icon: LogOut },
 ]
 
 export function Sidebar() {
   const [open, setOpen] = useState(false)
   const [showDeposit, setShowDeposit] = useState(false)
+  const [showChat, setShowChat] = useState(false)
   const [showWithdraw, setShowWithdraw] = useState(false)
   const router = useRouter()
   return (
@@ -68,8 +67,9 @@ export function Sidebar() {
             </SheetTitle>
             <SheetHeader className="p-4 border-b border-gray-800">
               <div className="flex justify-between items-center">
-                <Button variant="ghost" size="sm" className="text-blue-500">
-                  EN <Globe className="ml-2 h-4 w-4" />
+                <Button variant="ghost" size="sm" className="text-xl font-bold">
+                  {/*EN <Globe className="ml-2 h-4 w-4" />*/}
+                  Aragon Trade
                 </Button>
                 <Button
                     variant="ghost"
@@ -80,7 +80,7 @@ export function Sidebar() {
                 </Button>
               </div>
             </SheetHeader>
-            <div className="flex flex-col h-full">
+            <div className="flex flex-col h-full justify-between">
               <div className="flex-1 py-4">
                 {menuItems.map((item) => (
                     <Link
@@ -89,7 +89,7 @@ export function Sidebar() {
                         className="flex items-center px-6 py-3 text-gray-300 hover:bg-gray-800"
                         onClick={() => setOpen(false)}
                     >
-                      <item.icon className="h-5 w-5 mr-3" />
+                      <item.icon className="h-5 w-5 mr-3"/>
                       {item.name}
                     </Link>
                 ))}
@@ -100,7 +100,7 @@ export function Sidebar() {
                       setShowDeposit(true)
                     }}
                 >
-                  <Upload className="h-5 w-5 mr-3" />
+                  <Upload className="h-5 w-5 mr-3"/>
                   Deposit
                 </button>
                 <button
@@ -110,10 +110,19 @@ export function Sidebar() {
                       setShowWithdraw(true)
                     }}
                 >
-                  <Download className="h-5 w-5 mr-3" />
+                  <Download className="h-5 w-5 mr-3"/>
                   Withdraw
                 </button>
-
+                <button
+                    className="w-full flex items-center px-6 py-3 text-gray-300 hover:bg-gray-800"
+                    onClick={() => {
+                      setOpen(false)
+                      setShowChat(true)
+                    }}
+                >
+                  <MessageSquare className="h-5 w-5 mr-3"/>
+                  Live Chat
+                </button>
               </div>
               <div className="border-t border-gray-800">
                 {bottomItems.map((item) => (
@@ -140,28 +149,15 @@ export function Sidebar() {
                 ))}
 
               </div>
-              <div className="p-6 border-t border-gray-800">
-                <p className="text-sm text-gray-400 mb-4">Share the app</p>
-                <div className="flex gap-4">
-                  {['twitter', 'linkedin', 'facebook'].map((social) => (
-                      <Button
-                          key={social}
-                          variant="outline"
-                          size="icon"
-                          className="border-gray-700 text-gray-400 hover:text-gray-300"
-                      >
-                        <span className="sr-only">{social}</span>
-                        <div className="w-5 h-5" />
-                      </Button>
-                  ))}
-                </div>
+              <div className="p-10 border-t border-gray-800">
+
               </div>
             </div>
           </SheetContent>
         </Sheet>
 
         <Dialog open={showDeposit} onOpenChange={setShowDeposit}>
-          <DialogContent className="sm:max-w-[425px] bg-gray-900 text-gray-100 border-gray-800">
+          <DialogContent className="sm:max-w-[425px] bg-sidebar text-gray-100 border-gray-800">
             <DialogHeader>
               <DialogTitle>
                 <span className="sr-only">Deposit Funds</span> {/* Visually hidden for accessibility */}
@@ -170,6 +166,18 @@ export function Sidebar() {
             <CryptoDeposit />
           </DialogContent>
         </Dialog>
+
+        <Dialog open={showChat} onOpenChange={setShowChat}>
+          <DialogContent className="sm:max-w-[425px] flex flex-col  h-5/6 p-0 bg-sidebar text-gray-100 border-gray-800">
+            {/*<DialogHeader>*/}
+            {/*  <DialogTitle>*/}
+            {/*    <span className="sr-only">Live Chat</span> /!* Visually hidden for accessibility *!/*/}
+            {/*  </DialogTitle>*/}
+            {/*</DialogHeader>*/}
+            <UserChat />
+          </DialogContent>
+        </Dialog>
+
 
         <Dialog open={showWithdraw} onOpenChange={setShowWithdraw}>
           <DialogContent className="sm:max-w-[425px] p-0 bg-gray-900 text-gray-100 border-gray-800">

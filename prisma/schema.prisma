@@ -153,7 +153,7 @@ enum TradeTransactionStatus {
 enum UserRole {
   USER
   OWNER
-  ADMIN
+  CR_MANAGMENT
   WORKER
   TEAMLEAD
 }

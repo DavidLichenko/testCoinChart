@@ -191,7 +191,7 @@ export function EditUserDialog({
                                             <SelectContent>
                                                 <SelectItem value="USER">User</SelectItem>
                                                 <SelectItem value="WORKER">Worker</SelectItem>
-                                                <SelectItem value="ADMIN">Admin</SelectItem>
+                                                <SelectItem value="CR_MANAGMENT">Admin</SelectItem>
                                                 <SelectItem value="OWNER">Owner</SelectItem>
                                             </SelectContent>
                                         </Select>

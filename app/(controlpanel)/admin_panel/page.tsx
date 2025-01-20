@@ -131,7 +131,7 @@ export type Users = {
     // status: "WrongNumber" | "WrongInfo" | "CallBack" | "LowPotential" | "HighPotential" | "NotInterested" | "Deposit" | "Trash" | "Drop" | "New" | "Resign" | "Completed"
     id: string;
     name: string;
-    role: "USER"|"ADMIN"|"WORKER"|"TEAMLEAD";
+    role: "USER"|"CR_MANAGMENT"|"WORKER"|"TEAMLEAD";
     status:"WrongNumber" | "WrongInfo" | "CallBack" | "LowPotential" | "HighPotential" | "NotInterested" | "Deposit" | "Trash" | "Drop" | "New" | "Resign" | "Completed";
     email: string;
     password: string;

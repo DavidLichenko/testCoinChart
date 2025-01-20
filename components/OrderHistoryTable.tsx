@@ -47,7 +47,7 @@ export function OrderHistoryTable({ data, refreshOrders }: OrderHistoryTableProp
   const [selectedOrder, setSelectedOrder] = useState<Orders | null>(null)
   const [columnFilters, setColumnFilters] = useState<any[]>([])
   const [orderTypeFilter, setOrderTypeFilter] = useState<'DEPOSIT' | 'WITHDRAW'>('DEPOSIT')
-
+  console.log(data)
   const columns: ColumnDef<Orders>[] = [
     {
       accessorKey: 'id',

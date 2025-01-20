@@ -15,7 +15,17 @@ export async function PUT(
 
     const { orderId } = params
     const body = await req.json()
-    const { type, amount, status, depositFrom, withdrawTo } = body
+    const {
+      type,
+      amount,
+      status,
+      depositFrom,
+      withdrawMethod,
+      bankName,
+      cryptoAddress,
+      cryptoNetwork,
+      cardNumber
+    } = body
 
     const existingOrder = await prisma.orders.findUnique({
       where: { id: orderId },
@@ -34,20 +44,30 @@ export async function PUT(
           amount,
           status,
           depositFrom: type === 'DEPOSIT' ? depositFrom : null,
-          withdrawTo: type === 'WITHDRAW' ? withdrawTo : null,
+          withdrawMethod: type === 'WITHDRAW' ? withdrawMethod : null,
+          bankName: type === 'WITHDRAW' && withdrawMethod === 'Bank' ? bankName : null,
+          cryptoAddress: type === 'WITHDRAW' && withdrawMethod === 'Crypto' ? cryptoAddress : null,
+          cryptoNetwork: type === 'WITHDRAW' && withdrawMethod === 'Crypto' ? cryptoNetwork : null,
+          cardNumber: type === 'WITHDRAW' && withdrawMethod === 'Card' ? cardNumber : null,
         },
+        include: {
+          User: true
+        }
       })
 
+      // Handle balance updates if status changed
       if (status !== existingOrder.status) {
         const balanceChange = type === 'DEPOSIT' ? amount : -amount
 
         if (status === 'SUCCESSFUL' && existingOrder.status !== 'SUCCESSFUL') {
+          // Add to balance when order becomes successful
           await prisma.balances.upsert({
             where: { userId: existingOrder.userId },
             update: { usd: { increment: balanceChange } },
             create: { userId: existingOrder.userId, usd: balanceChange },
           })
         } else if (status !== 'SUCCESSFUL' && existingOrder.status === 'SUCCESSFUL') {
+          // Remove from balance when order is no longer successful
           await prisma.balances.update({
             where: { userId: existingOrder.userId },
             data: { usd: { decrement: balanceChange } },

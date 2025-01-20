@@ -8,6 +8,7 @@ const Page = () => {
     const [orders, setOrders] = useState([])
     const fetchOrders = async () => {
         const data = await getOrders()
+        console.log(data)
         setOrders(data)
     }
 

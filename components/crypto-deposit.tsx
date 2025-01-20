@@ -188,7 +188,7 @@ export default function CryptoDeposit() {
           </div>
         )}
 
-        <div className="rounded-lg bg-blue-50 dark:bg-blue-950 p-3 text-sm text-blue-600 dark:text-blue-300">
+        <div className="rounded-lg bg-blue-50 dark:bg-sidebar-accent p-3 text-sm text-blue-600 dark:text-success-50 font-bold">
           By depositing into this contract you accept the terms and conditions of the protocol, including a 2% deposit fee and a 2% early withdraw fee.
         </div>
       </CardContent>

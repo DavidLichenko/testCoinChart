@@ -22,7 +22,6 @@ async function getUserData(userId: string) {
             comments: true,
         },
     })
-
     if (!user) {
         notFound()
     }
@@ -32,7 +31,7 @@ async function getUserData(userId: string) {
 
 export default async function UserPage({ params }: { params: { userId: string } }) {
     const user = await getUserData(params.userId)
-
+    const successArray = user.orders.filter(item => item.status === "SUCCESSFUL");
     return (
         <div className="space-y-6">
             <h1 className="text-3xl font-bold">User Details</h1>
@@ -41,7 +40,7 @@ export default async function UserPage({ params }: { params: { userId: string } 
 
             <UserVerificationInfo verification={user.verification[0]} />
 
-            <UserDepositsDashboard deposits={user.orders} />
+            <UserDepositsDashboard deposits={successArray} />
 
             <UserTradeTransactions transactions={user.trade_transaction} userId={user.id} />
 

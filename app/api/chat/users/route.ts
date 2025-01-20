@@ -32,6 +32,7 @@ export async function GET() {
                         take: 1,
                         select: {
                             content: true,
+                            imageUrl:true,
                             createdAt: true
                         }
                     }
@@ -55,6 +56,7 @@ export async function GET() {
                         take: 1,
                         select: {
                             content: true,
+                            imageUrl:true,
                             createdAt: true
                         }
                     }

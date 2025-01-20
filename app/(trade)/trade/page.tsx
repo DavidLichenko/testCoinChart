@@ -13,7 +13,6 @@ const Page = () => {
 
     return (
         <>
-
                 <div className={'h-full'}>
                     {/*<HeaderMobile />*/}
                     <div className="flex container h-full mb-12 w-full pt-20  gap-6  flex-col justify-start">
@@ -26,7 +25,6 @@ const Page = () => {
                         {/*<MobileNav/>*/}
                     </div>
                 </div>
-
         </>
     )
 }

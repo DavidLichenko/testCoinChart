@@ -339,7 +339,7 @@ export function UsersTable({ initialUsers, userRole, userId }: UsersTableProps) 
                 <DropdownMenuContent>
                   <DropdownMenuItem onClick={() => handleBulkUpdate('role', 'USER')}>User</DropdownMenuItem>
                   <DropdownMenuItem onClick={() => handleBulkUpdate('role', 'WORKER')}>Worker</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleBulkUpdate('role', 'ADMIN')}>Admin</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleBulkUpdate('role', 'CR_MANAGMENT')}>CR_managment</DropdownMenuItem>
                   <DropdownMenuItem onClick={() => handleBulkUpdate('role', 'OWNER')}>Owner</DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>

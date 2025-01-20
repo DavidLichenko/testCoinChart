@@ -41,7 +41,7 @@ interface OrdersTableProps {
   initialOrders: Order[]
 }
 
-export function OrdersTable({ initialOrders }: OrdersTableProps) {
+export function OrdersTable({ initialOrders }: { initialOrders: Order[] }) {
   const [sorting, setSorting] = useState<SortingState>([])
   const [orders, setOrders] = useState<Order[]>(initialOrders)
   const [isCreateOpen, setIsCreateOpen] = useState(false)
@@ -54,7 +54,7 @@ export function OrdersTable({ initialOrders }: OrdersTableProps) {
       header: 'Order ID',
     },
     {
-      accessorKey: 'User.email',
+      accessorKey: 'userEmail',
       header: 'User',
       cell: ({ row }) => row.original.User.email,
     },
@@ -146,9 +146,9 @@ export function OrdersTable({ initialOrders }: OrdersTableProps) {
         <div className="flex justify-between items-center">
           <Input
               placeholder="Filter orders..."
-              value={(table.getColumn('User.email')?.getFilterValue() as string) ?? ''}
+              value={(table.getColumn('userEmail')?.getFilterValue() as string) ?? ''}
               onChange={(event) =>
-                  table.getColumn('User.email')?.setFilterValue(event.target.value)
+                  table.getColumn('userEmail')?.setFilterValue(event.target.value)
               }
               className="max-w-sm"
           />
@@ -234,6 +234,7 @@ export function OrdersTable({ initialOrders }: OrdersTableProps) {
             open={!!editingOrder}
             onOpenChange={(open) => !open && setEditingOrder(null)}
             onSuccess={(updatedOrder) => {
+              // @ts-ignore
               setOrders(prevOrders => prevOrders.map(order =>
                   order.id === updatedOrder.id ? updatedOrder : order
               ))
