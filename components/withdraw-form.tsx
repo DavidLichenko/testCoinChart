@@ -10,7 +10,7 @@ import { CryptoForm } from "./withdraw/crypto-form"
 
 export function WithdrawForm() {
   return (
-    <Card className="w-full max-w-md mx-auto bg-sidebar">
+    <Card className="w-full max-w-md md:max-w-full md:flex md:items-center md:h-full md:mt-12 mx-auto bg-sidebar">
       <Tabs defaultValue="credit-card" className="w-full">
         <TabsList className="grid w-full grid-cols-3 bg-sidebar">
           <TabsTrigger value="credit-card" className="data-[state=active]:bg-custom-800">

@@ -12,6 +12,7 @@ import WithdrawalTab from './tabs/withdrawal-tab'
 import VerificationTab from './tabs/verification-tab'
 import LiveChatTab from './tabs/live-chat-tab'
 import SettingsTab from './tabs/settings-tab'
+import {WithdrawForm} from "@/components/withdraw-form";
 
 export function UserSettingsModal({totalAmount, totalProfit, totalDeposit, userData}) {
   const [open, setOpen] = useState(false)
@@ -91,7 +92,7 @@ export function UserSettingsModal({totalAmount, totalProfit, totalDeposit, userD
                         <PersonalInfoTab userData={userData} />
                       </TabsContent>
                       <TabsContent value="withdrawal">
-                        <WithdrawalTab />
+                        <WithdrawForm />
                       </TabsContent>
                       <TabsContent value="verification">
                         <VerificationTab />

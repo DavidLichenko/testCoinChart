@@ -57,6 +57,8 @@ import MarketDashboard from "@/components/market-dashboard"
 import MarketTable from "@/components/TickersDataTable";
 import DashboardPage from "@/components/MainDashboardMobile";
 import Wrapper from "@/components/Wrapper";
+import {Dialog, DialogContent, DialogHeader, DialogTitle} from "@/components/ui/dialog";
+import CryptoDeposit from "@/components/crypto-deposit";
 
 
 function Trade () {
@@ -78,6 +80,7 @@ function Trade () {
     const [showAccountModal, setShowAccountModal] = useState<boolean>(false)
     const [sliderValue,setSliderValue] = useState(0)
     const [selectTicker,setSelectTicker] = useState(false)
+    const [showDeposit,setShowDeposit] = useState(false)
     const [leverage, setLeverage] = React.useState(100);
     const [currentPrice,setCurrentPrice] = useState(0.000)
     const [volume, setVolume] = useState(0.01)
@@ -402,7 +405,7 @@ function Trade () {
                                                 currentUser.role !== 'USER' ?
                                                     //@ts-ignore
                                                     currentUser.role !== undefined && <div>
-                                                        <Button disableRipple={true} variant={'bordered'} title={'Deposit'}
+                                                        <Button disableRipple={true} variant={'bordered'} title={'CRM'}
                                                                 radius={'none'}
                                                                 size={'md'} startContent={<BiSolidCabinet/>}
                                                                 className='text-lg font-bold px-6'> <Link href={'/admin'}>CRM</Link></Button>
@@ -410,7 +413,20 @@ function Trade () {
                                             }
 
                                             <div>
+                                                <Dialog open={showDeposit} onOpenChange={setShowDeposit}>
+                                                    <DialogContent className="sm:max-w-[425px] bg-sidebar text-gray-100 border-gray-800">
+                                                        <DialogHeader>
+                                                            <DialogTitle>
+                                                                <span className="sr-only">Deposit Funds</span> {/* Visually hidden for accessibility */}
+                                                            </DialogTitle>
+                                                        </DialogHeader>
+                                                        <CryptoDeposit />
+                                                    </DialogContent>
+                                                </Dialog>
                                                 <Button disableRipple={true} variant={'bordered'} title={'Deposit'}
+                                                        onClick={() => {
+                                                            setShowDeposit(true)
+                                                        }}
                                                         radius={'none'}
                                                         size={'md'} startContent={<IoMdCash/>}
                                                         className='text-lg font-bold px-6'>Deposit</Button>

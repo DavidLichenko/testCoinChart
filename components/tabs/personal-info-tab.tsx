@@ -14,7 +14,7 @@ export default function PersonalInfoTab({userData}) {
     setUserName(userData ? userData.email.split('@')[0] : '')
   }, [userData]);
   return (
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <div >
         <Card>
           <CardHeader>
             <CardTitle>Personal Information</CardTitle>
@@ -51,23 +51,23 @@ export default function PersonalInfoTab({userData}) {
               </div>
               </div>
               <p><strong className="inline-block w-24">Email:</strong>{userData.email}</p>
-              <p><strong className="inline-block w-24">Address:</strong> 123 Main St</p>
-              <p><strong className="inline-block w-24">City:</strong> New York</p>
+              {/*<p><strong className="inline-block w-24">Address:</strong> 123 Main St</p>*/}
+              {/*<p><strong className="inline-block w-24">City:</strong> New York</p>*/}
             </div>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Profile Photo</CardTitle>
-          </CardHeader>
-          <CardContent className="flex flex-col items-center space-y-4">
-            <Avatar className="h-24 w-24">
-              <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
-              <AvatarFallback>JD</AvatarFallback>
-            </Avatar>
-            <Button>Change Photo</Button>
-          </CardContent>
-        </Card>
+        {/*<Card>*/}
+          {/*<CardHeader>*/}
+          {/*  <CardTitle>Profile Photo</CardTitle>*/}
+          {/*</CardHeader>*/}
+          {/*<CardContent className="flex flex-col items-center space-y-4">*/}
+          {/*  <Avatar className="h-24 w-24">*/}
+          {/*    <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />*/}
+          {/*    <AvatarFallback>JD</AvatarFallback>*/}
+          {/*  </Avatar>*/}
+          {/*  <Button>Change Photo</Button>*/}
+          {/*</CardContent>*/}
+        {/*</Card>*/}
       </div>
   )
 }
