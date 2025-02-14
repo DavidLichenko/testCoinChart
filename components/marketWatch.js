@@ -781,9 +781,9 @@ export const marketWatchMetals = [
     ],
     [
         'XPDUSD',
+        'XPTUSD',
         'NATGAS',
         'UKOIL',
-        'XPTUSD',
         'XAGUSD',
         'XAUUSD',
     ],
