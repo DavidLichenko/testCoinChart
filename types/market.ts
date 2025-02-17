@@ -1,4 +1,4 @@
-export type MarketType = 'Forex' | 'Crypto' | 'IEX'
+export type MarketType = 'Forex' | 'Crypto' | 'IEX' | "Metal"
 
 export interface Market {
   symbol: string

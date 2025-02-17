@@ -45,6 +45,7 @@ export function MarketsTable({ data: initialData }: MarketsTableProps) {
   }, [initialData, debouncedSearchTerm, selectedType])
 
   const displayData = filteredData.slice(0, currentShowed)
+  console.log(displayData)
 
   return (
       <div className="w-full h-full">
@@ -67,6 +68,7 @@ export function MarketsTable({ data: initialData }: MarketsTableProps) {
               <SelectItem value="Forex">Forex</SelectItem>
               <SelectItem value="Crypto">Crypto</SelectItem>
               <SelectItem value="IEX">Stocks</SelectItem>
+              <SelectItem value="Metal">Metals</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -103,8 +105,7 @@ export function MarketsTable({ data: initialData }: MarketsTableProps) {
                         <Button
                             variant="secondary"
                             onClick={() => {
-
-                              router.push(`/trade/${market.symbol}?type=${market.type}`)
+                              router.push(`/trade/${market.symbol}?type=${market.type === 'Metal' ? 'Forex' : market.type}`)
                             }
                         }
                         >

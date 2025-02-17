@@ -167,6 +167,7 @@ enum AssetType {
   IEX
   Crypto
   Forex
+  Metal
 }
 
 enum UserStatus {

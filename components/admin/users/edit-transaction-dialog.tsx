@@ -19,7 +19,7 @@ interface Transaction {
   ticker: string
   openInA: number
   profit: number | null
-  assetType: 'IEX' | 'Forex' | 'Crypto'
+  assetType: 'IEX' | 'Forex' | 'Crypto' | 'Metal'
   status: 'OPEN' | 'CLOSE'
 }
 
@@ -52,7 +52,7 @@ export function EditTransactionDialog({
 
     if (transaction && open) {
       const fetchPrice = async () => {
-        if(transaction.assetType !== 'Crypto') {
+        if(transaction.assetType !== 'Crypto' && transaction.assetType !== 'Metal') {
           if (transaction.status === "CLOSE") {
             return transaction.profit
           }
@@ -93,15 +93,15 @@ export function EditTransactionDialog({
       }
 
       fetchPrice()
-      intervalId = setInterval(fetchPrice, 5000) // Update every 5 seconds
+      // intervalId = setInterval(fetchPrice, 5000) // Update every 5 seconds
     }
 
     return () => {
-      if (intervalId) {
-        clearInterval(intervalId)
-      }
+      // if (intervalId) {
+      //   clearInterval(intervalId)
+      // }
     }
-  }, [transaction, open, editedTransaction])
+  }, [transaction, open, editedTransaction.profit,editedTransaction.openInA,editedTransaction.leverage,editedTransaction.volume])
 
   const handleSave = async () => {
     if (!editedTransaction) return

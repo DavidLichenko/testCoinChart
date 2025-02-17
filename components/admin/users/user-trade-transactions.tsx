@@ -19,7 +19,7 @@ interface Transaction {
   ticker: string
   openInA: number
   profit: number | null
-  assetType: 'IEX' | 'Forex' | 'Crypto'
+  assetType: 'IEX' | 'Forex' | 'Crypto' | 'Metal'
   status: 'OPEN' | 'CLOSE'
   createdAt: string
 }

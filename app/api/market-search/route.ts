@@ -4,6 +4,20 @@ const TIINGO_API_KEY = "5c5398add0e123606bb40277f4cb66352b386185";
 
 // Helper function to format data
 function formatData(data: any[], type: string, flag1: string, flag2: string) {
+  if (type == 'Metal') {
+    return data.quotes.map((item: any) => {
+      let price = 0
+      let percentage = 0
+      price = item.mid
+      return {
+        symbol: item.instrument ? item.instrument : item.base_currency + item.quote_currency,
+        price,
+        change: 0,
+        type: type as string,
+        volume: 0
+      }
+    })
+  }
   return data.map((item: any) => {
     let price = 0;
     let percentage = 0;
@@ -15,12 +29,12 @@ function formatData(data: any[], type: string, flag1: string, flag2: string) {
     } else if (type === 'Forex') {
       // For Forex, use midPrice or bidPrice as the price
       price = item.midPrice || item.bidPrice || 0;
-    } else {
+    }
+    else {
       // For IEX, use the 'last' price
       price = item.last || 0;
       percentage = (item.prevClose - item.last) / item.last * 100
     }
-    console.log(item)
     return {
       symbol: item.ticker.toUpperCase(),
       price,  // Price field instead of bid/ask
@@ -43,6 +57,15 @@ const forexTickers = [
   'USDHKD', 'USDJPY', 'USDMXN',
   'USDPLN', 'USDSGD', 'USDTRY', 'USDZAR'
 ]
+const metalTickers = [
+  'XPDUSD',
+  'XPTUSD',
+  'NATGAS',
+  'UKOIL',
+  'XAGUSD',
+  'XAUUSD',
+]
+
 const cryptoTickers = [
   'IDUSDT', 'OPUSDT', 'ADAUSDT', 'APEUSDT', 'APTUSDT',
   'ARBUSDT', 'AXSUSDT', 'BCHUSDT', 'BNBUSDT', 'BTCUSDT',
@@ -67,6 +90,7 @@ const cryptoTickers = [
 
 // Prepare the ticker strings for each API call
 const forexQuery = forexTickers.join(",").toLowerCase();
+const metalsQuery = metalTickers.join(",").toLowerCase();
 const cryptoQuery = cryptoTickers.join(",").toLowerCase();
 
 // Fetch Forex Data
@@ -77,6 +101,14 @@ async function fetchForexData() {
   const data = await response.json();
 
   return formatData(data, 'Forex', 'eur', 'usd'); // Example flags for Forex
+}
+async function fetchMetalData() {
+  const response = await fetch(
+      `https://marketdata.tradermade.com/api/v1/live?api_key=FvZ0U8fmsqsqsH95WU3b&currency=${metalsQuery}`,
+  );
+  const data = await response.json();
+
+  return formatData(data, 'Metal', 'eur', 'usd'); // Example flags for Forex
 }
 
 // Fetch Crypto Data
@@ -101,10 +133,11 @@ async function fetchIEXData() {
 export async function GET(req: NextRequest) {
   try {
     // Fetch data concurrently
-    const [forexData, cryptoData, iexData] = await Promise.all([
+    const [forexData, cryptoData, iexData, metalData] = await Promise.all([
       fetchForexData(),
       fetchCryptoData(),
       fetchIEXData(),
+      fetchMetalData(),
     ]);
 
     // Combine all the data
@@ -112,6 +145,7 @@ export async function GET(req: NextRequest) {
       ...forexData,
       ...cryptoData,
       ...iexData,
+      ...metalData
     ];
 
     // Send the formatted data to the client

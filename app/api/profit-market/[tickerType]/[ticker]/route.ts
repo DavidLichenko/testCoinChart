@@ -15,7 +15,6 @@ export async function GET(req: NextRequest, { params }: { params: { tickerType:s
         return NextResponse.json(data[0].last);
         }
         if (tickerType === 'Forex') {
-
             const response = await fetch(
                 `https://api.tiingo.com/tiingo/fx/top?tickers=${ticker}&token=5c5398add0e123606bb40277f4cb66352b386185`,
             );

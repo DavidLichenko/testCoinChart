@@ -37,7 +37,6 @@ const NavContainer = ({sendDataToParent}) => {
     const [currentPrice, setCurrentPrice] = useState(0)
     const [marketData, setMarketData] = useState(null);
     const selectedTicker = (ticker, tickerType, tickerName) => {
-        console.log(tickerName)
         setTicker(ticker)
         sendDataToParent(ticker,true,tickerType[0], tickerName)
         setInput('');
