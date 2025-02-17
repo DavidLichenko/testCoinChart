@@ -39,6 +39,7 @@ export function EditTransactionDialog({
   const [isLoading, setIsLoading] = useState(false)
   const [currentPrice, setCurrentPrice] = useState<number | null>(null)
   const [editedTransaction, setEditedTransaction] = useState<Transaction | null>(null)
+  const [changes,setChanges] = useState(0)
   const { toast } = useToast()
 
   useEffect(() => {
@@ -61,47 +62,32 @@ export function EditTransactionDialog({
           );
           const price = await response2.json();
           setCurrentPrice(price)
-
-          if (price && editedTransaction) {
-            const profit = calculateProfit(
-                editedTransaction.type,
-                editedTransaction.openInA,
-                price,
-                editedTransaction.volume,
-                editedTransaction.leverage
-            )
-            setEditedTransaction(prev => prev ? {...prev, profit} : null)
-          }
         } else {
           if (transaction.status === "CLOSE") {
             return transaction.profit
           }
           const price = await getCurrentPrice(transaction.ticker, transaction.assetType)
           setCurrentPrice(price)
-
-          if (price && editedTransaction) {
-            const profit = calculateProfit(
-                editedTransaction.type,
-                editedTransaction.openInA,
-                price,
-                editedTransaction.volume,
-                editedTransaction.leverage
-            )
-            setEditedTransaction(prev => prev ? {...prev, profit} : null)
-          }
         }
       }
-
+      if (currentPrice && editedTransaction) {
+        const profit = calculateProfit(
+            editedTransaction.type,
+            editedTransaction.openInA,
+            currentPrice,
+            editedTransaction.volume,
+            editedTransaction.leverage
+        )
+        setEditedTransaction(prev => prev ? {...prev, profit} : null)
+      }
       fetchPrice()
       // intervalId = setInterval(fetchPrice, 5000) // Update every 5 seconds
     }
 
     return () => {
-      // if (intervalId) {
-      //   clearInterval(intervalId)
-      // }
+
     }
-  }, [transaction, open, editedTransaction.profit,editedTransaction.openInA,editedTransaction.leverage,editedTransaction.volume])
+  }, [transaction, open, changes])
 
   const handleSave = async () => {
     if (!editedTransaction) return
@@ -160,7 +146,11 @@ export function EditTransactionDialog({
               <Input
                   type="number"
                   value={editedTransaction.volume}
-                  onChange={(e) => setEditedTransaction(prev => prev ? {...prev, volume: parseFloat(e.target.value)} : null)}
+                  onChange={(e) => {
+                    setEditedTransaction(prev => prev ? {...prev, volume: parseFloat(e.target.value)} : null)
+                    setChanges(changes + 1)
+                  }
+                  }
               />
             </div>
             <div className="grid gap-2">
@@ -168,7 +158,10 @@ export function EditTransactionDialog({
               <Input
                   type="number"
                   value={editedTransaction.leverage}
-                  onChange={(e) => setEditedTransaction(prev => prev ? {...prev, leverage: parseInt(e.target.value)} : null)}
+                  onChange={(e) => {
+                    setEditedTransaction(prev => prev ? {...prev, leverage: parseInt(e.target.value)} : null)
+                    setChanges(changes + 1)
+                  }}
               />
             </div>
             <div className="grid gap-2">
@@ -176,7 +169,10 @@ export function EditTransactionDialog({
               <Input
                   type="number"
                   value={editedTransaction.openInA}
-                  onChange={(e) => setEditedTransaction(prev => prev ? {...prev, openInA: parseFloat(e.target.value)} : null)}
+                  onChange={(e) => {
+                    setEditedTransaction(prev => prev ? {...prev, openInA: parseFloat(e.target.value)} : null)
+                    setChanges(changes + 1)
+                  }}
               />
             </div>
             <div className="grid gap-2">
@@ -195,7 +191,10 @@ export function EditTransactionDialog({
               <Label>Status</Label>
               <Select
                   value={editedTransaction.status}
-                  onValueChange={(value) => setEditedTransaction(prev => prev ? {...prev, status: value as 'OPEN' | 'CLOSE'} : null)}
+                  onValueChange={(value) => {
+                    setEditedTransaction(prev => prev ? {...prev, status: value as 'OPEN' | 'CLOSE'} : null)
+                    setChanges(changes + 1)
+                  }}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select status" />
