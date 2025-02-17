@@ -16,6 +16,10 @@ export function UserPersonalInfo({ user }) {
           <p>{user.email}</p>
         </div>
         <div>
+          <p className="font-semibold">Password</p>
+          <p>{user.password}</p>
+        </div>
+        <div>
           <p className="font-semibold">Phone</p>
           <p>{user.number || 'N/A'}</p>
         </div>
