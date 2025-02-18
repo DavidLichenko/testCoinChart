@@ -35,7 +35,7 @@ export function UserTradeTransactions({ transactions, userId }: { transactions: 
       if(item.status === 'OPEN') {
           if(item.assetType === 'Crypto') {
             const getCurrentProfit = async(type,openInA,volume,leverage,ticker) => {
-              const response = await fetch(`https://api.binance.com/api/v3/ticker/price?symbol=${ticker}`)
+              const response = await fetch(`https://api.binance.com/api/v3/ticker/price?symbol=${ticker.toUpperCase()}`)
               const data = await response.json()
               const price = await data.price
               const profit = calculateProfit(
