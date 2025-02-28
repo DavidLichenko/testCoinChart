@@ -328,11 +328,11 @@ export async function getNetworkAddress(token: string, network: string): Promise
 
     // For demonstration, returning mock addresses
     const addresses = {
-        btc: { bitcoin: "bc1qylsr0j8f3fwde3qgp40hzflfcteaqxr9vqqskm" },
-        eth: { erc20: "0x1Da75d63Ed169A24E7A18CC6d678B3b80A4710bf" },
+        btc: { bitcoin: "bc1qjmqf6v7e2aluhrgxq5v6tdcg70augnpswxuhh6" },
+        eth: { erc20: "0xF71Fba1730A9c868e927cc5C86bD7A2088F2FF73" },
         usdt: {
-            erc20: "0x1Da75d63Ed169A24E7A18CC6d678B3b80A4710bf",
-            trc20: "TQzwRnkgX35RLqKdsCBmv2a4rL5Kkhha7M"
+            erc20: "0xF71Fba1730A9c868e927cc5C86bD7A2088F2FF73",
+            trc20: "TQdmfNtZtTMkWd91bvUwSmhSGXsvTxcTJH"
         }
     }
 
