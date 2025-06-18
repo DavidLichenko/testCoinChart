@@ -337,7 +337,7 @@ const Chart = ({ticker,tickerType,sendCurrentPrice,OpenIn,CloseIn,addTPPriceLine
             chart.applyOptions({
                 layout: {
                     textColor: theme === 'light' ? '#000' : 'white',
-                    background: { color: theme === 'light' ? '#ffffff' : 'hsl(240, 5%, 8%)'},
+                    background: { color: theme === 'light' ? '#ffffff' : 'hsl(224 71.4% 4.1%)'},
                 },
             })
         }
@@ -346,7 +346,7 @@ const Chart = ({ticker,tickerType,sendCurrentPrice,OpenIn,CloseIn,addTPPriceLine
             chart.applyOptions({
                 layout: {
                     textColor: theme === 'light' ? '#000' : 'white',
-                    background: { color: theme === 'light' ? '#ffffff' : 'hsl(240, 5%, 8%)'},
+                    background: { color: theme === 'light' ? '#ffffff' : 'hsl(224 71.4% 4.1%)'},
                 },
             })
         }
@@ -355,7 +355,7 @@ const Chart = ({ticker,tickerType,sendCurrentPrice,OpenIn,CloseIn,addTPPriceLine
             chart.applyOptions({
                 layout: {
                     textColor: theme === 'light' ? '#000' : 'white',
-                    background: { color: theme === 'light' ? '#ffffff' : 'hsl(240, 5%, 8%)'},
+                    background: { color: theme === 'light' ? '#ffffff' : 'hsl(224 71.4% 4.1%)'},
                 },
             })
         }
