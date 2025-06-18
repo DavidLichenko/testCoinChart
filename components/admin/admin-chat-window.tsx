@@ -9,7 +9,7 @@ import { Send, Paperclip } from 'lucide-react'
 import { Label } from '@/components/ui/label'
 import { useToast } from '@/components/ui/use-toast'
 
-const socket = io('https://srv677099.hstgr.cloud', {
+const socket = io('https://web-production-2d590.up.railway.app', {
   path: '/socket.io',
   transports: ['websocket'],
   withCredentials: true,

@@ -2,7 +2,7 @@ import { createServer } from 'http'
 import { Server } from 'socket.io'
 
 // VPS hostname and port where the server will listen for WebSocket connections
-const hostname = 'srv677099.hstgr.cloud' // Replace with your VPS IP or domain
+const hostname = 'web-production-2d590.up.railway.app' // Replace with your VPS IP or domain
 const port = 3000
 
 // Create a basic HTTP server

@@ -1,24 +1,16 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider        = "prisma-client-js"
   previewFeatures = ["driverAdapters"]
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("POSTGRES_PRISMA_URL") // uses connection pooling
-  directUrl = env("POSTGRES_URL_NON_POOLING") // uses a direct connection
+  provider = "postgresql"
+  url      = env("DATABASE_URL_UNPOOLED")
 }
 
 model User {
   id                  String              @id @default(uuid())
   email               String              @unique
-  number              String
   password            String
   name                String?
   role                UserRole            @default(USER)
@@ -28,21 +20,22 @@ model User {
   providerId          String?
   createdAt           DateTime            @default(now())
   updatedAt           DateTime            @updatedAt
-  orders              Orders[]
-  trade_transaction   Trade_Transaction[]
   user_crypto_address String?
   deposit_message     String?
   withdraw_error      String?
   can_withdraw        Boolean             @default(true)
   blocked             Boolean             @default(false)
-  balance             Balances[]
-  comments            Comments[]
   isVerif             Boolean             @default(false)
-  verification        Verification[]
   TotalBalance        Float?              @default(0)
+  number              String
+  assignedTo          String?
+  assignedAgentTo     String?
+  balance             Balances?
+  comments            Comments?
   messages            Message[]
-  assignedTo          String? // ID of the worker this user is assigned to
-  assignedAgentTo     String? // ID of the teamLeader this agent is assigned to
+  orders              Orders[]
+  trade_transaction   Trade_Transaction[]
+  verification        Verification[]
 }
 
 model Orders {
@@ -50,16 +43,16 @@ model Orders {
   status         OrderStatus
   type           OrderType
   amount         Float
-  User           User        @relation(fields: [userId], references: [id])
   userId         String
   createdAt      DateTime    @default(now())
   updatedAt      DateTime    @updatedAt
-  depositFrom    String? // Crypto type for deposits (BTC, ETH, USDT)
-  withdrawMethod String? // Bank, Crypto, or Card
-  bankName       String? // For bank withdrawals
-  cryptoAddress  String? // For crypto withdrawals
-  cryptoNetwork  String? // For crypto withdrawals
-  cardNumber     String? // For card withdrawals
+  depositFrom    String?
+  bankName       String?
+  cardNumber     String?
+  cryptoAddress  String?
+  cryptoNetwork  String?
+  withdrawMethod String?
+  User           User        @relation(fields: [userId], references: [id])
 }
 
 model Trade_Transaction {
@@ -77,11 +70,11 @@ model Trade_Transaction {
   takeProfit Float?
   stopLoss   Float?
   userId     String
-  isPaid     Boolean                @default(false)
-  User       User                   @relation(fields: [userId], references: [id])
   createdAt  DateTime               @default(now())
   endAt      DateTime?
-  assetType  AssetType              @default(IEX) // Add this line
+  assetType  AssetType              @default(IEX)
+  isPaid     Boolean                @default(false)
+  User       User                   @relation(fields: [userId], references: [id])
 }
 
 model Balances {

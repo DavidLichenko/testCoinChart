@@ -5,6 +5,8 @@ import {GetStockData, GetWebSocketStockData} from "@/actions/form";
 import {Ping} from "@uiball/loaders";
 import { useTheme } from 'next-themes'
 import {Skeleton} from "@/components/ui/skeleton";
+import {Card, CardContent, CardHeader} from "@/components/ui/card";
+import {Badge} from "@/components/ui/badge";
 
 
 const Chart = ({ticker,tickerType,sendCurrentPrice,OpenIn,CloseIn,addTPPriceLine,addSLPriceLine, currentHeight, tickerName}) => {
@@ -40,7 +42,7 @@ const Chart = ({ticker,tickerType,sendCurrentPrice,OpenIn,CloseIn,addTPPriceLine
     const [prevTicket, setPrevTicket] = useState('');
     // const [chartData, setChartData] = useState([]);
     const ws = new WebSocket(
-        `wss://stream.binance.com:9443/ws/${ticker}@kline_1m`
+        `wss://stream.binance.com:9443/ws/${ticker}T@kline_1m`
     );
 
 
@@ -153,11 +155,11 @@ const Chart = ({ticker,tickerType,sendCurrentPrice,OpenIn,CloseIn,addTPPriceLine
             return connectedData;
         }
 
-
+//https://web-production-2d590.up.railway.app
         if (tickerType === "S") {
             const fetchTest = async () => {
                 try {
-                    const response = await fetch(`https://srv677099.hstgr.cloud/api/stocks/${ticker}/candlesticks/`, {
+                    const response = await fetch(`https://web-production-2d590.up.railway.app/api/stocks/${ticker}/candlesticks/`, {
                         method:'GET',
                         headers: {
                             'Content-Type': 'application/json', // Specify the content type
@@ -177,7 +179,7 @@ const Chart = ({ticker,tickerType,sendCurrentPrice,OpenIn,CloseIn,addTPPriceLine
         }
         if (tickerType == 'C') {
             fetch(
-                `https://api.binance.com/api/v3/klines?symbol=${ticker.toUpperCase()}&interval=1m&limit=1000`
+                `https://api.binance.com/api/v3/klines?symbol=${ticker.toUpperCase()}T&interval=1m&limit=1000`
             )
                 .then((res) => res.json())
                 .then((data) => {
@@ -375,13 +377,26 @@ const Chart = ({ticker,tickerType,sendCurrentPrice,OpenIn,CloseIn,addTPPriceLine
         <>
             {currentHeight ?
                 <>
-                    <div
-                        className='sticky capitalize top-5 pl-6 pr-12 py-1.5 border-border border-1 left-6 z-[30] bg-background text-muted-foreground font-bold'>
-                        {tickerName} ~ 1 ~ AragonTrade
-                    </div>
-                    <div ref={ref} className='relative'>
-
-                    </div>
+                    <Card className="h-full border-0 rounded-none">
+                        <CardHeader className="pb-2 px-4 py-2 border-b">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <h3 className="font-semibold text-lg capitalize">{tickerName}</h3>
+                                    <Badge variant="outline" className="text-xs">
+                                        AragonTrade
+                                    </Badge>
+                                </div>
+                                <div className="flex items-center gap-4">
+                                    <div className="text-right">
+                                        <div className="text-2xl font-bold">${currentPrice.toLocaleString()}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </CardHeader>
+                        <CardContent className="p-0 h-full">
+                            <div ref={ref} className="h-full w-full" />
+                        </CardContent>
+                    </Card>
 
                 </>
                 :

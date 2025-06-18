@@ -74,10 +74,10 @@ export function UserSettingsModal({totalAmount, totalProfit, totalDeposit, userD
                     <Shield className="h-12 w-12 my-2 sm:h-4 sm:w-4 sm:my-0" />
                     <span>Verification</span>
                   </TabsTrigger>
-                  <TabsTrigger value="livechat" className="flex flex-col items-center justify-center p-2 text-xs sm:text-sm my-2">
-                    <MessageCircle className="h-12 w-12 my-2 sm:h-4 sm:w-4 sm:my-0" />
-                    <span>Live Chat</span>
-                  </TabsTrigger>
+                  {/*<TabsTrigger value="livechat" className="flex flex-col items-center justify-center p-2 text-xs sm:text-sm my-2">*/}
+                  {/*  <MessageCircle className="h-12 w-12 my-2 sm:h-4 sm:w-4 sm:my-0" />*/}
+                  {/*  <span>Live Chat</span>*/}
+                  {/*</TabsTrigger>*/}
                   <TabsTrigger value="settings" className="flex flex-col items-center justify-center p-2 text-xs sm:text-sm my-2">
                     <Settings className="h-12 w-12 my-2 sm:h-4 sm:w-4 sm:my-0" />
                     <span>Settings</span>
@@ -97,9 +97,9 @@ export function UserSettingsModal({totalAmount, totalProfit, totalDeposit, userD
                       <TabsContent value="verification">
                         <VerificationTab />
                       </TabsContent>
-                      <TabsContent value="livechat">
-                        <LiveChatTab />
-                      </TabsContent>
+                      {/*<TabsContent value="livechat">*/}
+                      {/*  <LiveChatTab />*/}
+                      {/*</TabsContent>*/}
                       <TabsContent value="settings">
                         <SettingsTab />
                       </TabsContent>
