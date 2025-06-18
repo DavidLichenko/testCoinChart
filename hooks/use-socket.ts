@@ -10,7 +10,7 @@ export function useSocket() {
 
   useEffect(() => {
     if (!socket) {
-      socket = io('https://srv677099.hstgr.cloud', {
+      socket = io('https://web-production-2d590.up.railway.app', {
         path: '/socket.io',
         transports: ['websocket'],
         withCredentials: true,

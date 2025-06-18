@@ -176,6 +176,17 @@ export default function Home() {
                         </div>
                     </div>
                 </section>
+                <section className="py-4 px-4 ">
+                    <div
+                        className="flex flex-col items-start justify-start gap-3 underline px-6 py-3 text-blue-600">
+                        <a target="_blank" href="/AragonTrade_Privacy_Policy.pdf" rel="noopener noreferrer">
+                            <div>Privacy Policy</div>
+                        </a>
+                        <a target="_blank" href="/AragonTrade_Terms&Conditions.pdf" rel="noopener noreferrer">
+                            <div>Terms&Conditions</div>
+                        </a>
+                    </div>
+                </section>
             </div>
         </>
     );

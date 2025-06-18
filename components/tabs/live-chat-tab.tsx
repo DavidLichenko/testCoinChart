@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { GetCurrentData } from '@/actions/form';
 import Image from "next/image";
 
-const socket = io('https://srv677099.hstgr.cloud', {
+const socket = io('https://web-production-2d590.up.railway.app', {
   path: '/socket.io',
   transports: ['websocket'],
   withCredentials: true,
@@ -96,7 +96,7 @@ export default function UserChat() {
       formData.append('file', file);
 
       try {
-        const res = await fetch('https://srv677099.hstgr.cloud/upload/', {
+        const res = await fetch('https://web-production-2d590.up.railway.app/upload/', {
           method: 'POST',
           body: formData,
         });

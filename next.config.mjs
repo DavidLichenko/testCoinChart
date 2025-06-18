@@ -2,7 +2,7 @@
 const nextConfig = {
     swcMinify: true,
     images: {
-        domains: ['srv677099.hstgr.cloud'],
+        domains: ['https://web-production-2d590.up.railway.app'],
         unoptimized: true,
     },
     experimental: {

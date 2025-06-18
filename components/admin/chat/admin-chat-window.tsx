@@ -82,7 +82,7 @@ export function AdminChatWindow({ user, initialMessages }: AdminChatWindowProps)
       formData.append('file', file);
 
       try {
-        const res = await fetch('https://srv677099.hstgr.cloud/upload/', {
+        const res = await fetch('https://web-production-2d590.up.railway.app/upload/', {
           method: 'POST',
           body: formData,
         });

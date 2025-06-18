@@ -123,6 +123,8 @@ export function Sidebar() {
                 </button>
               </div>
               <div className="border-t border-gray-800">
+
+
                 {bottomItems.map((item) => (
                     <Link
                         key={item.name}
@@ -131,7 +133,7 @@ export function Sidebar() {
                         onClick={() => {
                           if (item.href === '/logout') {
                             setOpen(false)
-                            signOut({ redirect: false }).then(() => {
+                            signOut({redirect: false}).then(() => {
                               router.push("/welcome");
                               location.reload();
                             });
@@ -141,7 +143,7 @@ export function Sidebar() {
                         }
                         }
                     >
-                      <item.icon className="h-5 w-5 mr-3" />
+                      <item.icon className="h-5 w-5 mr-3"/>
                       {item.name}
                     </Link>
                 ))}

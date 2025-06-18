@@ -94,7 +94,7 @@ const ChartMobile: React.FC<ChartMobileProps> = ({
         try {
             switch (type) {
                 case 'IEX':
-                    const response = await fetch(`https://srv677099.hstgr.cloud/api/stocks/${ticker}/candlesticks/`, {
+                    const response = await fetch(`https://web-production-2d590.up.railway.app/api/stocks/${ticker}/candlesticks/`, {
                         method:'GET',
                         headers: {
                             'Content-Type': 'application/json', // Specify the content type

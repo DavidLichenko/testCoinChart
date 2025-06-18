@@ -8,7 +8,7 @@ export default function DashboardTab({totalAmount, totalProfit, totalDeposit}) {
           <CardTitle>Total Amount</CardTitle>
         </CardHeader>
         <CardContent className="p-4">
-          <p className="text-xl sm:text-2xl font-bold">${totalAmount}</p>
+          <p className="text-xl sm:text-2xl font-bold">${totalAmount.toFixed(2)}</p>
         </CardContent>
       </Card>
       <Card>
@@ -16,7 +16,7 @@ export default function DashboardTab({totalAmount, totalProfit, totalDeposit}) {
           <CardTitle>Total Profit</CardTitle>
         </CardHeader>
         <CardContent className="p-4">
-          <p className="text-xl sm:text-2xl font-bold">${totalProfit}</p>
+          <p className="text-xl sm:text-2xl font-bold">${totalProfit.toFixed(2)}</p>
         </CardContent>
       </Card>
       <Card>
@@ -24,7 +24,7 @@ export default function DashboardTab({totalAmount, totalProfit, totalDeposit}) {
           <CardTitle>Total Deposits</CardTitle>
         </CardHeader>
         <CardContent className="p-4">
-          <p className="text-xl sm:text-2xl font-bold">${totalDeposit}</p>
+          <p className="text-xl sm:text-2xl font-bold">${totalDeposit.toFixed(2)}</p>
         </CardContent>
       </Card>
     </div>

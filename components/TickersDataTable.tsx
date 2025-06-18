@@ -32,7 +32,7 @@ const MarketTable = () => {
     useEffect(() => {
         const fetchData = async () => {
             const res = await fetch('/api/market'); // Replace with your API endpoint
-            const forexData = await fetch(`http://srv677099.hstgr.cloud/api/forex`)
+            const forexData = await fetch(`https://web-production-2d590.up.railway.app/api/forex`)
             const jsonForex = await forexData.json();
             const data = await res.json();
             const allData = await {...data,
