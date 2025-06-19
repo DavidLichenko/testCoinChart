@@ -8,15 +8,14 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { street_address, city, zip_code, front_id_image, back_id_image } = body;
 
-    // Try to find existing verification record by userId
-    const existingVerification = await prisma.verification.findUnique({
-      where: { userId }, // this works if userId is unique, otherwise use findFirst with filter below
+    // Use findFirst instead of findUnique to avoid error if userId is not unique
+    const existingVerification = await prisma.verification.findFirst({
+      where: { userId },
     });
 
     let verification;
 
     if (existingVerification) {
-      // Update existing record
       verification = await prisma.verification.update({
         where: { id: existingVerification.id },
         data: {
@@ -30,7 +29,6 @@ export async function POST(request: Request) {
         },
       });
     } else {
-      // Create new record
       verification = await prisma.verification.create({
         data: {
           userId,
