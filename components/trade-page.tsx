@@ -97,7 +97,7 @@ export default function TradePage() {
   const chartContainerRef = useRef<HTMLDivElement>(null)
   const modalChartRef = useRef<HTMLDivElement>(null)
 
-  console.log(selectedTicker)
+
   // Initialize chart
   useCandlestickChart(chartContainerRef, selectedTicker)
   // useCandlestickChart(
