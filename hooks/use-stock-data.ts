@@ -7,6 +7,10 @@ interface StockTicker {
   name: string
   price: number
   change: number
+  open: number
+  high: number
+  low: number
+  close: number
   changePercent: number
   type: "stock"
 }
