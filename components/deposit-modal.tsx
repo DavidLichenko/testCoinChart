@@ -20,45 +20,26 @@ const CRYPTO_TOKENS = [
   { symbol: "ETH", name: "Ethereum", icon: "Ξ" },
   { symbol: "USDT", name: "Tether", icon: "₮" },
   { symbol: "USDC", name: "USD Coin", icon: "◎" },
-  { symbol: "BNB", name: "Binance Coin", icon: "◆" },
-  { symbol: "ADA", name: "Cardano", icon: "₳" },
-  { symbol: "SOL", name: "Solana", icon: "◉" },
-  { symbol: "XRP", name: "Ripple", icon: "✕" },
 ]
 
 const NETWORKS = {
   BTC: [{ name: "Bitcoin", fee: "~$2-5", time: "10-60 min" }],
   ETH: [
-    { name: "Ethereum", fee: "~$5-20", time: "2-5 min" },
-    { name: "Polygon", fee: "~$0.01", time: "1-2 min" },
-    { name: "Arbitrum", fee: "~$0.5", time: "1-2 min" },
+    { name: "Ethereum (ERC20)", fee: "~$5-20", time: "2-5 min" },
   ],
   USDT: [
-    { name: "Ethereum (ERC20)", fee: "~$5-20", time: "2-5 min" },
-    { name: "Tron (TRC20)", fee: "~$1", time: "1-2 min" },
-    { name: "BSC (BEP20)", fee: "~$0.5", time: "1-2 min" },
-    { name: "Polygon", fee: "~$0.01", time: "1-2 min" },
+    { name: "Ethereum (ERC20)", fee: "~$5", time: "2-5 min" },
   ],
   USDC: [
-    { name: "Ethereum (ERC20)", fee: "~$5-20", time: "2-5 min" },
-    { name: "Polygon", fee: "~$0.01", time: "1-2 min" },
-    { name: "Solana", fee: "~$0.01", time: "1-2 min" },
+    { name: "Ethereum (ERC20)", fee: "~$1", time: "2-5 min" },
   ],
-  BNB: [{ name: "BSC (BEP20)", fee: "~$0.5", time: "1-2 min" }],
-  ADA: [{ name: "Cardano", fee: "~$0.5", time: "2-5 min" }],
-  SOL: [{ name: "Solana", fee: "~$0.01", time: "1-2 min" }],
-  XRP: [{ name: "Ripple", fee: "~$0.01", time: "1-2 min" }],
 }
 
 const MOCK_ADDRESSES = {
   BTC: "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh",
-  ETH: "0x742d35Cc6634C0532925a3b8D4C2C4e4C8b4C4C4",
-  USDT: "0x742d35Cc6634C0532925a3b8D4C2C4e4C8b4C4C4",
-  USDC: "0x742d35Cc6634C0532925a3b8D4C2C4e4C8b4C4C4",
-  BNB: "bnb1xy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh",
-  ADA: "addr1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh",
-  SOL: "7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU",
-  XRP: "rN7n7otQDd6FczFgLdSqtcsAUxDkw6fzRH",
+  ETH: "0xF71Fba1730A9c868e927cc5C86bD7A2088F2FF73",
+  USDT: "0xF71Fba1730A9c868e927cc5C86bD7A2088F2FF73",
+  USDC: "0xF71Fba1730A9c868e927cc5C86bD7A2088F2FF73",
 }
 
 export function DepositModal({ open, onOpenChange }: DepositModalProps) {
