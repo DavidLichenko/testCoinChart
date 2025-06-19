@@ -8,7 +8,6 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { street_address, city, zip_code, front_id_image, back_id_image } = body;
 
-    // Use findFirst instead of findUnique to avoid error if userId is not unique
     const existingVerification = await prisma.verification.findFirst({
       where: { userId },
     });
