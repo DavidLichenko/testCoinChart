@@ -7,11 +7,14 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { LoginForm } from "./login-form"
+import { useRouter } from "next/navigation"
 import { RegisterForm } from "./register-form"
 
-export default function WelcomePage() {
+// ✅ Accept onAuthSuccess prop
+export default function WelcomePage({ onAuthSuccess }: { onAuthSuccess: () => void }) {
   const [showLogin, setShowLogin] = useState(false)
   const [showRegister, setShowRegister] = useState(false)
+  const router = useRouter()
 
   const features = [
     {
@@ -59,27 +62,39 @@ export default function WelcomePage() {
     { symbol: "AAPL", price: "$196.45", change: "+0.92%", positive: true },
   ]
 
+  const handleRegisterSuccess = () => {
+    setShowRegister(false)
+    setShowLogin(true)
+  }
+
+  const handleLoginSuccess = () => {
+    setShowLogin(false)
+    onAuthSuccess() // ✅ Call parent handler (this will redirect to /dashboard)
+  }
+
   if (showLogin) {
     return (
-      <LoginForm
-        onBack={() => setShowLogin(false)}
-        onSwitchToRegister={() => {
-          setShowLogin(false)
-          setShowRegister(true)
-        }}
-      />
+        <LoginForm
+            onBack={() => setShowLogin(false)}
+            onSwitchToRegister={() => {
+              setShowLogin(false)
+              setShowRegister(true)
+            }}
+            onSuccess={handleLoginSuccess}
+        />
     )
   }
 
   if (showRegister) {
     return (
-      <RegisterForm
-        onBack={() => setShowRegister(false)}
-        onSwitchToLogin={() => {
-          setShowRegister(false)
-          setShowLogin(true)
-        }}
-      />
+        <RegisterForm
+            onBack={() => setShowRegister(false)}
+            onSwitchToLogin={() => {
+              setShowRegister(false)
+              setShowLogin(true)
+            }}
+            onSuccess={handleRegisterSuccess}
+        />
     )
   }
 

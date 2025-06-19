@@ -1,10 +1,9 @@
 "use client"
 
 import type React from "react"
-
 import { createContext, useContext, useEffect, useState } from "react"
-import WelcomePage from "@/components/auth/welcome-page";
-
+import { useRouter } from "next/navigation"
+import WelcomePage from "@/components/auth/welcome-page"
 
 interface User {
   id: string
@@ -35,6 +34,7 @@ export function useAuth() {
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
+  const router = useRouter()
 
   const checkAuth = async () => {
     try {
@@ -72,18 +72,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background text-white flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-500 mx-auto"></div>
-          <p className="mt-4 text-gray-400">Loading...</p>
+        <div className="min-h-screen bg-background text-white flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-500 mx-auto"></div>
+            <p className="mt-4 text-gray-400">Loading...</p>
+          </div>
         </div>
-      </div>
     )
   }
 
   if (!user) {
-    return <WelcomePage onAuthSuccess={refreshUser} />
+    return (
+        <WelcomePage
+            onAuthSuccess={() => {
+              checkAuth()
+              router.push("/dashboard")
+            }}
+        />
+    )
   }
 
-  return <AuthContext.Provider value={{ user, loading, logout, refreshUser }}>{children}</AuthContext.Provider>
+  return (
+      <AuthContext.Provider value={{ user, loading, logout, refreshUser }}>
+        {children}
+      </AuthContext.Provider>
+  )
 }
