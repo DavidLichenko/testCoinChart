@@ -9,6 +9,7 @@ import {Plus, User} from "lucide-react";
 import Link from "next/link";
 import {DepositModal} from "@/components/deposit-modal";
 import {useAuth} from "@/components/auth-provider";
+import Script from "next/script";
 
 const Header = () => {
     const [balance, setBalance] = useState(0) // Mock: userBalance?.usd || 0
@@ -32,6 +33,27 @@ const Header = () => {
     const [depositModalOpen, setDepositModalOpen] = useState(false)
     return (
         <>
+            {/* Smartsupp Live Chat script */}
+            <Script id="smartsupp-chat" strategy="afterInteractive">
+                {`
+          var _smartsupp = _smartsupp || {};
+          _smartsupp.key = '27fb236d0033ef4f42527031ce371e32b77ce821';
+          window.smartsupp||(function(d) {
+            var s,c,o=smartsupp=function(){ o._.push(arguments)};o._=[];
+            s=d.getElementsByTagName('script')[0];c=d.createElement('script');
+            c.type='text/javascript';c.charset='utf-8';c.async=true;
+            c.src='https://www.smartsuppchat.com/loader.js?';s.parentNode.insertBefore(c,s);
+          })(document);
+        `}
+            </Script>
+
+            {/* NoScript fallback */}
+            <noscript>
+                Powered by{' '}
+                <a href="https://www.smartsupp.com" target="_blank" rel="noopener noreferrer">
+                    Smartsupp
+                </a>
+            </noscript>
             <AnimatePresence>
                 <div className="header hidden lg:flex px-12  mx-auto bg-background  items-center justify-between py-2">
                     <div className="logo text-xl uppercase tracking-wide">
