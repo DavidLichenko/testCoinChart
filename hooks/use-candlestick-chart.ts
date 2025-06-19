@@ -20,7 +20,7 @@ type BinanceKline = [
   number, string, number, string, string, string
 ]
 
-export function useCandlestickChart(containerRef: React.RefObject<HTMLDivElement>, ticker: Ticker) {
+export function useCandlestickChart(containerRef: React.RefObject<HTMLDivElement | null>, ticker: Ticker) {
   const chartRef = useRef<any>(null)
   const seriesRef = useRef<any>(null)
 
