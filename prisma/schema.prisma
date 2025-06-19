@@ -1,0 +1,233 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id                  String              @id @default(cuid())
+  name                String?
+  email               String              @unique
+  password            String?
+  emailVerified       DateTime?
+  image               String?
+  accounts            Account[]
+  sessions            Session[]
+  user_crypto_address String?
+  deposit_message     String?
+  withdraw_error      String?
+  can_withdraw        Boolean             @default(true)
+  blocked             Boolean             @default(false)
+  isVerif             Boolean             @default(false)
+  TotalBalance        Float?              @default(0)
+  assignedTo          String?
+  assignedAgentTo     String?
+  balance             Balances?
+  comments            Comments?
+  messages            Message[]
+  orders              Orders[]
+  trade_transaction   Trade_Transaction[]
+  verification        Verification[]
+  status              UserStatus          @default(NEW)
+  role                UserRole            @default(USER)
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+  Authenticator       Authenticator[]
+}
+
+model Orders {
+  id             String      @id @default(cuid())
+  status         OrderStatus
+  type           OrderType
+  amount         Float
+  userId         String
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  depositFrom    String?
+  bankName       String?
+  cardNumber     String?
+  cryptoAddress  String?
+  cryptoNetwork  String?
+  withdrawMethod String?
+  User           User        @relation(fields: [userId], references: [id])
+}
+
+model Account {
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime? @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([provider, providerAccountId])
+}
+
+model Session {
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@id([identifier, token])
+}
+
+// Optional for WebAuthn support
+model Authenticator {
+  credentialID         String  @unique
+  userId               String
+  providerAccountId    String
+  credentialPublicKey  String
+  counter              Int
+  credentialDeviceType String
+  credentialBackedUp   Boolean
+  transports           String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, credentialID])
+}
+
+model Message {
+  id               String   @id @default(cuid())
+  content          String
+  imageUrl         String?
+  isSupportMessage Boolean  @default(false)
+  createdAt        DateTime @default(now())
+  userId           String
+  user             User     @relation(fields: [userId], references: [id])
+}
+
+model Balances {
+  userId String @id
+  usd    Float  @default(0)
+  User   User   @relation(fields: [userId], references: [id])
+}
+
+model Verification {
+  id             Int      @id @default(autoincrement())
+  userId         String
+  back_id_image  String?
+  back_id_verif  Boolean? @default(false)
+  front_id_image String?
+  front_id_verif Boolean? @default(false)
+  street_address String?
+  city           String?
+  zip_code       String?
+  User           User     @relation(fields: [userId], references: [id])
+}
+
+model CryptoAddresses {
+  id                Int     @id @default(autoincrement())
+  btc_address       String?
+  btc_BTCaddress    String?
+  eth_address       String?
+  ethERC20_address  String?
+  usdt_address      String?
+  usdtTRC20_address String?
+}
+
+model Comments {
+  userId   String @id
+  messages Json?
+  User     User   @relation(fields: [userId], references: [id])
+}
+
+model Trade_Transaction {
+  id         String                 @id @default(uuid())
+  status     TradeTransactionStatus @default(OPEN)
+  type       TradeTransactionType
+  volume     Float
+  margin     Float
+  leverage   Int
+  profit     Float?
+  ticker     String
+  openInA    Float
+  openIn     Float
+  closeIn    Float?
+  takeProfit Float?
+  stopLoss   Float?
+  userId     String
+  createdAt  DateTime               @default(now())
+  endAt      DateTime?
+  assetType  AssetType              @default(IEX)
+  isPaid     Boolean                @default(false)
+  User       User                   @relation(fields: [userId], references: [id])
+}
+
+enum OrderStatus {
+  PENDING
+  SUCCESSFUL
+  CANCELLED
+}
+
+enum TradeTransactionType {
+  BUY
+  SELL
+}
+
+enum OrderType {
+  DEPOSIT
+  WITHDRAW
+}
+
+enum TradeTransactionStatus {
+  OPEN
+  CLOSE
+}
+
+enum UserRole {
+  USER
+  OWNER
+  CR_MANAGMENT
+  WORKER
+  TEAMLEAD
+}
+
+enum UserMessage {
+  USER
+  SUPPORT
+}
+
+enum AssetType {
+  IEX
+  Crypto
+  Forex
+  Metal
+}
+
+enum UserStatus {
+  WRONGNUMBER
+  WRONGINFO
+  CALLBACK
+  LOWPOTENTIONAL
+  HIGHPOTENTIONAL
+  NOTINTERESTED
+  DEPOSIT
+  TRASH
+  DROP
+  NEW
+  RESIGN
+  COMPLETED
+}
