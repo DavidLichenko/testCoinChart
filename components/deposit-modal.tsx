@@ -192,7 +192,7 @@ export function DepositModal({ open, onOpenChange }: DepositModalProps) {
                       <div className="flex flex-col">
                         <span>{network.name}</span>
                         <span className="text-xs text-gray-400">
-                          Fee: {network.fee} • Time: {network.time}
+                          Time: {network.time}
                         </span>
                       </div>
                     </SelectItem>
@@ -280,10 +280,6 @@ export function DepositModal({ open, onOpenChange }: DepositModalProps) {
                       <div className="flex justify-between">
                         <span className="text-gray-400">Network:</span>
                         <span>{selectedNetwork}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-400">Fee:</span>
-                        <span>{selectedNetworkData.fee}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-400">Time:</span>
