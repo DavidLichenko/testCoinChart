@@ -75,7 +75,6 @@ export default function WelcomePage({ onAuthSuccess }: { onAuthSuccess: () => vo
   if (showLogin) {
     return (
         <LoginForm
-            onBack={() => setShowLogin(false)}
             onSwitchToRegister={() => {
               setShowLogin(false)
               setShowRegister(true)
@@ -88,7 +87,6 @@ export default function WelcomePage({ onAuthSuccess }: { onAuthSuccess: () => vo
   if (showRegister) {
     return (
         <RegisterForm
-            onBack={() => setShowRegister(false)}
             onSwitchToLogin={() => {
               setShowRegister(false)
               setShowLogin(true)

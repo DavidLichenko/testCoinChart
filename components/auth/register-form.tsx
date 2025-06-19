@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 interface RegisterFormProps {
   onSuccess?: () => void
   onSwitchToLogin?: () => void
+  onBack?: () => void // optional back handler
 }
 
 export function RegisterForm({

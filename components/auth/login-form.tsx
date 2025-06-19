@@ -13,6 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 interface LoginFormProps {
   onSuccess: () => void
   onSwitchToRegister: () => void
+  onBack?: () => void // optional back handler
 }
 
 export function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormProps) {
