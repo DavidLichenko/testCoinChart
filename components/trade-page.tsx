@@ -36,7 +36,6 @@ import Link from "next/link"
 import {updateBalance} from "@/app/actions/updateBalance";
 import {useTickers} from "@/hooks/market-data";
 import {useBalance} from "@/hooks/useBalance";
-import AdvancedChart from "@/components/AdvancedChart";
 import {AdvancedChartWithDrawings} from "@/components/AdvancedChartWithDrawings";
 import { useIsMobile } from "@/hooks/use-mobile";
 
