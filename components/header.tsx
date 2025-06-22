@@ -1,90 +1,121 @@
 'use client'
-import React, {useEffect, useState} from 'react';
-import Notifications from "@/components/notifications";
-import Messages from "@/components/messages";
-import NavItem from "@/components/nav-item";
-import {AnimatePresence} from "framer-motion";
-import {Button} from "@/components/ui/button";
-import {Plus, User} from "lucide-react";
+import React, { useState } from 'react';
+import { AnimatePresence, motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { Plus, User, Settings, Menu, X, BarChart3, Package2 } from "lucide-react";
 import Link from "next/link";
-import {DepositModal} from "@/components/deposit-modal";
-import {useAuth} from "@/components/auth-provider";
-import Script from "next/script";
+import { DepositModal } from "@/components/deposit-modal";
+import { useAuth } from "@/components/auth-provider";
+import { useBalance } from "@/hooks/useBalance";
+import ChatButton from "@/components/chat/chat-button";
+import NavItem from "@/components/nav-item";
+import { Badge } from "@/components/ui/badge";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import { useIsMobile } from "@/hooks/use-mobile"
+import { usePathname } from "next/navigation"
+import { ModeToggle } from "./theme-switcher"
 
 const Header = () => {
-    const [balance, setBalance] = useState(0) // Mock: userBalance?.usd || 0
+    const { balance, liveProfit } = useBalance();
+    const { user, logout } = useAuth();
+    const [depositModalOpen, setDepositModalOpen] = useState(false);
+    const isMobile = useIsMobile();
+    const pathname = usePathname()
+    
+    const totalEquity = balance + (liveProfit || 0);
 
-    // Fetch user balance
-    useEffect(() => {
-        const fetchBalance = async () => {
-            try {
-                const response = await fetch("/api/user/balance")
-                if (response.ok) {
-                    const data = await response.json()
-                    setBalance(data.totalBalance)
-                }
-            } catch (error) {
-                console.error("Error fetching balance:", error)
-            }
-        }
-        fetchBalance()
-    }, [])
+    const isAdmin = user?.role === 'OWNER' || user?.role === 'CR_MANAGMENT' || user?.role === 'TEAMLEAD';
 
-    const [depositModalOpen, setDepositModalOpen] = useState(false)
+    const navItems = [
+        { name: "Transactions", href: "/transactions" },
+    ]
+
+    if (isMobile) {
+        return (
+            <header className="sticky top-0 z-50 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6 justify-between">
+                <Link href="/dashboard" className="flex items-center gap-2">
+                    <Package2 className="h-6 w-6" />
+                    <span className="sr-only">AragonTrade</span>
+                </Link>
+                <div className="flex items-center gap-2">
+                    <div className="text-right">
+                        <div className="text-xs text-muted-foreground">Equity</div>
+                        <div className="text-sm font-bold">${totalEquity?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) ?? "0.00"}</div>
+                    </div>
+                    <Button onClick={() => setDepositModalOpen(true)} size="sm">Deposit</Button>
+                    <ChatButton />
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="secondary" size="icon" className="rounded-full">
+                          <User className="h-5 w-5" />
+                          <span className="sr-only">Toggle user menu</span>
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem asChild><Link href="/profile">Profile</Link></DropdownMenuItem>
+                        <DropdownMenuItem onClick={logout}>Logout</DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                    <DepositModal open={depositModalOpen} onOpenChange={setDepositModalOpen} />
+                </div>
+            </header>
+        );
+    }
+
     return (
         <>
-            {/* Smartsupp Live Chat script */}
-            <Script id="smartsupp-chat" strategy="afterInteractive">
-                {`
-          var _smartsupp = _smartsupp || {};
-          _smartsupp.key = '27fb236d0033ef4f42527031ce371e32b77ce821';
-          window.smartsupp||(function(d) {
-            var s,c,o=smartsupp=function(){ o._.push(arguments)};o._=[];
-            s=d.getElementsByTagName('script')[0];c=d.createElement('script');
-            c.type='text/javascript';c.charset='utf-8';c.async=true;
-            c.src='https://www.smartsuppchat.com/loader.js?';s.parentNode.insertBefore(c,s);
-          })(document);
-        `}
-            </Script>
-
-            {/* NoScript fallback */}
-            <noscript>
-                Powered by{' '}
-                <a href="https://www.smartsupp.com" target="_blank" rel="noopener noreferrer">
-                    Smartsupp
-                </a>
-            </noscript>
-            <AnimatePresence>
-                <div className="header hidden lg:flex px-12  mx-auto bg-background  items-center justify-between py-2">
-                    <div className="logo text-xl uppercase tracking-wide">
-                        AragonTrade
-                    </div>
-                    <div className="route capitalize text-sm flex items-center justify-center gap-6">
-                        <NavItem/>
-                    </div>
-                    <div className="profile flex items-center justify-center gap-6">
-                        {/*<Notifications />*/}
-                        {/*<Messages />*/}
-                        <div className="flex items-center space-x-4">
-                                <Button className="bg-green-600 hover:bg-green-700"
-                                        onClick={() => setDepositModalOpen(true)}>
-                                    <Plus className="w-4 h-4 mr-2"/>
-                                    Deposit
-                                </Button>
-                            <div className="text-right">
-                                <div className="text-sm text-gray-400">Balance</div>
-                                <div className="text-lg font-semibold text-green-400">${balance.toLocaleString()}</div>
-                            </div>
-                            <Link href="/profile">
-                                <Button variant="ghost" size="sm" className="p-2">
-                                    <User className="w-5 h-5"/>
-                                </Button>
+            <header className="sticky top-0 z-40 bg-gray-950 border-b border-gray-800">
+                <div className="container mx-auto px-4">
+                    <div className="flex items-center justify-between h-16">
+                        <div className="flex items-center space-x-8">
+                            <Link href="/dashboard" className="flex items-center space-x-2">
+                                <BarChart3 className="text-white h-6 w-6" />
+                                <span className="text-white font-bold text-lg">AragonTrade</span>
                             </Link>
+                            <nav className="hidden md:flex items-center space-x-4">
+                               <NavItem />
+                            </nav>
+                        </div>
+
+                        <div className="hidden md:flex items-center gap-4">
+                             <div className="text-right">
+                               <p className="text-xs text-gray-400">Total Equity</p>
+                               <p className="text-lg font-bold text-white">${totalEquity?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) ?? "0.00"}</p>
+                             </div>
+                             <Button className="bg-green-600 hover:bg-green-700" onClick={() => setDepositModalOpen(true)}>
+                                 <Plus className="w-4 h-4 mr-2" />
+                                 Deposit
+                             </Button>
+                             <ChatButton />
+                             <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="secondary" size="icon" className="rounded-full">
+                                    <User className="h-5 w-5" />
+                                    <span className="sr-only">Toggle user menu</span>
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem asChild><Link href="/profile">Profile</Link></DropdownMenuItem>
+                                  <DropdownMenuItem onClick={logout}>Logout</DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
                         </div>
                     </div>
                 </div>
-                <DepositModal open={depositModalOpen} onOpenChange={setDepositModalOpen} />
-            </AnimatePresence>
+            </header>
+            <DepositModal open={depositModalOpen} onOpenChange={setDepositModalOpen} />
         </>
     );
 };

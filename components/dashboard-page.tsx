@@ -3,12 +3,15 @@
 import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import { useAuth } from "@/components/auth-provider"
-import { TrendingUp, DollarSign, Activity, Target, Users, Calendar, Shield, CreditCard, FileText } from "lucide-react"
+import { TrendingUp, DollarSign, Activity, Target, Users, Calendar, Shield, CreditCard, FileText, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
+import { useToast } from "@/hooks/use-toast"
 import Link from "next/link"
+import { updateBalance } from "@/app/actions/updateBalance"
+import { useTickers } from "@/hooks/market-data"
 
 interface UserStats {
   totalBalance: number
@@ -52,10 +55,13 @@ interface Order {
 
 export default function DashboardPage() {
   const { user, logout } = useAuth()
+  const { toast } = useToast()
   const [userStats, setUserStats] = useState<UserStats | null>(null)
   const [activeTrades, setActiveTrades] = useState<ActiveTrade[]>([])
   const [recentOrders, setRecentOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
+  const [userId, setUserId] = useState("")
+  const { tickers } = useTickers()
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -67,6 +73,13 @@ export default function DashboardPage() {
         if (statsResponse.ok) {
           const statsData = await statsResponse.json()
           setUserStats(statsData)
+        }
+
+        // Fetch user balance to get userId
+        const balanceResponse = await fetch("/api/user/balance")
+        if (balanceResponse.ok) {
+          const balanceData = await balanceResponse.json()
+          setUserId(balanceData.userId)
         }
 
         // Fetch active trades
@@ -90,7 +103,131 @@ export default function DashboardPage() {
     }
 
     fetchDashboardData()
+    const interval = setInterval(fetchDashboardData, 30000) // Refresh every 30 seconds
+    return () => clearInterval(interval)
   }, [])
+
+  const handleCloseTrade = async (tradeId: string, currentPrice: number) => {
+    try {
+      const response = await fetch(`/api/trades/${tradeId}/close`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ closePrice: currentPrice }),
+      });
+
+      if (response.ok) {
+        // Show success notification
+        toast({
+          title: "Trade Closed Successfully",
+          description: `Your trade has been closed at $${currentPrice.toFixed(2)}`,
+          variant: "default",
+        })
+
+        // Update active trades
+        const tradesResponse = await fetch("/api/trades/active");
+        if (tradesResponse.ok) {
+          const data = await tradesResponse.json();
+          setActiveTrades(data.slice(0, 5));
+        }
+
+        // Get updated balance from server
+        const balanceResponse = await fetch("/api/user/balance");
+        if (balanceResponse.ok) {
+          const balanceData = await balanceResponse.json();
+          // Update balance on server
+          await updateBalance(userId, balanceData.totalBalance);
+        }
+
+        // Refresh user stats
+        const statsResponse = await fetch("/api/user/stats")
+        if (statsResponse.ok) {
+          const statsData = await statsResponse.json()
+          setUserStats(statsData)
+        }
+      } else {
+        toast({
+          title: "Error Closing Trade",
+          description: "Failed to close the trade. Please try again.",
+          variant: "destructive",
+        })
+      }
+    } catch (error) {
+      console.error("Error closing trade:", error);
+      toast({
+        title: "Error Closing Trade",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive",
+      })
+    }
+  };
+
+  // Check for automatic order closure when profit loss exceeds total balance
+  useEffect(() => {
+    if (!activeTrades.length || !userStats) return;
+
+    const checkForAutoClose = async () => {
+      for (const trade of activeTrades) {
+        const currentPrice = Number(tickers.find((d) => d.symbol === trade.ticker)?.bid) || trade.openIn;
+        const profit = trade.type === "BUY" 
+          ? (currentPrice - trade.openIn) * trade.volume * trade.leverage
+          : (trade.openIn - currentPrice) * trade.volume * trade.leverage;
+        
+        // If loss exceeds total balance, close the order and set balance to zero
+        if (profit < 0 && Math.abs(profit) >= userStats.totalBalance) {
+          try {
+            // Check if trade is still active before closing
+            const tradeResponse = await fetch(`/api/trades/active`);
+            if (tradeResponse.ok) {
+              const activeTradesData = await tradeResponse.json();
+              const isStillActive = activeTradesData.some((t: any) => t.id === trade.id);
+              
+              if (!isStillActive) {
+                continue; // Trade already closed, skip
+              }
+            }
+
+            const response = await fetch(`/api/trades/${trade.id}/close`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ closePrice: currentPrice }),
+            });
+
+            if (response.ok) {
+              // Show auto-close notification
+              toast({
+                title: "Auto-Close Alert",
+                description: `Your ${trade.ticker} trade was automatically closed due to insufficient balance.`,
+                variant: "destructive",
+              })
+
+              // Set balance to zero
+              await updateBalance(userId, 0);
+              
+              // Refresh all data
+              const tradesResponse = await fetch("/api/trades/active");
+              if (tradesResponse.ok) {
+                const data = await tradesResponse.json();
+                setActiveTrades(data.slice(0, 5));
+              }
+
+              const statsResponse = await fetch("/api/user/stats")
+              if (statsResponse.ok) {
+                const statsData = await statsResponse.json()
+                setUserStats(statsData)
+              }
+              
+              // Break after closing one trade to prevent multiple closures
+              break;
+            }
+          } catch (error) {
+            console.error("Error auto-closing trade:", error);
+          }
+        }
+      }
+    };
+
+    checkForAutoClose();
+  }, [activeTrades, userStats, tickers, userId]);
 
   if (loading) {
     return (
@@ -274,37 +411,56 @@ export default function DashboardPage() {
                   )}
                 </div>
 
-                {/* Recent Trades */}
+                {/* Active Positions */}
                 <div>
                   <h4 className="font-medium mb-2 text-sm">Active Positions</h4>
                   {activeTrades.length > 0 ? (
-                    activeTrades.slice(0, 3).map((trade) => (
-                      <div key={trade.id} className="flex items-center justify-between p-2 bg-gray-700 rounded-lg mb-2">
-                        <div className="flex items-center space-x-2">
-                          <div
-                            className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${
-                              trade.type === "BUY" ? "bg-green-600" : "bg-red-600"
-                            }`}
-                          >
-                            {trade.type === "BUY" ? "B" : "S"}
-                          </div>
-                          <div>
-                            <div className="font-medium text-sm">{trade.ticker}</div>
-                            <div className="text-xs text-gray-400">
-                              {trade.volume} @ ${trade.openIn}
+                    activeTrades.slice(0, 3).map((trade) => {
+                      const currentPrice = Number(tickers.find((d) => d.symbol === trade.ticker)?.bid) || trade.openIn
+                      const profit = trade.type === "BUY" 
+                        ? (currentPrice - trade.openIn) * trade.volume * trade.leverage
+                        : (trade.openIn - currentPrice) * trade.volume * trade.leverage
+                      
+                      return (
+                        <div key={trade.id} className="flex items-center justify-between p-2 bg-gray-700 rounded-lg mb-2">
+                          <div className="flex items-center space-x-2">
+                            <div
+                              className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${
+                                trade.type === "BUY" ? "bg-green-600" : "bg-red-600"
+                              }`}
+                            >
+                              {trade.type === "BUY" ? "B" : "S"}
+                            </div>
+                            <div>
+                              <div className="font-medium text-sm">{trade.ticker}</div>
+                              <div className="text-xs text-gray-400">
+                                {trade.volume} @ ${trade.openIn.toFixed(2)}
+                              </div>
+                              <div className="text-xs text-gray-400">
+                                Current: ${currentPrice.toFixed(2)}
+                              </div>
                             </div>
                           </div>
-                        </div>
-                        <div className="text-right">
-                          <div
-                            className={`font-semibold text-sm ${(trade.profit || 0) >= 0 ? "text-green-400" : "text-red-400"}`}
-                          >
-                            {(trade.profit || 0) >= 0 ? "+" : ""}${(trade.profit || 0).toFixed(2)}
+                          <div className="text-right">
+                            <div
+                              className={`font-semibold text-sm ${profit >= 0 ? "text-green-400" : "text-red-400"}`}
+                            >
+                              {profit >= 0 ? "+" : ""}${profit.toFixed(2)}
+                            </div>
+                            <div className="text-xs text-gray-400">x{trade.leverage}</div>
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => handleCloseTrade(trade.id, currentPrice)}
+                              className="mt-1 text-xs h-6 px-2"
+                            >
+                              <X className="w-3 h-3 mr-1"/>
+                              Close
+                            </Button>
                           </div>
-                          <div className="text-xs text-gray-400">x{trade.leverage}</div>
                         </div>
-                      </div>
-                    ))
+                      )
+                    })
                   ) : (
                     <div className="text-center text-gray-400 py-3 text-sm">No active trades</div>
                   )}
@@ -322,7 +478,7 @@ export default function DashboardPage() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <Link href="/">
+              <Link href="/market">
                 <Button className="w-full bg-purple-600 hover:bg-purple-700 h-10">
                   <Activity className="w-4 h-4 mr-2" />
                   Start Trading

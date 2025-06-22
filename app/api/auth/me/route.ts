@@ -22,6 +22,7 @@ export async function GET() {
         blocked: true,
         status: true,
         createdAt: true,
+        role: true,
       },
     })
 

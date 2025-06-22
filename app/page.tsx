@@ -1,11 +1,12 @@
-import TradePage from "@/components/trade-page"
-import Header from "@/components/header";
-import MobileFooter from "@/components/mobile-footer";
-
+'use client'
+import { useRouter } from "next/navigation"
+import {useEffect} from "react";
 export default function Home() {
+  const router = useRouter()
+  useEffect(() => {
+    router.push("/dashboard")
+  }, []);
   return <>
-    <Header/>
-    <TradePage />
-    <MobileFooter/>
+
   </>
 }

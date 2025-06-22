@@ -17,6 +17,7 @@ export async function GET(request: Request) {
     }
 
     return NextResponse.json({
+      userId: userId,
       totalBalance: user.TotalBalance || 0,
       usdBalance: user.balance?.usd || 0,
       canWithdraw: user.can_withdraw,

@@ -1,317 +1,203 @@
 "use client"
 
-import { useState } from "react"
-import { Copy, Check } from "lucide-react"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { useState, useEffect } from "react"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-import { Label } from "@/components/ui/label"
-import { Card, CardContent } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle as CardTitleUI } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { useToast } from "@/hooks/use-toast"
+import { Copy, Check, Wallet, ArrowLeft, Loader2 } from "lucide-react"
+import { useBalance } from "@/hooks/useBalance";
+import QRCode from "react-qr-code";
 
 interface DepositModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
 }
 
-const CRYPTO_TOKENS = [
-  { symbol: "BTC", name: "Bitcoin", icon: "₿" },
-  { symbol: "ETH", name: "Ethereum", icon: "Ξ" },
-  { symbol: "USDT", name: "Tether", icon: "₮" },
-  { symbol: "USDC", name: "USD Coin", icon: "◎" },
-]
-
-const NETWORKS = {
-  BTC: [{ name: "Bitcoin", fee: "~$2-5", time: "10-60 min" }],
-  ETH: [
-    { name: "Ethereum (ERC20)", fee: "~$5-20", time: "2-5 min" },
-  ],
-  USDT: [
-    { name: "Ethereum (ERC20)", fee: "~$5", time: "2-5 min" },
-  ],
-  USDC: [
-    { name: "Ethereum (ERC20)", fee: "~$1", time: "2-5 min" },
-  ],
+interface DepositAddress {
+  id: string
+  network: string
+  address: string
 }
 
-const MOCK_ADDRESSES = {
-  BTC: "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh",
-  ETH: "0xF71Fba1730A9c868e927cc5C86bD7A2088F2FF73",
-  USDT: "0xF71Fba1730A9c868e927cc5C86bD7A2088F2FF73",
-  USDC: "0xF71Fba1730A9c868e927cc5C86bD7A2088F2FF73",
+// Group addresses by a common "token" symbol.
+// Allows for multiple networks under one token, e.g., USDT (ERC20), USDT (TRC20)
+const groupAddressesByToken = (addresses: DepositAddress[]) => {
+  const grouped: { [key: string]: DepositAddress[] } = {}
+  addresses.forEach(addr => {
+    const symbol = addr.network.split(' ')[0]; // 'Bitcoin' -> 'Bitcoin', 'USDT (ERC20)' -> 'USDT'
+    if (!grouped[symbol]) {
+      grouped[symbol] = []
+    }
+    grouped[symbol].push(addr)
+  })
+  return grouped
 }
 
 export function DepositModal({ open, onOpenChange }: DepositModalProps) {
-  const [selectedToken, setSelectedToken] = useState<string>("")
-  const [selectedNetwork, setSelectedNetwork] = useState<string>("")
-  const [amount, setAmount] = useState<string>("")
-  const [copied, setCopied] = useState(false)
-  const [step, setStep] = useState<"token" | "network" | "address">("token")
-  const [loading, setLoading] = useState(false)
-
-  const handleTokenSelect = (token: string) => {
-    setSelectedToken(token)
-    setSelectedNetwork("")
-    setStep("network")
-  }
-
-  const handleNetworkSelect = (network: string) => {
-    setSelectedNetwork(network)
-    setStep("address")
-  }
-
-  const handleCopyAddress = async () => {
-    if (selectedToken && MOCK_ADDRESSES[selectedToken as keyof typeof MOCK_ADDRESSES]) {
-      await navigator.clipboard.writeText(MOCK_ADDRESSES[selectedToken as keyof typeof MOCK_ADDRESSES])
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
+  const [addresses, setAddresses] = useState<DepositAddress[]>([])
+  const [loading, setLoading] = useState(true)
+  const [copiedAddress, setCopiedAddress] = useState<string | null>(null)
+  const [step, setStep] = useState<'token' | 'network' | 'address'>('token')
+  const [selectedToken, setSelectedToken] = useState<string>('')
+  const [selectedAddress, setSelectedAddress] = useState<DepositAddress | null>(null)
+  const { toast } = useToast()
+  
+  useEffect(() => {
+    if (open) {
+      // Reset state when modal opens
+      setStep('token')
+      setSelectedToken('')
+      setSelectedAddress(null)
+      fetchAddresses()
     }
-  }
+  }, [open])
 
-  const handleConfirmDeposit = async () => {
-    if (!amount || !selectedToken || !selectedNetwork) return
-
+  const fetchAddresses = async () => {
     setLoading(true)
     try {
-      const response = await fetch("/api/orders", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          type: "DEPOSIT",
-          amount: Number.parseFloat(amount),
-          depositFrom: "Crypto",
-          cryptoAddress: MOCK_ADDRESSES[selectedToken as keyof typeof MOCK_ADDRESSES],
-          cryptoNetwork: selectedNetwork,
-        }),
-      })
-
+      const response = await fetch("/api/admin/deposit-addresses")
       if (response.ok) {
-        // Close modal and refresh page
-        handleClose()
-        window.location.reload()
+        setAddresses(await response.json())
+      } else {
+        toast({ title: "Error", description: "Could not load deposit addresses.", variant: "destructive"})
       }
     } catch (error) {
-      console.error("Error creating deposit:", error)
+      toast({ title: "Error", description: "An unexpected error occurred.", variant: "destructive"})
     } finally {
       setLoading(false)
     }
   }
 
-  const handleBack = () => {
-    if (step === "network") {
-      setStep("token")
-      setSelectedToken("")
-    } else if (step === "address") {
-      setStep("network")
-      setSelectedNetwork("")
+  const handleCopyToClipboard = (address: string) => {
+    navigator.clipboard.writeText(address)
+    setCopiedAddress(address)
+    toast({ title: "Copied!", description: `Address copied to clipboard.`})
+    setTimeout(() => setCopiedAddress(null), 2000)
+  }
+  
+  const generateQrCodeUrl = (address: string) => {
+    return `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(address)}`;
+  }
+
+  const groupedAddresses = groupAddressesByToken(addresses);
+  const selectedNetworks = selectedToken ? groupedAddresses[selectedToken] : [];
+
+  const renderContent = () => {
+    if (loading) {
+      return <div className="flex justify-center items-center h-48"><Loader2 className="animate-spin" /></div>
     }
+
+    if (step === 'token') {
+      return (
+        <div>
+          <Label>Select Token</Label>
+          <Select onValueChange={(value) => { setSelectedToken(value); setStep('network'); }}>
+            <SelectTrigger><SelectValue placeholder="Choose a token..." /></SelectTrigger>
+            <SelectContent>
+              {Object.keys(groupedAddresses).map(token => (
+                <SelectItem key={token} value={token}>{token}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )
+    }
+
+    if (step === 'network') {
+      return (
+        <div>
+          <Label>Select Network</Label>
+          <Select onValueChange={(value) => { setSelectedAddress(JSON.parse(value)); setStep('address'); }}>
+            <SelectTrigger><SelectValue placeholder="Choose a network..." /></SelectTrigger>
+            <SelectContent>
+              {selectedNetworks.map(addr => (
+                <SelectItem key={addr.id} value={JSON.stringify(addr)}>{addr.network}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )
+    }
+
+    if (step === 'address' && selectedAddress) {
+      return (
+        <Card className="bg-gray-800 border-gray-700 text-center">
+          <CardHeader>
+            <CardTitleUI>{selectedAddress.network} Deposit</CardTitleUI>
+            <CardDescription>Only send {selectedAddress.network} to this address.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex justify-center p-2 bg-white rounded-lg">
+              <QRCode
+                value={selectedAddress.address}
+                size={128}
+                bgColor="#ffffff"
+                fgColor="#000000"
+                level="L"
+              />
+            </div>
+            <div className="mt-4 p-2 bg-yellow-100 dark:bg-yellow-900/20 border border-yellow-300 dark:border-yellow-700 rounded-md">
+              <p className="text-xs text-yellow-800 dark:text-yellow-200">
+                <strong>Important:</strong> Only send {selectedToken} via the {selectedAddress.network} network.
+                Sending assets via other networks may result in the loss of your funds.
+                <br />
+                Average delivery time: 1-20 minutes.
+              </p>
+            </div>
+            <div className="relative">
+              <Input
+                id="deposit-address"
+                value={selectedAddress.address}
+                readOnly
+                className="pr-10 font-mono text-xs"
+              />
+              <Button
+                size="icon"
+                variant="ghost"
+                className="absolute top-1/2 right-1 -translate-y-1/2 h-7 w-7"
+                onClick={() => handleCopyToClipboard(selectedAddress.address)}
+              >
+                {copiedAddress === selectedAddress.address ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )
+    }
+
+    return (
+       <div className="text-center text-gray-400 h-48 flex flex-col justify-center items-center">
+         <p>No deposit methods available.</p>
+         <p className="text-xs mt-1">Please contact support for assistance.</p>
+       </div>
+    )
   }
-
-  const handleClose = () => {
-    setStep("token")
-    setSelectedToken("")
-    setSelectedNetwork("")
-    setAmount("")
-    setCopied(false)
-    onOpenChange(false)
-  }
-
-  const selectedTokenData = CRYPTO_TOKENS.find((t) => t.symbol === selectedToken)
-  const availableNetworks = selectedToken ? NETWORKS[selectedToken as keyof typeof NETWORKS] || [] : []
-  const selectedNetworkData = availableNetworks.find((n) => n.name === selectedNetwork)
-
-  // Generate QR code URL for the address
-  const generateQRCode = (address: string) => {
-    return `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(address)}&bgcolor=FFFFFF&color=000000`
+  
+  const handleBack = () => {
+    if (step === 'address') setStep('network');
+    if (step === 'network') setStep('token');
   }
 
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md bg-gray-800 border-gray-700 text-white max-h-[90vh] overflow-y-auto">
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md bg-gray-900 border-gray-700 text-white">
         <DialogHeader>
-          <DialogTitle className="flex items-center space-x-2">
-            <span>Deposit Crypto</span>
-            {step !== "token" && (
-              <Button variant="ghost" size="sm" onClick={handleBack} className="ml-auto">
-                ← Back
-              </Button>
+          <div className="flex items-center justify-between">
+            <DialogTitle className="flex items-center gap-2">
+              <Wallet className="w-5 h-5 text-blue-500" />
+              Deposit Funds
+            </DialogTitle>
+            {step !== 'token' && (
+              <Button variant="ghost" size="sm" onClick={handleBack}><ArrowLeft className="w-4 h-4 mr-2" /> Back</Button>
             )}
-          </DialogTitle>
-          <DialogDescription className="text-gray-400">
-            {step === "token" && "Select the cryptocurrency you want to deposit"}
-            {step === "network" && "Choose the network for your deposit"}
-            {step === "address" && "Send your crypto to this address"}
-          </DialogDescription>
+          </div>
         </DialogHeader>
-
-        <div className="space-y-4">
-          {/* Step 1: Token Selection */}
-          {step === "token" && (
-            <div className="space-y-3">
-              <Label>Select Token</Label>
-              <Select onValueChange={handleTokenSelect}>
-                <SelectTrigger className="bg-gray-700 border-gray-600">
-                  <SelectValue placeholder="Select a token" />
-                </SelectTrigger>
-                <SelectContent className="bg-gray-700 border-gray-600">
-                  {CRYPTO_TOKENS.map((token) => (
-                    <SelectItem key={token.symbol} value={token.symbol}>
-                      <div className="flex items-center">
-                        <span className="mr-2 text-lg">{token.icon}</span>
-                        <span>
-                          {token.name} ({token.symbol})
-                        </span>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
-
-          {/* Step 2: Network Selection */}
-          {step === "network" && selectedTokenData && (
-            <div className="space-y-3">
-              <div className="flex items-center space-x-2">
-                <span className="text-2xl">{selectedTokenData.icon}</span>
-                <div>
-                  <div className="font-semibold">{selectedTokenData.symbol}</div>
-                  <div className="text-sm text-gray-400">{selectedTokenData.name}</div>
-                </div>
-              </div>
-
-              <Label>Select Network</Label>
-              <Select onValueChange={handleNetworkSelect}>
-                <SelectTrigger className="bg-gray-700 border-gray-600">
-                  <SelectValue placeholder="Select a network" />
-                </SelectTrigger>
-                <SelectContent className="bg-gray-700 border-gray-600">
-                  {availableNetworks.map((network) => (
-                    <SelectItem key={network.name} value={network.name}>
-                      <div className="flex flex-col">
-                        <span>{network.name}</span>
-                        <span className="text-xs text-gray-400">
-                          Time: {network.time}
-                        </span>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
-
-          {/* Step 3: Address Display */}
-          {step === "address" && selectedTokenData && selectedNetworkData && (
-            <div className="space-y-4">
-              <div className="flex items-center space-x-2">
-                <span className="text-2xl">{selectedTokenData.icon}</span>
-                <div>
-                  <div className="font-semibold">{selectedTokenData.symbol}</div>
-                  <Badge variant="secondary" className="text-xs">
-                    {selectedNetwork}
-                  </Badge>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="deposit-amount">Amount (USD)</Label>
-                <Input
-                  id="deposit-amount"
-                  type="number"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  placeholder="Enter amount to deposit"
-                  className="bg-gray-700 border-gray-600"
-                />
-              </div>
-
-              <Card className="bg-gray-700 border-gray-600">
-                <CardContent className="p-4 space-y-4">
-                  <div className="text-center">
-                    <div className="w-48 h-48 mx-auto bg-white rounded-lg flex items-center justify-center mb-4 p-2">
-                      <img
-                        src={
-                          generateQRCode(MOCK_ADDRESSES[selectedToken as keyof typeof MOCK_ADDRESSES]) ||
-                          "/placeholder.svg" ||
-                          "/placeholder.svg"
-                        }
-                        alt="QR Code"
-                        className="w-full h-full object-contain"
-                        onError={(e) => {
-                          const target = e.target as HTMLImageElement
-                          target.style.display = "none"
-                          const parent = target.parentElement
-                          if (parent) {
-                            parent.innerHTML =
-                              '<div class="flex items-center justify-center w-full h-full text-gray-800"><QrCode class="w-24 h-24" /></div>'
-                          }
-                        }}
-                      />
-                    </div>
-                    <p className="text-sm text-gray-400 mb-2">Deposit Address</p>
-                    <div className="bg-gray-800 p-3 rounded-lg border border-gray-600">
-                      <p className="font-mono text-sm break-all">
-                        {MOCK_ADDRESSES[selectedToken as keyof typeof MOCK_ADDRESSES]}
-                      </p>
-                    </div>
-                    <Button
-                      onClick={handleCopyAddress}
-                      className="w-full mt-3 bg-purple-600 hover:bg-purple-700"
-                      disabled={copied}
-                    >
-                      {copied ? (
-                        <>
-                          <Check className="w-4 h-4 mr-2" />
-                          Copied!
-                        </>
-                      ) : (
-                        <>
-                          <Copy className="w-4 h-4 mr-2" />
-                          Copy Address
-                        </>
-                      )}
-                    </Button>
-                  </div>
-
-                  <div className="border-t border-gray-600 pt-4">
-                    <div className="text-sm space-y-2">
-                      <div className="flex justify-between">
-                        <span className="text-gray-400">Network:</span>
-                        <span>{selectedNetwork}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-400">Time:</span>
-                        <span>{selectedNetworkData.time}</span>
-                      </div>
-                      {amount && (
-                        <div className="flex justify-between font-semibold">
-                          <span className="text-gray-400">Amount:</span>
-                          <span>${Number.parseFloat(amount).toLocaleString()}</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  <Button
-                    onClick={handleConfirmDeposit}
-                    disabled={!amount || loading}
-                    className="w-full bg-green-600 hover:bg-green-700"
-                  >
-                    {loading ? "Processing..." : "Confirm Deposit"}
-                  </Button>
-
-                  <div className="bg-yellow-900/20 border border-yellow-600/30 rounded-lg p-3">
-                    <p className="text-yellow-400 text-xs">
-                      ⚠️ Only send {selectedTokenData.symbol} to this address on the {selectedNetwork} network. Sending
-                      other tokens or using wrong network may result in permanent loss.
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          )}
+        <div className="py-4 min-h-[200px]">
+          {renderContent()}
         </div>
       </DialogContent>
     </Dialog>

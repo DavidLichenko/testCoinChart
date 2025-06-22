@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import {useEffect, useState } from "react"
 import { motion } from "framer-motion"
 import { ArrowRight, BarChart3, Shield, Zap, TrendingUp, Users, Star } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -10,12 +10,22 @@ import { LoginForm } from "./login-form"
 import { useRouter } from "next/navigation"
 import { RegisterForm } from "./register-form"
 
+// Define PriceData type
+interface PriceData {
+  symbol: string;
+  price: string;
+  change: string;
+  positive: boolean;
+}
+
 // ✅ Accept onAuthSuccess prop
 export default function WelcomePage({ onAuthSuccess }: { onAuthSuccess: () => void }) {
   const [showLogin, setShowLogin] = useState(false)
   const [showRegister, setShowRegister] = useState(false)
   const router = useRouter()
-
+  const [prices, setPrices] = useState<PriceData[]>([]);
+  const [loading, setLoading] = useState(true);
+  
   const features = [
     {
       icon: BarChart3,
@@ -49,17 +59,113 @@ export default function WelcomePage({ onAuthSuccess }: { onAuthSuccess: () => vo
     },
   ]
 
+  // Update prices when tickers data changes
+  useEffect(() => {
+    async function fetchLastPrices() {
+      try {
+        setLoading(true);
+        
+        // Fetch current and 1 day ago candles for BTCUSD
+        const [btcResponse, ethResponse, aaplResponse] = await Promise.all([
+          fetch("https://4592-2001-4bb8-2ae-e4ed-800d-675f-9cf3-901c.ngrok-free.app/candles?symbol=BTCUSD&timeframe=D1&count=2"),
+          fetch("https://4592-2001-4bb8-2ae-e4ed-800d-675f-9cf3-901c.ngrok-free.app/candles?symbol=ETHUSD&timeframe=D1&count=2"),
+          fetch("https://4592-2001-4bb8-2ae-e4ed-800d-675f-9cf3-901c.ngrok-free.app/candles?symbol=AAPL.NAS&timeframe=D1&count=2")
+        ]);
+
+        const btcData = await btcResponse.json();
+        const ethData = await ethResponse.json();
+        const aaplData = await aaplResponse.json();
+        
+        const newPrices: PriceData[] = [];
+        
+        // Calculate BTC price and change
+        if (btcData && btcData.length >= 2) {
+          const currentPrice = btcData[0].close;
+          const previousPrice = btcData[1].close;
+          const changePercent = ((currentPrice - previousPrice) / previousPrice) * 100;
+          const isPositive = changePercent >= 0;
+          
+          newPrices.push({
+            symbol: "BTC/USD",
+            price: currentPrice.toFixed(2),
+            change: `${isPositive ? '+' : ''}${changePercent.toFixed(2)}%`,
+            positive: isPositive
+          });
+        } else {
+          newPrices.push({
+            symbol: "BTC/USD",
+            price: "Loading...",
+            change: "+0.00%",
+            positive: true
+          });
+        }
+        
+        // Calculate ETH price and change
+        if (ethData && ethData.length >= 2) {
+          const currentPrice = ethData[0].close;
+          const previousPrice = ethData[1].close;
+          const changePercent = ((currentPrice - previousPrice) / previousPrice) * 100;
+          const isPositive = changePercent >= 0;
+          
+          newPrices.push({
+            symbol: "ETH/USD",
+            price: currentPrice.toFixed(2),
+            change: `${isPositive ? '+' : ''}${changePercent.toFixed(2)}%`,
+            positive: isPositive
+          });
+        } else {
+          newPrices.push({
+            symbol: "ETH/USD",
+            price: "Loading...",
+            change: "+0.00%",
+            positive: true
+          });
+        }
+        
+        // Calculate AAPL price and change
+        if (aaplData && aaplData.length >= 2) {
+          const currentPrice = aaplData[0].close;
+          const previousPrice = aaplData[1].close;
+          const changePercent = ((currentPrice - previousPrice) / previousPrice) * 100;
+          const isPositive = changePercent >= 0;
+          
+          newPrices.push({
+            symbol: "AAPL",
+            price: currentPrice.toFixed(2),
+            change: `${isPositive ? '+' : ''}${changePercent.toFixed(2)}%`,
+            positive: isPositive
+          });
+        } else {
+          newPrices.push({
+            symbol: "AAPL",
+            price: "Loading...",
+            change: "+0.00%",
+            positive: true
+          });
+        }
+        
+        setPrices(newPrices);
+      } catch (error) {
+        console.error("Failed to fetch prices:", error);
+        // Set fallback data on error
+        setPrices([
+          { symbol: "BTC/USD", price: "Error", change: "+0.00%", positive: true },
+          { symbol: "ETH/USD", price: "Error", change: "+0.00%", positive: true },
+          { symbol: "AAPL", price: "Error", change: "+0.00%", positive: true },
+        ]);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchLastPrices();
+  }, []); // Only run once on component mount
+
   const stats = [
     { label: "Active Traders", value: "50K+" },
     { label: "Daily Volume", value: "$2.5B" },
     { label: "Success Rate", value: "94%" },
     { label: "Countries", value: "150+" },
-  ]
-
-  const liveData = [
-    { symbol: "BTC/USD", price: "$67,234.56", change: "+2.34%", positive: true },
-    { symbol: "ETH/USD", price: "$3,456.78", change: "+1.87%", positive: true },
-    { symbol: "AAPL", price: "$196.45", change: "+0.92%", positive: true },
   ]
 
   const handleRegisterSuccess = () => {
@@ -208,7 +314,7 @@ export default function WelcomePage({ onAuthSuccess }: { onAuthSuccess: () => vo
                   </div>
 
                   <div className="space-y-4">
-                    {liveData.map((item, index) => (
+                    {prices.map((item, index) => (
                       <motion.div
                         key={item.symbol}
                         initial={{ scale: 0.9, opacity: 0 }}
@@ -216,6 +322,20 @@ export default function WelcomePage({ onAuthSuccess }: { onAuthSuccess: () => vo
                         transition={{ duration: 0.5, delay: 0.6 + index * 0.1 }}
                         className="bg-gradient-to-r from-purple-900/30 to-blue-900/30 rounded-lg p-4 border border-purple-500/20"
                       >
+                        {loading && (
+                            <>
+                              <div className="flex justify-between items-center opacity-0">
+                                <div>
+                                  <div className="opacity-0 font-semibold text-white">0</div>
+                                  <div className="opacity-0 text-2xl font-bold text-white">0</div>
+                                </div>
+                                <div className={` opacity-0 text-right ${item.positive ? "text-green-400" : "text-red-400"}`}>
+                                  <div className="opacity-0 text-lg font-semibold">0</div>
+                                  <div className="opacity-0 text-xs">24h</div>
+                                </div>
+                              </div>
+                            </>
+                        )}
                         <div className="flex justify-between items-center">
                           <div>
                             <div className="font-semibold text-white">{item.symbol}</div>
@@ -332,6 +452,35 @@ export default function WelcomePage({ onAuthSuccess }: { onAuthSuccess: () => vo
               </Button>
             </div>
           </motion.div>
+        </div>
+      </div>
+
+      {/* Footer with Legal Links */}
+      <div className="relative py-8 bg-gray-950/50 border-t border-gray-800/50">
+        <div className="container mx-auto px-4">
+          <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
+            <div className="text-gray-400 text-sm">
+              © 2024 AragonTrade. All rights reserved.
+            </div>
+            <div className="flex space-x-6">
+              <a
+                href="/AragonTrade_Terms&Conditions.pdf"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-gray-400 hover:text-purple-400 transition-colors duration-200 text-sm"
+              >
+                Terms of Conditions
+              </a>
+              <a
+                href="/AragonTrade_Privacy_Policy.pdf"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-gray-400 hover:text-purple-400 transition-colors duration-200 text-sm"
+              >
+                Privacy Policy
+              </a>
+            </div>
+          </div>
         </div>
       </div>
     </div>

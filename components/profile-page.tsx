@@ -3,38 +3,25 @@
 import { useState, useEffect, useRef } from "react"
 import { motion } from "framer-motion"
 import { useAuth } from "@/components/auth-provider"
-import {User, Shield, CreditCard, FileText, Settings, Camera, LogOut} from "lucide-react"
+import {User, Shield, CreditCard, FileText, Settings, Camera, LogOut, Upload, Check, BadgeCheck, XCircle, Clock} from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Switch } from "@/components/ui/switch"
 import { Badge } from "@/components/ui/badge"
+import { useToast } from "@/hooks/use-toast"
+import { useBalance } from "@/hooks/useBalance"
 
 interface UserProfile {
   id: string
   name: string | null
   email: string
   image: string | null
-  canWithdraw: boolean
-  isVerified: boolean
-  totalBalance: number
-  usdBalance: number
-  blocked: boolean
-  status: string
-  createdAt: string
+  isVerif: boolean
   verification: {
-    id: number
-    userId: string
-    back_id_image: string | null
-    back_id_verif: boolean | null
-    front_id_image: string | null
-    front_id_verif: boolean | null
-    street_address: string | null
-    city: string | null
-    zip_code: string | null
+    status: string // PENDING, APPROVED, REJECTED
   } | null
 }
 
@@ -43,127 +30,217 @@ interface Order {
   type: "DEPOSIT" | "WITHDRAW"
   status: string
   amount: number
-  depositFrom?: string
-  withdrawMethod?: string
-  bankName?: string
-  cardNumber?: string
   createdAt: string
 }
 
+const VerificationStatusBadge = ({ status }: { status: string | undefined }) => {
+  if (!status) {
+    return <Badge variant="secondary">Not Submitted</Badge>;
+  }
+
+  const statusConfig = {
+    PENDING: {
+      icon: <Clock className="w-4 h-4 mr-2" />,
+      text: "Pending Review",
+      className: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30",
+    },
+    APPROVED: {
+      icon: <BadgeCheck className="w-4 h-4 mr-2" />,
+      text: "Verified",
+      className: "bg-green-500/20 text-green-400 border-green-500/30",
+    },
+    REJECTED: {
+      icon: <XCircle className="w-4 h-4 mr-2" />,
+      text: "Rejected",
+      className: "bg-red-500/20 text-red-400 border-red-500/30",
+    },
+  }[status] || {
+    icon: null,
+    text: "Unknown",
+    className: "bg-gray-500/20 text-gray-400 border-gray-500/30",
+  };
+
+  return (
+    <Badge className={`flex items-center ${statusConfig.className}`}>
+      {statusConfig.icon}
+      <span>{statusConfig.text}</span>
+    </Badge>
+  );
+};
+
 export default function ProfilePage() {
   const { user, logout } = useAuth()
+  const { balance, liveProfit } = useBalance();
+  const { toast } = useToast()
   const [activeTab, setActiveTab] = useState("profile")
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null)
   const [transactions, setTransactions] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
-  const [selectedCryptoToken, setSelectedCryptoToken] = useState("btc")
-  const [selectedCryptoNetwork, setSelectedCryptoNetwork] = useState("")
+  
+  // Withdraw form states
+  const [withdrawAmount, setWithdrawAmount] = useState("")
+  const [withdrawMethod, setWithdrawMethod] = useState("crypto")
+  const [cryptoAddress, setCryptoAddress] = useState("")
+  const [bankName, setBankName] = useState("")
+  const [cardNumber, setCardNumber] = useState("")
 
   // Form states
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
-  const [streetAddress, setStreetAddress] = useState("")
-  const [city, setCity] = useState("")
-  const [zipCode, setZipCode] = useState("")
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const fileInputRefBack = useRef<HTMLInputElement>(null);
-
-  const handleUploadClick = () => {
-    fileInputRef.current?.click();
-  };
-  const handleUploadBackClick = () => {
-    fileInputRefBack.current?.click();
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      // Handle file upload here
-      console.log("Selected file:", file);
-    }
-  };
-  const handleFileBackChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      // Handle file upload here
-      console.log("Selected file:", file);
-    }
-  };
-
+  // Upload states
+  const [frontIdFile, setFrontIdFile] = useState<File | null>(null);
+  const [backIdFile, setBackIdFile] = useState<File | null>(null);
+  const [frontIdPreview, setFrontIdPreview] = useState<string | null>(null);
+  const [backIdPreview, setBackIdPreview] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     const fetchProfileData = async () => {
+      setLoading(true)
       try {
-        setLoading(true)
-
-        // Fetch user profile
         const profileResponse = await fetch("/api/user/profile")
         if (profileResponse.ok) {
           const profileData = await profileResponse.json()
           setUserProfile(profileData)
           setName(profileData.name || "")
           setEmail(profileData.email || "")
-          setStreetAddress(profileData.verification?.street_address || "")
-          setCity(profileData.verification?.city || "")
-          setZipCode(profileData.verification?.zip_code || "")
+          // Pre-fill previews if documents were already uploaded
+          if (profileData.verification) {
+            setFrontIdPreview(profileData.verification.frontIdUrl);
+            setBackIdPreview(profileData.verification.backIdUrl);
+          }
         }
-
-        // Fetch transactions
         const ordersResponse = await fetch("/api/orders")
         if (ordersResponse.ok) {
           const ordersData = await ordersResponse.json()
-          setTransactions(ordersData.slice(0, 10)) // Show last 10
+          setTransactions(ordersData.slice(0, 10))
         }
       } catch (error) {
         console.error("Error fetching profile data:", error)
+        toast({ title: "Error", description: "Could not load profile data.", variant: "destructive"})
       } finally {
         setLoading(false)
       }
     }
 
     fetchProfileData()
-  }, [])
+  }, [toast])
 
   const handleUpdateProfile = async () => {
     try {
       const response = await fetch("/api/user/profile", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email }),
+        body: JSON.stringify({ name }),
       })
 
       if (response.ok) {
+        toast({ title: "✅ Success", description: "Your profile has been updated." })
         const updatedProfile = await response.json()
         setUserProfile((prev) => (prev ? { ...prev, ...updatedProfile } : null))
+      } else {
+        throw new Error("Failed to update profile")
       }
     } catch (error) {
-      console.error("Error updating profile:", error)
+      toast({ title: "❌ Error", description: "Could not update your profile.", variant: "destructive" })
     }
   }
 
-  const handleUpdateVerification = async () => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: 'front' | 'back') => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) { // 5MB limit
+      toast({
+        title: "File too large",
+        description: "Please select an image smaller than 5MB",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (type === 'front') {
+      setFrontIdFile(file);
+      setFrontIdPreview(URL.createObjectURL(file));
+    } else {
+      setBackIdFile(file);
+      setBackIdPreview(URL.createObjectURL(file));
+    }
+  };
+
+  const handleSubmitVerification = async () => {
+    if (!frontIdFile || !backIdFile) {
+      toast({ title: "Missing Documents", description: "Please upload both front and back ID images.", variant: "destructive" });
+      return;
+    }
+
+    setIsSubmitting(true);
+    const formData = new FormData();
+    formData.append("frontId", frontIdFile);
+    formData.append("backId", backIdFile);
+    
     try {
       const response = await fetch("/api/user/verification", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          street_address: streetAddress,
-          city,
-          zip_code: zipCode,
-        }),
-      })
+        body: formData,
+      });
 
       if (response.ok) {
-        // Refresh profile data
-        const profileResponse = await fetch("/api/user/profile")
-        if (profileResponse.ok) {
-          const profileData = await profileResponse.json()
-          setUserProfile(profileData)
-        }
+        toast({
+          title: "✅ Verification Submitted",
+          description: "Your documents are now under review. This may take up to 24 hours.",
+        });
+        const updatedData = await response.json();
+         setUserProfile((prev) => prev ? { ...prev, verification: updatedData.verification, isVerif: updatedData.isVerif } : null);
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        toast({ title: "❌ Submission Failed", description: errorData.error || "Could not submit documents.", variant: "destructive" });
       }
     } catch (error) {
-      console.error("Error updating verification:", error)
+       toast({ title: "❌ Network Error", description: "An unexpected network error occurred.", variant: "destructive" });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+  
+  const handleWithdraw = async () => {
+    const amount = parseFloat(withdrawAmount);
+    if (isNaN(amount) || amount <= 0) {
+      toast({ title: "Invalid Amount", description: "Please enter a valid amount to withdraw.", variant: "destructive"});
+      return;
+    }
+    if (amount > (balance + liveProfit)) {
+       toast({ title: "Insufficient Funds", description: "You cannot withdraw more than your total equity.", variant: "destructive"});
+      return;
+    }
+
+    const withdrawData = {
+      type: "WITHDRAW",
+      amount,
+      withdrawMethod,
+      cryptoAddress: withdrawMethod === 'crypto' ? cryptoAddress : undefined,
+      bankName: withdrawMethod === 'bank' ? bankName : undefined,
+      cardNumber: withdrawMethod === 'bank' ? cardNumber : undefined,
+    }
+
+    try {
+      const res = await fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(withdrawData)
+      });
+
+      if(res.ok) {
+        toast({ title: '✅ Withdrawal Requested', description: 'Your withdrawal request has been submitted for processing.'});
+        setWithdrawAmount("");
+        // Optionally, refresh transactions list
+      } else {
+        const error = await res.json();
+        toast({ title: '❌ Withdrawal Failed', description: error.error || 'An unknown error occurred.', variant: 'destructive' });
+      }
+    } catch(err) {
+      toast({ title: '❌ Network Error', description: 'Could not submit withdrawal request.', variant: 'destructive' });
     }
   }
 
@@ -179,492 +256,168 @@ export default function ProfilePage() {
   }
 
   return (
-      <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5 }}
-          className="min-h-[100vh-100px] bg-gray-950 text-white"
-      >
+    <div className="container mx-auto p-4 md:p-6 lg:p-8">
+        <Tabs defaultValue="profile" className="w-full">
+            <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4">
+                <TabsTrigger value="profile"><User className="w-4 h-4 mr-2" />Profile</TabsTrigger>
+                <TabsTrigger value="verification"><Shield className="w-4 h-4 mr-2" />Verification</TabsTrigger>
+                <TabsTrigger value="withdraw"><CreditCard className="w-4 h-4 mr-2" />Withdraw</TabsTrigger>
+                <TabsTrigger value="history"><FileText className="w-4 h-4 mr-2" />History</TabsTrigger>
+            </TabsList>
 
-        <motion.div
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.2 }}
-            className="flex flex-col lg:flex-row"
-        >
-          {/* Sidebar Navigation - More compact */}
-          <div className="w-full lg:w-64 border-r border-gray-800 bg-gray-900">
-            <div className="p-3">
-              <Tabs value={activeTab} onValueChange={setActiveTab} orientation="vertical" className="w-full">
-                <TabsList className="grid w-full grid-cols-1 bg-gray-800 h-auto">
-                  <TabsTrigger value="profile" className="justify-start h-8 text-sm">
-                    <User className="w-4 h-4 mr-2" />
-                    Profile
-                  </TabsTrigger>
-                  <TabsTrigger value="verification" className="justify-start h-8 text-sm">
-                    <Shield className="w-4 h-4 mr-2" />
-                    Verification
-                  </TabsTrigger>
-                  <TabsTrigger value="withdraw" className="justify-start h-8 text-sm">
-                    <CreditCard className="w-4 h-4 mr-2" />
-                    Withdraw
-                  </TabsTrigger>
-                  <TabsTrigger value="transactions" className="justify-start h-8 text-sm">
-                    <FileText className="w-4 h-4 mr-2" />
-                    Transactions
-                  </TabsTrigger>
-                  <Button onClick={logout} variant={'destructive'} className="justify-start mt-2 h-8 text-sm">
-                    <LogOut className="w-4 h-4 mr-2" />
-                    Logout
-                  </Button>
-                  {/*<TabsTrigger value="settings" className="justify-start h-8 text-sm">*/}
-                  {/*  <Settings className="w-4 h-4 mr-2" />*/}
-                  {/*  Settings*/}
-                  {/*</TabsTrigger>*/}
-                </TabsList>
-              </Tabs>
-            </div>
-          </div>
-
-          {/* Main Content - More compact */}
-          <div className="flex-1 p-4 lg:p-6">
-            <Tabs value={activeTab} onValueChange={setActiveTab}>
-              {/* Profile Tab */}
-              <TabsContent value="profile" className="space-y-4">
-                <Card className="bg-gray-800 border-gray-700">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-lg">Profile Information</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    {/* Profile Image */}
-                    <div className="flex items-center space-x-3">
-                      <div className="relative">
-                        <div className="w-16 h-16 rounded-full bg-gray-700 flex items-center justify-center overflow-hidden">
-                          {userProfile?.image ? (
-                              <img
-                                  src={userProfile.image || "/placeholder.svg"}
-                                  alt="Profile"
-                                  className="w-full h-full object-cover"
-                              />
-                          ) : (
-                              <User className="w-6 h-6 text-gray-400" />
-                          )}
+            <TabsContent value="profile" className="mt-6">
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Account Details</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <div className="flex items-center space-x-4">
+                            <div className="w-16 h-16 rounded-full bg-gray-700 flex items-center justify-center">
+                                <User className="w-8 h-8 text-gray-400" />
+                            </div>
+                            <div>
+                                <h3 className="text-xl font-bold">{userProfile?.name || "User"}</h3>
+                                <p className="text-gray-400">{userProfile?.email}</p>
+                            </div>
+                             <VerificationStatusBadge status={userProfile?.verification?.status} />
                         </div>
-                        <label
-                            htmlFor="profile-image"
-                            className="absolute -bottom-1 -right-1 bg-purple-600 rounded-full p-1 cursor-pointer hover:bg-purple-700"
-                        >
-                          <Camera className="w-3 h-3" />
-                        </label>
-                        <input id="profile-image" type="file" accept="image/*" className="hidden" />
-                      </div>
-                      <div>
-                        <h3 className="font-semibold text-sm">Profile Photo</h3>
-                        <p className="text-xs text-gray-400">Upload a profile picture</p>
-                      </div>
-                    </div>
-
-                    {/* Name */}
-                    <div className="space-y-1">
-                      <Label htmlFor="name" className="text-sm">
-                        Full Name
-                      </Label>
-                      <Input
-                          id="name"
-                          value={name}
-                          onChange={(e) => setName(e.target.value)}
-                          className="bg-gray-700 border-gray-600 h-9"
-                      />
-                    </div>
-
-                    {/* Email */}
-                    <div className="space-y-1">
-                      <Label htmlFor="email" className="text-sm">
-                        Email Address
-                      </Label>
-                      <Input
-                          id="email"
-                          type="email"
-                          value={email}
-                          onChange={(e) => setEmail(e.target.value)}
-                          className="bg-gray-700 border-gray-600 h-9"
-                      />
-                    </div>
-
-                    {/* Account Status */}
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="space-y-1 flex flex-col">
-                        <Label className="text-sm">Account Status</Label>
-                        <Badge variant={userProfile?.blocked ? "destructive" : "default"} className="text-xs w-12">
-                          {userProfile?.blocked ? "Blocked" : userProfile?.status || "Active"}
-                        </Badge>
-                      </div>
-                      <div className="space-y-1">
-                        <Label className="text-sm">Balance</Label>
-                        <div className="text-lg font-semibold text-green-400">
-                          ${userProfile?.totalBalance.toLocaleString() || "0"}
+                        <div className="space-y-2">
+                            <Label htmlFor="name">Name</Label>
+                            <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
                         </div>
-                      </div>
-                    </div>
-
-                    <Button onClick={handleUpdateProfile} className="bg-purple-600 hover:bg-purple-700 h-9">
-                      Update Profile
-                    </Button>
-                  </CardContent>
+                        <Button onClick={handleUpdateProfile}>Update Profile</Button>
+                    </CardContent>
                 </Card>
-              </TabsContent>
-
-              {/* Verification Tab */}
-              <TabsContent value="verification" className="space-y-4">
-                <Card className="bg-gray-800 border-gray-700">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-lg">Identity Verification</CardTitle>
-                    <p className="text-sm text-gray-400">Complete verification to unlock all features</p>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    {/* Verification Status */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      <div className="flex items-center justify-between p-3 bg-gray-700 rounded-lg">
-                        <div className="flex items-center space-x-2">
-                          <Shield className="w-4 h-4 text-gray-400" />
-                          <div>
-                            <h4 className="font-medium text-sm">ID Front</h4>
-                            <p className="text-xs text-gray-400">Upload front side of your ID</p>
-                          </div>
-                        </div>
-                        <Badge
-                            variant={userProfile?.verification?.front_id_verif ? "default" : "secondary"}
-                            className="text-xs"
-                        >
-                          {userProfile?.verification?.front_id_verif ? "Verified" : (
-                              <>
-                                <button
-                                    onClick={handleUploadClick}
-                                    className="bg-accent text-white px-4 py-1 rounded-md text-sm"
-                                >
-                                  Upload
-                                </button>
-                                <input
-                                    type="file"
-                                    ref={fileInputRef}
-                                    onChange={handleFileChange}
-                                    accept="image/*"
-                                    className="hidden"
-                                />
-
-                              </>
-                          )}
-                        </Badge>
-                      </div>
-
-                      <div className="flex items-center justify-between p-3 bg-gray-700 rounded-lg">
-                        <div className="flex items-center space-x-2">
-                          <Shield className="w-4 h-4 text-gray-400"/>
-                          <div>
-                            <h4 className="font-medium text-sm">ID Back</h4>
-                            <p className="text-xs text-gray-400">Upload back side of your ID</p>
-                          </div>
-                        </div>
-                        <Badge
-                            variant={userProfile?.verification?.back_id_verif ? "default" : "secondary"}
-                            className="text-xs"
-                        >
-                          {userProfile?.verification?.back_id_verif ? "Verified" : (
-                              <>
-                                <button
-                                    onClick={handleUploadBackClick}
-                                    className="bg-accent text-white px-4 py-1 rounded-md text-sm"
-                                >
-                                  Upload
-                                </button>
-                                <input
-                                    type="file"
-                                    ref={fileInputRef}
-                                    onChange={handleFileBackChange}
-                                    accept="image/*"
-                                    className="hidden"
-                                />
-
-                              </>
-                          )}
-                        </Badge>
-                      </div>
-                    </div>
-
-                    {/* Address Information */}
-                    <div className="space-y-3">
-                      <h4 className="font-medium text-sm">Address Information</h4>
-
-                      <div className="space-y-1">
-                        <Label htmlFor="street-address" className="text-sm">
-                          Street Address
-                        </Label>
-                        <Input
-                            id="street-address"
-                            value={streetAddress}
-                            onChange={(e) => setStreetAddress(e.target.value)}
-                            className="bg-gray-700 border-gray-600 h-9"
-                            placeholder="Enter your street address"
-                        />
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-3">
-                        <div className="space-y-1">
-                          <Label htmlFor="city" className="text-sm">
-                            City
-                          </Label>
-                          <Input
-                              id="city"
-                              value={city}
-                              onChange={(e) => setCity(e.target.value)}
-                              className="bg-gray-700 border-gray-600 h-9"
-                              placeholder="Enter your city"
-                          />
-                        </div>
-                        <div className="space-y-1">
-                          <Label htmlFor="zip-code" className="text-sm">
-                            ZIP Code
-                          </Label>
-                          <Input
-                              id="zip-code"
-                              value={zipCode}
-                              onChange={(e) => setZipCode(e.target.value)}
-                              className="bg-gray-700 border-gray-600 h-9"
-                              placeholder="Enter ZIP code"
-                          />
-                        </div>
-                      </div>
-
-                      <Button onClick={handleUpdateVerification} className="bg-purple-600 hover:bg-purple-700 h-9">
-                        Update Verification
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              {/* Withdraw Tab */}
-              <TabsContent value="withdraw" className="space-y-4">
-                <Card className="bg-gray-800 border-gray-700">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-lg">Withdraw Funds</CardTitle>
-                    {userProfile?.canWithdraw && (<p className="text-sm text-gray-400">
-                          Available Balance: ${userProfile?.totalBalance.toLocaleString() || "0"}
-                        </p>
-                    )}
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    {!userProfile?.canWithdraw ? (
-                        <div className="bg-red-900/20 border border-red-600/30 rounded-lg p-3">
-                          <p className="text-red-400 text-sm">
-                            Withdrawals are currently restricted for your account. Please complete verification or contact
-                            support.
-                          </p>
-                        </div>
-                    ) : (
-                        <Tabs defaultValue="crypto" className="w-full">
-                          <TabsList className="grid w-full grid-cols-2 bg-gray-700 h-9">
-                            <TabsTrigger value="crypto" className="text-sm">
-                              Crypto Withdrawal
-                            </TabsTrigger>
-                            <TabsTrigger value="bank" className="text-sm">
-                              Bank Transfer
-                            </TabsTrigger>
-                          </TabsList>
-
-                          <TabsContent value="crypto" className="space-y-3 mt-4">
-                            <div className="space-y-1">
-                              <Label htmlFor="crypto-token" className="text-sm">
-                                Select Token
-                              </Label>
-                              <Select value={selectedCryptoToken} onValueChange={setSelectedCryptoToken}>
-                                <SelectTrigger className="bg-gray-700 border-gray-600 h-9">
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent className="bg-gray-700 border-gray-600">
-                                  <SelectItem value="btc">Bitcoin (BTC)</SelectItem>
-                                  <SelectItem value="eth">Ethereum (ETH)</SelectItem>
-                                  <SelectItem value="usdt">Tether (USDT)</SelectItem>
-                                  <SelectItem value="usdc">USD Coin (USDC)</SelectItem>
-                                </SelectContent>
-                              </Select>
-                            </div>
-
-                            <div className="space-y-1">
-                              <Label htmlFor="crypto-network" className="text-sm">
-                                Network
-                              </Label>
-                              <Select value={selectedCryptoNetwork} onValueChange={setSelectedCryptoNetwork}>
-                                <SelectTrigger className="bg-gray-700 border-gray-600 h-9">
-                                  <SelectValue placeholder="Select network" />
-                                </SelectTrigger>
-                                <SelectContent className="bg-gray-700 border-gray-600">
-                                  {selectedCryptoToken === "btc" && <SelectItem value="bitcoin">Bitcoin</SelectItem>}
-                                  {selectedCryptoToken === "eth" && (
-                                      <>
-                                        <SelectItem value="ethereum">Ethereum</SelectItem>
-                                        <SelectItem value="polygon">Polygon</SelectItem>
-                                      </>
-                                  )}
-                                  {selectedCryptoToken === "usdt" && (
-                                      <>
-                                        <SelectItem value="ethereum">Ethereum (ERC20)</SelectItem>
-                                        <SelectItem value="tron">Tron (TRC20)</SelectItem>
-                                      </>
-                                  )}
-                                </SelectContent>
-                              </Select>
-                            </div>
-
-                            <div className="space-y-1">
-                              <Label htmlFor="crypto-address" className="text-sm">
-                                Crypto Address
-                              </Label>
-                              <Input
-                                  id="crypto-address"
-                                  placeholder="Enter wallet address..."
-                                  className="bg-gray-700 border-gray-600 h-9"
-                              />
-                            </div>
-
-                            <div className="space-y-1">
-                              <Label htmlFor="crypto-amount" className="text-sm">
-                                Amount (USD)
-                              </Label>
-                              <Input id="crypto-amount" placeholder="0.00" className="bg-gray-700 border-gray-600 h-9" />
-                            </div>
-
-                            <Button className="w-full bg-purple-600 hover:bg-purple-700 h-9">Withdraw Crypto</Button>
-                          </TabsContent>
-
-                          <TabsContent value="bank" className="space-y-3 mt-4">
-                            <div className="space-y-1">
-                              <Label htmlFor="bank-name" className="text-sm">
-                                Bank Name
-                              </Label>
-                              <Input
-                                  id="bank-name"
-                                  placeholder="Enter bank name"
-                                  className="bg-gray-700 border-gray-600 h-9"
-                              />
-                            </div>
-
-                            <div className="space-y-1">
-                              <Label htmlFor="account-number" className="text-sm">
-                                Account Number
-                              </Label>
-                              <Input
-                                  id="account-number"
-                                  placeholder="Enter account number"
-                                  className="bg-gray-700 border-gray-600 h-9"
-                              />
-                            </div>
-
-                            <div className="space-y-1">
-                              <Label htmlFor="bank-amount" className="text-sm">
-                                Amount (USD)
-                              </Label>
-                              <Input id="bank-amount" placeholder="0.00" className="bg-gray-700 border-gray-600 h-9" />
-                            </div>
-
-                            <Button className="w-full bg-purple-600 hover:bg-purple-700 h-9">Withdraw to Bank</Button>
-                          </TabsContent>
-                        </Tabs>
-                    )}
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              {/* Transactions Tab */}
-              <TabsContent value="transactions" className="space-y-4">
-                <Card className="bg-gray-800 border-gray-700">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-lg">Recent Transactions</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      {transactions.length > 0 ? (
-                          transactions.map((transaction) => (
-                              <div
-                                  key={transaction.id}
-                                  className="flex items-center justify-between p-3 bg-gray-700 rounded-lg"
-                              >
-                                <div className="flex items-center space-x-3">
-                                  <div
-                                      className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                                          transaction.type === "DEPOSIT" ? "bg-green-600" : "bg-red-600"
-                                      }`}
-                                  >
-                                    {transaction.type === "DEPOSIT" ? "+" : "-"}
-                                  </div>
-                                  <div>
-                                    <h4 className="font-medium text-sm">{transaction.type}</h4>
-                                    <p className="text-xs text-gray-400">
-                                      {transaction.depositFrom || transaction.withdrawMethod} •{" "}
-                                      {new Date(transaction.createdAt).toLocaleDateString()}
-                                    </p>
-                                  </div>
+            </TabsContent>
+            
+            <TabsContent value="verification" className="mt-6">
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Identity Verification</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                        <p className="text-gray-400">Upload a government-issued ID to verify your account. Your current status is: <VerificationStatusBadge status={userProfile?.verification?.status} /></p>
+                        
+                        <div className="grid md:grid-cols-2 gap-6">
+                            {/* Front ID */}
+                            <div className="space-y-2">
+                                <Label>Front of ID</Label>
+                                <div className="w-full h-48 border-2 border-dashed border-gray-600 rounded-lg flex items-center justify-center bg-gray-900 relative">
+                                    {frontIdPreview ? (
+                                        <img src={frontIdPreview} alt="Front ID Preview" className="h-full w-full object-contain" />
+                                    ) : (
+                                        <div className="text-center">
+                                            <Camera className="w-8 h-8 mx-auto text-gray-500" />
+                                            <p className="text-sm text-gray-500 mt-2">Click to upload</p>
+                                        </div>
+                                    )}
+                                    <Input type="file" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" accept="image/*" onChange={(e) => handleFileChange(e, 'front')} />
                                 </div>
-                                <div className="text-right">
-                                  <div className="font-semibold text-sm">${transaction.amount.toLocaleString()}</div>
-                                  <Badge
-                                      variant={transaction.status === "SUCCESSFUL" ? "default" : "secondary"}
-                                      className="text-xs"
-                                  >
-                                    {transaction.status}
-                                  </Badge>
+                            </div>
+                            {/* Back ID */}
+                            <div className="space-y-2">
+                                <Label>Back of ID</Label>
+                                <div className="w-full h-48 border-2 border-dashed border-gray-600 rounded-lg flex items-center justify-center bg-gray-900 relative">
+                                    {backIdPreview ? (
+                                        <img src={backIdPreview} alt="Back ID Preview" className="h-full w-full object-contain" />
+                                    ) : (
+                                        <div className="text-center">
+                                            <Camera className="w-8 h-8 mx-auto text-gray-500" />
+                                            <p className="text-sm text-gray-500 mt-2">Click to upload</p>
+                                        </div>
+                                    )}
+                                    <Input type="file" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" accept="image/*" onChange={(e) => handleFileChange(e, 'back')} />
                                 </div>
-                              </div>
-                          ))
-                      ) : (
-                          <div className="text-center text-gray-400 py-6">No transactions found</div>
-                      )}
-                    </div>
-                  </CardContent>
+                            </div>
+                        </div>
+                        <Button onClick={handleSubmitVerification} disabled={isSubmitting || userProfile?.verification?.status === 'APPROVED'}>
+                            {isSubmitting ? "Submitting..." : (userProfile?.verification?.status === 'APPROVED' ? "Verified" : "Submit for Review")}
+                        </Button>
+                    </CardContent>
                 </Card>
-              </TabsContent>
+            </TabsContent>
 
-              {/* Settings Tab */}
-              {/*<TabsContent value="settings" className="space-y-4">*/}
-              {/*  <Card className="bg-gray-800 border-gray-700">*/}
-              {/*    <CardHeader className="pb-3">*/}
-              {/*      <CardTitle className="text-lg">Application Settings</CardTitle>*/}
-              {/*    </CardHeader>*/}
-              {/*    <CardContent className="space-y-4">*/}
-              {/*      /!* Notifications *!/*/}
-              {/*      <div className="flex items-center justify-between">*/}
-              {/*        <div>*/}
-              {/*          <h4 className="font-medium text-sm">Push Notifications</h4>*/}
-              {/*          <p className="text-xs text-gray-400">Receive trading alerts</p>*/}
-              {/*        </div>*/}
-              {/*        <Switch />*/}
-              {/*      </div>*/}
+            <TabsContent value="withdraw" className="mt-6">
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Request a Withdrawal</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <div>
+                            <p className="text-gray-400">Available for withdrawal:</p>
+                            <p className="text-2xl font-bold">${(balance + liveProfit).toFixed(2)}</p>
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="withdraw-amount">Amount (USD)</Label>
+                            <Input id="withdraw-amount" type="number" placeholder="0.00" value={withdrawAmount} onChange={(e) => setWithdrawAmount(e.target.value)} />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Method</Label>
+                           <Select value={withdrawMethod} onValueChange={setWithdrawMethod}>
+                                <SelectTrigger>
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="crypto">Crypto</SelectItem>
+                                    <SelectItem value="bank">Bank Transfer</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
 
-              {/*      /!* Email Notifications *!/*/}
-              {/*      <div className="flex items-center justify-between">*/}
-              {/*        <div>*/}
-              {/*          <h4 className="font-medium text-sm">Email Notifications</h4>*/}
-              {/*          <p className="text-xs text-gray-400">Receive email updates</p>*/}
-              {/*        </div>*/}
-              {/*        <Switch />*/}
-              {/*      </div>*/}
+                        {withdrawMethod === 'crypto' && (
+                            <div className="space-y-2">
+                                <Label htmlFor="crypto-address">Your Crypto Address (USDT - ERC20)</Label>
+                                <Input id="crypto-address" placeholder="0x..." value={cryptoAddress} onChange={e => setCryptoAddress(e.target.value)} />
+                            </div>
+                        )}
+                        {withdrawMethod === 'bank' && (
+                            <div className="space-y-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="bank-name">Bank Name</Label>
+                                    <Input id="bank-name" placeholder="e.g., Chase" value={bankName} onChange={e => setBankName(e.target.value)} />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="card-number">Account/Card Number</Label>
+                                    <Input id="card-number" placeholder="**** **** **** 1234" value={cardNumber} onChange={e => setCardNumber(e.target.value)} />
+                                </div>
+                            </div>
+                        )}
+                        
+                        <Button onClick={handleWithdraw} disabled={!userProfile?.isVerif}>
+                            {!userProfile?.isVerif ? "Verification Required" : "Submit Withdrawal Request"}
+                        </Button>
+                    </CardContent>
+                </Card>
+            </TabsContent>
 
-              {/*      /!* Two-Factor Authentication *!/*/}
-              {/*      <div className="flex items-center justify-between">*/}
-              {/*        <div>*/}
-              {/*          <h4 className="font-medium text-sm">Two-Factor Authentication</h4>*/}
-              {/*          <p className="text-xs text-gray-400">Add extra security to your account</p>*/}
-              {/*        </div>*/}
-              {/*        <Switch />*/}
-              {/*      </div>*/}
-
-              {/*      <Button className="bg-purple-600 hover:bg-purple-700 h-9">Save Settings</Button>*/}
-              {/*    </CardContent>*/}
-              {/*  </Card>*/}
-              {/*</TabsContent>*/}
-            </Tabs>
-          </div>
-        </motion.div>
-      </motion.div>
+            <TabsContent value="history" className="mt-6">
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Transaction History</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        {transactions.length > 0 ? (
+                            <ul className="space-y-3">
+                                {transactions.map(tx => (
+                                    <li key={tx.id} className="flex justify-between items-center p-3 bg-gray-800 rounded-md">
+                                        <div>
+                                            <p className={`font-semibold ${tx.type === 'DEPOSIT' ? 'text-green-400' : 'text-orange-400'}`}>{tx.type}</p>
+                                            <p className="text-sm text-gray-400">{new Date(tx.createdAt).toLocaleString()}</p>
+                                        </div>
+                                        <div className="text-right">
+                                            <p className="font-mono text-lg">${tx.amount.toFixed(2)}</p>
+                                            <Badge>{tx.status}</Badge>
+                                        </div>
+                                    </li>
+                                ))}
+                            </ul>
+                        ) : (
+                            <p className="text-center text-gray-500 py-4">No transactions yet.</p>
+                        )}
+                    </CardContent>
+                </Card>
+            </TabsContent>
+        </Tabs>
+    </div>
   )
 }

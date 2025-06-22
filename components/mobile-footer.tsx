@@ -1,41 +1,34 @@
+"use client"
+
 import Link from "next/link";
 import {Button} from "@/components/ui/button";
-import {BarChart3, FileText, Home, Newspaper, User} from "lucide-react";
+import {BarChart3, FileText, Home, Newspaper} from "lucide-react";
+import { usePathname } from "next/navigation";
 
 const MobileFooter = () => {
+    const pathname = usePathname();
+    const navItems = [
+        { href: "/dashboard", label: "Dashboard", icon: Home },
+        { href: "/transactions", label: "Transactions", icon: FileText },
+        { href: "/market", label: "Trade", icon: BarChart3 },
+        { href: "/news", label: "News", icon: Newspaper },
+    ];
+
     return (
-        <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-800">
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-800 z-50">
             <div className="flex justify-around py-2">
-                <Link href="/dashboard">
-                    <Button variant="ghost" size="sm" className="flex flex-col items-center space-y-1 text-gray-400">
-                        <Home className="w-5 h-5"/>
-                        <span className="text-xs">Dashboard</span>
-                    </Button>
-                </Link>
-                <Link href="/transactions">
-                    <Button variant="ghost" size="sm" className="flex flex-col items-center space-y-1 text-gray-400">
-                        <FileText className="w-5 h-5"/>
-                        <span className="text-xs">Transactions</span>
-                    </Button>
-                </Link>
-                <Link href="/">
-                    <Button variant="ghost" size="sm" className="flex flex-col items-center space-y-1 text-purple-400">
-                        <BarChart3 className="w-5 h-5"/>
-                        <span className="text-xs">Trade</span>
-                    </Button>
-                </Link>
-                <Link href="/news">
-                    <Button variant="ghost" size="sm" className="flex flex-col items-center space-y-1 text-gray-400">
-                        <Newspaper className="w-5 h-5"/>
-                        <span className="text-xs">News</span>
-                    </Button>
-                </Link>
-                <Link href="/profile">
-                    <Button variant="ghost" size="sm" className="flex flex-col items-center space-y-1 text-gray-400">
-                        <User className="w-5 h-5"/>
-                        <span className="text-xs">Profile</span>
-                    </Button>
-                </Link>
+                {navItems.map((item) => {
+                    const isActive = pathname === item.href;
+                    const Icon = item.icon;
+                    return (
+                        <Link key={item.href} href={item.href}>
+                            <Button variant="ghost" size="sm" className={`flex flex-col items-center space-y-1 h-auto ${isActive ? 'text-purple-400' : 'text-gray-400'} hover:text-white`}>
+                                <Icon className="w-5 h-5"/>
+                                <span className="text-xs">{item.label}</span>
+                            </Button>
+                        </Link>
+                    )
+                })}
             </div>
         </div>
     );

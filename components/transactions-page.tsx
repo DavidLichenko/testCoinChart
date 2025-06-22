@@ -100,16 +100,6 @@ export default function TransactionsPage() {
   const winningTrades = closedTrades.filter((trade) => (trade.profit || 0) > 0).length
   const winRate = closedTrades.length > 0 ? (winningTrades / closedTrades.length) * 100 : 0
 
-  const calculateDuration = (start: string, end: string | null) => {
-    if (!end) return "N/A"
-    const startTime = new Date(start)
-    const endTime = new Date(end)
-    const diffMs = endTime.getTime() - startTime.getTime()
-    const diffHours = Math.floor(diffMs / (1000 * 60 * 60))
-    const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60))
-    return `${diffHours}h ${diffMinutes}m`
-  }
-
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-950 text-white flex items-center justify-center">
@@ -128,8 +118,6 @@ export default function TransactionsPage() {
       transition={{ duration: 0.5 }}
       className="min-h-[100vh-100px] bg-gray-950 text-white"
     >
-
-
       <motion.div
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
@@ -233,7 +221,7 @@ export default function TransactionsPage() {
                             </div>
                           </div>
 
-                          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+                          <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 text-xs">
                             <div>
                               <div className="text-gray-400">Entry</div>
                               <div className="font-semibold">${trade.openIn}</div>
@@ -241,10 +229,6 @@ export default function TransactionsPage() {
                             <div>
                               <div className="text-gray-400">Exit</div>
                               <div className="font-semibold">${trade.closeIn || "N/A"}</div>
-                            </div>
-                            <div>
-                              <div className="text-gray-400">Duration</div>
-                              <div className="font-semibold">{calculateDuration(trade.createdAt, trade.endAt)}</div>
                             </div>
                             <div>
                               <div className="text-gray-400">P&L</div>
@@ -256,9 +240,7 @@ export default function TransactionsPage() {
                             </div>
                           </div>
 
-                          <Badge variant={trade.isPaid ? "default" : "secondary"} className="text-xs">
-                            {trade.isPaid ? "Paid" : "Pending"}
-                          </Badge>
+                      
                         </div>
 
                         <div className="mt-2 pt-2 border-t border-gray-600 text-xs text-gray-400">

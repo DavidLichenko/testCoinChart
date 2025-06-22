@@ -1,8 +1,8 @@
+@import 'highcharts/css/stocktools/gui.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-
 
 
 @layer base {
@@ -62,7 +62,23 @@
   }
 }
 
+.anychart-toolbar {
+  background-color: #222 !important;
+  border-radius: 8px;
+  padding: 4px;
+}
 
+.anychart-toolbar .anychart-toolbar-item {
+  color: #fff !important;
+  background-color: #333;
+  margin: 2px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.anychart-toolbar .anychart-toolbar-item:hover {
+  background-color: #555;
+}
 
 
 @layer base {

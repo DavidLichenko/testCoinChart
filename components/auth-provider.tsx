@@ -4,6 +4,8 @@ import type React from "react"
 import { createContext, useContext, useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import WelcomePage from "@/components/auth/welcome-page"
+import Header from "@/components/header";
+import MobileFooter from "@/components/mobile-footer";
 
 interface User {
   id: string
@@ -12,6 +14,7 @@ interface User {
   TotalBalance?: number
   can_withdraw?: boolean
   isVerif?: boolean
+  role?: string
 }
 
 interface AuthContextType {
@@ -94,7 +97,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   return (
       <AuthContext.Provider value={{ user, loading, logout, refreshUser }}>
+        <Header/>
         {children}
+        <MobileFooter/>
       </AuthContext.Provider>
   )
 }

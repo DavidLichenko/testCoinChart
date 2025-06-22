@@ -1,24 +1,19 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth-utils";
+import {updateBalance} from "@/app/actions/updateBalance";
 
 export async function POST(request: Request) {
   try {
-    // Authenticate user
     const userId = await requireAuth();
 
-    // Extract trade ID from URL pathname, e.g. /api/trades/[id]/close
     const url = new URL(request.url);
     const parts = url.pathname.split("/");
-    // parts = ["", "api", "trades", "[id]", "close"]
-    // id is at parts[3]
     const id = parts[3];
 
-    // Parse JSON body
     const body = await request.json();
     const { closePrice } = body;
 
-    // Find trade record
     const trade = await prisma.trade_Transaction.findUnique({
       where: { id },
     });
@@ -27,18 +22,15 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Trade not found" }, { status: 404 });
     }
 
-    // Check user owns the trade
     if (trade.userId !== userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
-    // Calculate profit based on trade type
     const profit =
         trade.type === "BUY"
             ? (closePrice - trade.openIn) * trade.volume * trade.leverage
             : (trade.openIn - closePrice) * trade.volume * trade.leverage;
 
-    // Update trade status to CLOSE with profit info
     const updatedTrade = await prisma.trade_Transaction.update({
       where: { id },
       data: {
@@ -49,17 +41,45 @@ export async function POST(request: Request) {
       },
     });
 
-    // Update user's TotalBalance (add margin + profit)
+    // Get current user balance
+    const currentUser = await prisma.user.findUnique({
+      where: { id: trade.userId },
+      select: { TotalBalance: true },
+    });
+
+    if (!currentUser) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    // Calculate new balance with protection against negative values
+    const currentBalance = currentUser.TotalBalance || 0;
+    const balanceChange = trade.margin + profit;
+    const newBalance = Math.max(0, currentBalance + balanceChange); // Never go below 0
+
+    console.log("Trade closing details:", {
+      margin: trade.margin,
+      profit: profit,
+      currentBalance: currentBalance,
+      balanceChange: balanceChange,
+      newBalance: newBalance
+    });
+
+    // Update user balance with protection
     await prisma.user.update({
       where: { id: trade.userId },
       data: {
-        TotalBalance: {
-          increment: trade.margin + profit,
-        },
+        TotalBalance: newBalance,
       },
     });
 
-    return NextResponse.json(updatedTrade);
+    // Send updated balance via Pusher
+    await updateBalance(trade.userId, newBalance);
+
+    return NextResponse.json({
+      ...updatedTrade,
+      newBalance: newBalance,
+      balanceChange: balanceChange
+    });
   } catch (error) {
     console.error("Error closing trade:", error);
     if (error instanceof Error && error.message === "Unauthorized") {
