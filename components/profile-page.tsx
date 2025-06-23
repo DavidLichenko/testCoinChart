@@ -64,7 +64,7 @@ const VerificationStatusBadge = ({ status }: { status: string | undefined }) => 
   };
 
   return (
-    <Badge className={`flex items-center className={'w-48 my-1'} ${statusConfig.className}`}>
+    <Badge className={`flex items-center w-48 my-1 ${statusConfig.className}`}>
       {statusConfig.icon}
       <span>{statusConfig.text}</span>
     </Badge>
@@ -277,7 +277,7 @@ export default function ProfilePage() {
   return (
     <div className="container mx-auto p-4 md:p-6 lg:p-8">
         <Tabs defaultValue="profile" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4">
+            <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4 bg-gray-800">
                 <TabsTrigger value="profile"><User className="w-4 h-4 mr-2" />Profile</TabsTrigger>
                 <TabsTrigger value="verification"><Shield className="w-4 h-4 mr-2" />Verification</TabsTrigger>
                 <TabsTrigger value="withdraw"><CreditCard className="w-4 h-4 mr-2" />Withdraw</TabsTrigger>
@@ -285,7 +285,7 @@ export default function ProfilePage() {
             </TabsList>
 
             <TabsContent value="profile" className="mt-6">
-                <Card>
+                <Card className={'bg-gray-800'}>
                     <CardHeader>
                         <CardTitle>Account Details</CardTitle>
                     </CardHeader>
@@ -310,12 +310,12 @@ export default function ProfilePage() {
             </TabsContent>
             
             <TabsContent value="verification" className="mt-6">
-                <Card>
+                <Card  className={'bg-gray-800'}>
                     <CardHeader>
                         <CardTitle>Identity Verification</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-6">
-                        <p className="text-gray-400">Upload a government-issued ID to verify your account. Your current status is: <VerificationStatusBadge status={userProfile?.verification?.status} /></p>
+                        <p className="text-gray-400 flex flex-col gap-2">Upload a government-issued ID to verify your account. Your current status is: <VerificationStatusBadge status={userProfile?.verification?.status} /></p>
                         
                         <div className="grid md:grid-cols-2 gap-6">
                             {/* Front ID */}
@@ -389,7 +389,7 @@ export default function ProfilePage() {
             </TabsContent>
 
             <TabsContent value="withdraw" className="mt-6">
-                <Card>
+                <Card  className={'bg-gray-800'}>
                     <CardHeader>
                         <CardTitle>Request a Withdrawal</CardTitle>
                     </CardHeader>
@@ -442,7 +442,7 @@ export default function ProfilePage() {
             </TabsContent>
 
             <TabsContent value="history" className="mt-6">
-                <Card>
+                <Card className={'bg-gray-800'}>
                     <CardHeader>
                         <CardTitle>Transaction History</CardTitle>
                     </CardHeader>
