@@ -135,10 +135,12 @@ export default function OrdersManagement() {
     }
   }
 
+  // Consider updating matchesSearch to allow all if searchTerm is empty, like in transactions-page
   const filteredOrders = orders.filter((order) => {
     const matchesSearch = 
+      !searchTerm ||
       order.User.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (order.User.name && order.User.name.toLowerCase().includes(searchTerm.toLowerCase()))
+      (order.User.name && order.User.name.toLowerCase().includes(searchTerm.toLowerCase()));
     const matchesStatus = statusFilter === "all" || order.status === statusFilter
     const matchesType = typeFilter === "all" || order.type === typeFilter
     return matchesSearch && matchesStatus && matchesType
@@ -412,4 +414,4 @@ export default function OrdersManagement() {
       </div>
     </div>
   )
-} 
+}
