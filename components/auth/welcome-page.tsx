@@ -403,7 +403,7 @@ export default function WelcomePage({ onAuthSuccess }: { onAuthSuccess: () => vo
                     <div className="w-16 h-16 mx-auto bg-gradient-to-r from-purple-600 to-blue-600 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
                       <feature.icon className="w-8 h-8 text-white" />
                     </div>
-                    <h3 className="text-xl font-semibold">{feature.title}</h3>
+                    <h3 className="text-xl font-semibold text-white">{feature.title}</h3>
                     <p className="text-gray-400">{feature.description}</p>
                   </CardContent>
                 </Card>
