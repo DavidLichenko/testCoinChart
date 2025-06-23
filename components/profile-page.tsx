@@ -277,7 +277,7 @@ export default function ProfilePage() {
   return (
     <div className="container mx-auto p-4 md:p-6 lg:p-8">
         <Tabs defaultValue="profile" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4 bg-gray-800">
+            <TabsList className="grid w-full grid-cols-2 h-full gap-2 lg:grid-cols-4 bg-gray-800">
                 <TabsTrigger value="profile"><User className="w-4 h-4 mr-2" />Profile</TabsTrigger>
                 <TabsTrigger value="verification"><Shield className="w-4 h-4 mr-2" />Verification</TabsTrigger>
                 <TabsTrigger value="withdraw"><CreditCard className="w-4 h-4 mr-2" />Withdraw</TabsTrigger>
@@ -290,7 +290,7 @@ export default function ProfilePage() {
                         <CardTitle>Account Details</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                        <div className="flex items-center space-x-4">
+                        <div className="flex flex-col items-start justify-start lg:flex-row gap-4 lg:items-center lg:justify-normal space-x-4">
                             <div className="w-16 h-16 rounded-full bg-gray-700 flex items-center justify-center">
                                 <User className="w-8 h-8 text-gray-400" />
                             </div>

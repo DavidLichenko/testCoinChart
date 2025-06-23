@@ -54,16 +54,16 @@ const Header = () => {
                     <ChatButton />
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="secondary" size="icon" className="rounded-full">
+                        <Button variant="secondary" size="icon" className="rounded-full bg-gray-800 hover:bg-gray-700">
                           <User className="h-5 w-5" />
                           <span className="sr-only">Toggle user menu</span>
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
+                      <DropdownMenuContent align="end" className={'bg-gray-900 '}>
                         <DropdownMenuLabel>My Account</DropdownMenuLabel>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem asChild><Link href="/profile">Profile</Link></DropdownMenuItem>
-                        <DropdownMenuItem onClick={logout}>Logout</DropdownMenuItem>
+                        <DropdownMenuItem className={'focus:bg-gray-700'} asChild><Link href="/profile">Profile</Link></DropdownMenuItem>
+                        <DropdownMenuItem className={'focus:bg-gray-700'} onClick={logout}>Logout</DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                     <DepositModal open={depositModalOpen} onOpenChange={setDepositModalOpen} />
