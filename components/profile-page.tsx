@@ -38,7 +38,7 @@ interface Order {
 
 const VerificationStatusBadge = ({ status }: { status: string | undefined }) => {
   if (!status) {
-    return <Badge variant="secondary">Not Submitted</Badge>;
+    return <Badge variant="secondary" className={'w-48 my-1'}>Not Submitted</Badge>;
   }
 
   const statusConfig = {
@@ -64,7 +64,7 @@ const VerificationStatusBadge = ({ status }: { status: string | undefined }) => 
   };
 
   return (
-    <Badge className={`flex items-center ${statusConfig.className}`}>
+    <Badge className={`flex items-center className={'w-48 my-1'} ${statusConfig.className}`}>
       {statusConfig.icon}
       <span>{statusConfig.text}</span>
     </Badge>
