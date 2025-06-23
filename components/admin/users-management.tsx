@@ -488,7 +488,18 @@ export default function UsersManagement() {
                               />
                               <label htmlFor="blocked" className="text-sm font-medium">Block User</label>
                             </div>
-                            <Button onClick={() => handleUpdateUser(selectedUser.id, selectedUser)} className="w-full">
+                            <Button
+                                onClick={() =>
+                                    handleUpdateUser(selectedUser.id, {
+                                      name: selectedUser.name,
+                                      role: selectedUser.role,
+                                      status: selectedUser.status,
+                                      blocked: selectedUser.blocked,
+                                      isVerif: selectedUser.isVerif,
+                                      can_withdraw: selectedUser.can_withdraw,
+                                    })
+                                }
+                                    className="w-full">
                               Save Changes
                             </Button>
                           </div>
