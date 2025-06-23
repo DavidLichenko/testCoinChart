@@ -20,6 +20,11 @@ const eslintConfig = [
       "@typescript-eslint/no-explicit-any": "off",
       "@typescript-eslint/no-unused-vars": "off",
     },
+    ignores: [
+      'lib/tv.js',        // ✅ ignore single file
+      'scripts/**',       // ✅ ignore folder and all its contents
+      '*.config.js',      // ✅ ignore config files if needed
+    ],
   },
 ];
 

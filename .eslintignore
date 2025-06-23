@@ -1,6 +1,0 @@
-# Ignore specific files
-lib/tv.js
-
-# Ignore all files in a folder
-scripts/
-public/
