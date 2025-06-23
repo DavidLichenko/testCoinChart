@@ -87,14 +87,15 @@ export default function TransactionsPage() {
   })
 
   const filteredOrders = orders.filter((order) => {
-    const matchesSearch =
-      order.depositFrom?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.withdrawMethod?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.bankName?.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesType = filterType === "all" || order.type.toLowerCase() === filterType.toLowerCase()
-    const matchesStatus = filterStatus === "all" || order.status.toLowerCase() === filterStatus.toLowerCase()
-    return matchesSearch && matchesType && matchesStatus
-  })
+  const matchesSearch =
+    !searchTerm ||
+    order.depositFrom?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    order.withdrawMethod?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    order.bankName?.toLowerCase().includes(searchTerm.toLowerCase());
+  const matchesType = filterType === "all" || order.type.toLowerCase() === filterType.toLowerCase();
+  const matchesStatus = filterStatus === "all" || order.status.toLowerCase() === filterStatus.toLowerCase();
+  return matchesSearch && matchesType && matchesStatus;
+});
 
   const totalPnL = closedTrades.reduce((sum, trade) => sum + (trade.profit || 0), 0)
   const winningTrades = closedTrades.filter((trade) => (trade.profit || 0) > 0).length
