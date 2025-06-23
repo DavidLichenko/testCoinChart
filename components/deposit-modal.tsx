@@ -94,7 +94,7 @@ export function DepositModal({ open, onOpenChange }: DepositModalProps) {
     if (step === 'token') {
       return (
         <div>
-          <Label>Select Token</Label>
+          <Label className={'my-1'}>Select Token</Label>
           <Select onValueChange={(value) => { setSelectedToken(value); setStep('network'); }}>
             <SelectTrigger><SelectValue placeholder="Choose a token..." /></SelectTrigger>
             <SelectContent>
@@ -110,8 +110,8 @@ export function DepositModal({ open, onOpenChange }: DepositModalProps) {
     if (step === 'network') {
       return (
         <div>
-          <Label>Select Network</Label>
-          <Select onValueChange={(value) => { setSelectedAddress(JSON.parse(value)); setStep('address'); }}>
+          <Label className={'my-1'}>Select Network</Label>
+          <Select defaultValue={()=> selectedNetworks[0].network } onValueChange={(value) => { setSelectedAddress(JSON.parse(value)); setStep('address'); }}>
             <SelectTrigger><SelectValue placeholder="Choose a network..." /></SelectTrigger>
             <SelectContent>
               {selectedNetworks.map(addr => (
