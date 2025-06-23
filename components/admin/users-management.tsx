@@ -21,6 +21,7 @@ import {
   Plus,
   Minus
 } from "lucide-react"
+import { useAuth } from "@/components/auth-provider"
 
 interface User {
   id: string
@@ -37,6 +38,7 @@ interface User {
 }
 
 export default function UsersManagement() {
+  const { user } = useAuth()
   const [users, setUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
@@ -135,7 +137,7 @@ export default function UsersManagement() {
       setSelectedUsers(selectedUsers.filter(id => id !== userId))
     }
   }
-  console.log(users)
+
   const handleBulkBalanceUpdate = async () => {
     const amount = parseFloat(bulkBalanceAmount)
     if (isNaN(amount) || selectedUsers.length === 0) return
@@ -343,21 +345,21 @@ export default function UsersManagement() {
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
-            {filteredUsers.map((user) => (
-              <div key={user.id} className="flex items-center justify-between p-4 bg-gray-700 rounded-lg">
+            {filteredUsers.map((userItem) => (
+              <div key={userItem.id} className="flex items-center justify-between p-4 bg-gray-700 rounded-lg">
                 <div className="flex items-center space-x-4">
                   <div>
-                    <div className="font-medium text-sm">{user.name || "No Name"}</div>
-                    <div className="text-xs text-gray-400">{user.email}</div>
+                    <div className="font-medium text-sm">{userItem.name || "No Name"}</div>
+                    <div className="text-xs text-gray-400">{userItem.email}</div>
                     <div className="flex items-center gap-2 mt-1">
                       <Badge variant="outline" className="text-xs">
-                        {user.role}
+                        {userItem.role}
                       </Badge>
                       <Badge 
-                        variant={user.blocked ? "destructive" : user.isVerif ? "default" : "secondary"}
+                        variant={userItem.blocked ? "destructive" : userItem.isVerif ? "default" : "secondary"}
                         className="text-xs"
                       >
-                        {user.blocked ? "Blocked" : user.isVerif ? "Verified" : "Unverified"}
+                        {userItem.blocked ? "Blocked" : userItem.isVerif ? "Verified" : "Unverified"}
                       </Badge>
                     </div>
                   </div>
@@ -367,7 +369,7 @@ export default function UsersManagement() {
                   {/* Balance Display/Edit */}
                   <div className="flex items-center gap-2">
                     <DollarSign className="w-4 h-4 text-green-400" />
-                    {editingBalance === user.id ? (
+                    {editingBalance === userItem.id ? (
                       <div className="flex items-center gap-1">
                         <Input
                           type="number"
@@ -377,7 +379,7 @@ export default function UsersManagement() {
                         />
                         <Button
                           size="sm"
-                          onClick={() => saveBalanceEdit(user.id)}
+                          onClick={() => saveBalanceEdit(userItem.id)}
                           className="h-8 w-8 p-0"
                         >
                           <Save className="w-3 h-3" />
@@ -393,11 +395,11 @@ export default function UsersManagement() {
                       </div>
                     ) : (
                       <div className="flex items-center gap-1">
-                        <span className="text-sm font-medium">${user.TotalBalance?.toFixed(2) || "0.00"}</span>
+                        <span className="text-sm font-medium">${userItem.TotalBalance?.toFixed(2) || "0.00"}</span>
                         <Button
                           size="sm"
                           variant="ghost"
-                          onClick={() => startBalanceEdit(user.id, user.TotalBalance || 0)}
+                          onClick={() => startBalanceEdit(userItem.id, userItem.TotalBalance || 0)}
                           className="h-6 w-6 p-0"
                         >
                           <Edit className="w-3 h-3" />
@@ -410,21 +412,21 @@ export default function UsersManagement() {
                   <div className="flex items-center gap-1">
                     <Button
                       size="sm"
-                      variant={user.blocked ? "default" : "outline"}
-                      onClick={() => handleBlockUser(user.id, !user.blocked)}
+                      variant={userItem.blocked ? "default" : "outline"}
+                      onClick={() => handleBlockUser(userItem.id, !userItem.blocked)}
                       className="h-8"
                     >
-                      {user.blocked ? <CheckCircle className="w-3 h-3" /> : <Ban className="w-3 h-3" />}
+                      {userItem.blocked ? <CheckCircle className="w-3 h-3" /> : <Ban className="w-3 h-3" />}
                     </Button>
                     <Button
                       size="sm"
-                      variant={user.isVerif ? "default" : "outline"}
-                      onClick={() => handleVerifyUser(user.id, !user.isVerif)}
+                      variant={userItem.isVerif ? "default" : "outline"}
+                      onClick={() => handleVerifyUser(userItem.id, !userItem.isVerif)}
                       className="h-8"
                     >
                       <Shield className="w-3 h-3" />
                     </Button>
-                    <Dialog open={editDialogOpen && selectedUser?.id === user.id} onOpenChange={(open) => {
+                    <Dialog open={editDialogOpen && selectedUser?.id === userItem.id} onOpenChange={(open) => {
                       setEditDialogOpen(open)
                       if (!open) setSelectedUser(null)
                     }}>
@@ -432,7 +434,7 @@ export default function UsersManagement() {
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => setSelectedUser(user)}
+                          onClick={() => setSelectedUser(userItem)}
                           className="h-8"
                         >
                           <Edit className="w-3 h-3" />
@@ -454,7 +456,11 @@ export default function UsersManagement() {
                             </div>
                             <div>
                               <label className="text-sm font-medium">Role</label>
-                              <Select value={selectedUser.role} onValueChange={(value) => setSelectedUser({...selectedUser, role: value})}>
+                              <Select
+                                value={selectedUser.role}
+                                onValueChange={(value) => setSelectedUser({ ...selectedUser, role: value })}
+                                disabled={user.role !== "OWNER"}
+                              >
                                 <SelectTrigger className="bg-gray-700 border-gray-600">
                                   <SelectValue />
                                 </SelectTrigger>
@@ -489,17 +495,17 @@ export default function UsersManagement() {
                               <label htmlFor="blocked" className="text-sm font-medium">Block User</label>
                             </div>
                             <Button
-                                onClick={() =>
-                                    handleUpdateUser(selectedUser.id, {
-                                      name: selectedUser.name,
-                                      role: selectedUser.role,
-                                      status: selectedUser.status,
-                                      blocked: selectedUser.blocked,
-                                      isVerif: selectedUser.isVerif,
-                                      can_withdraw: selectedUser.can_withdraw,
-                                    })
-                                }
-                                    className="w-full">
+                              onClick={() =>
+                                handleUpdateUser(selectedUser.id, {
+                                  name: selectedUser.name,
+                                  role: selectedUser.role,
+                                  status: selectedUser.status,
+                                  blocked: selectedUser.blocked,
+                                  isVerif: selectedUser.isVerif,
+                                  can_withdraw: selectedUser.can_withdraw,
+                                })
+                              }
+                              className="w-full">
                               Save Changes
                             </Button>
                           </div>
@@ -515,4 +521,4 @@ export default function UsersManagement() {
       </Card>
     </div>
   )
-} 
+}
