@@ -68,7 +68,7 @@ export default function AdminPage() {
 
         {/* Admin Navigation */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-7 bg-gray-800 h-12">
+          <TabsList className={`grid w-full ${user.role === "OWNER" ? "grid-cols-7" : "grid-cols-6"} bg-gray-800 h-12`}>
             <TabsTrigger value="dashboard" className="flex items-center gap-2">
               <BarChart3 className="w-4 h-4" />
               Dashboard
@@ -93,10 +93,12 @@ export default function AdminPage() {
               <MessageCircle className="w-4 h-4" />
               Chat
             </TabsTrigger>
-            <TabsTrigger value="settings" className="flex items-center gap-2">
-              <Settings className="w-4 h-4" />
-              Settings
-            </TabsTrigger>
+            {user.role === "OWNER" && (
+              <TabsTrigger value="settings" className="flex items-center gap-2">
+                <Settings className="w-4 h-4" />
+                Settings
+              </TabsTrigger>
+            )}
           </TabsList>
 
           <TabsContent value="dashboard" className="space-y-6">
@@ -123,9 +125,11 @@ export default function AdminPage() {
             <ChatManagement />
           </TabsContent>
 
-          <TabsContent value="settings" className="space-y-6">
-            <SettingsManagement />
-          </TabsContent>
+          {user.role === "OWNER" && (
+            <TabsContent value="settings" className="space-y-6">
+              <SettingsManagement />
+            </TabsContent>
+          )}
         </Tabs>
       </div>
     </motion.div>
