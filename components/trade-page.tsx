@@ -1,7 +1,7 @@
 "use client"
 // app/user_interface/market/page.tsx
 
-import { useState, useEffect, useRef } from "react"
+import React, { useState, useEffect, useRef } from "react"
 import { motion } from "framer-motion"
 import { useAuth } from "@/components/auth-provider"
 import {
@@ -592,7 +592,7 @@ export default function TradePage() {
                           <SelectItem value="1">1:1</SelectItem>
                           <SelectItem value="5">1:5</SelectItem>
                           <SelectItem value="10">1:10</SelectItem>
-                          <SelectItem value="20">1:20</SelectItem>
+                          <SelectItem value="25">1:25</SelectItem>
                           <SelectItem value="50">1:50</SelectItem>
                           <SelectItem value="100">1:100</SelectItem>
                         </SelectContent>
@@ -757,9 +757,12 @@ export default function TradePage() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="bg-gray-800 border-gray-700">
+                      <SelectItem value="1">1:1</SelectItem>
+                      <SelectItem value="5">1:5</SelectItem>
+                      <SelectItem value="10">1:10</SelectItem>
+                      <SelectItem value="25">1:25</SelectItem>
+                      <SelectItem value="50">1:50</SelectItem>
                       <SelectItem value="100">1:100</SelectItem>
-                      <SelectItem value="200">1:200</SelectItem>
-                      <SelectItem value="500">1:500</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
