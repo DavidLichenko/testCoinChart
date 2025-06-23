@@ -81,7 +81,7 @@ export function useTickers(initialTimeframe = "M1") {
     useEffect(() => {
         if (!selectedTicker) return
 
-        const url = `http://172.86.69.160/candles?symbol=${selectedTicker.symbol}&timeframe=${timeframe}&count=100`
+        const url = `http://api.aragon-trade.com/candles?symbol=${selectedTicker.symbol}&timeframe=${timeframe}&count=100`
 
         fetch(url)
             .then((res) => res.json())
@@ -97,7 +97,7 @@ export function useTickers(initialTimeframe = "M1") {
     useEffect(() => {
         if (tickers.length === 0) return
 
-        const ws = new WebSocket("ws://172.86.69.160/ws")
+        const ws = new WebSocket("ws://api.aragon-trade.com/ws")
 
         ws.onopen = () => {
             ws.send(
@@ -122,7 +122,7 @@ export function useTickers(initialTimeframe = "M1") {
                         if (!hasValidBid) {
                             try {
                                 const response = await fetch(
-                                    `http://172.86.69.160/candles?symbol=${tick.symbol}&timeframe=${timeframe}&count=1`
+                                    `http://api.aragon-trade.com/candles?symbol=${tick.symbol}&timeframe=${timeframe}&count=1`
                                 );
                                 if (response.ok) {
                                     const candles = await response.json();

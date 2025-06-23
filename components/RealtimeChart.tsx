@@ -76,7 +76,7 @@ export default function RealtimeChart({ symbol, timeframe }: Props) {
         const fetchData = async () => {
             try {
                 const response = await fetch(
-                    `http://172.86.69.160/candles?symbol=${symbol}&timeframe=${timeframe}&count=200`
+                    `http://api.aragon-trade.com/candles?symbol=${symbol}&timeframe=${timeframe}&count=200`
                 );
                 const initialData = await response.json();
 
@@ -103,7 +103,7 @@ export default function RealtimeChart({ symbol, timeframe }: Props) {
     useEffect(() => {
         if (ws) ws.close();
 
-        const socket = new WebSocket("ws://172.86.69.160/ws");
+        const socket = new WebSocket("ws://api.aragon-trade.com/ws");
 
         socket.onopen = () => {
             console.log("WebSocket connected");

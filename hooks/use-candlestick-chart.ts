@@ -829,7 +829,7 @@ export const useCandlestickChart = ({
       setIsChartLoading(true);
       
       const timeframe = getTimeframeString(timeframeInSeconds);
-      const url = `http://172.86.69.160/candles?symbol=${selectedSymbol}&timeframe=${timeframe}&count=100`;
+      const url = `http://api.aragon-trade.com/candles?symbol=${selectedSymbol}&timeframe=${timeframe}&count=100`;
       
       // Add a small delay for better UX (like sleep(1) in Python)
       setTimeout(() => {
@@ -885,7 +885,7 @@ export const useCandlestickChart = ({
       setIsChartLoading(true);
       
       const timeframe = getTimeframeString(timeframeInSeconds);
-      const url = `http://172.86.69.160/candles?symbol=${selectedSymbol}&timeframe=${timeframe}&count=100`;
+      const url = `http://api.aragon-trade.com/candles?symbol=${selectedSymbol}&timeframe=${timeframe}&count=100`;
       
       // Add a small delay for better UX
       setTimeout(() => {
