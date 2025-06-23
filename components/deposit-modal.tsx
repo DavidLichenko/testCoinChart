@@ -185,7 +185,7 @@ export function DepositModal({ open, onOpenChange }: DepositModalProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md bg-gray-900 border-gray-700 text-white">
+      <DialogContent className="max-w-96 sm:max-w-md bg-gray-900 border-gray-700 text-white ">
         <DialogHeader>
           <div className="flex items-center justify-between">
             <DialogTitle className="flex items-center gap-2">

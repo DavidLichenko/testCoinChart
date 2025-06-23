@@ -239,7 +239,7 @@ export default function ChatButton() {
       </motion.div>
 
       <Dialog open={chatOpen} onOpenChange={setChatOpen}>
-        <DialogContent className="bg-gray-900 border-gray-700 max-w-md h-[600px] flex flex-col p-0">
+        <DialogContent className="bg-gray-900 border-gray-700  lg:max-w-md h-[600px] flex flex-col p-0 max-w-96" >
           <DialogHeader className="p-4 border-b border-gray-700">
             <div className="flex items-center justify-between">
               <DialogTitle className="text-lg font-semibold">Support Chat</DialogTitle>

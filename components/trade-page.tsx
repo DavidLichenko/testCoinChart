@@ -521,7 +521,7 @@ export default function TradePage() {
                   </div>
                 </div>
               ) : (
-                <div className="flex items-center justify-center w-full h-full bg-gray-800 rounded-lg border border-gray-700">
+                <div className="flex items-center justify-center w-full h-96 lg:h-full bg-gray-800 rounded-lg border border-gray-700">
                   <div className="text-center max-w-md px-4">
                     <div className="w-16 h-16 bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
                       <BarChart3 className="w-8 h-8 text-gray-400" />
