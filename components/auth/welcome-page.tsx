@@ -67,9 +67,9 @@ export default function WelcomePage({ onAuthSuccess }: { onAuthSuccess: () => vo
         
         // Fetch current and 1 day ago candles for BTCUSD
         const [btcResponse, ethResponse, aaplResponse] = await Promise.all([
-          fetch("https://4592-2001-4bb8-2ae-e4ed-800d-675f-9cf3-901c.ngrok-free.app/candles?symbol=BTCUSD&timeframe=D1&count=2"),
-          fetch("https://4592-2001-4bb8-2ae-e4ed-800d-675f-9cf3-901c.ngrok-free.app/candles?symbol=ETHUSD&timeframe=D1&count=2"),
-          fetch("https://4592-2001-4bb8-2ae-e4ed-800d-675f-9cf3-901c.ngrok-free.app/candles?symbol=AAPL.NAS&timeframe=D1&count=2")
+          fetch("http://172.86.69.160/candles?symbol=BTCUSD&timeframe=D1&count=2"),
+          fetch("http://172.86.69.160/candles?symbol=ETHUSD&timeframe=D1&count=2"),
+          fetch("http://172.86.69.160/candles?symbol=AAPL.NAS&timeframe=D1&count=2")
         ]);
 
         const btcData = await btcResponse.json();

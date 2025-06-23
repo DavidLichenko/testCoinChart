@@ -81,7 +81,7 @@ export function useTickers(initialTimeframe = "M1") {
     useEffect(() => {
         if (!selectedTicker) return
 
-        const url = `https://4592-2001-4bb8-2ae-e4ed-800d-675f-9cf3-901c.ngrok-free.app/candles?symbol=${selectedTicker.symbol}&timeframe=${timeframe}&count=100`
+        const url = `http://172.86.69.160/candles?symbol=${selectedTicker.symbol}&timeframe=${timeframe}&count=100`
 
         fetch(url)
             .then((res) => res.json())
@@ -97,7 +97,7 @@ export function useTickers(initialTimeframe = "M1") {
     useEffect(() => {
         if (tickers.length === 0) return
 
-        const ws = new WebSocket("wss://4592-2001-4bb8-2ae-e4ed-800d-675f-9cf3-901c.ngrok-free.app/ws")
+        const ws = new WebSocket("ws://172.86.69.160/ws")
 
         ws.onopen = () => {
             ws.send(
@@ -122,7 +122,7 @@ export function useTickers(initialTimeframe = "M1") {
                         if (!hasValidBid) {
                             try {
                                 const response = await fetch(
-                                    `https://4592-2001-4bb8-2ae-e4ed-800d-675f-9cf3-901c.ngrok-free.app/candles?symbol=${tick.symbol}&timeframe=${timeframe}&count=1`
+                                    `http://172.86.69.160/candles?symbol=${tick.symbol}&timeframe=${timeframe}&count=1`
                                 );
                                 if (response.ok) {
                                     const candles = await response.json();
