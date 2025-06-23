@@ -334,25 +334,25 @@ export default function DashboardPage() {
                 </Badge>
               </div>
 
-              <div className="flex items-center justify-between p-3 bg-gray-700 rounded-lg">
-                <div>
-                  <div className="font-medium text-sm">Withdrawal</div>
-                  <div className="text-xs text-gray-400">Withdrawal permissions</div>
-                </div>
-                <Badge variant={userStats?.canWithdraw ? "default" : "destructive"} className="text-xs">
-                  {userStats?.canWithdraw ? "Enabled" : "Restricted"}
-                </Badge>
-              </div>
+              {/*<div className="flex items-center justify-between p-3 bg-gray-700 rounded-lg">*/}
+              {/*  <div>*/}
+              {/*    <div className="font-medium text-sm">Withdrawal</div>*/}
+              {/*    <div className="text-xs text-gray-400">Withdrawal permissions</div>*/}
+              {/*  </div>*/}
+              {/*  <Badge variant={userStats?.canWithdraw ? "default" : "destructive"} className="text-xs">*/}
+              {/*    {userStats?.canWithdraw ? "Enabled" : "Restricted"}*/}
+              {/*  </Badge>*/}
+              {/*</div>*/}
 
-              <div className="flex items-center justify-between p-3 bg-gray-700 rounded-lg">
-                <div>
-                  <div className="font-medium text-sm">Account Status</div>
-                  <div className="text-xs text-gray-400">Current status</div>
-                </div>
-                <Badge variant={userStats?.blocked ? "destructive" : "default"} className="text-xs">
-                  {userStats?.blocked ? "Blocked" : userStats?.status || "Active"}
-                </Badge>
-              </div>
+              {/*<div className="flex items-center justify-between p-3 bg-gray-700 rounded-lg">*/}
+              {/*  <div>*/}
+              {/*    <div className="font-medium text-sm">Account Status</div>*/}
+              {/*    <div className="text-xs text-gray-400">Current status</div>*/}
+              {/*  </div>*/}
+              {/*  <Badge variant={userStats?.blocked ? "destructive" : "default"} className="text-xs">*/}
+              {/*    {userStats?.blocked ? "Blocked" : userStats?.status || "Active"}*/}
+              {/*  </Badge>*/}
+              {/*</div>*/}
 
               <div className="flex items-center justify-between p-3 bg-gray-700 rounded-lg">
                 <div>
