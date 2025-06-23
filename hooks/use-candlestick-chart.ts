@@ -296,7 +296,7 @@ export const useCandlestickChart = ({
 
         endDrag();
       } else {
-        console.log('Not ending drag - not currently dragging');
+
       }
 
     };
@@ -681,7 +681,7 @@ export const useCandlestickChart = ({
   
       }
     } else {
-      console.log('Invalid coordinates for dragging:', newCoords);
+
     }
     
     setIsUpdatingLine(false);
@@ -707,34 +707,23 @@ export const useCandlestickChart = ({
 
   // Chart initialization
   useEffect(() => {
-    console.log('Chart initialization check:', { 
-      hasContainer: !!containerRef.current, 
-      hasLibrary: !!LightweightCharts, 
-      isLoaded, 
-      isLibraryLoaded 
-    });
-    
+
     if (!containerRef.current) {
-      console.log('Chart initialization skipped: No container');
       return;
     }
     
     if (!LightweightCharts) {
-      console.log('Chart initialization skipped: No LightweightCharts library');
       return;
     }
     
     if (!isLoaded) {
-      console.log('Chart initialization skipped: isLoaded is false');
       return;
     }
     
     if (!isLibraryLoaded) {
-      console.log('Chart initialization skipped: Library not loaded yet');
       return;
     }
 
-    console.log('Chart initialization proceeding...');
 
     if (chartRef.current) {
       chartRef.current.remove();
@@ -774,7 +763,7 @@ export const useCandlestickChart = ({
       lineStyle: 1, // Dashed line
     });
 
-    console.log('Chart initialized successfully');
+
     chartReadyRef.current = true;
 
     // Only subscribe to events after all series are created
@@ -785,7 +774,7 @@ export const useCandlestickChart = ({
 
     // If we have fetched candles ready, set them now
     if (fetchedCandlesRef.current.length > 0) {
-      console.log('Setting fetched candles after chart initialization');
+
       const bars = fetchedCandlesRef.current.map((candle: any) => ({
         time: candle.time,
         open: candle.open,
@@ -836,7 +825,7 @@ export const useCandlestickChart = ({
     
     // If chart can't initialize but we have a symbol, fetch historical data
     if ((!containerRef.current || !LightweightCharts || !isLoaded || !isLibraryLoaded) && selectedSymbol) {
-      console.log('Fetching historical data while waiting for chart initialization...');
+
       setIsChartLoading(true);
       
       const timeframe = getTimeframeString(timeframeInSeconds);
@@ -847,15 +836,14 @@ export const useCandlestickChart = ({
         fetch(url)
           .then((res) => res.json())
           .then((data) => {
-            console.log('Historical data fetched:', data.length, 'candles');
+
             if (data && data.length > 0) {
               // Store the fetched data
               fetchedCandlesRef.current = data;
-              console.log('Historical data stored, waiting for chart to be ready');
+
               
               // If chart is already ready, set the data immediately
               if (chartReadyRef.current && candleSeriesRef.current) {
-                console.log('Chart is ready, setting fetched data immediately');
                 const bars = data.map((candle: any) => ({
                   time: candle.time,
                   open: candle.open,
@@ -875,7 +863,6 @@ export const useCandlestickChart = ({
                 }, 100);
               } else {
                 // Chart not ready yet, keep loading state
-                console.log('Chart not ready yet, keeping loading state');
               }
             }
             // Don't clear loading state here - let the 1-second timer handle it
@@ -894,7 +881,7 @@ export const useCandlestickChart = ({
     
     // If chart is ready but we don't have candles data for this symbol, fetch it
     if (selectedSymbol && (!candles || candles.length === 0)) {
-      console.log('Chart ready, fetching data for new symbol:', selectedSymbol);
+
       setIsChartLoading(true);
       
       const timeframe = getTimeframeString(timeframeInSeconds);
@@ -905,7 +892,7 @@ export const useCandlestickChart = ({
         fetch(url)
           .then((res) => res.json())
           .then((data) => {
-            console.log('Historical data fetched for symbol change:', data.length, 'candles');
+
             if (data && data.length > 0) {
               const bars = data.map((candle: any) => ({
                 time: candle.time,
@@ -945,7 +932,7 @@ export const useCandlestickChart = ({
       14400: 'H4',
       86400: 'D1'
     };
-    return timeframes[seconds] || 'M15';
+    return timeframes[seconds] || 'M1';
   };
 
   // Set initial candles data and autofocus
@@ -970,10 +957,7 @@ export const useCandlestickChart = ({
     candleSeriesRef.current.setData(bars);
     lastCandleRef.current = bars[bars.length - 1]; // Save last one
     historicalDataLoadedRef.current = true; // Mark historical data as loaded
-    console.log(candleSeriesRef.current)
-    
-    // Don't clear loading state here - let the 1-second timer handle it
-    console.log('Historical data loaded for symbol:', selectedSymbol);
+
     
     // Autofocus after a short delay to ensure data is set
     setTimeout(() => {
@@ -997,12 +981,10 @@ export const useCandlestickChart = ({
     // Always show loading animation for 1 second when symbol changes
     if (selectedSymbol) {
       setIsChartLoading(true);
-      console.log('Symbol changed to:', selectedSymbol, '- showing loading animation for 1 second');
       
       // Always show loading for exactly 1 second
       setTimeout(() => {
         setIsChartLoading(false);
-        console.log('Loading animation completed for symbol:', selectedSymbol);
       }, 1000);
     }
     

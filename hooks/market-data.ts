@@ -58,7 +58,7 @@ function buildTicker(symbol: string, type: string): TickerData {
     }
 }
 
-export function useTickers(initialTimeframe = "M15") {
+export function useTickers(initialTimeframe = "M1") {
     const [tickers, setTickers] = useState<TickerData[]>([])
     const [candlesBySymbol, setCandlesBySymbol] = useState<Candle[]>([])
     const [selectedTicker, setSelectedTicker] = useState<TickerData | null>(null)

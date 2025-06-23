@@ -46,7 +46,7 @@ export const AdvancedChartWithDrawings: React.FC<AdvancedChartWithDrawingsProps>
   selectedSymbol,
   timeframeInSeconds = 60,
   isLoaded = true,
-  currentTimeframe = "M15",
+  currentTimeframe = "M1",
   onTimeframeChange,
   isMobile = false,
 }) => {
@@ -84,43 +84,28 @@ export const AdvancedChartWithDrawings: React.FC<AdvancedChartWithDrawingsProps>
 //   });
 
   const handleToolSelect = (tool: 'none' | 'line') => {
-    console.log('=== handleToolSelect called ===');
-    console.log('Tool selected:', tool);
-    console.log('Current selectedTool:', selectedTool);
-    console.log('Current drawingMode:', drawingMode);
-    
     setSelectedTool(tool);
-    console.log('setSelectedTool called with:', tool);
-    
     if (tool === 'none') {
-      console.log('Setting drawingMode to none');
       setDrawingMode('none');
       // Reset chart interactions when selecting none tool
       if (containerRef.current) {
         containerRef.current.style.cursor = "default";
       }
     } else {
-      console.log('Setting drawingMode to:', tool);
       setDrawingMode(tool);
       // Remove the startDrawing call - let the chart click handle the drawing logic
-      console.log('Drawing mode set, waiting for chart click');
     }
-    
-    console.log('=== handleToolSelect finished ===');
   };
 
   // Sync selectedTool with drawingMode from hook
   useEffect(() => {
-    console.log('Sync effect triggered:', { drawingMode, selectedTool });
     
     // When drawingMode becomes 'none' (drawing completed), auto-select the Select Tool
     if (drawingMode === 'none' && selectedTool !== 'none') {
-      console.log('Drawing completed, auto-selecting Select Tool');
       setSelectedTool('none');
     }
     // When starting a new drawing mode, sync the selectedTool
     else if (drawingMode === 'line' && drawingMode !== selectedTool) {
-      console.log('Syncing selectedTool with drawingMode:', { drawingMode, selectedTool });
       setSelectedTool(drawingMode);
     }
   }, [drawingMode, selectedTool]);
@@ -244,7 +229,6 @@ export const AdvancedChartWithDrawings: React.FC<AdvancedChartWithDrawingsProps>
               size="sm"
               className="w-8 h-8 p-0"
               onClick={() => {
-                console.log('Select tool button clicked');
                 handleToolSelect('none');
               }}
               title="Select Tool"
@@ -257,7 +241,6 @@ export const AdvancedChartWithDrawings: React.FC<AdvancedChartWithDrawingsProps>
               size="sm"
               className="w-8 h-8 p-0"
               onClick={() => {
-                console.log('Line tool button clicked');
                 handleToolSelect('line');
               }}
               title="Line Tool"
