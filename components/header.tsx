@@ -43,7 +43,7 @@ const Header = () => {
             <header className="sticky top-0 z-50 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6 justify-between">
                 <Link href="/dashboard" className="flex items-end gap-2">
                     <BarChart3 className="h-6 w-6"/>
-                    <span className="text-white font-bold text-sm top-0.5 relative">AragonTrade</span>
+                    <span className="text-white font-bold text-sm top-0.5 relative">AT</span>
                     <span className="sr-only">AragonTrade</span>
                 </Link>
                 <div className="flex items-center gap-2">
