@@ -33,11 +33,18 @@ export async function POST(request: NextRequest) {
     }
 
     const formData = await request.formData()
-    const frontIdFile = formData.get('front_id') as File | null
-    const backIdFile = formData.get('back_id') as File | null
+    const frontIdFile = formData.get('frontId') as File | null
+    const backIdFile = formData.get('backId') as File | null
+    const address = formData.get('address') as string | null
+    const city = formData.get('city') as string | null
+    const postalCode = formData.get('postalCode') as string | null
 
     if (!frontIdFile || !backIdFile) {
       return NextResponse.json({ error: "Both front and back ID images are required." }, { status: 400 });
+    }
+
+    if (!address || !city || !postalCode) {
+      return NextResponse.json({ error: "Address, city, and postal code are required." }, { status: 400 });
     }
 
     const [frontIdUrl, backIdUrl] = await Promise.all([
@@ -46,19 +53,25 @@ export async function POST(request: NextRequest) {
     ]);
     
     // Using a transaction to ensure data integrity
-    await prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx) => {
       // Create or update the verification record
-      await tx.verification.upsert({
+      const verification = await tx.verification.upsert({
         where: { userId: user.id },
         update: {
           frontIdUrl,
           backIdUrl,
+          address,
+          city,
+          postalCode,
           status: "PENDING",
         },
         create: {
           userId: user.id,
           frontIdUrl,
           backIdUrl,
+          address,
+          city,
+          postalCode,
           status: "PENDING",
         },
       });
@@ -68,9 +81,14 @@ export async function POST(request: NextRequest) {
         where: { id: user.id },
         data: { isVerif: false },
       });
+
+      return verification;
     });
 
-    return NextResponse.json({ message: "Verification documents submitted successfully." });
+    return NextResponse.json({ 
+      message: "Verification documents submitted successfully.",
+      verification: result
+    });
 
   } catch (error) {
     console.error('Error in verification upload:', error)

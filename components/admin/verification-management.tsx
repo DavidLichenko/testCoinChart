@@ -25,6 +25,9 @@ interface Verification {
   status: 'PENDING' | 'APPROVED' | 'REJECTED'
   frontIdUrl: string
   backIdUrl: string
+  address?: string
+  city?: string
+  postalCode?: string
   createdAt: string
   user: {
     email: string
@@ -193,6 +196,34 @@ export default function VerificationManagement() {
                   </div>
                 </div>
                 <hr className="border-gray-700 my-4" />
+                
+                {/* Address Information */}
+                {(verification.address || verification.city || verification.postalCode) && (
+                  <div className="mb-4 p-3 bg-gray-900/50 rounded-lg">
+                    <h4 className="text-sm font-medium text-gray-300 mb-2">Address Information</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm">
+                      {verification.address && (
+                        <div>
+                          <span className="text-gray-400">Address:</span>
+                          <p className="text-white">{verification.address}</p>
+                        </div>
+                      )}
+                      {verification.city && (
+                        <div>
+                          <span className="text-gray-400">City:</span>
+                          <p className="text-white">{verification.city}</p>
+                        </div>
+                      )}
+                      {verification.postalCode && (
+                        <div>
+                          <span className="text-gray-400">Postal Code:</span>
+                          <p className="text-white">{verification.postalCode}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+                
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between">
                   <div className="flex items-center gap-4">
                      <Button variant="outline" size="sm" onClick={() => setImageToView(verification.frontIdUrl)}>

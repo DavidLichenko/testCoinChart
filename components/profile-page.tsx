@@ -22,6 +22,9 @@ interface UserProfile {
   isVerif: boolean
   verification: {
     status: string // PENDING, APPROVED, REJECTED
+    address?: string
+    city?: string
+    postalCode?: string
   } | null
 }
 
@@ -95,6 +98,11 @@ export default function ProfilePage() {
   const [backIdPreview, setBackIdPreview] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Verification form states
+  const [verificationAddress, setVerificationAddress] = useState("");
+  const [verificationCity, setVerificationCity] = useState("");
+  const [verificationPostalCode, setVerificationPostalCode] = useState("");
+
   useEffect(() => {
     const fetchProfileData = async () => {
       setLoading(true)
@@ -109,6 +117,9 @@ export default function ProfilePage() {
           if (profileData.verification) {
             setFrontIdPreview(profileData.verification.frontIdUrl);
             setBackIdPreview(profileData.verification.backIdUrl);
+            setVerificationAddress(profileData.verification.address || "");
+            setVerificationCity(profileData.verification.city || "");
+            setVerificationPostalCode(profileData.verification.postalCode || "");
           }
         }
         const ordersResponse = await fetch("/api/orders")
@@ -175,10 +186,18 @@ export default function ProfilePage() {
       return;
     }
 
+    if (!verificationAddress || !verificationCity || !verificationPostalCode) {
+      toast({ title: "Missing Information", description: "Please fill in your address, city, and postal code.", variant: "destructive" });
+      return;
+    }
+
     setIsSubmitting(true);
     const formData = new FormData();
     formData.append("frontId", frontIdFile);
     formData.append("backId", backIdFile);
+    formData.append("address", verificationAddress);
+    formData.append("city", verificationCity);
+    formData.append("postalCode", verificationPostalCode);
     
     try {
       const response = await fetch("/api/user/verification", {
@@ -330,6 +349,38 @@ export default function ProfilePage() {
                                 </div>
                             </div>
                         </div>
+
+                        {/* Address Information */}
+                        <div className="grid md:grid-cols-3 gap-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="verification-address">Address</Label>
+                                <Input 
+                                    id="verification-address" 
+                                    value={verificationAddress} 
+                                    onChange={(e) => setVerificationAddress(e.target.value)}
+                                    placeholder="Enter your full address"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="verification-city">City</Label>
+                                <Input 
+                                    id="verification-city" 
+                                    value={verificationCity} 
+                                    onChange={(e) => setVerificationCity(e.target.value)}
+                                    placeholder="Enter your city"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="verification-postal">Postal Code</Label>
+                                <Input 
+                                    id="verification-postal" 
+                                    value={verificationPostalCode} 
+                                    onChange={(e) => setVerificationPostalCode(e.target.value)}
+                                    placeholder="Enter postal code"
+                                />
+                            </div>
+                        </div>
+
                         <Button onClick={handleSubmitVerification} disabled={isSubmitting || userProfile?.verification?.status === 'APPROVED'}>
                             {isSubmitting ? "Submitting..." : (userProfile?.verification?.status === 'APPROVED' ? "Verified" : "Submit for Review")}
                         </Button>
@@ -383,8 +434,8 @@ export default function ProfilePage() {
                             </div>
                         )}
                         
-                        <Button onClick={handleWithdraw} disabled={!userProfile?.isVerif}>
-                            {!userProfile?.isVerif ? "Verification Required" : "Submit Withdrawal Request"}
+                        <Button onClick={handleWithdraw} disabled={!userProfile?.isVerif || userProfile?.verification?.status !== 'APPROVED'}>
+                            {!userProfile?.isVerif || userProfile?.verification?.status !== 'APPROVED' ? "Verification Required" : "Submit Withdrawal Request"}
                         </Button>
                     </CardContent>
                 </Card>

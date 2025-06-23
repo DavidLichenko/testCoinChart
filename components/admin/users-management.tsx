@@ -480,6 +480,14 @@ export default function UsersManagement() {
                                 </SelectContent>
                               </Select>
                             </div>
+                            <div className="flex items-center space-x-2">
+                              <Checkbox
+                                id="blocked"
+                                checked={selectedUser.blocked}
+                                onCheckedChange={(checked) => setSelectedUser({...selectedUser, blocked: checked as boolean})}
+                              />
+                              <label htmlFor="blocked" className="text-sm font-medium">Block User</label>
+                            </div>
                             <Button onClick={() => handleUpdateUser(selectedUser.id, selectedUser)} className="w-full">
                               Save Changes
                             </Button>
