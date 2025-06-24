@@ -23,10 +23,10 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
 
-    const orders = await prisma.orders.findMany({
+ const orders = await prisma.orders.findMany({
   orderBy: { createdAt: "desc" },
   include: {
-    User: true
+    User: true, // <-- this includes ALL user fields for each order
   }
 });
 
