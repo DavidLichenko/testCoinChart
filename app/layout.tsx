@@ -36,11 +36,11 @@ export default function RootLayout({
                 )}
             >
             <ThemeProvider
-                attribute="class"
-                defaultTheme="system"
-                enableSystem
-                disableTransitionOnChange
-            >
+    attribute="class"
+    defaultTheme="dark"  // <-- set dark as default
+    enableSystem={false} // <-- do not use system
+    disableTransitionOnChange
+>
                 <AuthProvider>
                     {children}
                 </AuthProvider>
