@@ -24,10 +24,7 @@ export async function GET(request: NextRequest) {
     }
 
  const orders = await prisma.orders.findMany({
-  orderBy: { createdAt: "desc" },
-  include: {
-    User: true, // <-- this includes ALL user fields for each order
-  }
+  orderBy: { createdAt: "desc" }
 });
 
     return NextResponse.json(orders)
