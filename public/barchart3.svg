@@ -1,0 +1,7 @@
+<!-- /public/barchart3.svg -->
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-bar-chart-3" viewBox="0 0 24 24">
+  <path d="M3 3v18h18"/>
+  <rect width="4" height="7" x="7" y="10" rx="1"/>
+  <rect width="4" height="12" x="15" y="5" rx="1"/>
+  <rect width="4" height="4" x="3" y="13" rx="1"/>
+</svg>
