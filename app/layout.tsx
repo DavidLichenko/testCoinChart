@@ -20,7 +20,7 @@ export const metadata: Metadata = {
     description: "The best platform for secure and efficient trading. Analyze, track, and execute trades with ease.",
     keywords: ["trade", "crypto", "stocks", "analysis", "portfolio", "exchange"],
     icons: {
-        icon: "/barchart3.svg",
+        icon: "/barchart3.ico",
     },
 };
 
