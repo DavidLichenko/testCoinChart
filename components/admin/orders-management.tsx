@@ -38,7 +38,7 @@ interface Order {
   User: {
     email: string
     name: string | null
-  }
+  } | null // <-- allow null for robustness
 }
 
 interface User {
@@ -66,6 +66,7 @@ export default function OrdersManagement() {
 
   useEffect(() => {
     fetchData()
+    // eslint-disable-next-line
   }, [])
 
   const fetchData = async () => {
@@ -74,12 +75,12 @@ export default function OrdersManagement() {
       const [ordersRes, usersRes] = await Promise.all([
         fetch("/api/admin/orders"),
         fetch("/api/admin/users")
-      ]);
-      if (ordersRes.ok) setOrders(await ordersRes.json());
-      if (usersRes.ok) setUsers(await usersRes.json());
+      ])
+      if (ordersRes.ok) setOrders(await ordersRes.json())
+      if (usersRes.ok) setUsers(await usersRes.json())
     } catch (error) {
       console.error("Error fetching data:", error)
-      toast({ title: "Error", description: "Failed to load orders or users.", variant: "destructive" });
+      toast({ title: "Error", description: "Failed to load orders or users.", variant: "destructive" })
     } finally {
       setLoading(false)
     }
@@ -103,8 +104,8 @@ export default function OrdersManagement() {
 
   const handleCreateOrder = async () => {
     if (!selectedUserId || !orderAmount) {
-      toast({ title: "Missing fields", description: "Please select a user and enter an amount.", variant: "destructive" });
-      return;
+      toast({ title: "Missing fields", description: "Please select a user and enter an amount.", variant: "destructive" })
+      return
     }
 
     try {
@@ -117,30 +118,29 @@ export default function OrdersManagement() {
           amount: parseFloat(orderAmount),
           status: orderStatus,
         }),
-      });
+      })
 
       if (response.ok) {
-        toast({ title: "Success", description: "Order created successfully." });
-        setCreateDialogOpen(false);
-        fetchData(); // Refresh orders
-        // Reset form
-        setSelectedUserId(null);
-        setOrderAmount("");
+        toast({ title: "Success", description: "Order created successfully." })
+        setCreateDialogOpen(false)
+        fetchData()
+        setSelectedUserId(null)
+        setOrderAmount("")
       } else {
-        const errorData = await response.json();
-        toast({ title: "Error", description: errorData.error || "Failed to create order.", variant: "destructive" });
+        const errorData = await response.json()
+        toast({ title: "Error", description: errorData.error || "Failed to create order.", variant: "destructive" })
       }
     } catch (error) {
-      toast({ title: "Error", description: "An unexpected error occurred.", variant: "destructive" });
+      toast({ title: "Error", description: "An unexpected error occurred.", variant: "destructive" })
     }
   }
 
-  // Consider updating matchesSearch to allow all if searchTerm is empty, like in transactions-page
+  // Filter orders, handle null User
   const filteredOrders = orders.filter((order) => {
-    const matchesSearch = 
+    const matchesSearch =
       !searchTerm ||
-      order.User.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (order.User.name && order.User.name.toLowerCase().includes(searchTerm.toLowerCase()));
+      (order.User?.email?.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (order.User?.name && order.User.name.toLowerCase().includes(searchTerm.toLowerCase()))
     const matchesStatus = statusFilter === "all" || order.status === statusFilter
     const matchesType = typeFilter === "all" || order.type === typeFilter
     return matchesSearch && matchesStatus && matchesType
@@ -160,7 +160,7 @@ export default function OrdersManagement() {
       </div>
     )
   }
-console.log(orders)
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -179,10 +179,7 @@ console.log(orders)
             </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-[425px] bg-gray-900 border-gray-700">
-            <DialogHeader>
-              <DialogTitle>Create New Order</DialogTitle>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
+            <">
               <div className="space-y-2">
                 <Label>User</Label>
                 <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
@@ -207,7 +204,7 @@ console.log(orders)
                                 setPopoverOpen(false)
                               }}
                             >
-                              {user.name} ({user.email})
+                              {user.name || user.email} ({user.email})
                             </CommandItem>
                           ))}
                         </CommandGroup>
@@ -246,8 +243,7 @@ console.log(orders)
               <DialogClose asChild><Button type="button" variant="secondary">Cancel</Button></DialogClose>
               <Button onClick={handleCreateOrder}>Create</Button>
             </DialogFooter>
-          </DialogContent>
-        </Dialog>
+          </Dialog </Dialog>
       </div>
 
       {/* Filters */}
@@ -306,7 +302,7 @@ console.log(orders)
                   <div>
                     <div className="font-medium text-sm">{order.type}</div>
                     <div className="text-xs text-gray-400">
-                      {order.User.name || order.User.email}
+                      {order.User?.name || order.User?.email || "Unknown User"}
                     </div>
                     <div className="text-xs text-gray-400">
                       {order.depositFrom || order.withdrawMethod || order.bankName}
@@ -400,7 +396,7 @@ console.log(orders)
 
         <Card className="bg-gray-800 border-gray-700">
           <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space2">
               <CreditCard className="w-5 h-5 text-blue-400" />
               <div>
                 <div className="text-sm text-gray-400">Pending Orders</div>
