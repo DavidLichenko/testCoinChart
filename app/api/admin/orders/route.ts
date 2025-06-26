@@ -7,31 +7,33 @@ import { updateBalance } from "@/app/actions/updateBalance"
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await auth()
-    
+    const session = await auth();
     if (!session?.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     // Check if user is admin
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
       select: { role: true }
-    })
+    });
 
     if (!user || (user.role !== 'OWNER' && user.role !== 'CR_MANAGMENT' && user.role !== 'TEAMLEAD')) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
- const orders = await prisma.orders.findMany({
-  orderBy: { createdAt: "desc" }
-});
+    // Fetch all orders with all user details
+    const orders = await prisma.orders.findMany({
+      orderBy: { createdAt: "desc" },
+      include: {
+        User: true, // This will pull all fields from the User model for each order
+      }
+    });
 
-    return NextResponse.json(orders)
-
+    return NextResponse.json(orders);
   } catch (error) {
-    console.error("Error fetching orders:", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    console.error("Error fetching orders:", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
 
