@@ -106,6 +106,15 @@ export default function TradePage() {
       ? activeTrades.find((trade) => trade.ticker === selectedTicker.symbol)
       : undefined;
 
+  // Helper function to get real-time price from tickers array
+  const getRealTimePrice = (symbol: string): number | null => {
+    const tickerData = tickers.find((ticker) => ticker.symbol === symbol);
+    return tickerData?.bid ?? tickerData?.price ?? null;
+  };
+
+  // Get real-time price for selected ticker
+  const realTimePrice = selectedTicker ? getRealTimePrice(selectedTicker.symbol) : null;
+
   // Update live profit
   useEffect(() => {
     const totalProfit = activeTrades.reduce((acc, trade) => {
@@ -178,7 +187,7 @@ export default function TradePage() {
 
   const calculateMargin = () => {
     if (!selectedTicker) return "0.00"
-    const price = selectedTicker.bid || selectedTicker.price || 0
+    const price = realTimePrice || selectedTicker.bid || selectedTicker.price || 0
     const vol = Number.parseFloat(volume) || 0
     const lev = Number.parseFloat(leverage) || 1
     return ((price * vol) / lev).toFixed(2)
@@ -251,7 +260,7 @@ export default function TradePage() {
         volume: Number.parseFloat(volume),
         leverage: Number.parseInt(leverage),
         margin: margin,
-        openIn: selectedTicker.bid,
+        openIn: realTimePrice || selectedTicker.bid,
         takeProfit: takeProfitEnabled ? Number.parseFloat(takeProfit) : null,
         stopLoss: stopLossEnabled ? Number.parseFloat(stopLoss) : null,
         assetType: getCategoryForSymbol(selectedTicker.symbol) === "Crypto" ? "Crypto" : "IEX",
@@ -568,7 +577,7 @@ export default function TradePage() {
                           Place Order: {selectedTicker.symbol}
                         </CardTitle>
                         <div className="text-right">
-                          <p className="text-lg font-mono font-bold text-white">${selectedTicker.bid?.toFixed(2)}</p>
+                          <p className="text-lg font-mono font-bold text-white">${realTimePrice?.toFixed(2) ?? '0.00'}</p>
                         </div>
                       </CardHeader>
                       <CardContent className="space-y-4 p-4">
@@ -750,7 +759,7 @@ export default function TradePage() {
                       Place Order: {selectedTicker.symbol}
                     </CardTitle>
                     <div className="text-right">
-                      <p className="text-lg font-mono font-bold text-white">${selectedTicker.bid?.toFixed(2)}</p>
+                      <p className="text-lg font-mono font-bold text-white">${realTimePrice?.toFixed(2) ?? '0.00'}</p>
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-4 py-4 px-4">
