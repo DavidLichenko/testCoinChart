@@ -179,7 +179,7 @@ export default function OrdersManagement() {
             </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-[425px] bg-gray-900 border-gray-700">
-            <">
+            <div>
               <div className="space-y-2">
                 <Label>User</Label>
                 <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
@@ -243,7 +243,8 @@ export default function OrdersManagement() {
               <DialogClose asChild><Button type="button" variant="secondary">Cancel</Button></DialogClose>
               <Button onClick={handleCreateOrder}>Create</Button>
             </DialogFooter>
-          </Dialog </Dialog>
+            </DialogContent>
+          </Dialog>
       </div>
 
       {/* Filters */}
