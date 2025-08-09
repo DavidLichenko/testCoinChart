@@ -70,6 +70,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   useEffect(() => {
+    // --- Google Translate / DOM patch fix ---
+    if (typeof Node === "function" && Node.prototype) {
+      const originalRemoveChild = Node.prototype.removeChild
+      Node.prototype.removeChild = function (child) {
+        if (child?.parentNode !== this) {
+          console.warn("Prevented removeChild on non-child node", child, this)
+          return child
+        }
+        return originalRemoveChild.apply(this, arguments as any)
+      }
+
+      const originalInsertBefore = Node.prototype.insertBefore
+      Node.prototype.insertBefore = function (newNode, referenceNode) {
+        if (referenceNode && referenceNode.parentNode !== this) {
+          console.warn("Prevented insertBefore on node with different parent", referenceNode, this)
+          return newNode
+        }
+        return originalInsertBefore.apply(this, arguments as any)
+      }
+    }
+    // -----------------------------------------
+
     checkAuth()
   }, [])
 
@@ -97,9 +119,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   return (
       <AuthContext.Provider value={{ user, loading, logout, refreshUser }}>
-        <Header/>
+        <Header />
         {children}
-        <MobileFooter/>
+        <MobileFooter />
       </AuthContext.Provider>
   )
 }
