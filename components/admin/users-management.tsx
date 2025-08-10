@@ -73,6 +73,7 @@ export default function UsersManagement() {
   }
 
   const handleUpdateUser = async (userId: string, updates: Partial<User>) => {
+    console.log(updates)
     try {
       const response = await fetch(`/api/admin/users/${userId}`, {
         method: "PATCH",
@@ -330,8 +331,17 @@ export default function UsersManagement() {
               <SelectContent className="bg-gray-700 border-gray-600">
                 <SelectItem value="all">All Status</SelectItem>
                 <SelectItem value="NEW">New</SelectItem>
-                <SelectItem value="VERIFIED">Verified</SelectItem>
-                <SelectItem value="BLOCKED">Blocked</SelectItem>
+                <SelectItem value="WRONGNUMBER">Wrong Number</SelectItem>
+                <SelectItem value="WRONGINFO">Wrong Info</SelectItem>
+                <SelectItem value="CALLBACK">Call Back</SelectItem>
+                <SelectItem value="LOWPOTENTIONAL">Low potential</SelectItem>
+                <SelectItem value="HIGHPOTENTIONAL">High potential</SelectItem>
+                <SelectItem value="NOTINTERESTED">Not interested</SelectItem>
+                <SelectItem value="DEPOSIT">Deposit</SelectItem>
+                <SelectItem value="TRASH">Trash</SelectItem>
+                <SelectItem value="DROP">Drop</SelectItem>
+                <SelectItem value="RESIGN">Resign</SelectItem>
+                <SelectItem value="COMPLETED">Completed</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -481,8 +491,17 @@ export default function UsersManagement() {
                                 </SelectTrigger>
                                 <SelectContent className="bg-gray-700 border-gray-600">
                                   <SelectItem value="NEW">New</SelectItem>
-                                  <SelectItem value="VERIFIED">Verified</SelectItem>
-                                  <SelectItem value="BLOCKED">Blocked</SelectItem>
+                                  <SelectItem value="WRONGNUMBER">Wrong Number</SelectItem>
+                                  <SelectItem value="WRONGINFO">Wrong Info</SelectItem>
+                                  <SelectItem value="CALLBACK">Call Back</SelectItem>
+                                  <SelectItem value="LOWPOTENTIONAL">Low potential</SelectItem>
+                                  <SelectItem value="HIGHPOTENTIONAL">High potential</SelectItem>
+                                  <SelectItem value="NOTINTERESTED">Not interested</SelectItem>
+                                  <SelectItem value="DEPOSIT">Deposit</SelectItem>
+                                  <SelectItem value="TRASH">Trash</SelectItem>
+                                  <SelectItem value="DROP">Drop</SelectItem>
+                                  <SelectItem value="RESIGN">Resign</SelectItem>
+                                  <SelectItem value="COMPLETED">Completed</SelectItem>
                                 </SelectContent>
                               </Select>
                             </div>
