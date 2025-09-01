@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast"
 import { Copy, Check, Wallet, ArrowLeft, Loader2 } from "lucide-react"
 import { useBalance } from "@/hooks/useBalance";
 import QRCode from "react-qr-code";
+import { useI18n } from "@/components/i18n-provider"
 
 interface DepositModalProps {
   open: boolean
@@ -45,6 +46,7 @@ export function DepositModal({ open, onOpenChange }: DepositModalProps) {
   const [selectedToken, setSelectedToken] = useState<string>('')
   const [selectedAddress, setSelectedAddress] = useState<DepositAddress | null>(null)
   const { toast } = useToast()
+  const { t } = useI18n()
   
   useEffect(() => {
     if (open) {
@@ -63,10 +65,10 @@ export function DepositModal({ open, onOpenChange }: DepositModalProps) {
       if (response.ok) {
         setAddresses(await response.json())
       } else {
-        toast({ title: "Error", description: "Could not load deposit addresses.", variant: "destructive"})
+        toast({ title: t("error"), description: t("noDepositMethods"), variant: "destructive"})
       }
     } catch (error) {
-      toast({ title: "Error", description: "An unexpected error occurred.", variant: "destructive"})
+      toast({ title: t("error"), description: t("networkError"), variant: "destructive"})
     } finally {
       setLoading(false)
     }
@@ -75,7 +77,7 @@ export function DepositModal({ open, onOpenChange }: DepositModalProps) {
   const handleCopyToClipboard = (address: string) => {
     navigator.clipboard.writeText(address)
     setCopiedAddress(address)
-    toast({ title: "Copied!", description: `Address copied to clipboard.`})
+    toast({ title: t("copied"), description: t("addressCopied")})
     setTimeout(() => setCopiedAddress(null), 2000)
   }
   
@@ -94,9 +96,9 @@ export function DepositModal({ open, onOpenChange }: DepositModalProps) {
     if (step === 'token') {
       return (
         <div>
-          <Label className={'bottom-2 relative'}>Select Token</Label>
+          <Label className={'bottom-2 relative'}>{t("selectToken")}</Label>
           <Select onValueChange={(value) => { setSelectedToken(value); setStep('network'); }}>
-            <SelectTrigger><SelectValue placeholder="Choose a token..." /></SelectTrigger>
+            <SelectTrigger><SelectValue placeholder={t("chooseToken")} /></SelectTrigger>
             <SelectContent>
               {Object.keys(groupedAddresses).map(token => (
                 <SelectItem key={token} value={token}>{token}</SelectItem>
@@ -111,9 +113,9 @@ export function DepositModal({ open, onOpenChange }: DepositModalProps) {
       console.log(selectedNetworks)
       return (
         <div>
-          <Label className={'bottom-2 relative'}>Select Network</Label>
+          <Label className={'bottom-2 relative'}>{t("selectNetwork")}</Label>
           <Select  onValueChange={(value) => { setSelectedAddress(JSON.parse(value)); setStep('address'); }}>
-            <SelectTrigger><SelectValue placeholder="Choose a network..." />{selectedNetworks[0].network}</SelectTrigger>
+            <SelectTrigger><SelectValue placeholder={t("chooseNetwork")} />{selectedNetworks[0].network}</SelectTrigger>
             <SelectContent>
               {selectedNetworks.map(addr => (
                 <SelectItem key={addr.id} value={JSON.stringify(addr)}>{addr.network}</SelectItem>
@@ -128,8 +130,8 @@ export function DepositModal({ open, onOpenChange }: DepositModalProps) {
       return (
         <Card className="bg-gray-800 border-gray-700 text-center">
           <CardHeader>
-            <CardTitleUI>{selectedAddress.network} Deposit</CardTitleUI>
-            <CardDescription>Only send {selectedAddress.network} to this address.</CardDescription>
+            <CardTitleUI>{selectedAddress.network} {t("depositTitle")}</CardTitleUI>
+            <CardDescription>{t("onlySendToAddress").replace("{network}", selectedAddress.network)}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex justify-center p-2 bg-white rounded-lg">
@@ -143,10 +145,9 @@ export function DepositModal({ open, onOpenChange }: DepositModalProps) {
             </div>
             <div className="mt-4 p-2 bg-yellow-100 dark:bg-yellow-900/20 border border-yellow-300 dark:border-yellow-700 rounded-md">
               <p className="text-xs text-yellow-800 dark:text-yellow-200">
-                <strong>Important:</strong> Only send {selectedToken} via the {selectedAddress.network} network.
-                Sending assets via other networks may result in the loss of your funds.
+                <strong>{t("important")}</strong> {t("onlySendViaNetwork").replace("{token}", selectedToken).replace("{network}", selectedAddress.network)}
                 <br />
-                Average delivery time: 1-20 minutes.
+                {t("averageDeliveryTime")}
               </p>
             </div>
             <div className="relative">
@@ -172,8 +173,8 @@ export function DepositModal({ open, onOpenChange }: DepositModalProps) {
 
     return (
        <div className="text-center text-gray-400 h-48 flex flex-col justify-center items-center">
-         <p>No deposit methods available.</p>
-         <p className="text-xs mt-1">Please contact support for assistance.</p>
+         <p>{t("noDepositMethods")}</p>
+         <p className="text-xs mt-1">{t("contactSupport")}</p>
        </div>
     )
   }
@@ -190,10 +191,10 @@ export function DepositModal({ open, onOpenChange }: DepositModalProps) {
           <div className="flex items-center justify-between">
             <DialogTitle className="flex items-center gap-2">
               <Wallet className="w-5 h-5 text-blue-500" />
-              Deposit Funds
+              {t("depositFunds")}
             </DialogTitle>
             {step !== 'token' && (
-              <Button variant="ghost" size="sm" onClick={handleBack}><ArrowLeft className="w-4 h-4 mr-2" /> Back</Button>
+              <Button variant="ghost" size="sm" onClick={handleBack}><ArrowLeft className="w-4 h-4 mr-2" /> {t("back")}</Button>
             )}
           </div>
         </DialogHeader>

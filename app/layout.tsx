@@ -1,18 +1,27 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider"
 import {AuthProvider} from "@/components/auth-provider";
+import { I18nProvider } from "@/components/i18n-provider";
 import { cn } from "@/lib/utils";
 
-const geistSans = Geist({
+import localFont from "next/font/local";
+
+
+// Load Geist Sans (variable font)
+const geistSans = localFont({
+    src: "./../public/fonts/Geist[wght].woff2",
     variable: "--font-geist-sans",
-    subsets: ["latin"],
+    weight: "100 900", // full range for variable font
+    display: "swap",
 });
 
-const geistMono = Geist_Mono({
+// Load Geist Mono (variable font)
+const geistMono = localFont({
+    src: "./../public/fonts/GeistMono[wght].woff2",
     variable: "--font-geist-mono",
-    subsets: ["latin"],
+    weight: "100 900",
+    display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -46,7 +55,9 @@ export default function RootLayout({
     disableTransitionOnChange
 >
                 <AuthProvider>
-                    {children}
+                    <I18nProvider>
+                        {children}
+                    </I18nProvider>
                 </AuthProvider>
             </ThemeProvider>
             </body>

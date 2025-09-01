@@ -4,14 +4,16 @@ import Link from "next/link";
 import {Button} from "@/components/ui/button";
 import {BarChart3, FileText, Home, Newspaper} from "lucide-react";
 import { usePathname } from "next/navigation";
+import { useI18n } from "@/components/i18n-provider";
 
 const MobileFooter = () => {
     const pathname = usePathname();
+    const { t } = useI18n();
     const navItems = [
-        { href: "/dashboard", label: "Dashboard", icon: Home },
-        { href: "/transactions", label: "Transactions", icon: FileText },
-        { href: "/market", label: "Trade", icon: BarChart3 },
-        { href: "/news", label: "News", icon: Newspaper },
+        { href: "/dashboard", label: t("bottomDashboard"), icon: Home },
+        { href: "/transactions", label: t("bottomTransactions"), icon: FileText },
+        { href: "/market", label: t("bottomTrade"), icon: BarChart3 },
+        { href: "/news", label: t("bottomNews"), icon: Newspaper },
     ];
 
     return (

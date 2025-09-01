@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { useI18n } from "@/components/i18n-provider"
 
 interface RegisterFormProps {
   onSuccess?: () => void
@@ -26,6 +27,7 @@ export function RegisterForm({
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
+  const { t } = useI18n()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -33,7 +35,7 @@ export function RegisterForm({
     setError("")
 
     if (password !== confirmPassword) {
-      setError("Passwords do not match")
+      setError(t("passwordsDoNotMatch"))
       setLoading(false)
       return
     }
@@ -48,7 +50,7 @@ export function RegisterForm({
       const data = await response.json()
 
       if (!response.ok) {
-        setError(data.error || "Registration failed")
+        setError(data.error || t("registrationFailed"))
         setLoading(false)
         return
       }
@@ -56,7 +58,7 @@ export function RegisterForm({
       // Call onSuccess which in parent will switch to login
       onSuccess()
     } catch {
-      setError("Network error. Please try again.")
+      setError(t("networkErrorTryAgain"))
     } finally {
       setLoading(false)
     }
@@ -77,10 +79,10 @@ export function RegisterForm({
                 transition={{ delay: 0.2, duration: 0.3 }}
             >
               <CardTitle className="text-2xl font-bold text-white">
-                Create Account
+                {t("createAccount")}
               </CardTitle>
               <p className="text-gray-400 mt-2">
-                Join AragonTrade and start trading
+                {t("joinAragonTrade")}
               </p>
             </motion.div>
           </CardHeader>
@@ -104,7 +106,7 @@ export function RegisterForm({
                   className="space-y-2"
               >
                 <Label htmlFor="name" className="text-gray-300">
-                  Full Name
+                  {t("fullName")}
                 </Label>
                 <div className="relative">
                   <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
@@ -114,7 +116,7 @@ export function RegisterForm({
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       className="pl-10 bg-gray-700 border-gray-600 text-white"
-                      placeholder="Enter your full name"
+                      placeholder={t("enterFullName")}
                       required
                   />
                 </div>
@@ -128,7 +130,7 @@ export function RegisterForm({
                   className="space-y-2"
               >
                 <Label htmlFor="email" className="text-gray-300">
-                  Email
+                  {t("email")}
                 </Label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
@@ -138,7 +140,7 @@ export function RegisterForm({
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       className="pl-10 bg-gray-700 border-gray-600 text-white"
-                      placeholder="Enter your email"
+                      placeholder={t("enterEmail")}
                       required
                   />
                 </div>
@@ -152,7 +154,7 @@ export function RegisterForm({
                   className="space-y-2"
               >
                 <Label htmlFor="password" className="text-gray-300">
-                  Password
+                  {t("password")}
                 </Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
@@ -162,7 +164,7 @@ export function RegisterForm({
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       className="pl-10 pr-10 bg-gray-700 border-gray-600 text-white"
-                      placeholder="Create a password"
+                      placeholder={t("createPassword")}
                       required
                   />
                   <Button
@@ -185,7 +187,7 @@ export function RegisterForm({
                   className="space-y-2"
               >
                 <Label htmlFor="confirmPassword" className="text-gray-300">
-                  Confirm Password
+                  {t("confirmPassword")}
                 </Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
@@ -195,7 +197,7 @@ export function RegisterForm({
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       className="pl-10 pr-10 bg-gray-700 border-gray-600 text-white"
-                      placeholder="Confirm your password"
+                      placeholder={t("confirmYourPassword")}
                       required
                   />
                   <Button
@@ -221,7 +223,7 @@ export function RegisterForm({
                     disabled={loading}
                     className="w-full flex justify-center items-center gap-2"
                 >
-                  {loading ? "Registering..." : "Register"}
+                  {loading ? t("registering") : t("register")}
                   <ArrowRight size={20} />
                 </Button>
               </motion.div>
@@ -233,13 +235,13 @@ export function RegisterForm({
                   transition={{ delay: 0.8 }}
                   className="text-center text-gray-400 text-sm mt-2"
               >
-                Already have an account?{" "}
+                {t("alreadyHaveAccount")}{" "}
                 <button
                     type="button"
                     onClick={onSwitchToLogin}
                     className="text-indigo-400 hover:underline"
                 >
-                  Sign in
+                  {t("signIn")}
                 </button>
               </motion.div>
             </form>

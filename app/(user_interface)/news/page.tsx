@@ -16,6 +16,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
+import { useI18n } from "@/components/i18n-provider"
 
 interface NewsArticle {
   id: number
@@ -28,13 +29,6 @@ interface NewsArticle {
   summary: string
   url: string
 }
-
-const newsCategories = [
-  { value: "general", label: "General", icon: <Newspaper className="w-4 h-4 mr-2" /> },
-  { value: "forex", label: "Forex", icon: <DollarSign className="w-4 h-4 mr-2" /> },
-  { value: "crypto", label: "Crypto", icon: <Bitcoin className="w-4 h-4 mr-2" /> },
-  { value: "merger", label: "Mergers", icon: <Briefcase className="w-4 h-4 mr-2" /> },
-]
 
 const NewsCard = ({ article, onArticleSelect }: { article: NewsArticle, onArticleSelect: (article: NewsArticle) => void }) => (
   <motion.div
@@ -103,6 +97,14 @@ export default function NewsPage() {
   const [news, setNews] = useState<NewsArticle[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedArticle, setSelectedArticle] = useState<NewsArticle | null>(null);
+  const { t } = useI18n()
+
+  const newsCategories = [
+    { value: "general", label: t("general"), icon: <Newspaper className="w-4 h-4 mr-2" /> },
+    { value: "forex", label: t("forex"), icon: <DollarSign className="w-4 h-4 mr-2" /> },
+    { value: "crypto", label: t("crypto"), icon: <Bitcoin className="w-4 h-4 mr-2" /> },
+    { value: "merger", label: t("mergers"), icon: <Briefcase className="w-4 h-4 mr-2" /> },
+  ]
 
   useEffect(() => {
     const fetchNews = async () => {
@@ -126,8 +128,8 @@ export default function NewsPage() {
   return (
     <div className="container mx-auto p-4 md:p-6 lg:p-8">
       <motion.div initial={{ y: -20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.1 }}>
-        <h1 className="text-3xl font-bold mb-2">Market News</h1>
-        <p className="text-gray-400 mb-6">Stay up-to-date with the latest headlines across the financial world.</p>
+        <h1 className="text-3xl font-bold mb-2">{t("marketNews")}</h1>
+        <p className="text-gray-400 mb-6">{t("stayUpToDate")}</p>
       </motion.div>
 
       <Tabs value={activeCategory} onValueChange={setActiveCategory} className="w-full">
@@ -147,7 +149,7 @@ export default function NewsPage() {
         </div>
         {!loading && news.length === 0 && (
           <div className="text-center py-20 col-span-full">
-            <p className="text-gray-500">No news articles found for this category.</p>
+            <p className="text-gray-500">{t("noNewsFound")}</p>
           </div>
         )}
       </Tabs>
@@ -177,7 +179,7 @@ export default function NewsPage() {
               <p className="leading-relaxed">{selectedArticle.summary}</p>
             </div>
              <Link href={selectedArticle.url} target="_blank" rel="noopener noreferrer" className="text-purple-400 hover:underline">
-                Read full story
+                {t("readFullStory")}
               </Link>
           </DialogContent>
         </Dialog>

@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { useI18n } from "@/components/i18n-provider"
 
 interface LoginFormProps {
   onSuccess: () => void
@@ -22,6 +23,7 @@ export function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormProps) {
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
+  const { t } = useI18n()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -38,13 +40,13 @@ export function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormProps) {
       const data = await response.json()
 
       if (!response.ok) {
-        setError(data.error || "Login failed")
+        setError(data.error || t("loginFailed"))
         return
       }
 
       onSuccess()
     } catch (error) {
-      setError("Network error. Please try again.")
+      setError(t("networkErrorTryAgain"))
     } finally {
       setLoading(false)
     }
@@ -55,8 +57,8 @@ export function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormProps) {
       <Card className="w-full max-w-md bg-gray-900 border-gray-700">
         <CardHeader className="text-center">
           <motion.div initial={{ scale: 0.8 }} animate={{ scale: 1 }} transition={{ delay: 0.2, duration: 0.3 }}>
-            <CardTitle className="text-2xl font-bold text-white">Welcome Back</CardTitle>
-            <p className="text-gray-400 mt-2">Sign in to your AragonTrade account</p>
+            <CardTitle className="text-2xl font-bold text-white">{t("welcomeBack")}</CardTitle>
+            <p className="text-gray-400 mt-2">{t("signInToAccount")}</p>
           </motion.div>
         </CardHeader>
         <CardContent>
@@ -78,7 +80,7 @@ export function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormProps) {
               className="space-y-2"
             >
               <Label htmlFor="email" className="text-gray-300">
-                Email
+                {t("email")}
               </Label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
@@ -88,7 +90,7 @@ export function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormProps) {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="pl-10 bg-card border-gray-600 text-white"
-                  placeholder="Enter your email"
+                  placeholder={t("enterEmail")}
                   required
                 />
               </div>
@@ -101,7 +103,7 @@ export function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormProps) {
               className="space-y-2"
             >
               <Label htmlFor="password" className="text-gray-300">
-                Password
+                {t("password")}
               </Label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
@@ -111,7 +113,7 @@ export function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormProps) {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="pl-10 pr-10 bg-card border-card text-white"
-                  placeholder="Enter your password"
+                  placeholder={t("enterPassword")}
                   required
                 />
                 <Button
@@ -131,11 +133,11 @@ export function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormProps) {
                 {loading ? (
                   <div className="flex items-center">
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    Signing in...
+                    {t("signingIn")}
                   </div>
                 ) : (
                   <div className="flex items-center justify-center">
-                    Sign In
+                    {t("signIn")}
                     <ArrowRight className="w-4 h-4 ml-2" />
                   </div>
                 )}
@@ -148,16 +150,16 @@ export function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormProps) {
               transition={{ delay: 0.6 }}
               className="text-center"
             >
-              <p className="text-gray-400 text-sm">
-                {"Don't have an account?"} {" "}
+              <div className="text-gray-400 text-sm">
+                {t("dontHaveAccount")} {" "}
                 <button
                   type="button"
                   onClick={onSwitchToRegister}
                   className="text-purple-400 hover:text-purple-300 font-medium"
                 >
-                  Sign up
+                  {t("signUp")}
                 </button>
-              </p>
+              </div>
             </motion.div>
           </form>
         </CardContent>

@@ -22,10 +22,12 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { usePathname } from "next/navigation"
 import { ModeToggle } from "./theme-switcher"
+import { useI18n } from "@/components/i18n-provider"
 
 const Header = () => {
     const { balance, liveProfit } = useBalance();
     const { user, logout } = useAuth();
+    const { t } = useI18n()
     const [depositModalOpen, setDepositModalOpen] = useState(false);
     const isMobile = useIsMobile();
     const pathname = usePathname()
@@ -48,10 +50,10 @@ const Header = () => {
                 </Link>
                 <div className="flex items-center gap-2">
                     <div className="text-right">
-                        <div className="text-xs text-muted-foreground">Equity</div>
+                        <div className="text-xs text-muted-foreground">{t("equity")}</div>
                         <div className="text-sm font-bold">${totalEquity?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) ?? "0.00"}</div>
                     </div>
-                    <Button onClick={() => setDepositModalOpen(true)} size="sm">Deposit</Button>
+                    <Button onClick={() => setDepositModalOpen(true)} size="sm">{t("deposit")}</Button>
                     <ChatButton />
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -61,10 +63,10 @@ const Header = () => {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className={'bg-gray-900 '}>
-                        <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                        <DropdownMenuLabel>{t("myAccount")}</DropdownMenuLabel>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem className={'focus:bg-gray-700'} asChild><Link href="/profile">Profile</Link></DropdownMenuItem>
-                        <DropdownMenuItem className={'focus:bg-gray-700'} onClick={logout}>Logout</DropdownMenuItem>
+                        <DropdownMenuItem className={'focus:bg-gray-700'} asChild><Link href="/profile">{t("profileLabel")}</Link></DropdownMenuItem>
+                        <DropdownMenuItem className={'focus:bg-gray-700'} onClick={logout}>{t("logoutLabel")}</DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                     <DepositModal open={depositModalOpen} onOpenChange={setDepositModalOpen} />
@@ -90,12 +92,12 @@ const Header = () => {
 
                         <div className="hidden md:flex items-center gap-4">
                              <div className="text-right">
-                               <p className="text-xs text-gray-400">Total Equity</p>
+                               <p className="text-xs text-gray-400">{t("totalEquity")}</p>
                                <p className="text-lg font-bold text-white">${totalEquity?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) ?? "0.00"}</p>
                              </div>
                              <Button className="bg-green-600 hover:bg-green-700" onClick={() => setDepositModalOpen(true)}>
                                  <Plus className="w-4 h-4 mr-2" />
-                                 Deposit
+                                 {t("deposit")}
                              </Button>
                              <ChatButton />
                              <DropdownMenu>
@@ -106,10 +108,10 @@ const Header = () => {
                                   </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent className={'bg-gray-900 '} align="end">
-                                  <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                                  <DropdownMenuLabel>{t("myAccount")}</DropdownMenuLabel>
                                   <DropdownMenuSeparator />
-                                  <DropdownMenuItem  className={'focus:bg-gray-700'} asChild><Link href="/profile">Profile</Link></DropdownMenuItem>
-                                  <DropdownMenuItem className={'focus:bg-gray-700'} onClick={logout}>Logout</DropdownMenuItem>
+                                  <DropdownMenuItem  className={'focus:bg-gray-700'} asChild><Link href="/profile">{t("profileLabel")}</Link></DropdownMenuItem>
+                                  <DropdownMenuItem className={'focus:bg-gray-700'} onClick={logout}>{t("logoutLabel")}</DropdownMenuItem>
                                 </DropdownMenuContent>
                               </DropdownMenu>
                         </div>

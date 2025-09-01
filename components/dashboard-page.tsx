@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast"
 import Link from "next/link"
 import { updateBalance } from "@/app/actions/updateBalance"
 import { useTickers } from "@/hooks/market-data"
+import { useI18n } from "@/components/i18n-provider"
 
 interface UserStats {
   totalBalance: number
@@ -56,6 +57,7 @@ interface Order {
 export default function DashboardPage() {
   const { user, logout } = useAuth()
   const { toast } = useToast()
+  const { t } = useI18n()
   const [userStats, setUserStats] = useState<UserStats | null>(null)
   const [activeTrades, setActiveTrades] = useState<ActiveTrade[]>([])
   const [recentOrders, setRecentOrders] = useState<Order[]>([])
@@ -234,7 +236,7 @@ export default function DashboardPage() {
       <div className="min-h-screen bg-gray-950 text-white flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-500 mx-auto"></div>
-          <p className="mt-4 text-gray-400">Loading dashboard...</p>
+          <p className="mt-4 text-gray-400">{t("loadingDashboard")}</p>
         </div>
       </div>
     )
@@ -262,20 +264,20 @@ export default function DashboardPage() {
         >
           <Card className="bg-gray-800 border-gray-700">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Balance</CardTitle>
+              <CardTitle className="text-sm font-medium">{t("totalBalance")}</CardTitle>
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent className="pb-3">
               <div className="text-xl lg:text-2xl font-bold">${userStats?.totalBalance.toLocaleString() || "0"}</div>
               <p className="text-xs text-muted-foreground">
-                {userStats?.canWithdraw ? "Available for withdrawal" : "Withdrawal restricted"}
+                {userStats?.canWithdraw ? t("withdrawalStatusAvailable") : t("withdrawalStatusRestricted")}
               </p>
             </CardContent>
           </Card>
 
           <Card className="bg-gray-800 border-gray-700">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total P&L</CardTitle>
+              <CardTitle className="text-sm font-medium">{t("totalPnL")}</CardTitle>
               <TrendingUp className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent className="pb-3">
@@ -286,25 +288,25 @@ export default function DashboardPage() {
               </div>
               <p className="text-xs text-muted-foreground">
                 {(userStats?.totalPnLPercent || 0) >= 0 ? "+" : ""}
-                {userStats?.totalPnLPercent.toFixed(2) || "0.00"}% total
+                {userStats?.totalPnLPercent.toFixed(2) || "0.00"}% {t("total")}
               </p>
             </CardContent>
           </Card>
 
           <Card className="bg-gray-800 border-gray-700">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Active Trades</CardTitle>
+              <CardTitle className="text-sm font-medium">{t("activeTrades")}</CardTitle>
               <Activity className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent className="pb-3">
               <div className="text-xl lg:text-2xl font-bold">{userStats?.activeTradesCount || 0}</div>
-              <p className="text-xs text-muted-foreground">{activeTrades.length} positions open</p>
+              <p className="text-xs text-muted-foreground">{activeTrades.length} {t("positionsOpen")}</p>
             </CardContent>
           </Card>
 
           <Card className="bg-gray-800 border-gray-700">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Win Rate</CardTitle>
+              <CardTitle className="text-sm font-medium">{t("winRate")}</CardTitle>
               <Target className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent className="pb-3">
@@ -319,18 +321,18 @@ export default function DashboardPage() {
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center text-lg">
               <Users className="w-5 h-5 mr-2" />
-              Account Status
+              {t("accountStatus")}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
               <div className="flex items-center justify-between p-3 bg-gray-700 rounded-lg">
                 <div>
-                  <div className="font-medium text-sm">Verification</div>
-                  <div className="text-xs text-gray-400">Identity verification</div>
+                  <div className="font-medium text-sm">{t("verificationShort")}</div>
+                  <div className="text-xs text-gray-400">{t("identityVerificationShort")}</div>
                 </div>
                 <Badge variant={userStats?.isVerified ? "default" : "destructive"} className="text-xs">
-                  {userStats?.isVerified ? "Verified" : "Not Verified"}
+                  {userStats?.isVerified ? t("verified") : t("notVerified")}
                 </Badge>
               </div>
 
@@ -356,8 +358,8 @@ export default function DashboardPage() {
 
               <div className="flex items-center justify-between p-3 bg-gray-700 rounded-lg">
                 <div>
-                  <div className="font-medium text-sm">Member Since</div>
-                  <div className="text-xs text-gray-400">Account creation</div>
+                  <div className="font-medium text-sm">{t("memberSince")}</div>
+                  <div className="text-xs text-gray-400">{t("accountCreation")}</div>
                 </div>
                 <div className="flex items-center text-xs">
                   <Calendar className="w-3 h-3 mr-1" />
@@ -374,14 +376,14 @@ export default function DashboardPage() {
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center text-lg">
                 <Activity className="w-5 h-5 mr-2" />
-                Recent Activity
+                {t("recentActivity")}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
                 {/* Recent Orders */}
                 <div>
-                  <h4 className="font-medium mb-2 text-sm">Recent Orders</h4>
+                  <h4 className="font-medium mb-2 text-sm">{t("recentOrders")}</h4>
                   {recentOrders.length > 0 ? (
                     recentOrders.slice(0, 3).map((order) => (
                       <div key={order.id} className="flex items-center justify-between p-2 bg-gray-700 rounded-lg mb-2">
@@ -407,13 +409,13 @@ export default function DashboardPage() {
                       </div>
                     ))
                   ) : (
-                    <div className="text-center text-gray-400 py-3 text-sm">No recent orders</div>
+                    <div className="text-center text-gray-400 py-3 text-sm">{t("noRecentOrders")}</div>
                   )}
                 </div>
 
                 {/* Active Positions */}
                 <div>
-                  <h4 className="font-medium mb-2 text-sm">Active Positions</h4>
+                  <h4 className="font-medium mb-2 text-sm">{t("activePositions")}</h4>
                   {activeTrades.length > 0 ? (
                     activeTrades.slice(0, 3).map((trade) => {
                       const currentPrice = Number(tickers.find((d) => d.symbol === trade.ticker)?.bid) || trade.openIn
@@ -462,7 +464,7 @@ export default function DashboardPage() {
                       )
                     })
                   ) : (
-                    <div className="text-center text-gray-400 py-3 text-sm">No active trades</div>
+                    <div className="text-center text-gray-400 py-3 text-sm">{t("noActiveTrades")}</div>
                   )}
                 </div>
               </div>
@@ -474,28 +476,28 @@ export default function DashboardPage() {
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center text-lg">
                 <Target className="w-5 h-5 mr-2" />
-                Quick Actions
+                {t("quickActions")}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               <Link href="/market">
                 <Button className="w-full bg-purple-600 hover:bg-purple-700 h-10">
                   <Activity className="w-4 h-4 mr-2" />
-                  Start Trading
+                  {t("startTrading")}
                 </Button>
               </Link>
 
               <Link href="/transactions">
                 <Button variant="outline" className="w-full h-10">
                   <FileText className="w-4 h-4 mr-2" />
-                  View Transactions
+                  {t("viewTransactions")}
                 </Button>
               </Link>
 
               <Link href="/profile">
                 <Button variant="outline" className="w-full h-10">
                   <Shield className="w-4 h-4 mr-2" />
-                  Complete Verification
+                  {t("completeVerification")}
                 </Button>
               </Link>
 
@@ -503,7 +505,7 @@ export default function DashboardPage() {
                 <Link href="/profile">
                   <Button variant="outline" className="w-full h-10">
                     <CreditCard className="w-4 h-4 mr-2" />
-                    Withdraw Funds
+                    {t("withdrawFunds")}
                   </Button>
                 </Link>
               )}

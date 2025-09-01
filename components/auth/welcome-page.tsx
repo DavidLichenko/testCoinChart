@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { LoginForm } from "./login-form"
 import { useRouter } from "next/navigation"
 import { RegisterForm } from "./register-form"
+import { useI18n } from "@/components/i18n-provider"
 
 // Define PriceData type
 interface PriceData {
@@ -25,37 +26,38 @@ export default function WelcomePage({ onAuthSuccess }: { onAuthSuccess: () => vo
   const router = useRouter()
   const [prices, setPrices] = useState<PriceData[]>([]);
   const [loading, setLoading] = useState(true);
+  const { t } = useI18n();
   
   const features = [
     {
       icon: BarChart3,
-      title: "Advanced Trading",
-      description: "Professional trading tools with real-time charts and analytics",
+      title: t("advancedTrading"),
+      description: t("advancedTradingDesc"),
     },
     {
       icon: Shield,
-      title: "Secure Platform",
-      description: "Bank-level security with multi-factor authentication",
+      title: t("securePlatform"),
+      description: t("securePlatformDesc"),
     },
     {
       icon: Zap,
-      title: "Lightning Fast",
-      description: "Execute trades in milliseconds with our optimized infrastructure",
+      title: t("lightningFast"),
+      description: t("lightningFastDesc"),
     },
     {
       icon: TrendingUp,
-      title: "Market Analysis",
-      description: "AI-powered insights and market predictions",
+      title: t("marketAnalysis"),
+      description: t("marketAnalysisDesc"),
     },
     {
       icon: Users,
-      title: "Expert Support",
-      description: "24/7 customer support from trading professionals",
+      title: t("expertSupport"),
+      description: t("expertSupportDesc"),
     },
     {
       icon: Star,
-      title: "Premium Features",
-      description: "Access to exclusive trading strategies and signals",
+      title: t("premiumFeatures"),
+      description: t("premiumFeaturesDesc"),
     },
   ]
 
@@ -162,10 +164,10 @@ export default function WelcomePage({ onAuthSuccess }: { onAuthSuccess: () => vo
   }, []); // Only run once on component mount
 
   const stats = [
-    { label: "Active Traders", value: "50K+" },
-    { label: "Daily Volume", value: "$2.5B" },
-    { label: "Success Rate", value: "94%" },
-    { label: "Countries", value: "150+" },
+    { label: t("activeTraders"), value: "50K+" },
+    { label: t("dailyVolume"), value: "$2.5B" },
+    { label: t("successRate"), value: "94%" },
+    { label: t("countries"), value: "150+" },
   ]
 
   const handleRegisterSuccess = () => {
@@ -228,13 +230,13 @@ export default function WelcomePage({ onAuthSuccess }: { onAuthSuccess: () => vo
                 onClick={() => setShowLogin(true)}
                 className="border-purple-500/50 text-purple-300 hover:bg-purple-500/10"
               >
-                Login
+                {t("signIn")}
               </Button>
               <Button
                 onClick={() => setShowRegister(true)}
                 className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
               >
-                Get Started
+                {t("signUp")}
               </Button>
             </div>
           </motion.header>
@@ -249,17 +251,16 @@ export default function WelcomePage({ onAuthSuccess }: { onAuthSuccess: () => vo
             >
               <div className="space-y-6">
                 <Badge className="bg-purple-500/20 text-purple-300 border-purple-500/30">
-                  🚀 Next-Gen Trading Platform
+                  {t("nextGenTradingPlatform")}
                 </Badge>
                 <h1 className="text-4xl lg:text-6xl font-bold leading-tight">
-                  Trade Smarter,{" "}
+                  {t("tradeSmarter")}{" "}
                   <span className="bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
-                    Not Harder
+                    {t("notHarder")}
                   </span>
                 </h1>
                 <p className="text-xl text-gray-300 leading-relaxed">
-                  Join thousands of traders using our advanced platform to maximize profits with AI-powered insights,
-                  real-time analytics, and professional-grade tools.
+                  {t("joinThousandsDescription")}
                 </p>
               </div>
 
@@ -269,7 +270,7 @@ export default function WelcomePage({ onAuthSuccess }: { onAuthSuccess: () => vo
                   onClick={() => setShowRegister(true)}
                   className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-lg px-8 py-6"
                 >
-                  Start Trading Now
+                  {t("startTradingNow")}
                   <ArrowRight className="ml-2 w-5 h-5" />
                 </Button>
                 <Button
@@ -278,7 +279,7 @@ export default function WelcomePage({ onAuthSuccess }: { onAuthSuccess: () => vo
                   onClick={() => setShowLogin(true)}
                   className="border-purple-500/50 text-purple-300 hover:bg-purple-500/10 text-lg px-8 py-6"
                 >
-                  Watch Demo
+                  {t("watchDemo")}
                 </Button>
               </div>
 
@@ -309,8 +310,8 @@ export default function WelcomePage({ onAuthSuccess }: { onAuthSuccess: () => vo
               <Card className="bg-gray-900/50 border-purple-500/30 backdrop-blur-xl p-6 h-fit">
                 <CardContent className="space-y-6 p-0">
                   <div className="text-center">
-                    <h3 className="text-xl font-semibold mb-2">Live Trading Stats</h3>
-                    <p className="text-gray-400 text-sm">Real-time market data</p>
+                    <h3 className="text-xl font-semibold mb-2">{t("liveTradingStats")}</h3>
+                    <p className="text-gray-400 text-sm">{t("realTimeMarketData")}</p>
                   </div>
 
                   <div className="space-y-4">
@@ -355,7 +356,7 @@ export default function WelcomePage({ onAuthSuccess }: { onAuthSuccess: () => vo
                       onClick={() => setShowRegister(true)}
                       className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
                     >
-                      Join Live Trading
+                      {t("joinLiveTrading")}
                     </Button>
                   </div>
                 </CardContent>
@@ -376,14 +377,13 @@ export default function WelcomePage({ onAuthSuccess }: { onAuthSuccess: () => vo
             className="text-center mb-16"
           >
             <h2 className="text-3xl lg:text-4xl font-bold mb-4">
-              Why Choose{" "}
+              {t("whyChoose")}{" "}
               <span className="bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
-                AragonTrade
+                {t("aragonTrade")}
               </span>
             </h2>
             <p className="text-xl text-gray-300 max-w-2xl mx-auto">
-              Experience the future of trading with our cutting-edge platform designed for both beginners and
-              professionals.
+              {t("experienceFutureDescription")}
             </p>
           </motion.div>
 
@@ -425,13 +425,13 @@ export default function WelcomePage({ onAuthSuccess }: { onAuthSuccess: () => vo
             className="max-w-3xl mx-auto space-y-8"
           >
             <h2 className="text-3xl lg:text-4xl font-bold">
-              Ready to Start Your{" "}
+              {t("readyToStart")}{" "}
               <span className="bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
-                Trading Journey?
+                {t("tradingJourney")}
               </span>
             </h2>
             <p className="text-xl text-gray-300">
-              Join thousands of successful traders and start building your financial future today.
+              {t("joinThousandsSuccessful")}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
@@ -439,7 +439,7 @@ export default function WelcomePage({ onAuthSuccess }: { onAuthSuccess: () => vo
                 onClick={() => setShowRegister(true)}
                 className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-lg px-8 py-6"
               >
-                Create Free Account
+                {t("createFreeAccount")}
                 <ArrowRight className="ml-2 w-5 h-5" />
               </Button>
               <Button
@@ -448,7 +448,7 @@ export default function WelcomePage({ onAuthSuccess }: { onAuthSuccess: () => vo
                 onClick={() => setShowLogin(true)}
                 className="border-purple-500/50 text-purple-300 hover:bg-purple-500/10 text-lg px-8 py-6"
               >
-                Sign In
+                {t("signIn")}
               </Button>
             </div>
           </motion.div>
@@ -460,7 +460,7 @@ export default function WelcomePage({ onAuthSuccess }: { onAuthSuccess: () => vo
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
             <div className="text-gray-400 text-sm">
-              © 2024 AragonTrade. All rights reserved.
+              {t("allRightsReserved")}
             </div>
             <div className="flex space-x-6">
               <a
@@ -469,7 +469,7 @@ export default function WelcomePage({ onAuthSuccess }: { onAuthSuccess: () => vo
                 rel="noopener noreferrer"
                 className="text-gray-400 hover:text-purple-400 transition-colors duration-200 text-sm"
               >
-                Terms of Conditions
+                {t("termsOfConditions")}
               </a>
               <a
                 href="/AragonTrade_Privacy_Policy.pdf"
@@ -477,7 +477,7 @@ export default function WelcomePage({ onAuthSuccess }: { onAuthSuccess: () => vo
                 rel="noopener noreferrer"
                 className="text-gray-400 hover:text-purple-400 transition-colors duration-200 text-sm"
               >
-                Privacy Policy
+                {t("privacyPolicy")}
               </a>
             </div>
           </div>

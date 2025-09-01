@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="fd28fafe-204c-4ae6-8105-3dd8baaf979d" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/app/(user_interface)/news/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(user_interface)/news/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/api/user/profile/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/app/api/user/profile/route.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/layout.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/auth/login-form.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/auth/login-form.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/auth/register-form.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/auth/register-form.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/auth/welcome-page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/auth/welcome-page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/dashboard-page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/dashboard-page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/deposit-modal.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/deposit-modal.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/header.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/header.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/mobile-footer.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/mobile-footer.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/nav-item.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/nav-item.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/profile-page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/profile-page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/trade-page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/trade-page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/trading-panel.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/trading-panel.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/transactions-page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/transactions-page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="master" />
+      </map>
+    </option>
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;DavidLichenko&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/DavidLichenko/testCoinChart&quot;,
+    &quot;accountId&quot;: &quot;b4535fca-92db-4b90-af83-711722d81766&quot;
+  }
+}</component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 3
+}</component>
+  <component name="ProjectId" id="31vcHKtt3rHSv0Xdr4sCgbmchAv" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "git-widget-placeholder": "master2",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "settings.editor.selected.configurable": "project.propVCSSupport.DirectoryMappings",
+    "ts.external.directory.path": "D:\\sites\\aragon-trade\\node_modules\\typescript\\lib",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-js-predefined-1d06a55b98c1-0b3e54e931b4-JavaScript-WS-241.18034.50" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="fd28fafe-204c-4ae6-8105-3dd8baaf979d" name="Changes" comment="" />
+      <created>1756407897977</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1756407897977</updated>
+      <workItem from="1756407899016" duration="5264000" />
+      <workItem from="1756640957729" duration="42000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+</project>

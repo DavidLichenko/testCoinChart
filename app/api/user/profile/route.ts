@@ -24,7 +24,7 @@ export async function GET(request: Request) {
       email: user.email,
       image: user.image,
       canWithdraw: user.can_withdraw,
-      isVerified: user.isVerif,
+      isVerif: user.isVerif,
       totalBalance: user.TotalBalance || 0,
       usdBalance: user.balance?.usd || 0,
       blocked: user.blocked,
@@ -49,11 +49,7 @@ export async function PUT(request: Request) {
 
     const updatedUser = await prisma.user.update({
       where: { id: userId },
-      data: {
-        name,
-        email,
-        image,
-      },
+      data: { name, email, image },
     })
 
     return NextResponse.json(updatedUser)

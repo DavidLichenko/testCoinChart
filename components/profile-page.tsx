@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react"
 import { motion } from "framer-motion"
 import { useAuth } from "@/components/auth-provider"
+import { useI18n } from "@/components/i18n-provider"
 import {User, Shield, CreditCard, FileText, Settings, Camera, LogOut, Upload, Check, BadgeCheck, XCircle, Clock} from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -75,6 +76,7 @@ export default function ProfilePage() {
   const { user, logout } = useAuth()
   const { balance, liveProfit } = useBalance();
   const { toast } = useToast()
+  const { t, lang, setLang } = useI18n()
   const [activeTab, setActiveTab] = useState("profile")
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null)
   const [transactions, setTransactions] = useState<Order[]>([])
@@ -90,6 +92,7 @@ export default function ProfilePage() {
   // Form states
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
+  const [selectedLanguage, setSelectedLanguage] = useState<string>(lang)
 
   // Upload states
   const [frontIdFile, setFrontIdFile] = useState<File | null>(null);
@@ -102,6 +105,14 @@ export default function ProfilePage() {
   const [verificationAddress, setVerificationAddress] = useState("");
   const [verificationCity, setVerificationCity] = useState("");
   const [verificationPostalCode, setVerificationPostalCode] = useState("");
+
+  // Password states
+  const [currentPassword, setCurrentPassword] = useState("")
+  const [newPassword, setNewPassword] = useState("")
+
+  useEffect(() => {
+    setSelectedLanguage(lang)
+  }, [lang])
 
   useEffect(() => {
     const fetchProfileData = async () => {
@@ -150,11 +161,32 @@ export default function ProfilePage() {
         toast({ title: "✅ Success", description: "Your profile has been updated." })
         const updatedProfile = await response.json()
         setUserProfile((prev) => (prev ? { ...prev, ...updatedProfile } : null))
+        if (selectedLanguage) setLang(selectedLanguage)
       } else {
         throw new Error("Failed to update profile")
       }
     } catch (error) {
       toast({ title: "❌ Error", description: "Could not update your profile.", variant: "destructive" })
+    }
+  }
+
+  const handleChangePassword = async () => {
+    try {
+      const res = await fetch("/api/user/password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ currentPassword, newPassword }),
+      })
+      if (res.ok) {
+        toast({ title: "✅ Success", description: "Password updated." })
+        setCurrentPassword("")
+        setNewPassword("")
+      } else {
+        const err = await res.json().catch(() => ({}))
+        toast({ title: "❌ Error", description: err.error || "Failed to update password.", variant: "destructive" })
+      }
+    } catch (e) {
+      toast({ title: "❌ Error", description: "Network error.", variant: "destructive" })
     }
   }
 
@@ -278,33 +310,66 @@ export default function ProfilePage() {
     <div className="container mx-auto p-4 md:p-6 lg:p-8">
         <Tabs defaultValue="profile" className="w-full">
             <TabsList className="grid w-full grid-cols-2 h-full gap-2 lg:grid-cols-4 bg-gray-800">
-                <TabsTrigger value="profile"><User className="w-4 h-4 mr-2" />Profile</TabsTrigger>
-                <TabsTrigger value="verification"><Shield className="w-4 h-4 mr-2" />Verification</TabsTrigger>
-                <TabsTrigger value="withdraw"><CreditCard className="w-4 h-4 mr-2" />Withdraw</TabsTrigger>
-                <TabsTrigger value="history"><FileText className="w-4 h-4 mr-2" />History</TabsTrigger>
+                <TabsTrigger value="profile"><User className="w-4 h-4 mr-2" />{t("profile")}</TabsTrigger>
+                <TabsTrigger value="verification"><Shield className="w-4 h-4 mr-2" />{t("verification")}</TabsTrigger>
+                <TabsTrigger value="withdraw"><CreditCard className="w-4 h-4 mr-2" />{t("withdraw")}</TabsTrigger>
+                <TabsTrigger value="history"><FileText className="w-4 h-4 mr-2" />{t("history")}</TabsTrigger>
             </TabsList>
 
             <TabsContent value="profile" className="mt-6">
                 <Card className={'bg-gray-800'}>
                     <CardHeader>
-                        <CardTitle>Account Details</CardTitle>
+                        <CardTitle>{t("accountDetails")}</CardTitle>
                     </CardHeader>
-                    <CardContent className="space-y-4">
-                        <div className="flex flex-col items-start justify-start lg:flex-row gap-4 lg:items-center lg:justify-normal space-x-4">
-                            <div className="w-16 h-16 rounded-full bg-gray-700 flex items-center justify-center">
-                                <User className="w-8 h-8 text-gray-400" />
+                    <CardContent className="space-y-6">
+                        <div className="flex flex-col items-start justify-start lg:flex-row gap-6 lg:items-center lg:justify-normal">
+                            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center shadow-lg">
+                                <User className="w-8 h-8 text-white" />
                             </div>
                             <div>
                                 <h3 className="text-xl font-bold">{userProfile?.name || "User"}</h3>
                                 <p className="text-gray-400">{userProfile?.email}</p>
+                                <div className="mt-2"><VerificationStatusBadge status={userProfile?.verification?.status} /></div>
                             </div>
-                             <VerificationStatusBadge status={userProfile?.verification?.status} />
                         </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="name">Name</Label>
-                            <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
+                        <div className="grid md:grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="name">{t("name")}</Label>
+                                <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="language">{t("language")}</Label>
+                                <Select value={selectedLanguage} onValueChange={(v) => setSelectedLanguage(v)}>
+                                    <SelectTrigger>
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="en">{t("english")}</SelectItem>
+                                        <SelectItem value="es">{t("spanish")}</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
                         </div>
-                        <Button onClick={handleUpdateProfile}>Update Profile</Button>
+                        <div className="flex gap-3">
+                            <Button onClick={handleUpdateProfile}>{t("updateProfile")}</Button>
+                        </div>
+
+                        <div className="mt-6 pt-6 border-t border-gray-700">
+                            <h4 className="text-lg font-semibold mb-4 flex items-center gap-2"><Shield className="w-4 h-4" /> {t("changePassword")}</h4>
+                            <div className="grid md:grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="current-password">{t("currentPassword")}</Label>
+                                    <Input id="current-password" type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="new-password">{t("newPassword")}</Label>
+                                    <Input id="new-password" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} />
+                                </div>
+                            </div>
+                            <div className="mt-3">
+                                <Button variant="secondary" onClick={handleChangePassword}>{t("savePassword")}</Button>
+                            </div>
+                        </div>
                     </CardContent>
                 </Card>
             </TabsContent>
@@ -312,22 +377,22 @@ export default function ProfilePage() {
             <TabsContent value="verification" className="mt-6">
                 <Card  className={'bg-gray-800'}>
                     <CardHeader>
-                        <CardTitle>Identity Verification</CardTitle>
+                        <CardTitle>{t("identityVerification")}</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-6">
-                        <p className="text-gray-400 flex flex-col gap-2">Upload a government-issued ID to verify your account. Your current status is: <VerificationStatusBadge status={userProfile?.verification?.status} /></p>
+                        <p className="text-gray-400 flex flex-col gap-2">{t("uploadGovId")} <VerificationStatusBadge status={userProfile?.verification?.status} /></p>
                         
                         <div className="grid md:grid-cols-2 gap-6">
                             {/* Front ID */}
                             <div className="space-y-2">
-                                <Label>Front of ID</Label>
+                                <Label>{t("frontId")}</Label>
                                 <div className="w-full h-48 border-2 border-dashed border-gray-600 rounded-lg flex items-center justify-center bg-gray-900 relative">
                                     {frontIdPreview ? (
                                         <img src={frontIdPreview} alt="Front ID Preview" className="h-full w-full object-contain" />
                                     ) : (
                                         <div className="text-center">
                                             <Camera className="w-8 h-8 mx-auto text-gray-500" />
-                                            <p className="text-sm text-gray-500 mt-2">Click to upload</p>
+                                            <p className="text-sm text-gray-500 mt-2">{t("clickToUpload")}</p>
                                         </div>
                                     )}
                                     <Input type="file" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" accept="image/*" onChange={(e) => handleFileChange(e, 'front')} />
@@ -335,14 +400,14 @@ export default function ProfilePage() {
                             </div>
                             {/* Back ID */}
                             <div className="space-y-2">
-                                <Label>Back of ID</Label>
+                                <Label>{t("backId")}</Label>
                                 <div className="w-full h-48 border-2 border-dashed border-gray-600 rounded-lg flex items-center justify-center bg-gray-900 relative">
                                     {backIdPreview ? (
                                         <img src={backIdPreview} alt="Back ID Preview" className="h-full w-full object-contain" />
                                     ) : (
                                         <div className="text-center">
                                             <Camera className="w-8 h-8 mx-auto text-gray-500" />
-                                            <p className="text-sm text-gray-500 mt-2">Click to upload</p>
+                                            <p className="text-sm text-gray-500 mt-2">{t("clickToUpload")}</p>
                                         </div>
                                     )}
                                     <Input type="file" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" accept="image/*" onChange={(e) => handleFileChange(e, 'back')} />
@@ -353,7 +418,7 @@ export default function ProfilePage() {
                         {/* Address Information */}
                         <div className="grid md:grid-cols-3 gap-4">
                             <div className="space-y-2">
-                                <Label htmlFor="verification-address">Address</Label>
+                                <Label htmlFor="verification-address">{t("address")}</Label>
                                 <Input 
                                     id="verification-address" 
                                     value={verificationAddress} 
@@ -362,7 +427,7 @@ export default function ProfilePage() {
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="verification-city">City</Label>
+                                <Label htmlFor="verification-city">{t("city")}</Label>
                                 <Input 
                                     id="verification-city" 
                                     value={verificationCity} 
@@ -371,7 +436,7 @@ export default function ProfilePage() {
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="verification-postal">Postal Code</Label>
+                                <Label htmlFor="verification-postal">{t("postalCode")}</Label>
                                 <Input 
                                     id="verification-postal" 
                                     value={verificationPostalCode} 
@@ -382,7 +447,7 @@ export default function ProfilePage() {
                         </div>
 
                         <Button onClick={handleSubmitVerification} disabled={isSubmitting || userProfile?.verification?.status === 'APPROVED'}>
-                            {isSubmitting ? "Submitting..." : (userProfile?.verification?.status === 'APPROVED' ? "Verified" : "Submit for Review")}
+                            {isSubmitting ? "Submitting..." : (userProfile?.verification?.status === 'APPROVED' ? t("verified") : t("submitForReview"))}
                         </Button>
                     </CardContent>
                 </Card>
@@ -391,51 +456,51 @@ export default function ProfilePage() {
             <TabsContent value="withdraw" className="mt-6">
                 <Card  className={'bg-gray-800'}>
                     <CardHeader>
-                        <CardTitle>Request a Withdrawal</CardTitle>
+                        <CardTitle>{t("withdraw")}</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
                         <div>
-                            <p className="text-gray-400">Available for withdrawal:</p>
+                            <p className="text-gray-400">{t("availableForWithdrawal")}</p>
                             <p className="text-2xl font-bold">${(balance + liveProfit).toFixed(2)}</p>
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="withdraw-amount">Amount (USD)</Label>
+                            <Label htmlFor="withdraw-amount">{t("amountUsd")}</Label>
                             <Input id="withdraw-amount" type="number" placeholder="0.00" value={withdrawAmount} onChange={(e) => setWithdrawAmount(e.target.value)} />
                         </div>
                         <div className="space-y-2">
-                          <Label>Method</Label>
+                          <Label>{t("method")}</Label>
                            <Select value={withdrawMethod} onValueChange={setWithdrawMethod}>
                                 <SelectTrigger>
                                     <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="crypto">Crypto</SelectItem>
-                                    <SelectItem value="bank">Bank Transfer</SelectItem>
+                                    <SelectItem value="crypto">{t("crypto")}</SelectItem>
+                                    <SelectItem value="bank">{t("bankTransfer")}</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
 
                         {withdrawMethod === 'crypto' && (
                             <div className="space-y-2">
-                                <Label htmlFor="crypto-address">Your Crypto Address (USDT - ERC20)</Label>
+                                <Label htmlFor="crypto-address">{t("cryptoAddressLabel")}</Label>
                                 <Input id="crypto-address" placeholder="0x..." value={cryptoAddress} onChange={e => setCryptoAddress(e.target.value)} />
                             </div>
                         )}
                         {withdrawMethod === 'bank' && (
                             <div className="space-y-4">
                                 <div className="space-y-2">
-                                    <Label htmlFor="bank-name">Bank Name</Label>
+                                    <Label htmlFor="bank-name">{t("bankName")}</Label>
                                     <Input id="bank-name" placeholder="e.g., Chase" value={bankName} onChange={e => setBankName(e.target.value)} />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="card-number">Account/Card Number</Label>
+                                    <Label htmlFor="card-number">{t("accountNumber")}</Label>
                                     <Input id="card-number" placeholder="**** **** **** 1234" value={cardNumber} onChange={e => setCardNumber(e.target.value)} />
                                 </div>
                             </div>
                         )}
                         
                         <Button onClick={handleWithdraw} disabled={userProfile?.verification?.status !== 'APPROVED'}>
-                            {userProfile?.verification?.status !== 'APPROVED' ? "Verification Required" : "Submit Withdrawal Request"}
+                            {userProfile?.verification?.status !== 'APPROVED' ? t("verificationRequired") : t("submitWithdrawal")}
                         </Button>
                     </CardContent>
                 </Card>
@@ -444,7 +509,7 @@ export default function ProfilePage() {
             <TabsContent value="history" className="mt-6">
                 <Card className={'bg-gray-800'}>
                     <CardHeader>
-                        <CardTitle>Transaction History</CardTitle>
+                        <CardTitle>{t("transactionHistory")}</CardTitle>
                     </CardHeader>
                     <CardContent>
                         {transactions.length > 0 ? (
@@ -463,7 +528,7 @@ export default function ProfilePage() {
                                 ))}
                             </ul>
                         ) : (
-                            <p className="text-center text-gray-500 py-4">No transactions yet.</p>
+                            <p className="text-center text-gray-500 py-4">{t("noTransactions")}</p>
                         )}
                     </CardContent>
                 </Card>

@@ -1,31 +1,33 @@
 import LinkBox from "@/components/link_box";
 import { useAuth } from "@/components/auth-provider";
+import { useI18n } from "@/components/i18n-provider";
 
 const NavItem = () => {
     const { user } = useAuth();
+    const { t } = useI18n();
     const isAdmin = user?.role === 'OWNER' || user?.role === 'CR_MANAGMENT' || user?.role === 'TEAMLEAD';
 
     const routes = [
         {
-           name: "Dashboard",
+           name: t("dashboard"),
            href: "/dashboard"
         },
         {
-            name: "Transactions",
+            name: t("transactions"),
             href: "/transactions"
         },
         {
-            name: "Market",
+            name: t("market"),
             href: "/market"
         },
         {
-            name: "News",
+            name: t("news"),
             href: "/news"
         }
     ]
 
     if (isAdmin) {
-        routes.push({ name: "Admin", href: "/admin" });
+        routes.push({ name: t("admin"), href: "/admin" });
     }
 
     return (

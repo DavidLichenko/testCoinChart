@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useI18n } from "@/components/i18n-provider"
 
 interface ClosedTrade {
   id: string
@@ -45,6 +46,7 @@ interface Order {
 
 export default function TransactionsPage() {
   const { user } = useAuth()
+  const { t } = useI18n()
   const [closedTrades, setClosedTrades] = useState<ClosedTrade[]>([])
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
@@ -106,7 +108,7 @@ export default function TransactionsPage() {
       <div className="min-h-screen bg-gray-950 text-white flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-500 mx-auto"></div>
-          <p className="mt-4 text-gray-400">Loading transactions...</p>
+          <p className="mt-4 text-gray-400">{t("loadingTransactions")}</p>
         </div>
       </div>
     )
@@ -128,10 +130,10 @@ export default function TransactionsPage() {
         <Tabs defaultValue="trades" className="space-y-4">
           <TabsList className="grid w-full grid-cols-2 bg-gray-800 h-10">
             <TabsTrigger value="trades" className="text-sm">
-              Closed Trades
+              {t("closedTradesTab")}
             </TabsTrigger>
             <TabsTrigger value="transactions" className="text-sm">
-              Deposits & Withdrawals
+              {t("depositsWithdrawalsTab")}
             </TabsTrigger>
           </TabsList>
 
@@ -140,7 +142,7 @@ export default function TransactionsPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <Card className="bg-gray-800 border-gray-700">
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium">Total P&L</CardTitle>
+                  <CardTitle className="text-sm font-medium">{t("totalPnL")}</CardTitle>
                 </CardHeader>
                 <CardContent className="pb-3">
                   <div className={`text-xl font-bold ${totalPnL >= 0 ? "text-green-400" : "text-red-400"}`}>
@@ -151,7 +153,7 @@ export default function TransactionsPage() {
 
               <Card className="bg-gray-800 border-gray-700">
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium">Total Trades</CardTitle>
+                  <CardTitle className="text-sm font-medium">{t("totalTrades")}</CardTitle>
                 </CardHeader>
                 <CardContent className="pb-3">
                   <div className="text-xl font-bold">{closedTrades.length}</div>
@@ -160,7 +162,7 @@ export default function TransactionsPage() {
 
               <Card className="bg-gray-800 border-gray-700">
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium">Win Rate</CardTitle>
+                  <CardTitle className="text-sm font-medium">{t("winRate")}</CardTitle>
                 </CardHeader>
                 <CardContent className="pb-3">
                   <div className="text-xl font-bold text-green-400">{winRate.toFixed(1)}%</div>
@@ -173,7 +175,7 @@ export default function TransactionsPage() {
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                 <Input
-                  placeholder="Search trades..."
+                  placeholder={t("searchTrades")}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10 bg-gray-800 border-gray-700 h-9"
@@ -181,12 +183,12 @@ export default function TransactionsPage() {
               </div>
               <Select value={filterType} onValueChange={setFilterType}>
                 <SelectTrigger className="w-full sm:w-40 bg-gray-800 border-gray-700 h-9">
-                  <SelectValue placeholder="Filter by type" />
+                  <SelectValue placeholder={t("filterByType")} />
                 </SelectTrigger>
                 <SelectContent className="bg-gray-800 border-gray-700">
-                  <SelectItem value="all">All Types</SelectItem>
-                  <SelectItem value="buy">Buy</SelectItem>
-                  <SelectItem value="sell">Sell</SelectItem>
+                  <SelectItem value="all">{t("allTypes")}</SelectItem>
+                  <SelectItem value="buy">{t("buy")}</SelectItem>
+                  <SelectItem value="sell">{t("sell")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -194,7 +196,7 @@ export default function TransactionsPage() {
             {/* Trades List - More compact */}
             <Card className="bg-gray-800 border-gray-700">
               <CardHeader className="pb-3">
-                <CardTitle className="text-lg">Closed Trades</CardTitle>
+                <CardTitle className="text-lg">{t("closedTrades")}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
@@ -246,14 +248,14 @@ export default function TransactionsPage() {
 
                         <div className="mt-2 pt-2 border-t border-gray-600 text-xs text-gray-400">
                           <div className="flex justify-between">
-                            <span>Opened: {new Date(trade.createdAt).toLocaleString()}</span>
-                            <span>Closed: {trade.endAt ? new Date(trade.endAt).toLocaleString() : "N/A"}</span>
+                            <span>{t("opened")}: {new Date(trade.createdAt).toLocaleString()}</span>
+                            <span>{t("closed")}: {trade.endAt ? new Date(trade.endAt).toLocaleString() : "N/A"}</span>
                           </div>
                         </div>
                       </div>
                     ))
                   ) : (
-                    <div className="text-center text-gray-400 py-6">No closed trades found</div>
+                    <div className="text-center text-gray-400 py-6">{t("noClosedTrades")}</div>
                   )}
                 </div>
               </CardContent>
@@ -266,7 +268,7 @@ export default function TransactionsPage() {
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                 <Input
-                  placeholder="Search transactions..."
+                  placeholder={t("searchTransactions")}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10 bg-gray-800 border-gray-700 h-9"
@@ -274,23 +276,23 @@ export default function TransactionsPage() {
               </div>
               <Select value={filterType} onValueChange={setFilterType}>
                 <SelectTrigger className="w-full sm:w-40 bg-gray-800 border-gray-700 h-9">
-                  <SelectValue placeholder="Filter by type" />
+                  <SelectValue placeholder={t("filterByType")} />
                 </SelectTrigger>
                 <SelectContent className="bg-gray-800 border-gray-700">
-                  <SelectItem value="all">All Types</SelectItem>
-                  <SelectItem value="deposit">Deposits</SelectItem>
-                  <SelectItem value="withdraw">Withdrawals</SelectItem>
+                  <SelectItem value="all">{t("allTypes")}</SelectItem>
+                  <SelectItem value="deposit">{t("deposits")}</SelectItem>
+                  <SelectItem value="withdraw">{t("withdrawals")}</SelectItem>
                 </SelectContent>
               </Select>
               <Select value={filterStatus} onValueChange={setFilterStatus}>
                 <SelectTrigger className="w-full sm:w-40 bg-gray-800 border-gray-700 h-9">
-                  <SelectValue placeholder="Filter by status" />
+                  <SelectValue placeholder={t("filterByStatus")} />
                 </SelectTrigger>
                 <SelectContent className="bg-gray-800 border-gray-700">
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="successful">Successful</SelectItem>
-                  <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="cancelled">Cancelled</SelectItem>
+                  <SelectItem value="all">{t("allStatus")}</SelectItem>
+                  <SelectItem value="successful">{t("successful")}</SelectItem>
+                  <SelectItem value="pending">{t("pending")}</SelectItem>
+                  <SelectItem value="cancelled">{t("cancelled")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -298,7 +300,7 @@ export default function TransactionsPage() {
             {/* Transactions List */}
             <Card className="bg-gray-800 border-gray-700">
               <CardHeader className="pb-3">
-                <CardTitle className="text-lg">Deposit & Withdrawal History</CardTitle>
+                <CardTitle className="text-lg">{t("depositWithdrawalHistory")}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
@@ -326,15 +328,15 @@ export default function TransactionsPage() {
 
                           <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 text-xs">
                             <div>
-                              <div className="text-gray-400">Amount</div>
+                              <div className="text-gray-400">{t("amount")}</div>
                               <div className="font-semibold">${order.amount.toLocaleString()}</div>
                             </div>
                             <div>
-                              <div className="text-gray-400">Method</div>
+                              <div className="text-gray-400">{t("method")}</div>
                               <div className="font-semibold">{order.depositFrom || order.withdrawMethod}</div>
                             </div>
                             <div>
-                              <div className="text-gray-400">Date</div>
+                              <div className="text-gray-400">{t("date")}</div>
                               <div className="font-semibold">{new Date(order.createdAt).toLocaleDateString()}</div>
                             </div>
                           </div>
@@ -364,7 +366,7 @@ export default function TransactionsPage() {
                       </div>
                     ))
                   ) : (
-                    <div className="text-center text-gray-400 py-6">No transactions found</div>
+                    <div className="text-center text-gray-400 py-6">{t("noTransactionsFound")}</div>
                   )}
                 </div>
               </CardContent>

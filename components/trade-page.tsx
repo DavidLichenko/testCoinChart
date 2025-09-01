@@ -38,6 +38,7 @@ import {useTickers} from "@/hooks/market-data";
 import {useBalance} from "@/hooks/useBalance";
 import {AdvancedChartWithDrawings} from "@/components/AdvancedChartWithDrawings";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useI18n } from "@/components/i18n-provider"
 
 // Import categories from market-data
 const categories = {
@@ -81,6 +82,7 @@ export default function TradePage() {
   const { user, logout } = useAuth()
   const { balance, setLiveProfit } = useBalance()
   const { toast } = useToast()
+  const { t } = useI18n()
   const isMobile = useIsMobile()
   const [activeTrades, setActiveTrades] = useState<ActiveTrade[]>([])
   const [depositModalOpen, setDepositModalOpen] = useState(false)
@@ -406,7 +408,7 @@ export default function TradePage() {
               <div className="relative mb-3">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                 <Input
-                    placeholder="Search tickers..."
+                    placeholder={t("searchTickers")}
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="pl-10 bg-gray-800 border-gray-700 text-white h-9"
@@ -415,21 +417,21 @@ export default function TradePage() {
 
               <Select value={categoryFilter} onValueChange={setCategoryFilter}>
                 <SelectTrigger className="bg-gray-800 border-gray-700">
-                  <SelectValue placeholder="Select category..." />
+                  <SelectValue placeholder={t("selectCategory")} />
                 </SelectTrigger>
                 <SelectContent className="bg-gray-800 border-gray-700">
-                  <SelectItem value="all">All</SelectItem>
-                  <SelectItem value="Forex">Forex</SelectItem>
-                  <SelectItem value="Crypto">Crypto</SelectItem>
-                  <SelectItem value="Stocks">Stocks</SelectItem>
-                  <SelectItem value="Commodities">Commodities</SelectItem>
-                  <SelectItem value="Indices">Indices</SelectItem>
+                  <SelectItem value="all">{t("all")}</SelectItem>
+                  <SelectItem value="Forex">{t("forex")}</SelectItem>
+                  <SelectItem value="Crypto">{t("cryptoCat")}</SelectItem>
+                  <SelectItem value="Stocks">{t("stocks")}</SelectItem>
+                  <SelectItem value="Commodities">{t("commodities")}</SelectItem>
+                  <SelectItem value="Indices">{t("indices")}</SelectItem>
                 </SelectContent>
               </Select>
 
               {isLoading && (
                   <div className="mt-2 text-xs text-gray-400 text-center">
-                    Loading market data...
+                    {t("loadingMarketData")}
                   </div>
               )}
             </div>
@@ -500,7 +502,7 @@ export default function TradePage() {
                   })
               ) : (
                   <div className="p-4 text-center text-gray-400">
-                    No tickers found
+                    {t("noTickersFound")}
                   </div>
               )}
             </div>
@@ -527,8 +529,8 @@ export default function TradePage() {
                     <div className="flex items-center justify-center w-full h-full bg-gray-800 rounded-lg border border-gray-700">
                       <div className="text-center">
                         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-                        <p className="text-gray-400 text-lg font-medium">Loading chart data...</p>
-                        <p className="text-gray-500 text-sm mt-2">Preparing {selectedTicker.symbol} chart</p>
+                        <p className="text-gray-400 text-lg font-medium">{t("loadingChartData")}</p>
+                        <p className="text-gray-500 text-sm mt-2">{t("preparingChart").replace("{symbol}", selectedTicker.symbol)}</p>
                       </div>
                     </div>
                 ) : (
@@ -537,30 +539,30 @@ export default function TradePage() {
                         <div className="w-16 h-16 bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
                           <BarChart3 className="w-8 h-8 text-gray-400" />
                         </div>
-                        <h3 className="text-xl font-semibold text-gray-300 mb-2">Select a Ticker to Start Trading</h3>
+                        <h3 className="text-xl font-semibold text-gray-300 mb-2">{t("selectTickerToStart")}</h3>
                         <p className="text-gray-500 text-sm leading-relaxed">
-                          Choose from the available trading pairs above to view real-time charts and place orders.
+                          {t("choosePairToView")}
                         </p>
                         <div className="mt-6 flex items-center justify-center space-x-2 text-xs text-gray-400 flex-wrap">
                           <div className="flex items-center space-x-1">
                             <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                            <span>Forex</span>
+                            <span>{t("forex")}</span>
                           </div>
                           <div className="flex items-center space-x-1">
                             <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                            <span>Crypto</span>
+                            <span>{t("cryptoCat")}</span>
                           </div>
                           <div className="flex items-center space-x-1">
                             <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                            <span>Stocks</span>
+                            <span>{t("stocks")}</span>
                           </div>
                           <div className="flex items-center space-x-1">
                             <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
-                            <span>Commodities</span>
+                            <span>{t("commodities")}</span>
                           </div>
                           <div className="flex items-center space-x-1">
                             <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-                            <span>Indices</span>
+                            <span>{t("indices")}</span>
                           </div>
                         </div>
                       </div>
@@ -574,7 +576,7 @@ export default function TradePage() {
                     <Card className="bg-gray-800 border-gray-700">
                       <CardHeader className="p-4 flex flex-row items-center justify-between">
                         <CardTitle className="text-base">
-                          Place Order: {selectedTicker.symbol}
+                          {t("placeOrder")}: {selectedTicker.symbol}
                         </CardTitle>
                         <div className="text-right">
                           <p className="text-lg font-mono font-bold text-white">${realTimePrice?.toFixed(2) ?? '0.00'}</p>
@@ -583,18 +585,18 @@ export default function TradePage() {
                       <CardContent className="space-y-4 p-4">
                         <Tabs value={orderType} onValueChange={(value) => setOrderType(value as "BUY" | "SELL")} className="w-full">
                           <TabsList className="grid w-full grid-cols-2">
-                            <TabsTrigger value="BUY" className="data-[state=active]:bg-green-500/20 data-[state=active]:text-green-400">BUY</TabsTrigger>
-                            <TabsTrigger value="SELL" className="data-[state=active]:bg-red-500/20 data-[state=active]:text-red-400">SELL</TabsTrigger>
+                            <TabsTrigger value="BUY" className="data-[state=active]:bg-green-500/20 data-[state=active]:text-green-400">{t("buyUpper")}</TabsTrigger>
+                            <TabsTrigger value="SELL" className="data-[state=active]:bg-red-500/20 data-[state=active]:text-red-400">{t("sellUpper")}</TabsTrigger>
                           </TabsList>
                         </Tabs>
 
                         <div>
-                          <Label htmlFor="volume-mobile" className="text-xs text-gray-400">Volume</Label>
+                          <Label htmlFor="volume-mobile" className="text-xs text-gray-400">{t("volume")}</Label>
                           <Input id="volume-mobile" value={volume} onChange={(e) => setVolume(e.target.value)} className="bg-gray-900 border-gray-700 h-9" placeholder="0.01" />
                         </div>
 
                         <div>
-                          <Label htmlFor="leverage-mobile" className="text-xs text-gray-400">Leverage</Label>
+                          <Label htmlFor="leverage-mobile" className="text-xs text-gray-400">{t("leverage")}</Label>
                           <Select value={leverage} onValueChange={setLeverage}>
                             <SelectTrigger className="bg-gray-900 border-gray-700 h-9">
                               <SelectValue />
@@ -611,14 +613,14 @@ export default function TradePage() {
                         </div>
 
                         <div className="text-xs text-gray-400 flex justify-between">
-                          <span>Margin Required:</span>
+                          <span>{t("marginRequired")}</span>
                           <span className="font-mono">${calculateMargin()}</span>
                         </div>
 
                         <Collapsible open={advancedOpen} onOpenChange={setAdvancedOpen}>
                           <CollapsibleTrigger asChild>
                             <Button variant="link" className="p-0 h-auto text-xs text-purple-400">
-                              Advanced Options
+                              {t("advancedOptions")}
                               <ChevronDown className={`w-4 h-4 ml-1 transition-transform ${advancedOpen ? 'rotate-180' : ''}`} />
                             </Button>
                           </CollapsibleTrigger>
@@ -630,10 +632,10 @@ export default function TradePage() {
                                   setTakeProfit((((candlesBySymbol[candlesBySymbol.length - 1].close) + (candlesBySymbol[candlesBySymbol.length - 1].close) / 100)).toString())
                                 }
                               } />
-                              <Label htmlFor="tp-switch-mobile" className="text-xs">Take Profit</Label>
+                              <Label htmlFor="tp-switch-mobile" className="text-xs">{t("takeProfit")}</Label>
                             </div>
                             {takeProfitEnabled && (
-                                <Input value={takeProfit} onChange={(e) => setTakeProfit(e.target.value)} placeholder="Enter TP price" className="bg-gray-900 border-gray-700 h-9" />
+                                <Input value={takeProfit} onChange={(e) => setTakeProfit(e.target.value)} placeholder={t("enterTp")} className="bg-gray-900 border-gray-700 h-9" />
                             )}
                             <div className="flex items-center space-x-2">
                               <Switch id="sl-switch-mobile" checked={stopLossEnabled} onCheckedChange={
@@ -642,20 +644,20 @@ export default function TradePage() {
                                   setStopLoss((((candlesBySymbol[candlesBySymbol.length - 1].close) - (candlesBySymbol[candlesBySymbol.length - 1].close) / 100)).toString())
                                 }
                               } />
-                              <Label htmlFor="sl-switch-mobile" className="text-xs">Stop Loss</Label>
+                              <Label htmlFor="sl-switch-mobile" className="text-xs">{t("stopLoss")}</Label>
                             </div>
                             {stopLossEnabled && (
-                                <Input value={stopLoss} onChange={(e) => setStopLoss(e.target.value)} placeholder="Enter SL price" className="bg-gray-900 border-gray-700 h-9" />
+                                <Input value={stopLoss} onChange={(e) => setStopLoss(e.target.value)} placeholder={t("enterSl")} className="bg-gray-900 border-gray-700 h-9" />
                             )}
                           </CollapsibleContent>
                         </Collapsible>
 
                         <Button onClick={handlePlaceOrder} className="w-full bg-purple-600 hover:bg-purple-700">
-                          Place {orderType} Order
+                          {t("placeOrderCta").replace("{type}", orderType)}
                         </Button>
 
                         <div className="text-xs text-gray-400 flex justify-between">
-                          <span>Balance:</span>
+                          <span>{t("balance")}</span>
                           <span className="font-mono">${balance?.toFixed(2) ?? '0.00'}</span>
                         </div>
                       </CardContent>
@@ -664,7 +666,7 @@ export default function TradePage() {
                     <Card className="bg-gray-800 border-gray-700">
                       <CardContent className="flex items-center justify-center p-6 h-24">
                         <div className="text-center">
-                          <p className="text-sm text-gray-400">Select a ticker to start trading</p>
+                          <p className="text-sm text-gray-400">{t("selectTicker")}</p>
                         </div>
                       </CardContent>
                     </Card>
@@ -674,7 +676,7 @@ export default function TradePage() {
               {/* Active Trades */}
               <Card className="bg-gray-800 border-gray-700 flex flex-col lg:h-52 overflow-y-auto order-3">
                 <CardHeader className="p-4 pb-2 flex-shrink-0">
-                  <CardTitle className="text-sm">Active Trades ({activeTrades.length})</CardTitle>
+                  <CardTitle className="text-sm">{t("activeTradesCount").replace("{count}", String(activeTrades.length))}</CardTitle>
                 </CardHeader>
                 <CardContent className="py-0 px-2 space-y-3 overflow-y-auto">
                   {activeTrades.length > 0 ? (
@@ -729,7 +731,7 @@ export default function TradePage() {
                                         className="text-xs h-7 px-3"
                                     >
                                       <X className="w-3 h-3 mr-1"/>
-                                      Close
+                                      {t("close")}
                                     </Button>
                                   </div>
                                 </div>
@@ -740,8 +742,8 @@ export default function TradePage() {
                   ) : (
                       <div className="flex items-center justify-center h-full">
                         <div className="text-center text-gray-500">
-                          <p>You have no open positions.</p>
-                          <p className="text-xs mt-1">Select a ticker to start trading.</p>
+                          <p>{t("noOpenPositions")}</p>
+                          <p className="text-xs mt-1">{t("selectTickerToStartShort")}</p>
                         </div>
                       </div>
                   )}
@@ -756,7 +758,7 @@ export default function TradePage() {
                 <Card className="bg-gray-800 border-gray-700">
                   <CardHeader className="p-4 flex flex-row items-center justify-between">
                     <CardTitle className="text-base">
-                      Place Order: {selectedTicker.symbol}
+                      {t("placeOrder")}: {selectedTicker.symbol}
                     </CardTitle>
                     <div className="text-right">
                       <p className="text-lg font-mono font-bold text-white">${realTimePrice?.toFixed(2) ?? '0.00'}</p>
@@ -765,18 +767,18 @@ export default function TradePage() {
                   <CardContent className="space-y-4 py-4 px-4">
                     <Tabs value={orderType} onValueChange={(value) => setOrderType(value as "BUY" | "SELL")} className="w-full">
                       <TabsList className="grid w-full grid-cols-2">
-                        <TabsTrigger value="BUY" className="data-[state=active]:bg-green-500/20 data-[state=active]:text-green-400">BUY</TabsTrigger>
-                        <TabsTrigger value="SELL" className="data-[state=active]:bg-red-500/20 data-[state=active]:text-red-400">SELL</TabsTrigger>
+                        <TabsTrigger value="BUY" className="data-[state=active]:bg-green-500/20 data-[state=active]:text-green-400">{t("buyUpper")}</TabsTrigger>
+                        <TabsTrigger value="SELL" className="data-[state=active]:bg-red-500/20 data-[state=active]:text-red-400">{t("sellUpper")}</TabsTrigger>
                       </TabsList>
                     </Tabs>
 
                     <div>
-                      <Label htmlFor="volume-desktop" className="text-xs text-gray-400">Volume</Label>
+                      <Label htmlFor="volume-desktop" className="text-xs text-gray-400">{t("volume")}</Label>
                       <Input id="volume-desktop" value={volume} onChange={(e) => setVolume(e.target.value)} className="bg-gray-900 border-gray-700 h-9" placeholder="0.01" />
                     </div>
 
                     <div>
-                      <Label htmlFor="leverage-desktop" className="text-xs text-gray-400">Leverage</Label>
+                      <Label htmlFor="leverage-desktop" className="text-xs text-gray-400">{t("leverage")}</Label>
                       <Select value={leverage} onValueChange={setLeverage}>
                         <SelectTrigger className="bg-gray-900 border-gray-700 h-9">
                           <SelectValue />
@@ -793,14 +795,14 @@ export default function TradePage() {
                     </div>
 
                     <div className="text-xs text-gray-400 flex justify-between">
-                      <span>Margin Required:</span>
+                      <span>{t("marginRequired")}</span>
                       <span className="font-mono">${calculateMargin()}</span>
                     </div>
 
                     <Collapsible open={advancedOpen} onOpenChange={setAdvancedOpen}>
                       <CollapsibleTrigger asChild>
                         <Button variant="link" className="p-0 h-auto text-xs text-purple-400">
-                          Advanced Options
+                          {t("advancedOptions")}
                           <ChevronDown className={`w-4 h-4 ml-1 transition-transform ${advancedOpen ? 'rotate-180' : ''}`} />
                         </Button>
                       </CollapsibleTrigger>
@@ -812,10 +814,10 @@ export default function TradePage() {
                               setTakeProfit((((candlesBySymbol[candlesBySymbol.length - 1].close) + (candlesBySymbol[candlesBySymbol.length - 1].close) / 100)).toString())
                             }
                           } />
-                          <Label htmlFor="tp-switch-desktop" className="text-xs">Take Profit</Label>
+                          <Label htmlFor="tp-switch-desktop" className="text-xs">{t("takeProfit")}</Label>
                         </div>
                         {takeProfitEnabled && (
-                            <Input value={takeProfit} onChange={(e) => setTakeProfit(e.target.value)} placeholder="Enter TP price" className="bg-gray-900 border-gray-700 h-9" />
+                            <Input value={takeProfit} onChange={(e) => setTakeProfit(e.target.value)} placeholder={t("enterTp")} className="bg-gray-900 border-gray-700 h-9" />
                         )}
                         <div className="flex items-center space-x-2">
                           <Switch id="sl-switch-desktop" checked={stopLossEnabled} onCheckedChange={
@@ -824,20 +826,20 @@ export default function TradePage() {
                               setStopLoss((((candlesBySymbol[candlesBySymbol.length - 1].close) - (candlesBySymbol[candlesBySymbol.length - 1].close) / 100)).toString())
                             }
                           } />
-                          <Label htmlFor="sl-switch-desktop" className="text-xs">Stop Loss</Label>
+                          <Label htmlFor="sl-switch-desktop" className="text-xs">{t("stopLoss")}</Label>
                         </div>
                         {stopLossEnabled && (
-                            <Input value={stopLoss} onChange={(e) => setStopLoss(e.target.value)} placeholder="Enter SL price" className="bg-gray-900 border-gray-700 h-9" />
+                            <Input value={stopLoss} onChange={(e) => setStopLoss(e.target.value)} placeholder={t("enterSl")} className="bg-gray-900 border-gray-700 h-9" />
                         )}
                       </CollapsibleContent>
                     </Collapsible>
 
                     <Button onClick={handlePlaceOrder} className="w-full bg-purple-600 hover:bg-purple-700">
-                      Place {orderType} Order
+                      {t("placeOrderCta").replace("{type}", orderType)}
                     </Button>
 
                     <div className="text-xs text-gray-400 flex justify-between">
-                      <span>Balance:</span>
+                      <span>{t("balance")}</span>
                       <span className="font-mono">${balance?.toFixed(2) ?? '0.00'}</span>
                     </div>
                   </CardContent>
@@ -846,7 +848,7 @@ export default function TradePage() {
                 <Card className="bg-gray-800 border-gray-700">
                   <CardContent className="flex items-center justify-center p-6 h-full">
                     <div className="text-center">
-                      <p className="text-sm text-gray-400">Select a ticker to start trading</p>
+                      <p className="text-sm text-gray-400">{t("selectTicker")}</p>
                     </div>
                   </CardContent>
                 </Card>
@@ -860,31 +862,31 @@ export default function TradePage() {
             <Link href="/dashboard">
               <Button variant="ghost" size="sm" className="flex flex-col items-center space-y-1 text-gray-400">
                 <Home className="w-5 h-5" />
-                <span className="text-xs">Dashboard</span>
+                <span className="text-xs">{t("bottomDashboard")}</span>
               </Button>
             </Link>
             <Link href="/transactions">
               <Button variant="ghost" size="sm" className="flex flex-col items-center space-y-1 text-gray-400">
                 <FileText className="w-5 h-5" />
-                <span className="text-xs">Transactions</span>
+                <span className="text-xs">{t("bottomTransactions")}</span>
               </Button>
             </Link>
             <Link href="/">
               <Button variant="ghost" size="sm" className="flex flex-col items-center space-y-1 text-purple-400">
                 <BarChart3 className="w-5 h-5" />
-                <span className="text-xs">Trade</span>
+                <span className="text-xs">{t("bottomTrade")}</span>
               </Button>
             </Link>
             <Link href="/news">
               <Button variant="ghost" size="sm" className="flex flex-col items-center space-y-1 text-gray-400">
                 <Newspaper className="w-5 h-5" />
-                <span className="text-xs">News</span>
+                <span className="text-xs">{t("bottomNews")}</span>
               </Button>
             </Link>
             <Link href="/profile">
               <Button variant="ghost" size="sm" className="flex flex-col items-center space-y-1 text-gray-400">
                 <User className="w-5 h-5" />
-                <span className="text-xs">Profile</span>
+                <span className="text-xs">{t("bottomProfile")}</span>
               </Button>
             </Link>
             <Button
@@ -894,7 +896,7 @@ export default function TradePage() {
                 onClick={logout}
             >
               <LogOut className="w-5 h-5" />
-              <span className="text-xs">Logout</span>
+              <span className="text-xs">{t("bottomLogout")}</span>
             </Button>
           </div>
         </div>
