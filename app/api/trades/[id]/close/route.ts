@@ -22,10 +22,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Trade not found" }, { status: 404 });
     }
 
-    if (trade.userId !== userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
-    }
-
     const profit =
         trade.type === "BUY"
             ? (closePrice - trade.openIn) * trade.volume * trade.leverage
