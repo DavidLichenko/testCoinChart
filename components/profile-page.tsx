@@ -499,9 +499,14 @@ export default function ProfilePage() {
                             </div>
                         )}
                         
-                        <Button onClick={handleWithdraw} disabled={userProfile?.isVerif !== True}>
-                            {userProfile?.isVerif !== True ? t("verificationRequired") : t("submitWithdrawal")}
-                        </Button>
+                         <Button
+                onClick={handleWithdraw}
+                disabled={userProfile?.isVerif !== true}
+              >
+                {userProfile?.isVerif !== true
+                  ? t("verificationRequired")
+                  : t("submitWithdrawal")}
+              </Button>
                     </CardContent>
                 </Card>
             </TabsContent>
