@@ -19,35 +19,44 @@ export async function PATCH(
       select: { role: true }
     })
 
-    if (!adminUser || (adminUser.role !== 'OWNER' && adminUser.role !== 'CR_MANAGMENT' && adminUser.role !== 'TEAMLEAD')) {
+    if (!adminUser || !['OWNER','CR_MANAGMENT','TEAMLEAD'].includes(adminUser.role)) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
 
     const { tradeId } = params
     const updates = await request.json()
 
-    // Validate updates - only allow specific fields for admin editing
     const allowedFields = ['profit', 'openIn', 'openInA', 'closeIn', 'status']
     const filteredUpdates: any = {}
     
     for (const field of allowedFields) {
-      if (field in updates) {
-        filteredUpdates[field] = updates[field]
-      }
+      if (field in updates) filteredUpdates[field] = updates[field]
     }
 
+    // Получаем текущую сделку
+    const existingTrade = await prisma.trade_Transaction.findUnique({
+      where: { id: tradeId }
+    })
+
+    if (!existingTrade) {
+      return NextResponse.json({ error: "Trade not found" }, { status: 404 })
+    }
+
+    // Обновляем сделку
     const updatedTrade = await prisma.trade_Transaction.update({
       where: { id: tradeId },
       data: filteredUpdates,
-      include: {
-        User: {
-          select: {
-            email: true,
-            name: true
-          }
-        }
-      }
+      include: { User: { select: { id: true, TotalBalance: true, email: true, name: true } } }
     })
+
+    // Если обновили profit — корректируем баланс пользователя
+    if ('profit' in filteredUpdates) {
+      const profitDiff = filteredUpdates.profit - (existingTrade.profit || 0)
+      await prisma.user.update({
+        where: { id: updatedTrade.User.id },
+        data: { TotalBalance: { increment: profitDiff } }
+      })
+    }
 
     return NextResponse.json(updatedTrade)
 
@@ -55,4 +64,4 @@ export async function PATCH(
     console.error("Error updating trade:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
-} 
+}
