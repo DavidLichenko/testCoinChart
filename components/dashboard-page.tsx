@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
-import { useToast } from "@/hooks/use-toast"
+import { toast } from "react-hot-toast";
 import Link from "next/link"
 import { updateBalance } from "@/app/actions/updateBalance"
 import { useTickers } from "@/hooks/market-data"
@@ -56,7 +56,6 @@ interface Order {
 
 export default function DashboardPage() {
   const { user, logout } = useAuth()
-  const { toast } = useToast()
   const { t } = useI18n()
   const [userStats, setUserStats] = useState<UserStats | null>(null)
   const [activeTrades, setActiveTrades] = useState<ActiveTrade[]>([])

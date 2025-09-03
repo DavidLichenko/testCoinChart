@@ -1,194 +1,86 @@
-"use client"
+"use client";
 
-// Inspired by react-hot-toast library
-import * as React from "react"
+import * as React from "react";
+import {
+  ToastProvider as ShadToastProvider,
+  ToastViewport,
+  Toast,
+  ToastTitle,
+  ToastDescription,
+  ToastAction,
+  type ToastProps as ShadToastProps,
+  type ToastActionElement,
+} from "@/components/ui/toast";
 
-import type {
-  ToastActionElement,
-  ToastProps,
-} from "@/components/ui/toast"
+// Данные одного тоста
+type ToastData = ShadToastProps & {
+  id: string;
+  title?: React.ReactNode;
+  description?: React.ReactNode;
+  action?: ToastActionElement;
+};
 
-const TOAST_LIMIT = 1
-const TOAST_REMOVE_DELAY = 1000000
+// Контекст
+const ToastContext = React.createContext<{
+  toast: (props: Omit<ToastData, "id">) => { id: string; dismiss: () => void };
+} | null>(null);
 
-type ToasterToast = ToastProps & {
-  id: string
-  title?: React.ReactNode
-  description?: React.ReactNode
-  action?: ToastActionElement
-}
-
-const actionTypes = {
-  ADD_TOAST: "ADD_TOAST",
-  UPDATE_TOAST: "UPDATE_TOAST",
-  DISMISS_TOAST: "DISMISS_TOAST",
-  REMOVE_TOAST: "REMOVE_TOAST",
-} as const
-
-let count = 0
-
+// Генератор ID
+let toastCount = 0;
 function genId() {
-  count = (count + 1) % Number.MAX_SAFE_INTEGER
-  return count.toString()
+  toastCount = (toastCount + 1) % Number.MAX_SAFE_INTEGER;
+  return toastCount.toString();
 }
 
-type ActionType = typeof actionTypes
+// Провайдер
+export function ToastProviderWrapper({ children }: { children: React.ReactNode }) {
+  const [toasts, setToasts] = React.useState<ToastData[]>([]);
 
-type Action =
-  | {
-      type: ActionType["ADD_TOAST"]
-      toast: ToasterToast
-    }
-  | {
-      type: ActionType["UPDATE_TOAST"]
-      toast: Partial<ToasterToast>
-    }
-  | {
-      type: ActionType["DISMISS_TOAST"]
-      toastId?: ToasterToast["id"]
-    }
-  | {
-      type: ActionType["REMOVE_TOAST"]
-      toastId?: ToasterToast["id"]
-    }
+  const toast = (props: Omit<ToastData, "id">) => {
+    const id = genId();
 
-interface State {
-  toasts: ToasterToast[]
-}
+    const dismiss = () => {
+      setToasts((prev) => prev.filter((t) => t.id !== id));
+    };
 
-const toastTimeouts = new Map<string, ReturnType<typeof setTimeout>>()
-
-const addToRemoveQueue = (toastId: string) => {
-  if (toastTimeouts.has(toastId)) {
-    return
-  }
-
-  const timeout = setTimeout(() => {
-    toastTimeouts.delete(toastId)
-    dispatch({
-      type: "REMOVE_TOAST",
-      toastId: toastId,
-    })
-  }, TOAST_REMOVE_DELAY)
-
-  toastTimeouts.set(toastId, timeout)
-}
-
-export const reducer = (state: State, action: Action): State => {
-  switch (action.type) {
-    case "ADD_TOAST":
-      return {
-        ...state,
-        toasts: [action.toast, ...state.toasts].slice(0, TOAST_LIMIT),
-      }
-
-    case "UPDATE_TOAST":
-      return {
-        ...state,
-        toasts: state.toasts.map((t) =>
-          t.id === action.toast.id ? { ...t, ...action.toast } : t
-        ),
-      }
-
-    case "DISMISS_TOAST": {
-      const { toastId } = action
-
-      // ! Side effects ! - This could be extracted into a dismissToast() action,
-      // but I'll keep it here for simplicity
-      if (toastId) {
-        addToRemoveQueue(toastId)
-      } else {
-        state.toasts.forEach((toast) => {
-          addToRemoveQueue(toast.id)
-        })
-      }
-
-      return {
-        ...state,
-        toasts: state.toasts.map((t) =>
-          t.id === toastId || toastId === undefined
-            ? {
-                ...t,
-                open: false,
-              }
-            : t
-        ),
-      }
-    }
-    case "REMOVE_TOAST":
-      if (action.toastId === undefined) {
-        return {
-          ...state,
-          toasts: [],
-        }
-      }
-      return {
-        ...state,
-        toasts: state.toasts.filter((t) => t.id !== action.toastId),
-      }
-  }
-}
-
-const listeners: Array<(state: State) => void> = []
-
-let memoryState: State = { toasts: [] }
-
-function dispatch(action: Action) {
-  memoryState = reducer(memoryState, action)
-  listeners.forEach((listener) => {
-    listener(memoryState)
-  })
-}
-
-type Toast = Omit<ToasterToast, "id">
-
-function toast({ ...props }: Toast) {
-  const id = genId()
-
-  const update = (props: ToasterToast) =>
-    dispatch({
-      type: "UPDATE_TOAST",
-      toast: { ...props, id },
-    })
-  const dismiss = () => dispatch({ type: "DISMISS_TOAST", toastId: id })
-
-  dispatch({
-    type: "ADD_TOAST",
-    toast: {
+    const newToast: ToastData = {
       ...props,
       id,
       open: true,
       onOpenChange: (open) => {
-        if (!open) dismiss()
+        if (!open) dismiss();
+        props.onOpenChange?.(open);
       },
-    },
-  })
+    };
 
-  return {
-    id: id,
-    dismiss,
-    update,
-  }
+    setToasts((prev) => [newToast, ...prev]);
+
+    // Авто-дисплей через 3 секунды
+    setTimeout(dismiss, 3000);
+
+    return { id, dismiss };
+  };
+
+  return (
+    <ToastContext.Provider value={{ toast }}>
+      <ShadToastProvider>
+        {children}
+        {toasts.map((t) => (
+          <Toast key={t.id} {...t}>
+            {t.title && <ToastTitle>{t.title}</ToastTitle>}
+            {t.description && <ToastDescription>{t.description}</ToastDescription>}
+            {t.action && <ToastAction>{t.action}</ToastAction>}
+          </Toast>
+        ))}
+        <ToastViewport className="fixed top-0 right-0 p-4 z-[9999]" />
+      </ShadToastProvider>
+    </ToastContext.Provider>
+  );
 }
 
-function useToast() {
-  const [state, setState] = React.useState<State>(memoryState)
-
-  React.useEffect(() => {
-    listeners.push(setState)
-    return () => {
-      const index = listeners.indexOf(setState)
-      if (index > -1) {
-        listeners.splice(index, 1)
-      }
-    }
-  }, [state])
-
-  return {
-    ...state,
-    toast,
-    dismiss: (toastId?: string) => dispatch({ type: "DISMISS_TOAST", toastId }),
-  }
+// Хук для использования тостов
+export function useToast() {
+  const context = React.useContext(ToastContext);
+  if (!context) throw new Error("useToast must be used within ToastProviderWrapper");
+  return context;
 }
-
-export { useToast, toast }

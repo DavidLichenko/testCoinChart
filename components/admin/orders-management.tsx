@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from "@/components/ui/dialog"
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { useToast } from "@/hooks/use-toast"
+import { toast } from "react-hot-toast";
 import { 
   CreditCard, 
   Search, 
@@ -55,7 +55,6 @@ export default function OrdersManagement() {
   const [statusFilter, setStatusFilter] = useState("all")
   const [typeFilter, setTypeFilter] = useState("all")
   const [createDialogOpen, setCreateDialogOpen] = useState(false)
-  const { toast } = useToast()
   
   // Create Order Form State
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null)

@@ -27,7 +27,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
-import { useToast } from "@/hooks/use-toast"
+import { toast } from "react-hot-toast";
 import { Skeleton } from "@/components/ui/skeleton"
 
 import { DepositModal } from "@/components/deposit-modal"
@@ -81,7 +81,6 @@ interface ActiveTrade {
 export default function TradePage() {
   const { user, logout } = useAuth()
   const { balance, setLiveProfit } = useBalance()
-  const { toast } = useToast()
   const { t } = useI18n()
   const isMobile = useIsMobile()
   const [activeTrades, setActiveTrades] = useState<ActiveTrade[]>([])
@@ -758,7 +757,7 @@ export default function TradePage() {
                 <Card className="bg-gray-800 border-gray-700">
                   <CardHeader className="p-4 flex flex-row items-center justify-between">
                     <CardTitle className="text-base">
-                      {t("placeOrder")}: {selectedTicker.symbol}
+                      {t("placeOrder").replace("{type}", orderType)}: {selectedTicker.symbol}
                     </CardTitle>
                     <div className="text-right">
                       <p className="text-lg font-mono font-bold text-white">${realTimePrice?.toFixed(2) ?? '0.00'}</p>

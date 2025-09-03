@@ -12,7 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
-import { useToast } from "@/hooks/use-toast"
+import { toast } from "react-hot-toast";
 import { useBalance } from "@/hooks/useBalance"
 
 interface UserProfile {
@@ -75,13 +75,12 @@ const VerificationStatusBadge = ({ status }: { status: string | undefined }) => 
 export default function ProfilePage() {
   const { user, logout } = useAuth()
   const { balance, liveProfit } = useBalance();
-  const { toast } = useToast()
   const { t, lang, setLang } = useI18n()
   const [activeTab, setActiveTab] = useState("profile")
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null)
   const [transactions, setTransactions] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
-  
+  console.log(userProfile?.isVerif);
   // Withdraw form states
   const [withdrawAmount, setWithdrawAmount] = useState("")
   const [withdrawMethod, setWithdrawMethod] = useState("crypto")
@@ -308,177 +307,268 @@ export default function ProfilePage() {
 
   return (
     <div className="container mx-auto p-4 md:p-6 lg:p-8">
-        <Tabs defaultValue="profile" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 h-full gap-2 lg:grid-cols-4 bg-gray-800">
-                <TabsTrigger value="profile"><User className="w-4 h-4 mr-2" />{t("profile")}</TabsTrigger>
-                <TabsTrigger value="verification"><Shield className="w-4 h-4 mr-2" />{t("verification")}</TabsTrigger>
-                <TabsTrigger value="withdraw"><CreditCard className="w-4 h-4 mr-2" />{t("withdraw")}</TabsTrigger>
-                <TabsTrigger value="history"><FileText className="w-4 h-4 mr-2" />{t("history")}</TabsTrigger>
-            </TabsList>
+      <Tabs defaultValue="profile" className="w-full">
+        <TabsList className="grid w-full grid-cols-2 h-full gap-2 lg:grid-cols-4 bg-gray-800">
+          <TabsTrigger value="profile">
+            <User className="w-4 h-4 mr-2" />
+            {t("profile")}
+          </TabsTrigger>
+          <TabsTrigger value="verification">
+            <Shield className="w-4 h-4 mr-2" />
+            {t("verification")}
+          </TabsTrigger>
+          <TabsTrigger value="withdraw">
+            <CreditCard className="w-4 h-4 mr-2" />
+            {t("withdraw")}
+          </TabsTrigger>
+          <TabsTrigger value="history">
+            <FileText className="w-4 h-4 mr-2" />
+            {t("history")}
+          </TabsTrigger>
+        </TabsList>
 
-            <TabsContent value="profile" className="mt-6">
-                <Card className={'bg-gray-800'}>
-                    <CardHeader>
-                        <CardTitle>{t("accountDetails")}</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-6">
-                        <div className="flex flex-col items-start justify-start lg:flex-row gap-6 lg:items-center lg:justify-normal">
-                            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center shadow-lg">
-                                <User className="w-8 h-8 text-white" />
-                            </div>
-                            <div>
-                                <h3 className="text-xl font-bold">{userProfile?.name || "User"}</h3>
-                                <p className="text-gray-400">{userProfile?.email}</p>
-                                <div className="mt-2"><VerificationStatusBadge status={userProfile?.verification?.status} /></div>
-                            </div>
-                        </div>
-                        <div className="grid md:grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                                <Label htmlFor="name">{t("name")}</Label>
-                                <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="language">{t("language")}</Label>
-                                <Select value={selectedLanguage} onValueChange={(v) => setSelectedLanguage(v)}>
-                                    <SelectTrigger>
-                                        <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="en">{t("english")}</SelectItem>
-                                        <SelectItem value="es">{t("spanish")}</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                        </div>
-                        <div className="flex gap-3">
-                            <Button onClick={handleUpdateProfile}>{t("updateProfile")}</Button>
-                        </div>
+        <TabsContent value="profile" className="mt-6">
+          <Card className={"bg-gray-800"}>
+            <CardHeader>
+              <CardTitle>{t("accountDetails")}</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="flex flex-col items-start justify-start lg:flex-row gap-6 lg:items-center lg:justify-normal">
+                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center shadow-lg">
+                  <User className="w-8 h-8 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold">
+                    {userProfile?.name || "User"}
+                  </h3>
+                  <p className="text-gray-400">{userProfile?.email}</p>
+                  <div className="mt-2">
+                    <VerificationStatusBadge
+                      status={userProfile?.verification?.status}
+                    />
+                  </div>
+                </div>
+              </div>
+              <div className="grid md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="name">{t("name")}</Label>
+                  <Input
+                    id="name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="language">{t("language")}</Label>
+                  <Select
+                    value={selectedLanguage}
+                    onValueChange={(v) => setSelectedLanguage(v)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="en">{t("english")}</SelectItem>
+                      <SelectItem value="es">{t("spanish")}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="flex gap-3">
+                <Button onClick={handleUpdateProfile}>
+                  {t("updateProfile")}
+                </Button>
+              </div>
 
-                        <div className="mt-6 pt-6 border-t border-gray-700">
-                            <h4 className="text-lg font-semibold mb-4 flex items-center gap-2"><Shield className="w-4 h-4" /> {t("changePassword")}</h4>
-                            <div className="grid md:grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <Label htmlFor="current-password">{t("currentPassword")}</Label>
-                                    <Input id="current-password" type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="new-password">{t("newPassword")}</Label>
-                                    <Input id="new-password" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} />
-                                </div>
-                            </div>
-                            <div className="mt-3">
-                                <Button variant="secondary" onClick={handleChangePassword}>{t("savePassword")}</Button>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-            </TabsContent>
-            
-            <TabsContent value="verification" className="mt-6">
-                <Card  className={'bg-gray-800'}>
-                    <CardHeader>
-                        <CardTitle>{t("identityVerification")}</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-6">
-                        <p className="text-gray-400 flex flex-col gap-2">{t("uploadGovId")} <VerificationStatusBadge status={userProfile?.verification?.status} /></p>
-                        
-                        <div className="grid md:grid-cols-2 gap-6">
-                            {/* Front ID */}
-                            <div className="space-y-2">
-                                <Label>{t("frontId")}</Label>
-                                <div className="w-full h-48 border-2 border-dashed border-gray-600 rounded-lg flex items-center justify-center bg-gray-900 relative">
-                                    {frontIdPreview ? (
-                                        <img src={frontIdPreview} alt="Front ID Preview" className="h-full w-full object-contain" />
-                                    ) : (
-                                        <div className="text-center">
-                                            <Camera className="w-8 h-8 mx-auto text-gray-500" />
-                                            <p className="text-sm text-gray-500 mt-2">{t("clickToUpload")}</p>
-                                        </div>
-                                    )}
-                                    <Input type="file" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" accept="image/*" onChange={(e) => handleFileChange(e, 'front')} />
-                                </div>
-                            </div>
-                            {/* Back ID */}
-                            <div className="space-y-2">
-                                <Label>{t("backId")}</Label>
-                                <div className="w-full h-48 border-2 border-dashed border-gray-600 rounded-lg flex items-center justify-center bg-gray-900 relative">
-                                    {backIdPreview ? (
-                                        <img src={backIdPreview} alt="Back ID Preview" className="h-full w-full object-contain" />
-                                    ) : (
-                                        <div className="text-center">
-                                            <Camera className="w-8 h-8 mx-auto text-gray-500" />
-                                            <p className="text-sm text-gray-500 mt-2">{t("clickToUpload")}</p>
-                                        </div>
-                                    )}
-                                    <Input type="file" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" accept="image/*" onChange={(e) => handleFileChange(e, 'back')} />
-                                </div>
-                            </div>
-                        </div>
+              <div className="mt-6 pt-6 border-t border-gray-700">
+                <h4 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                  <Shield className="w-4 h-4" /> {t("changePassword")}
+                </h4>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="current-password">
+                      {t("currentPassword")}
+                    </Label>
+                    <Input
+                      id="current-password"
+                      type="password"
+                      value={currentPassword}
+                      onChange={(e) => setCurrentPassword(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="new-password">{t("newPassword")}</Label>
+                    <Input
+                      id="new-password"
+                      type="password"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                    />
+                  </div>
+                </div>
+                <div className="mt-3">
+                  <Button variant="secondary" onClick={handleChangePassword}>
+                    {t("savePassword")}
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-                        {/* Address Information */}
-                        <div className="grid md:grid-cols-3 gap-4">
-                            <div className="space-y-2">
-                                <Label htmlFor="verification-address">{t("address")}</Label>
-                                <Input 
-                                    id="verification-address" 
-                                    value={verificationAddress} 
-                                    onChange={(e) => setVerificationAddress(e.target.value)}
-                                    placeholder="Enter your full address"
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="verification-city">{t("city")}</Label>
-                                <Input 
-                                    id="verification-city" 
-                                    value={verificationCity} 
-                                    onChange={(e) => setVerificationCity(e.target.value)}
-                                    placeholder="Enter your city"
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="verification-postal">{t("postalCode")}</Label>
-                                <Input 
-                                    id="verification-postal" 
-                                    value={verificationPostalCode} 
-                                    onChange={(e) => setVerificationPostalCode(e.target.value)}
-                                    placeholder="Enter postal code"
-                                />
-                            </div>
-                        </div>
+        <TabsContent value="verification" className="mt-6">
+          <Card className={"bg-gray-800"}>
+            <CardHeader>
+              <CardTitle>{t("identityVerification")}</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <p className="text-gray-400 flex flex-col gap-2">
+                {t("uploadGovId")}{" "}
+                <VerificationStatusBadge
+                  status={userProfile?.verification?.status}
+                />
+              </p>
 
-                        <Button onClick={handleSubmitVerification} disabled={isSubmitting || userProfile?.verification?.status === 'APPROVED'}>
-                            {isSubmitting ? "Submitting..." : (userProfile?.verification?.status === 'APPROVED' ? t("verified") : t("submitForReview"))}
-                        </Button>
-                    </CardContent>
-                </Card>
-            </TabsContent>
+              <div className="grid md:grid-cols-2 gap-6">
+                {/* Front ID */}
+                <div className="space-y-2">
+                  <Label>{t("frontId")}</Label>
+                  <div className="w-full h-48 border-2 border-dashed border-gray-600 rounded-lg flex items-center justify-center bg-gray-900 relative">
+                    {frontIdPreview ? (
+                      <img
+                        src={frontIdPreview}
+                        alt="Front ID Preview"
+                        className="h-full w-full object-contain"
+                      />
+                    ) : (
+                      <div className="text-center">
+                        <Camera className="w-8 h-8 mx-auto text-gray-500" />
+                        <p className="text-sm text-gray-500 mt-2">
+                          {t("clickToUpload")}
+                        </p>
+                      </div>
+                    )}
+                    <Input
+                      type="file"
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                      accept="image/*"
+                      onChange={(e) => handleFileChange(e, "front")}
+                    />
+                  </div>
+                </div>
+                {/* Back ID */}
+                <div className="space-y-2">
+                  <Label>{t("backId")}</Label>
+                  <div className="w-full h-48 border-2 border-dashed border-gray-600 rounded-lg flex items-center justify-center bg-gray-900 relative">
+                    {backIdPreview ? (
+                      <img
+                        src={backIdPreview}
+                        alt="Back ID Preview"
+                        className="h-full w-full object-contain"
+                      />
+                    ) : (
+                      <div className="text-center">
+                        <Camera className="w-8 h-8 mx-auto text-gray-500" />
+                        <p className="text-sm text-gray-500 mt-2">
+                          {t("clickToUpload")}
+                        </p>
+                      </div>
+                    )}
+                    <Input
+                      type="file"
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                      accept="image/*"
+                      onChange={(e) => handleFileChange(e, "back")}
+                    />
+                  </div>
+                </div>
+              </div>
 
-            <TabsContent value="withdraw" className="mt-6">
-                <Card  className={'bg-gray-800'}>
-                    <CardHeader>
-                        <CardTitle>{t("withdraw")}</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                        <div>
-                            <p className="text-gray-400">{t("availableForWithdrawal")}</p>
-                            <p className="text-2xl font-bold">${(balance + liveProfit).toFixed(2)}</p>
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="withdraw-amount">{t("amountUsd")}</Label>
-                            <Input id="withdraw-amount" type="number" placeholder="0.00" value={withdrawAmount} onChange={(e) => setWithdrawAmount(e.target.value)} />
-                        </div>
-                        <div className="space-y-2">
-                          <Label>{t("method")}</Label>
-                           <Select value={withdrawMethod} onValueChange={setWithdrawMethod}>
-                                <SelectTrigger>
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="crypto">{t("crypto")}</SelectItem>
-                                    <SelectItem value="bank">{t("bankTransfer")}</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
+              {/* Address Information */}
+              <div className="grid md:grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="verification-address">{t("address")}</Label>
+                  <Input
+                    id="verification-address"
+                    value={verificationAddress}
+                    onChange={(e) => setVerificationAddress(e.target.value)}
+                    placeholder="Enter your full address"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="verification-city">{t("city")}</Label>
+                  <Input
+                    id="verification-city"
+                    value={verificationCity}
+                    onChange={(e) => setVerificationCity(e.target.value)}
+                    placeholder="Enter your city"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="verification-postal">{t("postalCode")}</Label>
+                  <Input
+                    id="verification-postal"
+                    value={verificationPostalCode}
+                    onChange={(e) => setVerificationPostalCode(e.target.value)}
+                    placeholder="Enter postal code"
+                  />
+                </div>
+              </div>
+
+              <Button
+                onClick={handleSubmitVerification}
+                disabled={
+                  isSubmitting ||
+                  userProfile?.verification?.status === "APPROVED"
+                }
+              >
+                {isSubmitting
+                  ? "Submitting..."
+                  : userProfile?.verification?.status === "APPROVED"
+                  ? t("verified")
+                  : t("submitForReview")}
+              </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="withdraw" className="mt-6">
+          <Card className={"bg-gray-800"}>
+            <CardHeader>
+              <CardTitle>{t("withdraw")}</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <p className="text-gray-400">{t("availableForWithdrawal")}</p>
+                <p className="text-2xl font-bold">
+                  ${(balance + liveProfit).toFixed(2)}
+                </p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="withdraw-amount">{t("amountUsd")}</Label>
+                <Input
+                  id="withdraw-amount"
+                  type="number"
+                  placeholder="0.00"
+                  value={withdrawAmount}
+                  onChange={(e) => setWithdrawAmount(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>{t("method")}</Label>
+                <Select
+                  value={withdrawMethod}
+                  onValueChange={setWithdrawMethod}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="crypto">{t("crypto")}</SelectItem>
+                    <SelectItem value="bank">{t("bankTransfer")}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
                         {withdrawMethod === 'crypto' && (
                             <div className="space-y-2">
@@ -511,34 +601,51 @@ export default function ProfilePage() {
                 </Card>
             </TabsContent>
 
-            <TabsContent value="history" className="mt-6">
-                <Card className={'bg-gray-800'}>
-                    <CardHeader>
-                        <CardTitle>{t("transactionHistory")}</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        {transactions.length > 0 ? (
-                            <ul className="space-y-3">
-                                {transactions.map(tx => (
-                                    <li key={tx.id} className="flex justify-between items-center p-3 bg-gray-800 rounded-md">
-                                        <div>
-                                            <p className={`font-semibold ${tx.type === 'DEPOSIT' ? 'text-green-400' : 'text-orange-400'}`}>{tx.type}</p>
-                                            <p className="text-sm text-gray-400">{new Date(tx.createdAt).toLocaleString()}</p>
-                                        </div>
-                                        <div className="text-right">
-                                            <p className="font-mono text-lg">${tx.amount.toFixed(2)}</p>
-                                            <Badge>{tx.status}</Badge>
-                                        </div>
-                                    </li>
-                                ))}
-                            </ul>
-                        ) : (
-                            <p className="text-center text-gray-500 py-4">{t("noTransactions")}</p>
-                        )}
-                    </CardContent>
-                </Card>
-            </TabsContent>
-        </Tabs>
+        <TabsContent value="history" className="mt-6">
+          <Card className={"bg-gray-800"}>
+            <CardHeader>
+              <CardTitle>{t("transactionHistory")}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {transactions.length > 0 ? (
+                <ul className="space-y-3">
+                  {transactions.map((tx) => (
+                    <li
+                      key={tx.id}
+                      className="flex justify-between items-center p-3 bg-gray-800 rounded-md"
+                    >
+                      <div>
+                        <p
+                          className={`font-semibold ${
+                            tx.type === "DEPOSIT"
+                              ? "text-green-400"
+                              : "text-orange-400"
+                          }`}
+                        >
+                          {tx.type}
+                        </p>
+                        <p className="text-sm text-gray-400">
+                          {new Date(tx.createdAt).toLocaleString()}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-mono text-lg">
+                          ${tx.amount.toFixed(2)}
+                        </p>
+                        <Badge>{tx.status}</Badge>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-center text-gray-500 py-4">
+                  {t("noTransactions")}
+                </p>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
-  )
+  );
 }

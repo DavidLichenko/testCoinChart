@@ -4,8 +4,8 @@ import { ThemeProvider } from "@/components/theme-provider"
 import {AuthProvider} from "@/components/auth-provider";
 import { I18nProvider } from "@/components/i18n-provider";
 import { cn } from "@/lib/utils";
-
 import localFont from "next/font/local";
+import { Toaster } from "react-hot-toast";
 
 
 // Load Geist Sans (variable font)
@@ -58,7 +58,8 @@ export default function RootLayout({
                     <I18nProvider>
                         {children}
                     </I18nProvider>
-                </AuthProvider>
+                        </AuthProvider>
+                        <Toaster position="bottom-right"/>
             </ThemeProvider>
             </body>
             </html>

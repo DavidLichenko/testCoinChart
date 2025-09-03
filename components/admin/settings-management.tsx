@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from "@/components/ui/dialog"
-import { useToast } from "@/hooks/use-toast"
+import { toast } from "@/components/toast";
 import { Settings, PlusCircle, Edit, Trash2, Copy, Check } from "lucide-react"
 
 interface DepositAddress {
@@ -34,7 +34,6 @@ export default function SettingsManagement() {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingAddress, setEditingAddress] = useState<DepositAddress | null>(null)
   const [copiedAddress, setCopiedAddress] = useState<string | null>(null)
-  const { toast } = useToast()
   
   // Form state
   const [selectedToken, setSelectedToken] = useState<string>("")

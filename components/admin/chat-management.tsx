@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { useToast } from "@/hooks/use-toast"
+import { toast } from "react-hot-toast";
 import { pusherClient } from "@/lib/pusher-client"
 
 interface Message {
@@ -37,7 +37,6 @@ interface ChatSession {
 }
 
 export default function ChatManagement() {
-  const { toast } = useToast()
   const [chatSessions, setChatSessions] = useState<ChatSession[]>([])
   const [selectedSession, setSelectedSession] = useState<ChatSession | null>(null)
   const [messages, setMessages] = useState<Message[]>([])

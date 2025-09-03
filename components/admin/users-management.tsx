@@ -90,7 +90,7 @@ export default function UsersManagement() {
       console.error("Error updating user:", error)
     }
   }
-
+  console.log(users)
   const handleBlockUser = async (userId: string, blocked: boolean) => {
     await handleUpdateUser(userId, { blocked })
   }

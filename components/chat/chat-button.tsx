@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
 import { useAuth } from "@/components/auth-provider"
-import { useToast } from "@/hooks/use-toast"
+import { toast } from "react-hot-toast";
 import { pusherClient } from "@/lib/pusher-client"
 
 interface Message {
@@ -26,7 +26,6 @@ interface Message {
 
 export default function ChatButton() {
   const { user } = useAuth()
-  const { toast } = useToast()
   const [chatOpen, setChatOpen] = useState(false)
   const [messages, setMessages] = useState<Message[]>([])
   const [newMessage, setNewMessage] = useState("")

@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { useToast } from "@/hooks/use-toast"
+import { toast } from "react-hot-toast";
 import { 
   ShieldCheck,
   Search, 
@@ -42,7 +42,6 @@ export default function VerificationManagement() {
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
   const [imageToView, setImageToView] = useState<string | null>(null)
-  const { toast } = useToast()
 
   useEffect(() => {
     fetchVerifications()
