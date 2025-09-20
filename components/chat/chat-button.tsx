@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
 import { useAuth } from "@/components/auth-provider"
-import { toast } from "react-hot-toast";
+import { toast } from "@/components/toast";
 import { pusherClient } from "@/lib/pusher-client"
 
 interface Message {

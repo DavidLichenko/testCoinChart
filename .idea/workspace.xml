@@ -6,6 +6,13 @@
   <component name="ChangeListManager">
     <list default="true" id="fd28fafe-204c-4ae6-8105-3dd8baaf979d" name="Changes" comment="master2upd">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/layout.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/admin/transactions-management.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/admin/transactions-management.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/chat/chat-button.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/chat/chat-button.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/dashboard-page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/dashboard-page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/i18n-provider.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/i18n-provider.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/profile-page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/profile-page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/trade-page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/trade-page.tsx" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -74,6 +81,8 @@
       <workItem from="1756696560385" duration="868000" />
       <workItem from="1756729451311" duration="1265000" />
       <workItem from="1756810341630" duration="820000" />
+      <workItem from="1757101317762" duration="2000" />
+      <workItem from="1758390509018" duration="1223000" />
     </task>
     <task id="LOCAL-00001" summary="master2upd">
       <option name="closed" value="true" />

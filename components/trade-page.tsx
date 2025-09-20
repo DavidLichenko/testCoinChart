@@ -27,7 +27,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
-import { toast } from "react-hot-toast";
+import { toast } from "@/components/toast";
 import { Skeleton } from "@/components/ui/skeleton"
 
 import { DepositModal } from "@/components/deposit-modal"

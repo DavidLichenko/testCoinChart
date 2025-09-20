@@ -59,7 +59,12 @@ export default function RootLayout({
                         {children}
                     </I18nProvider>
                         </AuthProvider>
-                        <Toaster position="bottom-right"/>
+                <Toaster
+                    position="bottom-right"
+                    toastOptions={{
+                        duration: 3000,
+                    }}
+                />
             </ThemeProvider>
             </body>
             </html>

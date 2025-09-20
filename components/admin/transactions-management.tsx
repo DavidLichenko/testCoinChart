@@ -115,7 +115,21 @@ export default function TransactionsManagement() {
     if (newPage < 1 || newPage > totalPages) return;
     setCurrentPage(newPage);
   };
+  const handleCloseTrade = async (tradeId: string, currentPrice: number) => {
+    try {
+      const response = await fetch(`/api/trades/${tradeId}/close`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ closePrice: currentPrice }),
+      })
 
+      if (response.ok) {
+        fetchTrades()
+      }
+    } catch (error) {
+      console.error("Error closing trade:", error)
+    }
+  }
   const getCurrentPrice = (ticker: string) =>
     Number(tickers.find((t) => t.symbol === ticker)?.bid) || 0;
 
@@ -295,7 +309,9 @@ export default function TransactionsManagement() {
                     <Edit className="w-3 h-3" />
                   </Button>
                   {trade.status === "OPEN" && (
-                    <Button size="sm" variant="destructive">
+                    <Button size="sm" variant="destructive"
+                            onClick={() => handleCloseTrade(trade.id, currentPrice)}
+                    >
                       <X className="w-3 h-3" />
                     </Button>
                   )}
