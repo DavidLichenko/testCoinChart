@@ -6,18 +6,6 @@ import { UserRole } from "@prisma/client"
 // GET all deposit addresses
 export async function GET(request: NextRequest) {
   try {
-    const basicUser = await getCurrentUser()
-    if (!basicUser) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
-    
-    const user = await prisma.user.findUnique({
-      where: { id: basicUser.id },
-    })
-
-    if (!user || (user.role !== UserRole.OWNER && user.role !== UserRole.CR_MANAGMENT && user.role !== UserRole.TEAMLEAD)) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
-    }
 
     const addresses = await prisma.depositAddress.findMany()
     return NextResponse.json(addresses)
