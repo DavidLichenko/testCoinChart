@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { toast } from "react-hot-toast";
+import { toast } from "@/components/toast";
 import { pusherClient } from "@/lib/pusher-client"
 
 interface Message {
@@ -44,6 +44,7 @@ export default function ChatManagement() {
   const [searchTerm, setSearchTerm] = useState("")
   const [uploading, setUploading] = useState(false)
   const [isTyping, setIsTyping] = useState(false)
+  const [showConversations, setShowConversations] = useState(true)
 
   // Fetch chat sessions
   useEffect(() => {
@@ -125,6 +126,8 @@ export default function ChatManagement() {
           : s
       )
     )
+    // Hide conversations list on mobile when chat is selected
+    setShowConversations(false)
   }
 
   const sendMessage = async () => {
@@ -225,31 +228,41 @@ export default function ChatManagement() {
   )
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold">Support Chat Management</h2>
-        <Badge variant="outline" className="text-sm">
+    <div className="space-y-4 sm:space-y-6 px-2 sm:px-0">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+        <h2 className="text-xl sm:text-2xl font-bold">Support Chat Management</h2>
+        <Badge variant="outline" className="text-xs sm:text-sm">
           {chatSessions.filter(s => s.unreadCount > 0).length} unread conversations
         </Badge>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[600px]">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 h-[calc(100vh-200px)] sm:h-[600px] relative">
         {/* Chat Sessions List */}
-        <Card className="lg:col-span-1 bg-gray-900 border-gray-700">
+        <Card className={`lg:col-span-1 bg-gray-900 border-gray-700 ${!showConversations ? 'hidden lg:block' : 'block'} absolute lg:relative inset-0 lg:inset-auto z-10 lg:z-auto`}>
           <CardHeader className="pb-3">
-            <CardTitle className="text-lg">Conversations</CardTitle>
-            <div className="relative">
+            <div className="flex items-center justify-between gap-2">
+              <CardTitle className="text-base sm:text-lg">Conversations</CardTitle>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowConversations(false)}
+                className="lg:hidden"
+              >
+                <MessageCircle className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="relative mt-2">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <Input
                 placeholder="Search users..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 bg-gray-800 border-gray-600"
+                className="pl-10 bg-gray-800 border-gray-600 text-sm"
               />
             </div>
           </CardHeader>
           <CardContent className="p-0">
-            <div className="overflow-y-auto h-[500px]">
+            <div className="overflow-y-auto h-[calc(100vh-280px)] sm:h-[500px]">
               <AnimatePresence>
                 {filteredSessions.map((session) => (
                   <motion.div
@@ -258,35 +271,35 @@ export default function ChatManagement() {
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: 20 }}
                     onClick={() => handleSelectSession(session)}
-                    className={`p-4 border-b border-gray-700 cursor-pointer hover:bg-gray-800 transition-colors ${
+                    className={`p-3 sm:p-4 border-b border-gray-700 cursor-pointer hover:bg-gray-800 transition-colors ${
                       selectedSession?.userId === session.userId ? "bg-gray-800 border-l-4 border-l-blue-500" : ""
                     }`}
                   >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-3">
-                        <Avatar className="h-10 w-10">
-                          <AvatarFallback className="bg-gray-700">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center space-x-2 sm:space-x-3 flex-1 min-w-0">
+                        <Avatar className="h-8 w-8 sm:h-10 sm:w-10 flex-shrink-0">
+                          <AvatarFallback className="bg-gray-700 text-xs sm:text-sm">
                             {session.user.name?.[0] || session.user.email[0].toUpperCase()}
                           </AvatarFallback>
                         </Avatar>
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center space-x-2">
-                            <p className="text-sm font-medium truncate">
+                          <div className="flex items-center space-x-1 sm:space-x-2">
+                            <p className="text-xs sm:text-sm font-medium truncate">
                               {session.user.name || session.user.email}
                             </p>
                             {session.isOnline && (
-                              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                              <div className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0"></div>
                             )}
                           </div>
                           <p className="text-xs text-gray-400 truncate">{session.lastMessage}</p>
                         </div>
                       </div>
-                      <div className="text-right">
+                      <div className="text-right flex-shrink-0">
                         <p className="text-xs text-gray-400">
-                          {new Date(session.lastMessageTime).toLocaleTimeString()}
+                          {new Date(session.lastMessageTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </p>
                         {session.unreadCount > 0 && (
-                          <Badge variant="destructive" className="mt-1 text-xs">
+                          <Badge variant="destructive" className="mt-1 text-xs px-1.5">
                             {session.unreadCount}
                           </Badge>
                         )}
@@ -305,28 +318,36 @@ export default function ChatManagement() {
         </Card>
 
         {/* Chat Messages */}
-        <Card className="lg:col-span-2 bg-gray-900 border-gray-700 flex flex-col">
+        <Card className={`lg:col-span-2 bg-gray-900 border-gray-700 flex flex-col ${!selectedSession ? 'hidden lg:flex' : 'flex'} absolute lg:relative inset-0 lg:inset-auto z-10 lg:z-auto`}>
           {selectedSession ? (
             <>
               <CardHeader className="pb-3 border-b border-gray-700">
-                <div className="flex items-center space-x-3">
-                  <Avatar className="h-10 w-10">
-                    <AvatarFallback className="bg-gray-700">
+                <div className="flex items-center space-x-2 sm:space-x-3">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowConversations(true)}
+                    className="lg:hidden -ml-2"
+                  >
+                    ←
+                  </Button>
+                  <Avatar className="h-8 w-8 sm:h-10 sm:w-10 flex-shrink-0">
+                    <AvatarFallback className="bg-gray-700 text-xs sm:text-sm">
                       {selectedSession.user.name?.[0] || selectedSession.user.email[0].toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
-                  <div>
-                    <CardTitle className="text-lg">
+                  <div className="flex-1 min-w-0">
+                    <CardTitle className="text-base sm:text-lg truncate">
                       {selectedSession.user.name || selectedSession.user.email}
                     </CardTitle>
-                    <div className="flex items-center space-x-2 text-sm text-gray-400">
-                      <User className="w-4 h-4" />
-                      <span>{selectedSession.user.email}</span>
+                    <div className="flex items-center space-x-1 sm:space-x-2 text-xs sm:text-sm text-gray-400">
+                      <User className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                      <span className="truncate">{selectedSession.user.email}</span>
                       {isTyping && (
                         <motion.div
                           initial={{ opacity: 0 }}
                           animate={{ opacity: 1 }}
-                          className="text-blue-400"
+                          className="text-blue-400 flex-shrink-0"
                         >
                           typing...
                         </motion.div>
@@ -337,7 +358,7 @@ export default function ChatManagement() {
               </CardHeader>
 
               <CardContent className="flex-1 p-0 flex flex-col">
-                <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                <div className="flex-1 overflow-y-auto p-2 sm:p-4 space-y-3 sm:space-y-4">
                   <AnimatePresence>
                     {messages.map((message) => (
                       <motion.div
@@ -348,7 +369,7 @@ export default function ChatManagement() {
                         className={`flex ${message.isSupportMessage ? "justify-end" : "justify-start"}`}
                       >
                         <div
-                          className={`max-w-[70%] rounded-lg p-3 ${
+                          className={`max-w-[85%] sm:max-w-[70%] rounded-lg p-2 sm:p-3 ${
                             message.isSupportMessage
                               ? "bg-blue-600 text-white"
                               : "bg-gray-700 text-white"
@@ -357,17 +378,17 @@ export default function ChatManagement() {
                           <div className="text-xs text-gray-300 mb-1">
                             {message.isSupportMessage ? "Support" : selectedSession.user.name || selectedSession.user.email}
                           </div>
-                          <div className="text-sm">{message.content}</div>
+                          <div className="text-xs sm:text-sm break-words">{message.content}</div>
                           {message.imageUrl && (
                             <img
                               src={message.imageUrl}
                               alt="Chat image"
-                              className="mt-2 rounded max-w-full max-h-48 object-cover"
+                              className="mt-2 rounded max-w-full max-h-32 sm:max-h-48 object-cover"
                             />
                           )}
                           <div className="text-xs text-gray-400 mt-1 flex items-center space-x-1">
                             <Clock className="w-3 h-3" />
-                            <span>{new Date(message.createdAt).toLocaleTimeString()}</span>
+                            <span>{new Date(message.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                           </div>
                         </div>
                       </motion.div>
@@ -375,21 +396,21 @@ export default function ChatManagement() {
                   </AnimatePresence>
                 </div>
 
-                <div className="p-4 border-t border-gray-700">
-                  <div className="flex gap-2">
+                <div className="p-2 sm:p-4 border-t border-gray-700">
+                  <div className="flex gap-1 sm:gap-2">
                     <Input
                       value={newMessage}
                       onChange={(e) => setNewMessage(e.target.value)}
                       onKeyPress={handleKeyPress}
                       placeholder="Type your message..."
-                      className="flex-1 bg-gray-800 border-gray-600"
+                      className="flex-1 bg-gray-800 border-gray-600 text-sm"
                       disabled={uploading}
                     />
                     <Button
                       size="icon"
                       onClick={() => document.getElementById("admin-image-upload")?.click()}
                       disabled={uploading}
-                      className="h-10 w-10 bg-gray-700 hover:bg-gray-600"
+                      className="h-9 w-9 sm:h-10 sm:w-10 bg-gray-700 hover:bg-gray-600 flex-shrink-0"
                     >
                       <ImageIcon className="h-4 w-4" />
                     </Button>
@@ -397,7 +418,7 @@ export default function ChatManagement() {
                       size="icon"
                       onClick={sendMessage}
                       disabled={!newMessage.trim() && !uploading}
-                      className="h-10 w-10 bg-blue-600 hover:bg-blue-700"
+                      className="h-9 w-9 sm:h-10 sm:w-10 bg-blue-600 hover:bg-blue-700 flex-shrink-0"
                     >
                       <Send className="h-4 w-4" />
                     </Button>
@@ -414,10 +435,10 @@ export default function ChatManagement() {
             </>
           ) : (
             <CardContent className="flex-1 flex items-center justify-center">
-              <div className="text-center text-gray-400">
-                <MessageCircle className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                <p className="text-lg">Select a conversation to start chatting</p>
-                <p className="text-sm">Choose from the list on the left to view messages</p>
+              <div className="text-center text-gray-400 px-4">
+                <MessageCircle className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4 opacity-50" />
+                <p className="text-base sm:text-lg">Select a conversation to start chatting</p>
+                <p className="text-xs sm:text-sm mt-1">Choose from the list to view messages</p>
               </div>
             </CardContent>
           )}

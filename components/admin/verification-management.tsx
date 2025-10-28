@@ -113,41 +113,41 @@ export default function VerificationManagement() {
   })
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-4 sm:space-y-6 px-2 sm:px-0">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h2 className="text-2xl font-bold flex items-center gap-2">
-            <ShieldCheck className="w-6 h-6 text-blue-500" />
+          <h2 className="text-xl sm:text-2xl font-bold flex items-center gap-2">
+            <ShieldCheck className="w-5 h-5 sm:w-6 sm:h-6 text-blue-500" />
             Verification Management
           </h2>
-          <p className="text-gray-400">Review and approve user identity verifications.</p>
+          <p className="text-sm sm:text-base text-gray-400">Review and approve user identity verifications.</p>
         </div>
-        <Badge variant="outline" className="text-sm p-2">
+        <Badge variant="outline" className="text-xs sm:text-sm p-2">
           {filteredVerifications.length} / {verifications.length} Verifications
         </Badge>
       </div>
 
       <Card className="bg-gray-800/50 border-gray-700">
-        <CardContent className="p-4">
-          <div className="flex flex-col sm:flex-row gap-4">
+        <CardContent className="p-3 sm:p-4">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <Input
                 placeholder="Search by name or email..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 bg-gray-900 border-gray-700"
+                className="pl-10 bg-gray-900 border-gray-700 text-sm"
               />
             </div>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-full sm:w-48 bg-gray-900 border-gray-700">
+              <SelectTrigger className="w-full sm:w-48 bg-gray-900 border-gray-700 text-sm">
                 <SelectValue placeholder="Filter by status" />
               </SelectTrigger>
               <SelectContent className="bg-gray-800 border-gray-700">
-                <SelectItem value="all">All Statuses</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="approved">Approved</SelectItem>
-                <SelectItem value="rejected">Rejected</SelectItem>
+                <SelectItem value="all" className="text-sm">All Statuses</SelectItem>
+                <SelectItem value="pending" className="text-sm">Pending</SelectItem>
+                <SelectItem value="approved" className="text-sm">Approved</SelectItem>
+                <SelectItem value="rejected" className="text-sm">Rejected</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -171,40 +171,40 @@ export default function VerificationManagement() {
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-3 sm:space-y-4">
           {filteredVerifications.map((verification) => (
             <Card key={verification.id} className="bg-gray-800/50 border-gray-700 overflow-hidden">
-              <CardContent className="p-4">
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-                  <div className="flex items-center gap-4 mb-4 md:mb-0">
-                    <div className="w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center">
-                      <User className="w-5 h-5 text-gray-400" />
+              <CardContent className="p-3 sm:p-4">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                  <div className="flex items-center gap-3 sm:gap-4">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gray-700 flex items-center justify-center flex-shrink-0">
+                      <User className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
                     </div>
-                    <div>
-                      <p className="font-semibold text-white">{verification.user.name || 'N/A'}</p>
-                      <p className="text-sm text-gray-400">{verification.user.email}</p>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-semibold text-white text-sm sm:text-base truncate">{verification.user.name || 'N/A'}</p>
+                      <p className="text-xs sm:text-sm text-gray-400 truncate">{verification.user.email}</p>
                     </div>
                   </div>
-                  <div className="flex items-center justify-between md:justify-end gap-4">
-                     <Badge variant={getStatusVariant(verification.status)} className="capitalize">
+                  <div className="flex items-center justify-between sm:justify-end gap-2 sm:gap-4">
+                     <Badge variant={getStatusVariant(verification.status)} className="capitalize text-xs">
                        {verification.status}
                      </Badge>
-                     <Badge variant={getStatusVariant(verification.user.isVerified)} >
+                     <Badge variant={getStatusVariant(verification.user.isVerified)} className="text-xs">
                         User {verification.user.isVerified ? 'Verified' : 'Not Verified'}
                      </Badge>
                   </div>
                 </div>
-                <hr className="border-gray-700 my-4" />
+                <hr className="border-gray-700 my-3 sm:my-4" />
                 
                 {/* Address Information */}
                 {(verification.address || verification.city || verification.postalCode) && (
-                  <div className="mb-4 p-3 bg-gray-900/50 rounded-lg">
-                    <h4 className="text-sm font-medium text-gray-300 mb-2">Address Information</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm">
+                  <div className="mb-3 sm:mb-4 p-2 sm:p-3 bg-gray-900/50 rounded-lg">
+                    <h4 className="text-xs sm:text-sm font-medium text-gray-300 mb-2">Address Information</h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs sm:text-sm">
                       {verification.address && (
                         <div>
                           <span className="text-gray-400">Address:</span>
-                          <p className="text-white">{verification.address}</p>
+                          <p className="text-white break-words">{verification.address}</p>
                         </div>
                       )}
                       {verification.city && (
@@ -223,31 +223,32 @@ export default function VerificationManagement() {
                   </div>
                 )}
                 
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-                  <div className="flex items-center gap-4">
-                     <Button variant="outline" size="sm" onClick={() => setImageToView(verification.frontIdUrl)}>
-                        <Eye className="w-4 h-4 mr-2" /> Front ID
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                  <div className="flex items-center gap-2 sm:gap-4 flex-wrap">
+                     <Button variant="outline" size="sm" onClick={() => setImageToView(verification.frontIdUrl)} className="text-xs sm:text-sm">
+                        <Eye className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" /> Front ID
                      </Button>
-                     <Button variant="outline" size="sm" onClick={() => setImageToView(verification.backIdUrl)}>
-                       <Eye className="w-4 h-4 mr-2" /> Back ID
+                     <Button variant="outline" size="sm" onClick={() => setImageToView(verification.backIdUrl)} className="text-xs sm:text-sm">
+                       <Eye className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" /> Back ID
                      </Button>
                   </div>
-                  <div className="flex items-center gap-2 mt-4 md:mt-0">
+                  <div className="flex items-center gap-2">
                     <Button 
                       size="sm" 
-                      className="bg-green-600 hover:bg-green-700" 
+                      className="bg-green-600 hover:bg-green-700 text-xs sm:text-sm flex-1 sm:flex-initial" 
                       onClick={() => handleUpdateStatus(verification.id, 'APPROVED')}
                       disabled={verification.status === 'APPROVED'}
                     >
-                      <CheckCircle className="w-4 h-4 mr-2" /> Approve
+                      <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" /> Approve
                     </Button>
                     <Button 
                       size="sm" 
                       variant="destructive"
                       onClick={() => handleUpdateStatus(verification.id, 'REJECTED')}
                       disabled={verification.status === 'REJECTED'}
+                      className="text-xs sm:text-sm flex-1 sm:flex-initial"
                     >
-                      <XCircle className="w-4 h-4 mr-2" /> Reject
+                      <XCircle className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" /> Reject
                     </Button>
                   </div>
                 </div>
@@ -259,14 +260,14 @@ export default function VerificationManagement() {
 
       {/* Image Viewing Dialog */}
       <Dialog open={!!imageToView} onOpenChange={(open) => !open && setImageToView(null)}>
-        <DialogContent className="max-w-2xl bg-gray-900 border-gray-700">
+        <DialogContent className="max-w-2xl w-[95vw] max-h-[90vh] overflow-y-auto bg-gray-900 border-gray-700">
           <DialogHeader>
-            <DialogTitle>Verification Document</DialogTitle>
+            <DialogTitle className="text-lg sm:text-xl">Verification Document</DialogTitle>
           </DialogHeader>
           {imageToView ? (
             <img src={imageToView} alt="Verification Document" className="w-full h-auto rounded-md" />
           ) : (
-            <p>No image selected.</p>
+            <p className="text-sm">No image selected.</p>
           )}
         </DialogContent>
       </Dialog>

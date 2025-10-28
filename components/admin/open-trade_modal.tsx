@@ -170,22 +170,22 @@ const handleCreateTrade = async () => {
 
   return (
     <Dialog open={openTradeOpen} onOpenChange={setOpenTradeOpen}>
-      <DialogContent className="bg-gray-800 border-gray-700 max-w-md">
+      <DialogContent className="bg-gray-800 border-gray-700 max-w-md w-[95vw] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Open New Trade</DialogTitle>
+          <DialogTitle className="text-lg sm:text-xl">Open New Trade</DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4">
+        <div className="space-y-3 sm:space-y-4">
           {/* User */}
           <div>
-            <Label>User</Label>
+            <Label className="text-sm">User</Label>
             <Select value={userId} onValueChange={setUserId}>
-              <SelectTrigger className="bg-gray-700 border-gray-600">
+              <SelectTrigger className="bg-gray-700 border-gray-600 text-sm">
                 <SelectValue placeholder="Select user" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="max-h-[200px]">
                 {users.map((u) => (
-                  <SelectItem key={u.id} value={u.id}>
+                  <SelectItem key={u.id} value={u.id} className="text-sm">
                     {u.name || u.email}
                   </SelectItem>
                 ))}
@@ -195,14 +195,14 @@ const handleCreateTrade = async () => {
 
           {/* Ticker */}
           <div>
-            <Label>Ticker</Label>
+            <Label className="text-sm">Ticker</Label>
             <Select value={ticker} onValueChange={setTicker}>
-              <SelectTrigger className="bg-gray-700 border-gray-600">
+              <SelectTrigger className="bg-gray-700 border-gray-600 text-sm">
                 <SelectValue placeholder="Select ticker" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="max-h-[200px]">
                 {tickers.map((t) => (
-                  <SelectItem key={t.symbol} value={t.symbol}>
+                  <SelectItem key={t.symbol} value={t.symbol} className="text-sm">
                     {t.symbol}
                   </SelectItem>
                 ))}
@@ -212,73 +212,73 @@ const handleCreateTrade = async () => {
 
           {/* Type */}
           <div>
-            <Label>Type</Label>
+            <Label className="text-sm">Type</Label>
             <Select
               value={type}
               onValueChange={(v) => setType(v as "BUY" | "SELL")}
             >
-              <SelectTrigger className="bg-gray-700 border-gray-600">
+              <SelectTrigger className="bg-gray-700 border-gray-600 text-sm">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="BUY">BUY</SelectItem>
-                <SelectItem value="SELL">SELL</SelectItem>
+                <SelectItem value="BUY" className="text-sm">BUY</SelectItem>
+                <SelectItem value="SELL" className="text-sm">SELL</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           {/* Volume */}
           <div>
-            <Label>Volume</Label>
+            <Label className="text-sm">Volume</Label>
             <Input
               type="number"
               step="0.01"
               value={volume}
               onChange={(e) => setVolume(e.target.value)}
-              className="bg-gray-700 border-gray-600"
+              className="bg-gray-700 border-gray-600 text-sm"
             />
           </div>
 
           {/* Leverage */}
           <div>
-            <Label>Leverage</Label>
+            <Label className="text-sm">Leverage</Label>
             <Select value={leverage} onValueChange={setLeverage}>
-              <SelectTrigger className="bg-gray-700 border-gray-600">
+              <SelectTrigger className="bg-gray-700 border-gray-600 text-sm">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="1">1:1</SelectItem>
-                <SelectItem value="5">1:5</SelectItem>
-                <SelectItem value="10">1:10</SelectItem>
-                <SelectItem value="25">1:25</SelectItem>
-                <SelectItem value="50">1:50</SelectItem>
-                <SelectItem value="100">1:100</SelectItem>
+                <SelectItem value="1" className="text-sm">1:1</SelectItem>
+                <SelectItem value="5" className="text-sm">1:5</SelectItem>
+                <SelectItem value="10" className="text-sm">1:10</SelectItem>
+                <SelectItem value="25" className="text-sm">1:25</SelectItem>
+                <SelectItem value="50" className="text-sm">1:50</SelectItem>
+                <SelectItem value="100" className="text-sm">1:100</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           {/* Price (авто) */}
           <div>
-            <Label>Open Price</Label>
-            <div className="text-gray-300">${price.toFixed(2)}</div>
+            <Label className="text-sm">Open Price</Label>
+            <div className="text-gray-300 text-sm">${price.toFixed(2)}</div>
           </div>
 
           {/* Margin (авто) */}
           <div>
-            <Label>Margin</Label>
-            <div className="text-gray-300">${calculateMargin()}</div>
+            <Label className="text-sm">Margin</Label>
+            <div className="text-gray-300 text-sm">${calculateMargin()}</div>
           </div>
 
           {/* Asset Type */}
           <div>
-            <Label>Asset Type</Label>
-            <div className="text-gray-300">{assetType}</div>
+            <Label className="text-sm">Asset Type</Label>
+            <div className="text-gray-300 text-sm">{assetType}</div>
           </div>
 
           {/* Create Trade Button */}
           <Button
             onClick={handleCreateTrade}
-            className="w-full"
+            className="w-full text-sm sm:text-base"
             disabled={loading}
           >
             {loading ? (

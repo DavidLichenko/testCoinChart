@@ -151,10 +151,10 @@ export default function SettingsManagement() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold flex items-center gap-2">
-          <Settings className="w-6 h-6 text-blue-500" />
+    <div className="space-y-4 sm:space-y-6 px-2 sm:px-0">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <h2 className="text-xl sm:text-2xl font-bold flex items-center gap-2">
+          <Settings className="w-5 h-5 sm:w-6 sm:h-6 text-blue-500" />
           Deposit Address Settings
         </h2>
         <Dialog open={dialogOpen} onOpenChange={(isOpen) => {
@@ -164,55 +164,55 @@ export default function SettingsManagement() {
           }
         }}>
           <DialogTrigger asChild>
-            <Button onClick={() => setEditingAddress(null)}>
+            <Button onClick={() => setEditingAddress(null)} className="text-sm sm:text-base w-full sm:w-auto">
               <PlusCircle className="w-4 h-4 mr-2" />
               Add New Address
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px] bg-gray-900 border-gray-700">
+          <DialogContent className="sm:max-w-[425px] bg-gray-900 border-gray-700 w-[95vw] max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>{editingAddress ? 'Edit' : 'Add New'} Deposit Address</DialogTitle>
+              <DialogTitle className="text-lg sm:text-xl">{editingAddress ? 'Edit' : 'Add New'} Deposit Address</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSaveChanges}>
-              <div className="grid gap-4 py-4">
+              <div className="grid gap-3 sm:gap-4 py-4">
                 <div className="space-y-2">
-                  <Label htmlFor="token">Token</Label>
+                  <Label htmlFor="token" className="text-sm">Token</Label>
                   <Select value={selectedToken} onValueChange={handleTokenChange}>
-                    <SelectTrigger id="token">
+                    <SelectTrigger id="token" className="text-sm">
                       <SelectValue placeholder="Select a token" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="max-h-[200px]">
                       {Object.keys(cryptoOptions).map(token => (
-                        <SelectItem key={token} value={token}>{token}</SelectItem>
+                        <SelectItem key={token} value={token} className="text-sm">{token}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
                 {selectedToken && (
                   <div className="space-y-2">
-                    <Label htmlFor="network">Network</Label>
+                    <Label htmlFor="network" className="text-sm">Network</Label>
                     <Select value={selectedNetwork} onValueChange={setSelectedNetwork}>
-                      <SelectTrigger id="network">
+                      <SelectTrigger id="network" className="text-sm">
                         <SelectValue placeholder="Select a network" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="max-h-[200px]">
                         {cryptoOptions[selectedToken].map(network => (
-                          <SelectItem key={network} value={network}>{network}</SelectItem>
+                          <SelectItem key={network} value={network} className="text-sm">{network}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                   </div>
                 )}
                 <div className="space-y-2">
-                  <Label htmlFor="address">Address</Label>
-                  <Input id="address" name="address" value={addressInput} onChange={(e) => setAddressInput(e.target.value)} required />
+                  <Label htmlFor="address" className="text-sm">Address</Label>
+                  <Input id="address" name="address" value={addressInput} onChange={(e) => setAddressInput(e.target.value)} required className="text-sm" />
                 </div>
               </div>
-              <DialogFooter>
+              <DialogFooter className="flex-col sm:flex-row gap-2">
                 <DialogClose asChild>
-                  <Button type="button" variant="secondary">Cancel</Button>
+                  <Button type="button" variant="secondary" className="w-full sm:w-auto text-sm">Cancel</Button>
                 </DialogClose>
-                <Button type="submit">Save changes</Button>
+                <Button type="submit" className="w-full sm:w-auto text-sm">Save changes</Button>
               </DialogFooter>
             </form>
           </DialogContent>
@@ -220,26 +220,26 @@ export default function SettingsManagement() {
       </div>
 
       <Card className="bg-gray-800/50 border-gray-700">
-        <CardHeader>
-          <CardTitle>Configured Addresses</CardTitle>
+        <CardHeader className="p-4">
+          <CardTitle className="text-base sm:text-lg">Configured Addresses</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-3 sm:p-4">
           {loading ? (
-            <p>Loading addresses...</p>
+            <p className="text-sm">Loading addresses...</p>
           ) : addresses.length === 0 ? (
-            <p className="text-gray-400 text-center py-4">No deposit addresses configured yet.</p>
+            <p className="text-gray-400 text-center py-4 text-sm">No deposit addresses configured yet.</p>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-2 sm:space-y-3">
               {addresses.map((addr) => (
-                <div key={addr.id} className="flex items-center justify-between p-3 bg-gray-900/50 rounded-lg">
-                  <div>
-                    <p className="font-semibold text-white">{addr.network}</p>
-                    <div className="flex items-center gap-2">
-                      <p className="text-sm text-gray-400 font-mono">{addr.address}</p>
+                <div key={addr.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 bg-gray-900/50 rounded-lg gap-3">
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-white text-sm sm:text-base">{addr.network}</p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <p className="text-xs sm:text-sm text-gray-400 font-mono break-all">{addr.address}</p>
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-6 w-6"
+                        className="h-6 w-6 flex-shrink-0"
                         onClick={() => handleCopyToClipboard(addr.address)}
                       >
                         {copiedAddress === addr.address ? (
@@ -250,7 +250,7 @@ export default function SettingsManagement() {
                       </Button>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-shrink-0">
                     <Button
                       variant="outline"
                       size="sm"
@@ -258,6 +258,7 @@ export default function SettingsManagement() {
                         setEditingAddress(addr);
                         setDialogOpen(true);
                       }}
+                      className="text-xs sm:text-sm"
                     >
                       <Edit className="w-3 h-3 mr-1" /> Edit
                     </Button>
@@ -265,6 +266,7 @@ export default function SettingsManagement() {
                       variant="destructive"
                       size="sm"
                       onClick={() => handleDeleteAddress(addr.id)}
+                      className="text-xs sm:text-sm"
                     >
                       <Trash2 className="w-3 h-3 mr-1" /> Delete
                     </Button>

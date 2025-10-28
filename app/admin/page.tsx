@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { 
   Users, 
   CreditCard, 
@@ -52,6 +53,42 @@ export default function AdminPage() {
     return null
   }
 
+  const getTabLabel = (value: string) => {
+    const labels: Record<string, string> = {
+      dashboard: "Dashboard",
+      users: "Users",
+      transactions: "Trades",
+      orders: "Orders",
+      verification: "Verification",
+      chat: "Chat",
+      settings: "Settings"
+    }
+    return labels[value] || value
+  }
+
+  const getTabIcon = (value: string) => {
+    const icons: Record<string, React.ReactNode> = {
+      dashboard: <BarChart3 className="w-4 h-4" />,
+      users: <Users className="w-4 h-4" />,
+      transactions: <TrendingUp className="w-4 h-4" />,
+      orders: <CreditCard className="w-4 h-4" />,
+      verification: <Shield className="w-4 h-4" />,
+      chat: <MessageCircle className="w-4 h-4" />,
+      settings: <Settings className="w-4 h-4" />
+    }
+    return icons[value] || null
+  }
+
+  const tabs = [
+    { value: "dashboard", label: "Dashboard", icon: <BarChart3 className="w-4 h-4" /> },
+    { value: "users", label: "Users", icon: <Users className="w-4 h-4" /> },
+    { value: "transactions", label: "Trades", icon: <TrendingUp className="w-4 h-4" /> },
+    { value: "orders", label: "Orders", icon: <CreditCard className="w-4 h-4" /> },
+    { value: "verification", label: "Verification", icon: <Shield className="w-4 h-4" /> },
+    { value: "chat", label: "Chat", icon: <MessageCircle className="w-4 h-4" /> },
+    ...(user.role === "OWNER" ? [{ value: "settings", label: "Settings", icon: <Settings className="w-4 h-4" /> }] : [])
+  ]
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -59,46 +96,47 @@ export default function AdminPage() {
       transition={{ duration: 0.5 }}
       className="min-h-screen bg-gray-950 text-white"
     >
-      <div className="p-6">
+      <div className="p-3 sm:p-6">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Admin Dashboard</h1>
-          <p className="text-gray-400">Welcome back, {user.name || user.email}</p>
+        <div className="mb-4 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold mb-2">Admin Dashboard</h1>
+          <p className="text-sm sm:text-base text-gray-400">Welcome back, {user.name || user.email}</p>
         </div>
 
         {/* Admin Navigation */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className={`grid w-full ${user.role === "OWNER" ? "grid-cols-7" : "grid-cols-6"} bg-gray-800 h-12`}>
-            <TabsTrigger value="dashboard" className="flex items-center gap-2">
-              <BarChart3 className="w-4 h-4" />
-              Dashboard
-            </TabsTrigger>
-            <TabsTrigger value="users" className="flex items-center gap-2">
-              <Users className="w-4 h-4" />
-              Users
-            </TabsTrigger>
-            <TabsTrigger value="transactions" className="flex items-center gap-2">
-              <TrendingUp className="w-4 h-4" />
-              Trades
-            </TabsTrigger>
-            <TabsTrigger value="orders" className="flex items-center gap-2">
-              <CreditCard className="w-4 h-4" />
-              Orders
-            </TabsTrigger>
-            <TabsTrigger value="verification" className="flex items-center gap-2">
-              <Shield className="w-4 h-4" />
-              Verification
-            </TabsTrigger>
-            <TabsTrigger value="chat" className="flex items-center gap-2">
-              <MessageCircle className="w-4 h-4" />
-              Chat
-            </TabsTrigger>
-            {user.role === "OWNER" && (
-              <TabsTrigger value="settings" className="flex items-center gap-2">
-                <Settings className="w-4 h-4" />
-                Settings
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4 sm:space-y-6">
+          {/* Mobile Select */}
+          <div className="lg:hidden">
+            <Select value={activeTab} onValueChange={setActiveTab}>
+              <SelectTrigger className="w-full bg-gray-800 border-gray-700 text-base h-12">
+                <SelectValue>
+                  <div className="flex items-center gap-2">
+                    {getTabIcon(activeTab)}
+                    <span>{getTabLabel(activeTab)}</span>
+                  </div>
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent className="bg-gray-800 border-gray-700 max-h-[80vh]">
+                {tabs.map((tab) => (
+                  <SelectItem key={tab.value} value={tab.value} className="text-base py-3">
+                    <div className="flex items-center gap-2">
+                      {tab.icon}
+                      {tab.label}
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Desktop Tabs */}
+          <TabsList className={`hidden lg:grid w-full ${user.role === "OWNER" ? "grid-cols-7" : "grid-cols-6"} bg-gray-800 h-12`}>
+            {tabs.map((tab) => (
+              <TabsTrigger key={tab.value} value={tab.value} className="flex items-center gap-2">
+                {tab.icon}
+                {tab.label}
               </TabsTrigger>
-            )}
+            ))}
           </TabsList>
 
           <TabsContent value="dashboard" className="space-y-6">

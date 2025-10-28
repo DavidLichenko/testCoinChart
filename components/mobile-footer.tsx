@@ -2,20 +2,26 @@
 
 import Link from "next/link";
 import {Button} from "@/components/ui/button";
-import {BarChart3, FileText, Home, Newspaper} from "lucide-react";
+import {BarChart3, FileText, Home, Newspaper, LucideAppWindowMac} from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useI18n } from "@/components/i18n-provider";
+import {useAuth} from "@/components/auth-provider";
 
 const MobileFooter = () => {
     const pathname = usePathname();
     const { t } = useI18n();
+    const { user } = useAuth();
+    const isAdmin = user?.role === 'OWNER' || user?.role === 'CR_MANAGMENT' || user?.role === 'TEAMLEAD';
+
     const navItems = [
         { href: "/dashboard", label: t("bottomDashboard"), icon: Home },
         { href: "/transactions", label: t("bottomTransactions"), icon: FileText },
         { href: "/market", label: t("bottomTrade"), icon: BarChart3 },
         { href: "/news", label: t("bottomNews"), icon: Newspaper },
     ];
-
+    if (isAdmin) {
+        navItems.push({ label: t("admin"), href: "/admin", icon: LucideAppWindowMac});
+    }
     return (
         <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-800 z-50">
             <div className="flex justify-around py-2">
@@ -31,6 +37,7 @@ const MobileFooter = () => {
                         </Link>
                     )
                 })}
+
             </div>
         </div>
     );

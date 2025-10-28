@@ -161,23 +161,23 @@ export default function OrdersManagement() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-4 sm:space-y-6 px-2 sm:px-0">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h2 className="text-2xl font-bold flex items-center gap-2">
-            <CreditCard className="w-6 h-6" />
+          <h2 className="text-xl sm:text-2xl font-bold flex items-center gap-2">
+            <CreditCard className="w-5 h-5 sm:w-6 sm:h-6" />
             Orders Management
           </h2>
-          <p className="text-gray-400">Manage deposits and withdrawals</p>
+          <p className="text-sm sm:text-base text-gray-400">Manage deposits and withdrawals</p>
         </div>
         <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
           <DialogTrigger asChild>
-            <Button>
+            <Button className="text-sm sm:text-base w-full sm:w-auto">
               <PlusCircle className="w-4 h-4 mr-2" />
               Create Order
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px] bg-gray-900 border-gray-700">
+          <DialogContent className="sm:max-w-[425px] bg-gray-900 border-gray-700 w-[95vw] max-h-[90vh] overflow-y-auto">
             <div>
               <div className="space-y-2">
                 <Label>User</Label>
@@ -248,36 +248,36 @@ export default function OrdersManagement() {
 
       {/* Filters */}
       <Card className="bg-gray-800 border-gray-700">
-        <CardContent className="p-4">
-          <div className="flex flex-col sm:flex-row gap-4">
+        <CardContent className="p-3 sm:p-4">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <Input
                 placeholder="Search orders..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 bg-gray-700 border-gray-600"
+                className="pl-10 bg-gray-700 border-gray-600 text-sm"
               />
             </div>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-full sm:w-40 bg-gray-700 border-gray-600">
+              <SelectTrigger className="w-full sm:w-40 bg-gray-700 border-gray-600 text-sm">
                 <SelectValue placeholder="Filter by status" />
               </SelectTrigger>
               <SelectContent className="bg-gray-700 border-gray-600">
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="PENDING">Pending</SelectItem>
-                <SelectItem value="SUCCESSFUL">Successful</SelectItem>
-                <SelectItem value="CANCELLED">Cancelled</SelectItem>
+                <SelectItem value="all" className="text-sm">All Status</SelectItem>
+                <SelectItem value="PENDING" className="text-sm">Pending</SelectItem>
+                <SelectItem value="SUCCESSFUL" className="text-sm">Successful</SelectItem>
+                <SelectItem value="CANCELLED" className="text-sm">Cancelled</SelectItem>
               </SelectContent>
             </Select>
             <Select value={typeFilter} onValueChange={setTypeFilter}>
-              <SelectTrigger className="w-full sm:w-40 bg-gray-700 border-gray-600">
+              <SelectTrigger className="w-full sm:w-40 bg-gray-700 border-gray-600 text-sm">
                 <SelectValue placeholder="Filter by type" />
               </SelectTrigger>
               <SelectContent className="bg-gray-700 border-gray-600">
-                <SelectItem value="all">All Types</SelectItem>
-                <SelectItem value="DEPOSIT">Deposits</SelectItem>
-                <SelectItem value="WITHDRAW">Withdrawals</SelectItem>
+                <SelectItem value="all" className="text-sm">All Types</SelectItem>
+                <SelectItem value="DEPOSIT" className="text-sm">Deposits</SelectItem>
+                <SelectItem value="WITHDRAW" className="text-sm">Withdrawals</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -286,33 +286,35 @@ export default function OrdersManagement() {
 
       {/* Orders List */}
       <Card className="bg-gray-800 border-gray-700">
-        <CardHeader>
-          <CardTitle>Orders ({filteredOrders.length})</CardTitle>
+        <CardHeader className="p-4">
+          <CardTitle className="text-base sm:text-lg">Orders ({filteredOrders.length})</CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
+        <CardContent className="p-3 sm:p-4">
+          <div className="space-y-2 sm:space-y-3">
             {filteredOrders.map((order) => (
-              <div key={order.id} className="flex items-center justify-between p-4 bg-gray-700 rounded-lg">
-                <div className="flex items-center space-x-4">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+              <div key={order.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 bg-gray-700 rounded-lg gap-3">
+                <div className="flex items-center space-x-3 sm:space-x-4 flex-1 min-w-0">
+                  <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center flex-shrink-0 text-sm sm:text-base ${
                     order.type === "DEPOSIT" ? "bg-green-600" : "bg-red-600"
                   }`}>
                     {order.type === "DEPOSIT" ? "+" : "-"}
                   </div>
-                  <div>
-                    <div className="font-medium text-sm">{order.type}</div>
-                    <div className="text-xs text-gray-400">
+                  <div className="flex-1 min-w-0">
+                    <div className="font-medium text-xs sm:text-sm">{order.type}</div>
+                    <div className="text-xs text-gray-400 truncate">
                       {order.User?.name || order.User?.email || "Unknown User"}
                     </div>
-                    <div className="text-xs text-gray-400">
-                      {order.depositFrom || order.withdrawMethod || order.bankName}
-                    </div>
+                    {(order.depositFrom || order.withdrawMethod || order.bankName) && (
+                      <div className="text-xs text-gray-400 truncate">
+                        {order.depositFrom || order.withdrawMethod || order.bankName}
+                      </div>
+                    )}
                   </div>
                 </div>
 
-                <div className="flex items-center space-x-4">
-                  <div className="text-right">
-                    <div className="text-sm font-semibold">${order.amount.toLocaleString()}</div>
+                <div className="flex items-center justify-between sm:justify-end space-x-3 sm:space-x-4">
+                  <div className="text-left sm:text-right">
+                    <div className="text-xs sm:text-sm font-semibold">${order.amount.toLocaleString()}</div>
                     <div className="text-xs text-gray-400">
                       {new Date(order.createdAt).toLocaleDateString()}
                     </div>
@@ -338,6 +340,7 @@ export default function OrdersManagement() {
                           size="sm"
                           variant="default"
                           onClick={() => handleUpdateOrderStatus(order.id, "SUCCESSFUL")}
+                          className="h-8 w-8 p-0"
                         >
                           <CheckCircle className="w-3 h-3" />
                         </Button>
@@ -345,6 +348,7 @@ export default function OrdersManagement() {
                           size="sm"
                           variant="destructive"
                           onClick={() => handleUpdateOrderStatus(order.id, "CANCELLED")}
+                          className="h-8 w-8 p-0"
                         >
                           <X className="w-3 h-3" />
                         </Button>
@@ -359,14 +363,14 @@ export default function OrdersManagement() {
       </Card>
 
       {/* Summary Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
         <Card className="bg-gray-800 border-gray-700">
-          <CardContent className="p-4">
+          <CardContent className="p-3 sm:p-4">
             <div className="flex items-center space-x-2">
-              <DollarSign className="w-5 h-5 text-green-400" />
-              <div>
-                <div className="text-sm text-gray-400">Total Deposits</div>
-                <div className="text-xl font-bold text-green-400">
+              <DollarSign className="w-4 h-4 sm:w-5 sm:h-5 text-green-400 flex-shrink-0" />
+              <div className="min-w-0">
+                <div className="text-xs sm:text-sm text-gray-400">Total Deposits</div>
+                <div className="text-lg sm:text-xl font-bold text-green-400 truncate">
                   ${orders
                     .filter(o => o.type === "DEPOSIT" && o.status === "SUCCESSFUL")
                     .reduce((sum, o) => sum + o.amount, 0)
@@ -378,12 +382,12 @@ export default function OrdersManagement() {
         </Card>
 
         <Card className="bg-gray-800 border-gray-700">
-          <CardContent className="p-4">
+          <CardContent className="p-3 sm:p-4">
             <div className="flex items-center space-x-2">
-              <DollarSign className="w-5 h-5 text-red-400" />
-              <div>
-                <div className="text-sm text-gray-400">Total Withdrawals</div>
-                <div className="text-xl font-bold text-red-400">
+              <DollarSign className="w-4 h-4 sm:w-5 sm:h-5 text-red-400 flex-shrink-0" />
+              <div className="min-w-0">
+                <div className="text-xs sm:text-sm text-gray-400">Total Withdrawals</div>
+                <div className="text-lg sm:text-xl font-bold text-red-400 truncate">
                   ${orders
                     .filter(o => o.type === "WITHDRAW" && o.status === "SUCCESSFUL")
                     .reduce((sum, o) => sum + o.amount, 0)
@@ -394,13 +398,13 @@ export default function OrdersManagement() {
           </CardContent>
         </Card>
 
-        <Card className="bg-gray-800 border-gray-700">
-          <CardContent className="p-4">
-            <div className="flex items-center space2">
-              <CreditCard className="w-5 h-5 text-blue-400" />
+        <Card className="bg-gray-800 border-gray-700 sm:col-span-2 md:col-span-1">
+          <CardContent className="p-3 sm:p-4">
+            <div className="flex items-center space-x-2">
+              <CreditCard className="w-4 h-4 sm:w-5 sm:h-5 text-blue-400 flex-shrink-0" />
               <div>
-                <div className="text-sm text-gray-400">Pending Orders</div>
-                <div className="text-xl font-bold">
+                <div className="text-xs sm:text-sm text-gray-400">Pending Orders</div>
+                <div className="text-lg sm:text-xl font-bold">
                   {orders.filter(o => o.status === "PENDING").length}
                 </div>
               </div>

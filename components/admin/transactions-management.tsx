@@ -184,26 +184,26 @@ export default function TransactionsManagement() {
     );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6 px-2 sm:px-0">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
         <div>
-          <h2 className="text-2xl font-bold flex items-center gap-2">
-            <TrendingUp className="w-6 h-6" /> Trades Management
+          <h2 className="text-xl sm:text-2xl font-bold flex items-center gap-2">
+            <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6" /> Trades Management
           </h2>
-          <p className="text-gray-400">
+          <p className="text-sm sm:text-base text-gray-400">
             Monitor and manage all trading transactions
           </p>
         </div>
-        <div className="flex gap-4">
-          <Button onClick={() => setOpenTradeOpen(true)}>Open Trade</Button>
-          <Badge variant="outline">{trades.length} Total Trades</Badge>
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 w-full sm:w-auto">
+          <Button onClick={() => setOpenTradeOpen(true)} className="text-sm sm:text-base w-full sm:w-auto">Open Trade</Button>
+          <Badge variant="outline" className="text-xs sm:text-sm text-center">{trades.length} Total Trades</Badge>
         </div>
       </div>
 
       {/* Filters */}
       <Card className="bg-gray-800 border-gray-700">
-        <CardContent className="flex flex-col sm:flex-row gap-4">
+        <CardContent className="flex flex-col sm:flex-row gap-3 sm:gap-4 p-3 sm:p-6">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <Input
@@ -213,7 +213,7 @@ export default function TransactionsManagement() {
                 setSearchTerm(e.target.value);
                 setCurrentPage(1);
               }}
-              className="pl-10 bg-gray-700 border-gray-600"
+              className="pl-10 bg-gray-700 border-gray-600 text-sm"
             />
           </div>
 
@@ -221,13 +221,13 @@ export default function TransactionsManagement() {
             value={statusFilter}
             onValueChange={(v) => setStatusFilter(v as any)}
           >
-            <SelectTrigger className="w-full sm:w-40 bg-gray-700 border-gray-600">
+            <SelectTrigger className="w-full sm:w-40 bg-gray-700 border-gray-600 text-sm">
               <SelectValue placeholder="Filter by status" />
             </SelectTrigger>
             <SelectContent className="bg-gray-700 border-gray-600">
-              <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="OPEN">Open</SelectItem>
-              <SelectItem value="CLOSE">Closed</SelectItem>
+              <SelectItem value="all" className="text-sm">All Status</SelectItem>
+              <SelectItem value="OPEN" className="text-sm">Open</SelectItem>
+              <SelectItem value="CLOSE" className="text-sm">Closed</SelectItem>
             </SelectContent>
           </Select>
 
@@ -235,44 +235,44 @@ export default function TransactionsManagement() {
             value={typeFilter}
             onValueChange={(v) => setTypeFilter(v as any)}
           >
-            <SelectTrigger className="w-full sm:w-40 bg-gray-700 border-gray-600">
+            <SelectTrigger className="w-full sm:w-40 bg-gray-700 border-gray-600 text-sm">
               <SelectValue placeholder="Filter by type" />
             </SelectTrigger>
             <SelectContent className="bg-gray-700 border-gray-600">
-              <SelectItem value="all">All Types</SelectItem>
-              <SelectItem value="BUY">Buy</SelectItem>
-              <SelectItem value="SELL">Sell</SelectItem>
+              <SelectItem value="all" className="text-sm">All Types</SelectItem>
+              <SelectItem value="BUY" className="text-sm">Buy</SelectItem>
+              <SelectItem value="SELL" className="text-sm">Sell</SelectItem>
             </SelectContent>
           </Select>
         </CardContent>
       </Card>
 
       {/* Trades List */}
-      <div className="flex flex-col gap-4 ">
+      <div className="flex flex-col gap-3 sm:gap-4">
         {tradesToShow.map((trade) => {
           const currentProfit = calculateCurrentProfit(trade);
           const currentPrice = getCurrentPrice(trade.ticker);
 
           return (
             <Card key={trade.id} className="bg-gray-700 border-gray-600">
-              <CardContent className="flex justify-between py-5 w-full gap-2 text-sm">
-                <div className="flex flex-col justify-center">
-                  <div className="font-bold">{trade.ticker}</div>
-                  <div className="text-xs text-gray-400">
+              <CardContent className="flex flex-col sm:flex-row justify-between py-4 sm:py-5 w-full gap-3 sm:gap-4">
+                <div className="flex flex-col justify-center flex-1 min-w-0">
+                  <div className="font-bold text-sm sm:text-base">{trade.ticker}</div>
+                  <div className="text-xs text-gray-400 truncate">
                     {trade.User.name || trade.User.email}
                   </div>
                   <div className="text-xs text-gray-400">
                     {new Date(trade.createdAt).toLocaleDateString()}
                   </div>
                 </div>
-                <div className="flex gap-4">
-                  <div className="flex flex-col gap-2 items-center">
-                    <div>Volume: {trade.volume}</div>
-                    <div>Leverage: {trade.leverage}x</div>
-                    <div>Margin: ${trade.margin}</div>
+                <div className="flex gap-3 sm:gap-4 flex-wrap">
+                  <div className="flex flex-col gap-1 sm:gap-2">
+                    <div className="text-xs sm:text-sm">Volume: {trade.volume}</div>
+                    <div className="text-xs sm:text-sm">Leverage: {trade.leverage}x</div>
+                    <div className="text-xs sm:text-sm">Margin: ${trade.margin}</div>
                   </div>
-                  <div className="flex flex-col gap-2 items-center">
-                    <div>
+                  <div className="flex flex-col gap-1 sm:gap-2">
+                    <div className="text-xs sm:text-sm">
                       Profit:{" "}
                       <span
                         className={
@@ -282,8 +282,8 @@ export default function TransactionsManagement() {
                         ${trade.profit?.toFixed(2) || "0.00"}
                       </span>
                     </div>
-                    <div>Current: ${currentPrice.toFixed(2)}</div>
-                    <div>
+                    <div className="text-xs sm:text-sm">Current: ${currentPrice.toFixed(2)}</div>
+                    <div className="text-xs sm:text-sm">
                       P&L:{" "}
                       <span
                         className={
@@ -295,9 +295,10 @@ export default function TransactionsManagement() {
                     </div>
                   </div>
                 </div>
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2 sm:gap-4">
                   <Badge
                     variant={trade.status === "OPEN" ? "default" : "secondary"}
+                    className="text-xs"
                   >
                     {trade.status}
                   </Badge>
@@ -305,12 +306,16 @@ export default function TransactionsManagement() {
                     size="sm"
                     variant="outline"
                     onClick={() => openEditModal(trade)}
+                    className="h-8 w-8 p-0"
                   >
                     <Edit className="w-3 h-3" />
                   </Button>
                   {trade.status === "OPEN" && (
-                    <Button size="sm" variant="destructive"
-                            onClick={() => handleCloseTrade(trade.id, currentPrice)}
+                    <Button 
+                      size="sm" 
+                      variant="destructive"
+                      onClick={() => handleCloseTrade(trade.id, currentPrice)}
+                      className="h-8 w-8 p-0"
                     >
                       <X className="w-3 h-3" />
                     </Button>
@@ -324,10 +329,11 @@ export default function TransactionsManagement() {
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className="flex justify-center items-center gap-2 mt-6 flex-wrap">
+        <div className="flex justify-center items-center gap-1 sm:gap-2 mt-4 sm:mt-6 flex-wrap">
           <Button
             onClick={() => handlePageChange(currentPage - 1)}
             disabled={currentPage === 1}
+            className="text-xs sm:text-sm"
           >
             Prev
           </Button>
@@ -341,12 +347,13 @@ export default function TransactionsManagement() {
             .map((p, idx, arr) => (
               <span key={p}>
                 {idx > 0 && arr[idx - 1] !== p - 1 && (
-                  <span className="px-1">...</span>
+                  <span className="px-1 text-xs">...</span>
                 )}
                 <Button
                   variant={p === currentPage ? "default" : "outline"}
                   size="sm"
                   onClick={() => handlePageChange(p)}
+                  className="text-xs sm:text-sm h-8 w-8"
                 >
                   {p}
                 </Button>
@@ -355,6 +362,7 @@ export default function TransactionsManagement() {
           <Button
             onClick={() => handlePageChange(currentPage + 1)}
             disabled={currentPage === totalPages}
+            className="text-xs sm:text-sm"
           >
             Next
           </Button>
@@ -372,57 +380,70 @@ export default function TransactionsManagement() {
 
       {/* Edit Trade Modal */}
       <Dialog open={editModalOpen} onOpenChange={setEditModalOpen}>
-        <DialogContent className="bg-gray-800 border-gray-700 max-w-md">
+        <DialogContent className="bg-gray-800 border-gray-700 max-w-md w-[95vw] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Edit Trade</DialogTitle>
+            <DialogTitle className="text-lg sm:text-xl">Edit Trade</DialogTitle>
           </DialogHeader>
           {selectedTrade && (
-            <div className="space-y-4">
-              <Label>Ticker</Label>
-              <div className="text-gray-300">{selectedTrade.ticker}</div>
+            <div className="space-y-3 sm:space-y-4">
+              <div>
+                <Label className="text-sm">Ticker</Label>
+                <div className="text-gray-300 text-sm mt-1">{selectedTrade.ticker}</div>
+              </div>
 
-              <Label>Type</Label>
-              <div className="text-gray-300">{selectedTrade.type}</div>
+              <div>
+                <Label className="text-sm">Type</Label>
+                <div className="text-gray-300 text-sm mt-1">{selectedTrade.type}</div>
+              </div>
 
-              <Label>Open Price</Label>
-              <Input
-                type="number"
-                step="0.01"
-                value={editValues.openIn}
-                onChange={(e) =>
-                  setEditValues({ ...editValues, openIn: e.target.value })
-                }
-              />
+              <div>
+                <Label className="text-sm">Open Price</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={editValues.openIn}
+                  onChange={(e) =>
+                    setEditValues({ ...editValues, openIn: e.target.value })
+                  }
+                  className="text-sm mt-1"
+                />
+              </div>
 
-              <Label>Close Price</Label>
-              <Input
-                type="number"
-                step="0.01"
-                value={editValues.closeIn}
-                onChange={(e) =>
-                  setEditValues({ ...editValues, closeIn: e.target.value })
-                }
-              />
+              <div>
+                <Label className="text-sm">Close Price</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={editValues.closeIn}
+                  onChange={(e) =>
+                    setEditValues({ ...editValues, closeIn: e.target.value })
+                  }
+                  className="text-sm mt-1"
+                />
+              </div>
 
-              <Label>Profit</Label>
-              <Input
-                type="number"
-                step="0.01"
-                value={editValues.profit}
-                onChange={(e) =>
-                  setEditValues({ ...editValues, profit: e.target.value })
-                }
-              />
+              <div>
+                <Label className="text-sm">Profit</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={editValues.profit}
+                  onChange={(e) =>
+                    setEditValues({ ...editValues, profit: e.target.value })
+                  }
+                  className="text-sm mt-1"
+                />
+              </div>
 
-              <div className="flex gap-2 pt-4">
+              <div className="flex flex-col sm:flex-row gap-2 pt-4">
                 <Button
                   variant="outline"
                   onClick={() => setEditModalOpen(false)}
-                  className="flex-1"
+                  className="flex-1 text-sm"
                 >
                   Cancel
                 </Button>
-                <Button onClick={handleUpdateTrade} className="flex-1">
+                <Button onClick={handleUpdateTrade} className="flex-1 text-sm">
                   Save
                 </Button>
               </div>
