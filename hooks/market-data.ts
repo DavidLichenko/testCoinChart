@@ -36,7 +36,7 @@ const categories = {
         'EURCAD', 'GBPCHF', 'GBPJPY', 'CADCHF', 'CADJPY',
         'GBPAUD', 'GBPCAD', 'GBPNZD', 'NZDCAD', 'NZDCHF', 'NZDJPY', 'NZDUSD',
     ],
-    Commodities: ['XAUUSD', 'XAGUSD', 'XTIUSD'],
+    Commodities: ['XAUUSD', 'XAGUSD', 'USOIL'],
     Indices: ['US500', 'US30', 'USTEC', 'AUS200'],
     Crypto: ['BTCUSD', 'ETHUSD', 'XRPUSD', 'XLMUSD'],
     Stocks: [
