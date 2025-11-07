@@ -41,8 +41,15 @@ export async function PATCH(
 
     // If status is SUCCESSFUL, add funds to user balance
     if (status === "SUCCESSFUL") {
+
       await prisma.$transaction(async (tx) => {
-        const newBalance = (order.User.TotalBalance || 0) + order.amount;
+        let newBalance = 0
+        if(order.type === 'WITHDRAW') {
+          newBalance = (order.User.TotalBalance || 0) - order.amount;
+        } else {
+          newBalance = (order.User.TotalBalance || 0) + order.amount;
+        }
+
 
         // Update user's TotalBalance
         await tx.user.update({
