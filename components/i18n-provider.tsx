@@ -68,6 +68,7 @@ const en: Messages = {
   quickActions: "Quick Actions",
   startTrading: "Start Trading",
   viewTransactions: "View Transactions",
+  passwordUpdated: "Password updated",
   completeVerification: "Complete Verification",
   withdrawFunds: "Withdraw Funds",
   // Transactions
@@ -673,6 +674,7 @@ const es: Messages = {
   addressCopied: "Dirección copiada al portapapeles.",
   noDepositMethods: "No hay métodos de depósito disponibles.",
   contactSupport: "Por favor contacta al soporte para obtener ayuda.",
+  passwordUpdated: "Contraseña actualizada",
   back: "Atrás",
   // News
   marketNews: "Noticias del Mercado",
