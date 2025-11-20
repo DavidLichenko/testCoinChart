@@ -1,252 +1,253 @@
-"use client"
+"use client";
 
-import React, { useState } from "react"
-import { motion } from "framer-motion"
-import { Eye, EyeOff, Mail, Lock, User, ArrowRight } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { useI18n } from "@/components/i18n-provider"
+import { useState } from "react";
+import { motion } from "framer-motion";
+import {
+  Eye,
+  EyeOff,
+  Mail,
+  Lock,
+  User,
+  ArrowRight,
+  BarChart3,
+} from "lucide-react";
+
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { useI18n } from "@/components/i18n-provider";
 
 interface RegisterFormProps {
-  onSuccess?: () => void
-  onSwitchToLogin?: () => void
-  onBack?: () => void // optional back handler
+  onSuccess?: () => void;
+  onSwitchToLogin?: () => void;
 }
 
 export function RegisterForm({
                                onSuccess = () => {},
                                onSwitchToLogin = () => {},
                              }: RegisterFormProps) {
-  const [name, setName] = useState("")
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [confirmPassword, setConfirmPassword] = useState("")
-  const [showPassword, setShowPassword] = useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState("")
-  const { t } = useI18n()
+  const { t } = useI18n();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setError("")
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
 
     if (password !== confirmPassword) {
-      setError(t("passwordsDoNotMatch"))
-      setLoading(false)
-      return
+      setError(t("passwordsDoNotMatch"));
+      setLoading(false);
+      return;
     }
 
     try {
-      const response = await fetch("/api/auth/register", {
+      const res = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, email, password }),
-      })
+      });
 
-      const data = await response.json()
+      const data = await res.json();
 
-      if (!response.ok) {
-        setError(data.error || t("registrationFailed"))
-        setLoading(false)
-        return
+      if (!res.ok) {
+        setError(data.error || t("registrationFailed"));
+        setLoading(false);
+        return;
       }
 
-      // Call onSuccess which in parent will switch to login
-      onSuccess()
+      onSuccess();
     } catch {
-      setError(t("networkErrorTryAgain"))
+      setError(t("networkError"));
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
       <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="h-screen w-full flex items-center justify-center bg-gray-800 border-gray-700"
+          transition={{ duration: 0.4 }}
+          className="flex min-h-screen w-full items-center justify-center bg-gradient-to-br from-[#08061a] via-[#0b0b18] to-[#06040d] px-4"
       >
-        <Card className="w-full max-w-md bg-gray-900 border-gray-700">
-          <CardHeader className="text-center">
-            <motion.div
-                initial={{ scale: 0.8 }}
-                animate={{ scale: 1 }}
-                transition={{ delay: 0.2, duration: 0.3 }}
-            >
-              <CardTitle className="text-2xl font-bold text-white">
-                {t("createAccount")}
-              </CardTitle>
-              <p className="text-gray-400 mt-2">
-                {t("joinAragonTrade")}
-              </p>
-            </motion.div>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {error && (
-                  <motion.div
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      className="bg-red-900/20 border border-red-600/30 rounded-lg p-3"
-                  >
-                    <p className="text-red-400 text-sm">{error}</p>
-                  </motion.div>
-              )}
+        {/* FORM CARD */}
+        <motion.div
+            initial={{ opacity: 0, scale: 0.96 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.35, ease: "easeOut" }}
+            className="w-full max-w-md rounded-2xl border border-slate-800 bg-slate-900/90 px-6 py-8 shadow-2xl backdrop-blur-xl"
+        >
+          {/* Branding */}
+          <div className="mb-6 flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-purple-500 via-fuchsia-500 to-indigo-500 shadow-lg shadow-purple-500/40">
+              <BarChart3 className="h-4 w-4 text-white" />
+            </div>
+            <div className="text-xs font-semibold tracking-[0.18em] text-slate-300">
+              ARAGONTRADE
+            </div>
+          </div>
 
-              {/* Name */}
-              <motion.div
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.3 }}
-                  className="space-y-2"
-              >
-                <Label htmlFor="name" className="text-gray-300">
-                  {t("fullName")}
-                </Label>
-                <div className="relative">
-                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                  <Input
-                      id="name"
-                      type="text"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      className="pl-10 bg-gray-700 border-gray-600 text-white"
-                      placeholder={t("enterFullName")}
-                      required
-                  />
-                </div>
-              </motion.div>
+          {/* Header */}
+          <h1 className="text-xl font-semibold text-white">
+            {t("createAccountTitle")}
+          </h1>
+          <p className="mt-1 mb-6 text-sm text-slate-300">
+            {t("createAccountSubtitle")}
+          </p>
 
-              {/* Email */}
-              <motion.div
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.4 }}
-                  className="space-y-2"
-              >
-                <Label htmlFor="email" className="text-gray-300">
-                  {t("email")}
-                </Label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                  <Input
-                      id="email"
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="pl-10 bg-gray-700 border-gray-600 text-white"
-                      placeholder={t("enterEmail")}
-                      required
-                  />
-                </div>
-              </motion.div>
+          {/* Form */}
+          <form onSubmit={submit} className="space-y-4">
+            {/* Error message */}
+            {error && (
+                <motion.div
+                    initial={{ opacity: 0, y: -6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="rounded-lg border border-red-500/40 bg-red-900/10 px-3 py-2.5 text-sm text-red-400"
+                >
+                  {error}
+                </motion.div>
+            )}
 
-              {/* Password */}
-              <motion.div
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.5 }}
-                  className="space-y-2"
-              >
-                <Label htmlFor="password" className="text-gray-300">
-                  {t("password")}
-                </Label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                  <Input
-                      id="password"
-                      type={showPassword ? "text" : "password"}
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="pl-10 pr-10 bg-gray-700 border-gray-600 text-white"
-                      placeholder={t("createPassword")}
-                      required
-                  />
-                  <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="absolute right-0 top-0 h-full px-3 text-gray-400 hover:text-white"
-                      onClick={() => setShowPassword(!showPassword)}
-                  >
-                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                  </Button>
-                </div>
-              </motion.div>
+            {/* Full name */}
+            <div className="space-y-2">
+              <label className="text-sm text-slate-200" htmlFor="name">
+                {t("fullName")}
+              </label>
+              <div className="relative">
+                <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <Input
+                    id="name"
+                    type="text"
+                    required
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder={t("enterFullName")}
+                    className="h-10 rounded-xl border-slate-700 bg-slate-950/70 pl-10 text-sm text-white placeholder:text-slate-500 focus:border-purple-500 focus:ring-purple-500"
+                />
+              </div>
+            </div>
 
-              {/* Confirm Password */}
-              <motion.div
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.6 }}
-                  className="space-y-2"
-              >
-                <Label htmlFor="confirmPassword" className="text-gray-300">
-                  {t("confirmPassword")}
-                </Label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                  <Input
-                      id="confirmPassword"
-                      type={showConfirmPassword ? "text" : "password"}
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      className="pl-10 pr-10 bg-gray-700 border-gray-600 text-white"
-                      placeholder={t("confirmYourPassword")}
-                      required
-                  />
-                  <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="absolute right-0 top-0 h-full px-3 text-gray-400 hover:text-white"
-                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  >
-                    {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                  </Button>
-                </div>
-              </motion.div>
+            {/* Email */}
+            <div className="space-y-2">
+              <label className="text-sm text-slate-200" htmlFor="email">
+                {t("email")}
+              </label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <Input
+                    id="email"
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder={t("enterEmail")}
+                    className="h-10 rounded-xl border-slate-700 bg-slate-950/70 pl-10 text-sm text-white placeholder:text-slate-500 focus:border-purple-500 focus:ring-purple-500"
+                />
+              </div>
+            </div>
 
-              {/* Submit */}
-              <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.7 }}
-              >
+            {/* Password */}
+            <div className="space-y-2">
+              <label className="text-sm text-slate-200" htmlFor="password">
+                {t("password")}
+              </label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <Input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder={t("createPassword")}
+                    className="h-10 rounded-xl border-slate-700 bg-slate-950/70 pl-10 pr-10 text-sm text-white placeholder:text-slate-500 focus:border-purple-500 focus:ring-purple-500"
+                />
                 <Button
-                    type="submit"
-                    disabled={loading}
-                    className="w-full flex justify-center items-center gap-2"
-                >
-                  {loading ? t("registering") : t("register")}
-                  <ArrowRight size={20} />
-                </Button>
-              </motion.div>
-
-              {/* Switch to Login */}
-              <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.8 }}
-                  className="text-center text-gray-400 text-sm mt-2"
-              >
-                {t("alreadyHaveAccount")}{" "}
-                <button
                     type="button"
-                    onClick={onSwitchToLogin}
-                    className="text-indigo-400 hover:underline"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 p-0 text-slate-400 hover:text-white"
                 >
-                  {t("signIn")}
-                </button>
-              </motion.div>
-            </form>
-          </CardContent>
-        </Card>
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </Button>
+              </div>
+            </div>
+
+            {/* Confirm password */}
+            <div className="space-y-2">
+              <label className="text-sm text-slate-200" htmlFor="confirmPassword">
+                {t("confirmPassword")}
+              </label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <Input
+                    id="confirmPassword"
+                    type={showConfirmPassword ? "text" : "password"}
+                    required
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder={t("confirmYourPassword")}
+                    className="h-10 rounded-xl border-slate-700 bg-slate-950/70 pl-10 pr-10 text-sm text-white placeholder:text-slate-500 focus:border-purple-500 focus:ring-purple-500"
+                />
+                <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 p-0 text-slate-400 hover:text-white"
+                >
+                  {showConfirmPassword ? (
+                      <EyeOff size={16} />
+                  ) : (
+                      <Eye size={16} />
+                  )}
+                </Button>
+              </div>
+            </div>
+
+            {/* Submit */}
+            <Button
+                type="submit"
+                disabled={loading}
+                className="flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-purple-500 via-fuchsia-500 to-indigo-500 text-sm font-semibold text-white shadow-md shadow-purple-500/40 hover:brightness-110 disabled:opacity-60"
+            >
+              {loading ? (
+                  <>
+                    <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-white" />
+                    {t("registering")}
+                  </>
+              ) : (
+                  <>
+                    {t("register")}
+                    <ArrowRight className="h-4 w-4" />
+                  </>
+              )}
+            </Button>
+
+            {/* Switch to login */}
+            <div className="pt-2 text-center text-xs text-slate-400">
+              {t("alreadyHaveAccount")}{" "}
+              <button
+                  type="button"
+                  onClick={onSwitchToLogin}
+                  className="text-purple-300 hover:text-purple-200"
+              >
+                {t("signIn")}
+              </button>
+            </div>
+          </form>
+        </motion.div>
       </motion.div>
-  )
+  );
 }
