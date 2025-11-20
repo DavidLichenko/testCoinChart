@@ -1,15 +1,31 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { motion } from "framer-motion";
-import {Lock, ArrowRight, BarChart3, ArrowLeft} from "lucide-react";
+import { Lock, ArrowRight, ArrowLeft, BarChart3 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/components/i18n-provider";
 import Link from "next/link";
 
+// Обёртка страницы — только Suspense
 export default function ResetPasswordPage() {
+    return (
+        <Suspense
+            fallback={
+                <div className="flex min-h-screen items-center justify-center bg-slate-950 px-4 text-slate-200">
+                    Loading...
+                </div>
+            }
+        >
+            <ResetPasswordContent />
+        </Suspense>
+    );
+}
+
+// ВНУТРЕННИЙ клиентский компонент, который уже реально использует useSearchParams
+function ResetPasswordContent() {
     const searchParams = useSearchParams();
     const token = searchParams.get("token");
 
@@ -93,8 +109,8 @@ export default function ResetPasswordPage() {
                     {/* Error */}
                     {error && (
                         <motion.div
-                            initial={{opacity: 0, y: -6}}
-                            animate={{opacity: 1, y: 0}}
+                            initial={{ opacity: 0, y: -6 }}
+                            animate={{ opacity: 1, y: 0 }}
                             className="rounded-lg border border-red-500/40 bg-red-900/10 px-3 py-2.5 text-sm text-red-400"
                         >
                             {error}
@@ -104,21 +120,22 @@ export default function ResetPasswordPage() {
                     {/* Success */}
                     {message && (
                         <motion.div
-                            initial={{opacity: 0, y: -6}}
-                            animate={{opacity: 1, y: 0}}
+                            initial={{ opacity: 0, y: -6 }}
+                            animate={{ opacity: 1, y: 0 }}
                             className="rounded-lg border border-emerald-600/40 bg-emerald-900/10 px-3 py-2.5 text-sm text-emerald-400"
                         >
                             {message}
                         </motion.div>
                     )}
 
-                    {/* Password field */}
+                    {/* Password */}
                     <div className="space-y-2">
-                        <label className="text-sm text-slate-200">{t("newPassword")}</label>
+                        <label className="text-sm text-slate-200">
+                            {t("newPassword")}
+                        </label>
 
                         <div className="relative">
-                            <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"/>
-
+                            <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                             <Input
                                 type="password"
                                 required
@@ -139,26 +156,27 @@ export default function ResetPasswordPage() {
                     >
                         {loading ? (
                             <>
-                                <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-white"/>
+                                <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-white" />
                                 {t("saving")}
                             </>
                         ) : (
                             <>
                                 {t("changePassword")}
-                                <ArrowRight className="h-4 w-4"/>
+                                <ArrowRight className="h-4 w-4" />
                             </>
                         )}
                     </Button>
+
+                    {/* Back to home */}
                     <div className="relative pt-5">
-                        <div
-                            className="pointer-events-none absolute inset-x-0 top-0 mx-auto h-px w-24 bg-gradient-to-r from-transparent via-purple-500/40 to-transparent"></div>
+                        <div className="pointer-events-none absolute inset-x-0 top-0 mx-auto h-px w-24 bg-gradient-to-r from-transparent via-purple-500/40 to-transparent" />
 
                         <div className="text-center text-xs text-slate-400">
                             <Link
                                 href="/"
-                                className="inline-flex items-center gap-1 text-purple-300 hover:text-purple-200 transition-colors"
+                                className="inline-flex items-center gap-1 text-purple-300 hover:text-purple-200"
                             >
-                                <ArrowLeft className="h-3 w-3"/>
+                                <ArrowLeft className="h-3 w-3" />
                                 {t("backToHome")}
                             </Link>
                         </div>
