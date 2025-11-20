@@ -294,7 +294,7 @@ export default function WelcomePage({
             <div className="absolute bottom-[-12%] left-1/3 h-64 w-64 rounded-full bg-fuchsia-500/20 blur-3xl" />
           </div>
 
-          <div className="relative z-10 mx-auto flex min-h-screen max-w-6xl flex-col px-4 pb-12 pt-6 sm:px-6 lg:px-8 lg:pt-8">
+          <div className="relative z-10 mx-auto flex min-h-screen max-w-screen-2xl flex-col px-4 pb-12 pt-6 sm:px-6 lg:px-8 lg:pt-8">
             {/* HEADER + компактный верх */}
             <motion.header
                 {...fadeUp(0)}
