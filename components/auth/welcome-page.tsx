@@ -305,10 +305,13 @@ export default function WelcomePage({
                   <BarChart3 className="h-5 w-5 text-white" />
                 </div>
                 <div className="flex flex-col leading-tight">
-                <span className="text-xs font-semibold tracking-[0.22em] text-purple-100">
+                <span className="hidden md:block text-xs font-semibold tracking-[0.22em] text-purple-100">
                   ARAGONTRADE
                 </span>
-                  <span className="hidden md:blockmd:text-[11px] text-slate-200/80">
+                  <span className="block md:hidden text-xs font-semibold tracking-[0.22em] text-purple-100">
+                  AT
+                </span>
+                  <span className="hidden md:block md:text-[11px] text-slate-200/80">
                   {t("institutionalTag")}
                 </span>
                 </div>
