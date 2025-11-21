@@ -6,23 +6,24 @@ import { useAuth } from "@/components/auth-provider"
 import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { 
-  Users, 
-  CreditCard, 
-  TrendingUp, 
-  Settings, 
-  Shield, 
-  FileText,
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import {
+  Users,
+  CreditCard,
+  TrendingUp,
+  Settings,
+  Shield,
   BarChart3,
-  DollarSign,
-  Activity,
-  AlertTriangle,
-  MessageCircle
+  MessageCircle,
 } from "lucide-react"
 
-// Import admin components
+// Admin sections
 import UsersManagement from "@/components/admin/users-management"
 import TransactionsManagement from "@/components/admin/transactions-management"
 import OrdersManagement from "@/components/admin/orders-management"
@@ -31,145 +32,277 @@ import VerificationManagement from "@/components/admin/verification-management"
 import DashboardStats from "@/components/admin/dashboard-stats"
 import ChatManagement from "@/components/admin/chat-management"
 
+type SectionKey =
+    | "dashboard"
+    | "users"
+    | "transactions"
+    | "orders"
+    | "verification"
+    | "chat"
+    | "settings"
+
+const baseSections: {
+  key: SectionKey
+  label: string
+  icon: React.ComponentType<{ className?: string }>
+}[] = [
+  { key: "dashboard", label: "Dashboard", icon: BarChart3 },
+  { key: "users", label: "Users", icon: Users },
+  { key: "transactions", label: "Trades", icon: TrendingUp },
+  { key: "orders", label: "Orders", icon: CreditCard },
+  { key: "verification", label: "Verification", icon: Shield },
+  { key: "chat", label: "Chat", icon: MessageCircle },
+]
+
 export default function AdminPage() {
   const { user } = useAuth()
   const router = useRouter()
-  const [activeTab, setActiveTab] = useState("dashboard")
+  const [selectedSection, setSelectedSection] =
+      useState<SectionKey>("dashboard")
 
-  // Check if user is admin
+  // Guard: only admins
   useEffect(() => {
     if (!user) {
       router.push("/")
       return
     }
 
-    const isAdmin = user.role === 'OWNER' || user.role === 'CR_MANAGMENT' || user.role === 'TEAMLEAD'
+    const isAdmin =
+        user.role === "OWNER" ||
+        user.role === "CR_MANAGMENT" ||
+        user.role === "TEAMLEAD"
+
     if (!isAdmin) {
       router.push("/dashboard")
     }
   }, [user, router])
 
-  if (!user || (user.role !== 'OWNER' && user.role !== 'CR_MANAGMENT' && user.role !== 'TEAMLEAD')) {
+  if (
+      !user ||
+      (user.role !== "OWNER" &&
+          user.role !== "CR_MANAGMENT" &&
+          user.role !== "TEAMLEAD")
+  ) {
     return null
   }
 
-  const getTabLabel = (value: string) => {
-    const labels: Record<string, string> = {
-      dashboard: "Dashboard",
-      users: "Users",
-      transactions: "Trades",
-      orders: "Orders",
-      verification: "Verification",
-      chat: "Chat",
-      settings: "Settings"
-    }
-    return labels[value] || value
-  }
+  const sections =
+      user.role === "OWNER"
+          ? [
+            ...baseSections,
+            { key: "settings" as SectionKey, label: "Settings", icon: Settings },
+          ]
+          : baseSections
 
-  const getTabIcon = (value: string) => {
-    const icons: Record<string, React.ReactNode> = {
-      dashboard: <BarChart3 className="w-4 h-4" />,
-      users: <Users className="w-4 h-4" />,
-      transactions: <TrendingUp className="w-4 h-4" />,
-      orders: <CreditCard className="w-4 h-4" />,
-      verification: <Shield className="w-4 h-4" />,
-      chat: <MessageCircle className="w-4 h-4" />,
-      settings: <Settings className="w-4 h-4" />
-    }
-    return icons[value] || null
-  }
-
-  const tabs = [
-    { value: "dashboard", label: "Dashboard", icon: <BarChart3 className="w-4 h-4" /> },
-    { value: "users", label: "Users", icon: <Users className="w-4 h-4" /> },
-    { value: "transactions", label: "Trades", icon: <TrendingUp className="w-4 h-4" /> },
-    { value: "orders", label: "Orders", icon: <CreditCard className="w-4 h-4" /> },
-    { value: "verification", label: "Verification", icon: <Shield className="w-4 h-4" /> },
-    { value: "chat", label: "Chat", icon: <MessageCircle className="w-4 h-4" /> },
-    ...(user.role === "OWNER" ? [{ value: "settings", label: "Settings", icon: <Settings className="w-4 h-4" /> }] : [])
-  ]
+  const activeSectionConfig = sections.find(
+      (s) => s.key === selectedSection
+  ) || sections[0]
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.5 }}
-      className="min-h-screen bg-gray-950 text-white"
-    >
-      <div className="p-3 sm:p-6">
-        {/* Header */}
-        <div className="mb-4 sm:mb-8">
-          <h1 className="text-2xl sm:text-3xl font-bold mb-2">Admin Dashboard</h1>
-          <p className="text-sm sm:text-base text-gray-400">Welcome back, {user.name || user.email}</p>
-        </div>
-
-        {/* Admin Navigation */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4 sm:space-y-6">
-          {/* Mobile Select */}
-          <div className="lg:hidden">
-            <Select value={activeTab} onValueChange={setActiveTab}>
-              <SelectTrigger className="w-full bg-gray-800 border-gray-700 text-base h-12">
-                <SelectValue>
-                  <div className="flex items-center gap-2">
-                    {getTabIcon(activeTab)}
-                    <span>{getTabLabel(activeTab)}</span>
+      <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.35 }}
+          className="min-h-screen bg-gradient-to-br from-[#050215] via-[#120423] to-[#050215] text-slate-50"
+      >
+        <div className="mx-auto flex max-w-screen-2xl flex-col gap-6 px-4 py-6 md:flex-row md:py-8 lg:px-0">
+          {/* LEFT: Sidebar, как в профиле / Discord-style */}
+          <aside className="md:w-64 md:flex-shrink-0 space-y-4">
+            {/* Admin header card */}
+            <Card className="bg-slate-950/80 border-slate-800/80 shadow-sm">
+              <CardContent className="p-4 flex flex-col gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-500 via-indigo-500 to-sky-500 shadow-lg shadow-purple-500/40">
+                    <BarChart3 className="h-5 w-5 text-white" />
                   </div>
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent className="bg-gray-800 border-gray-700 max-h-[80vh]">
-                {tabs.map((tab) => (
-                  <SelectItem key={tab.value} value={tab.value} className="text-base py-3">
-                    <div className="flex items-center gap-2">
-                      {tab.icon}
-                      {tab.label}
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+                  <div className="min-w-0">
+                    <p className="text-xs font-semibold text-slate-300">
+                      Admin Panel
+                    </p>
+                    <p className="truncate text-sm font-semibold">
+                      {user.name || user.email}
+                    </p>
+                    <p className="text-[11px] text-slate-400 mt-0.5">
+                      Role:{" "}
+                      <span className="uppercase tracking-wide">
+                      {user.role}
+                    </span>
+                    </p>
+                  </div>
+                </div>
 
-          {/* Desktop Tabs */}
-          <TabsList className={`hidden lg:grid w-full ${user.role === "OWNER" ? "grid-cols-7" : "grid-cols-6"} bg-gray-800 h-12`}>
-            {tabs.map((tab) => (
-              <TabsTrigger key={tab.value} value={tab.value} className="flex items-center gap-2">
-                {tab.icon}
-                {tab.label}
-              </TabsTrigger>
-            ))}
-          </TabsList>
+                <div className="mt-1 rounded-xl bg-slate-900/80 px-3 py-2 text-[11px] text-slate-300">
+                  <p className="text-slate-400">Current section</p>
+                  <p className="font-medium text-purple-200">
+                    {activeSectionConfig.label}
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
 
-          <TabsContent value="dashboard" className="space-y-6">
-            <DashboardStats />
-          </TabsContent>
+            {/* Desktop nav (vertical) */}
+            <Card className="hidden bg-slate-950/80 border-slate-800/80 shadow-sm md:block">
+              <CardContent className="p-2">
+                <nav className="flex flex-col gap-1">
+                  {sections.map((section) => {
+                    const Icon = section.icon
+                    const active = selectedSection === section.key
+                    return (
+                        <button
+                            key={section.key}
+                            type="button"
+                            onClick={() => setSelectedSection(section.key)}
+                            className={`group flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-xs transition-all ${
+                                active
+                                    ? "bg-gradient-to-r from-purple-600/90 to-indigo-500/90 text-white shadow-md shadow-purple-500/30"
+                                    : "text-slate-200 hover:bg-slate-900/80"
+                            }`}
+                        >
+                      <span className="flex items-center gap-2">
+                        <Icon
+                            className={`h-4 w-4 ${
+                                active
+                                    ? "text-white"
+                                    : "text-slate-400 group-hover:text-slate-100"
+                            }`}
+                        />
+                        <span className="font-medium">
+                          {section.label}
+                        </span>
+                      </span>
+                        </button>
+                    )
+                  })}
+                </nav>
+              </CardContent>
+            </Card>
 
-          <TabsContent value="users" className="space-y-6">
-            <UsersManagement />
-          </TabsContent>
+            {/* Mobile top nav (chips) */}
+            <Card className="bg-slate-950/80 border-slate-800/80 shadow-sm md:hidden">
+              <CardContent className="flex gap-2 overflow-x-auto p-2">
+                {sections.map((section) => {
+                  const Icon = section.icon
+                  const active = selectedSection === section.key
+                  return (
+                      <button
+                          key={section.key}
+                          type="button"
+                          onClick={() => setSelectedSection(section.key)}
+                          className={`flex flex-shrink-0 items-center gap-1 rounded-full px-3 py-2 text-[11px] transition ${
+                              active
+                                  ? "bg-purple-600 text-white shadow-sm"
+                                  : "bg-slate-900 text-slate-200"
+                          }`}
+                      >
+                        <Icon className="h-3.5 w-3.5" />
+                        <span>{section.label}</span>
+                      </button>
+                  )
+                })}
+              </CardContent>
+            </Card>
 
-          <TabsContent value="transactions" className="space-y-6">
-            <TransactionsManagement />
-          </TabsContent>
+          </aside>
 
-          <TabsContent value="orders" className="space-y-6">
-            <OrdersManagement />
-          </TabsContent>
+          {/* RIGHT: main content */}
+          <main className="flex-1 space-y-4">
+            {/* Header title like dashboard */}
+            <div className="mb-2">
+              <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
+                Admin Dashboard
+              </h1>
+              <p className="mt-1 text-sm text-slate-400">
+                Control users, trades, verification and platform settings in one
+                place.
+              </p>
+            </div>
 
-          <TabsContent value="verification" className="space-y-6">
-            <VerificationManagement />
-          </TabsContent>
+            {/* Section content */}
+            {selectedSection === "dashboard" && (
+                <motion.div
+                    key="admin-dashboard"
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.25 }}
+                    className="space-y-4"
+                >
+                  <DashboardStats />
+                </motion.div>
+            )}
 
-          <TabsContent value="chat" className="space-y-6">
-            <ChatManagement />
-          </TabsContent>
+            {selectedSection === "users" && (
+                <motion.div
+                    key="admin-users"
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.25 }}
+                    className="space-y-4"
+                >
+                  <UsersManagement />
+                </motion.div>
+            )}
 
-          {user.role === "OWNER" && (
-            <TabsContent value="settings" className="space-y-6">
-              <SettingsManagement />
-            </TabsContent>
-          )}
-        </Tabs>
-      </div>
-    </motion.div>
+            {selectedSection === "transactions" && (
+                <motion.div
+                    key="admin-transactions"
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.25 }}
+                    className="space-y-4"
+                >
+                  <TransactionsManagement />
+                </motion.div>
+            )}
+
+            {selectedSection === "orders" && (
+                <motion.div
+                    key="admin-orders"
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.25 }}
+                    className="space-y-4"
+                >
+                  <OrdersManagement />
+                </motion.div>
+            )}
+
+            {selectedSection === "verification" && (
+                <motion.div
+                    key="admin-verification"
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.25 }}
+                    className="space-y-4"
+                >
+                  <VerificationManagement />
+                </motion.div>
+            )}
+
+            {selectedSection === "chat" && (
+                <motion.div
+                    key="admin-chat"
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.25 }}
+                    className="space-y-4"
+                >
+                  <ChatManagement />
+                </motion.div>
+            )}
+
+            {selectedSection === "settings" && user.role === "OWNER" && (
+                <motion.div
+                    key="admin-settings"
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.25 }}
+                    className="space-y-4"
+                >
+                  <SettingsManagement />
+                </motion.div>
+            )}
+          </main>
+        </div>
+      </motion.div>
   )
 }

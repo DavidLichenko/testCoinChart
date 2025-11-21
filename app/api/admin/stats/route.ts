@@ -5,45 +5,71 @@ import { UserRole } from "@prisma/client"
 
 export async function GET(request: NextRequest) {
   try {
-    const basicUser = await getCurrentUser();
+    const basicUser = await getCurrentUser()
     if (!basicUser) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
     const user = await prisma.user.findUnique({
       where: { id: basicUser.id },
-    });
+    })
 
-    if (!user || (user.role !== UserRole.OWNER && user.role !== UserRole.CR_MANAGMENT && user.role !== UserRole.TEAMLEAD)) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    if (
+        !user ||
+        (user.role !== UserRole.OWNER &&
+            user.role !== UserRole.CR_MANAGMENT &&
+            user.role !== UserRole.TEAMLEAD)
+    ) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
-    
-    // Get total users
-    const totalUsers = await prisma.user.count()
 
-    // Get total balance
+    // ----- только обычные пользователи (ROLE = USER) -----
+
+    // Кол-во пользователей
+    const totalUsers = await prisma.user.count({
+      where: { role: UserRole.USER },
+    })
+
+    // Суммарный баланс только USER
     const totalBalanceResult = await prisma.user.aggregate({
-      _sum: { TotalBalance: true }
+      _sum: { TotalBalance: true },
+      where: { role: UserRole.USER },
     })
 
-    // Get total trades
-    const totalTrades = await prisma.trade_Transaction.count()
+    // Всего сделок только USER
+    const totalTrades = await prisma.trade_Transaction.count({
+      where: {
+        User: { role: UserRole.USER },
+      },
+    })
 
-    // Get total orders
-    const totalOrders = await prisma.orders.count()
+    // Кол-во ордеров (депозиты/выводы) только USER
+    const totalOrders = await prisma.orders.count({
+      where: {
+        User: { role: UserRole.USER },
+      },
+    })
 
-    // Get active trades
+    // Открытые сделки только USER
     const activeTrades = await prisma.trade_Transaction.count({
-      where: { status: "OPEN" }
+      where: {
+        status: "OPEN",
+        User: { role: UserRole.USER },
+      },
     })
 
-    // Get pending verifications
+    // Ожидающие верификации только USER
     const pendingVerifications = await prisma.verification.count({
-      where: { status: "PENDING" }
+      where: {
+        status: "PENDING",
+        // у verification связь называется `user`, не `User`
+        user: { role: UserRole.USER },
+      },
     })
 
-    // Get recent users
+    // Недавние пользователи (только USER)
     const recentUsers = await prisma.user.findMany({
+      where: { role: UserRole.USER },
       take: 5,
       orderBy: { createdAt: "desc" },
       select: {
@@ -53,11 +79,14 @@ export async function GET(request: NextRequest) {
         role: true,
         createdAt: true,
         isVerif: true,
-      }
+      },
     })
 
-    // Get recent trades
+    // Недавние сделки (только USER) + имя/почта юзера
     const recentTrades = await prisma.trade_Transaction.findMany({
+      where: {
+        User: { role: UserRole.USER },
+      },
       take: 5,
       orderBy: { createdAt: "desc" },
       include: {
@@ -65,9 +94,9 @@ export async function GET(request: NextRequest) {
           select: {
             name: true,
             email: true,
-          }
-        }
-      }
+          },
+        },
+      },
     })
 
     return NextResponse.json({
@@ -78,11 +107,13 @@ export async function GET(request: NextRequest) {
       activeTrades,
       pendingVerifications,
       recentUsers,
-      recentTrades
+      recentTrades,
     })
-
   } catch (error) {
     console.error("Error fetching admin stats:", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    return NextResponse.json(
+        { error: "Internal server error" },
+        { status: 500 },
+    )
   }
-} 
+}

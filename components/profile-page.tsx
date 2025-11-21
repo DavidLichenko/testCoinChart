@@ -19,7 +19,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Select,
   SelectContent,
@@ -30,6 +29,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { toast } from "@/components/toast";
 import { useBalance } from "@/hooks/useBalance";
+import { useRouter } from "next/navigation";
 
 interface UserProfile {
   id: string;
@@ -56,63 +56,90 @@ interface Order {
 }
 
 const VerificationStatusBadge = ({ status }: { status?: string }) => {
-  if (!status)
+  if (!status) {
     return (
-      <Badge variant="secondary" className="w-48 my-1">
-        Not Submitted
-      </Badge>
+        <Badge
+            variant="outline"
+            className="inline-flex items-center gap-1 rounded-full border-slate-600 bg-slate-900/70 px-3 py-1 text-xs text-slate-300"
+        >
+          <Clock className="h-3 w-3 text-slate-400" />
+          <span>Not submitted</span>
+        </Badge>
     );
+  }
 
   const config = (status: string) => {
     switch (status) {
       case "PENDING":
         return {
-          icon: <Clock className="w-4 h-4 mr-2" />,
-          text: "Pending Review",
-          cls: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30",
+          icon: <Clock className="w-3 h-3 mr-1" />,
+          text: "Pending review",
+          cls: "border-amber-500/30 bg-amber-500/10 text-amber-300",
         };
       case "APPROVED":
         return {
-          icon: <BadgeCheck className="w-4 h-4 mr-2" />,
+          icon: <BadgeCheck className="w-3 h-3 mr-1" />,
           text: "Verified",
-          cls: "bg-green-500/20 text-green-400 border-green-500/30",
+          cls: "border-emerald-500/30 bg-emerald-500/10 text-emerald-300",
         };
       case "REJECTED":
         return {
-          icon: <XCircle className="w-4 h-4 mr-2" />,
+          icon: <XCircle className="w-3 h-3 mr-1" />,
           text: "Rejected",
-          cls: "bg-red-500/20 text-red-400 border-red-500/30",
+          cls: "border-rose-500/30 bg-rose-500/10 text-rose-300",
         };
       default:
         return {
           icon: null,
           text: "Unknown",
-          cls: "bg-gray-500/20 text-gray-400 border-gray-500/30",
+          cls: "border-slate-600 bg-slate-900/70 text-slate-300",
         };
     }
   };
 
   const cfg = config(status);
   return (
-    <Badge className={`flex items-center w-48 my-1 ${cfg.cls}`}>
-      {cfg.icon}
-      <span>{cfg.text}</span>
-    </Badge>
+      <Badge
+          variant="outline"
+          className={`inline-flex items-center rounded-full px-3 py-1 text-xs ${cfg.cls}`}
+      >
+        {cfg.icon}
+        <span>{cfg.text}</span>
+      </Badge>
   );
 };
+
+type SectionKey = "profile" | "verification" | "withdraw" | "history";
+
+const sections: {
+  key: SectionKey;
+  icon: React.ComponentType<{ className?: string }>;
+  i18nKey: string;
+}[] = [
+  { key: "profile", icon: User, i18nKey: "profile" },
+  { key: "verification", icon: Shield, i18nKey: "verification" },
+  { key: "withdraw", icon: CreditCard, i18nKey: "withdraw" },
+  { key: "history", icon: FileText, i18nKey: "history" },
+];
 
 export default function ProfilePage() {
   const { user, logout } = useAuth();
   const { balance, liveProfit } = useBalance();
   const { t, lang, setLang } = useI18n();
+  const router = useRouter();
 
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [transactions, setTransactions] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const [selectedSection, setSelectedSection] =
+      useState<SectionKey>("profile");
+
   // Withdraw form states
   const [withdrawAmount, setWithdrawAmount] = useState("");
-  const [withdrawMethod, setWithdrawMethod] = useState("crypto");
+  const [withdrawMethod, setWithdrawMethod] = useState<"crypto" | "bank">(
+      "crypto",
+  );
   const [cryptoAddress, setCryptoAddress] = useState("");
   const [bankName, setBankName] = useState("");
   const [cardNumber, setCardNumber] = useState("");
@@ -141,6 +168,31 @@ export default function ProfilePage() {
     setSelectedLanguage(lang);
   }, [lang]);
 
+  // 🟣 URL → selectedSection (поддержка ?tab=withdraw)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const tab = params.get("tab") as SectionKey | null;
+
+    if (
+        tab === "profile" ||
+        tab === "verification" ||
+        tab === "withdraw" ||
+        tab === "history"
+    ) {
+      setSelectedSection(tab);
+    }
+  }, []);
+
+  const handleSectionChange = (section: SectionKey) => {
+    setSelectedSection(section);
+
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    params.set("tab", section);
+    router.replace(`/profile?${params.toString()}`, { scroll: false });
+  };
+
   useEffect(() => {
     const fetchProfileData = async () => {
       setLoading(true);
@@ -150,17 +202,18 @@ export default function ProfilePage() {
           const profileData = await profileResponse.json();
           setUserProfile(profileData);
           setName(profileData.name || "");
-          // Pre-fill previews if documents were already uploaded
+
           if (profileData.verification) {
-            setFrontIdPreview(profileData.verification.frontIdUrl);
-            setBackIdPreview(profileData.verification.backIdUrl);
+            setFrontIdPreview(profileData.verification.frontIdUrl || null);
+            setBackIdPreview(profileData.verification.backIdUrl || null);
             setVerificationAddress(profileData.verification.address || "");
             setVerificationCity(profileData.verification.city || "");
             setVerificationPostalCode(
-              profileData.verification.postalCode || ""
+                profileData.verification.postalCode || "",
             );
           }
         }
+
         const ordersResponse = await fetch("/api/orders");
         if (ordersResponse.ok) {
           const ordersData = await ordersResponse.json();
@@ -195,9 +248,8 @@ export default function ProfilePage() {
           description: t("profileUpdated"),
         });
         const updatedProfile = await response.json();
-        setUserProfile((prev) =>
-          prev ? { ...prev, ...updatedProfile } : null
-        );
+        setUserProfile((prev) => (prev ? { ...prev, ...updatedProfile } : null));
+
         if (selectedLanguage) setLang(selectedLanguage);
       } else {
         throw new Error("Failed to update profile");
@@ -243,14 +295,13 @@ export default function ProfilePage() {
   };
 
   const handleFileChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
-    type: "front" | "back"
+      e: React.ChangeEvent<HTMLInputElement>,
+      type: "front" | "back",
   ) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     if (file.size > 5 * 1024 * 1024) {
-      // 5MB limit
       toast({
         title: t("fileTooLarge"),
         description: t("selectImageSmallerThan5mb"),
@@ -308,13 +359,13 @@ export default function ProfilePage() {
         });
         const updatedData = await response.json();
         setUserProfile((prev) =>
-          prev
-            ? {
-                ...prev,
-                verification: updatedData.verification,
-                isVerif: updatedData.isVerif,
-              }
-            : null
+            prev
+                ? {
+                  ...prev,
+                  verification: updatedData.verification,
+                  isVerif: updatedData.isVerif,
+                }
+                : null,
         );
       } else {
         const errorData = await response.json().catch(() => ({}));
@@ -399,396 +450,644 @@ export default function ProfilePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-950 text-white flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-500 mx-auto"></div>
-          <p className="mt-4 text-gray-400">{t("loadingProfile")}...</p>
+        <div className="min-h-screen bg-slate-950 text-slate-50 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-purple-500 mx-auto"></div>
+            <p className="mt-4 text-slate-400">{t("loadingProfile")}...</p>
+          </div>
         </div>
-      </div>
     );
   }
 
+  const equity = (balance + liveProfit).toFixed(2);
+
   return (
-    <div className="max-w-6xl mx-auto p-4 md:p-6 lg:p-8">
-      {/* Dashboard Header */}
-      <Card className="bg-gray-900/80 backdrop-blur border-gray-800 shadow-xl">
-        <CardContent className="p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-          <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-full bg-gradient-to-r from-purple-600 to-blue-600 flex items-center justify-center shadow-lg">
-              <User className="w-8 h-8 text-white" />
-            </div>
-            <div>
-              <h2 className="text-xl font-bold">
-                {userProfile?.name || t("user")}
-              </h2>
-              <p className="text-gray-400 text-sm">{userProfile?.email}</p>
-              <div className="mt-2">
-                <VerificationStatusBadge
-                  status={userProfile?.verification?.status}
-                />
-              </div>
-            </div>
-          </div>
-          <div className="flex items-center gap-6 md:text-right">
-            <div>
-              <p className="text-gray-400 text-sm">
-                {t("availableForWithdrawal")}
-              </p>
-              <p className="text-2xl font-bold">
-                ${(balance + liveProfit).toFixed(2)}
-              </p>
-            </div>
-            <Button variant="destructive" onClick={logout}>
-              <LogOut className="w-4 h-4 mr-2" /> {t("logout")}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Tabs */}
-      <Tabs defaultValue="profile" className="w-full mt-6">
-        <TabsList className="grid w-full grid-cols-2 h-full gap-2 lg:grid-cols-4 bg-gray-800/70 border border-gray-700">
-          <TabsTrigger value="profile">
-            <User className="w-4 h-4 mr-2" />
-            {t("profile")}
-          </TabsTrigger>
-          <TabsTrigger value="verification">
-            <Shield className="w-4 h-4 mr-2" />
-            {t("verification")}
-          </TabsTrigger>
-          <TabsTrigger value="withdraw">
-            <CreditCard className="w-4 h-4 mr-2" />
-            {t("withdraw")}
-          </TabsTrigger>
-          <TabsTrigger value="history">
-            <FileText className="w-4 h-4 mr-2" />
-            {t("history")}
-          </TabsTrigger>
-        </TabsList>
-
-        {/* Profile Tab */}
-        <TabsContent value="profile" className="mt-6">
-          <Card className="bg-gray-900/80 border-gray-800">
-            <CardHeader>
-              <CardTitle>{t("accountDetails")}</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="name">{t("name")}</Label>
-                  <Input
-                    id="name"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="language">{t("language")}</Label>
-                  <Select
-                    value={selectedLanguage}
-                    onValueChange={(v) => setSelectedLanguage(v)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="en">{t("english")}</SelectItem>
-                      <SelectItem value="es">{t("spanish")}</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <div className="flex gap-3">
-                <Button onClick={handleUpdateProfile}>
-                  {t("updateProfile")}
-                </Button>
-              </div>
-
-              <div className="mt-6 pt-6 border-t border-gray-800">
-                <h4 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                  <Shield className="w-4 h-4" /> {t("changePassword")}
-                </h4>
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="current-password">
-                      {t("currentPassword")}
-                    </Label>
-                    <Input
-                      id="current-password"
-                      type="password"
-                      value={currentPassword}
-                      onChange={(e) => setCurrentPassword(e.target.value)}
-                    />
+      <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.35 }}
+          className="min-h-screen bg-slate-950/95 text-slate-50"
+      >
+        <div className="mx-auto flex max-w-screen-2xl flex-col gap-6 px-4 py-6 md:flex-row md:py-8 lg:px-0">
+          {/* LEFT: Sidebar (Telegram-style) */}
+          <aside className="md:w-64 md:flex-shrink-0">
+            {/* User card */}
+            <Card className="mb-4 bg-slate-900/80 border-slate-800/80 shadow-sm">
+              <CardContent className="flex flex-col gap-3 p-4">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-500 via-indigo-500 to-sky-500 shadow-lg shadow-purple-500/30">
+                    <User className="h-6 w-6 text-white" />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="new-password">{t("newPassword")}</Label>
-                    <Input
-                      id="new-password"
-                      type="password"
-                      value={newPassword}
-                      onChange={(e) => setNewPassword(e.target.value)}
-                    />
-                  </div>
-                </div>
-                <div className="mt-3">
-                  <Button variant="secondary" onClick={handleChangePassword}>
-                    {t("savePassword")}
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Verification Tab */}
-        <TabsContent value="verification" className="mt-6">
-          <Card className="bg-gray-900/80 border-gray-800">
-            <CardHeader>
-              <CardTitle>{t("identityVerification")}</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <p className="text-gray-400 flex flex-col gap-2">
-                {t("uploadGovId")}{" "}
-                <VerificationStatusBadge
-                  status={userProfile?.verification?.status}
-                />
-              </p>
-
-              <div className="grid md:grid-cols-2 gap-6">
-                {/* Front ID */}
-                <div className="space-y-2">
-                  <Label>{t("frontId")}</Label>
-                  <div className="w-full h-48 border-2 border-dashed border-gray-700 rounded-lg flex items-center justify-center bg-gray-950 relative">
-                    {frontIdPreview ? (
-                      <img
-                        src={frontIdPreview}
-                        alt="Front ID Preview"
-                        className="h-full w-full object-contain"
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold">
+                      {userProfile?.name || t("user")}
+                    </p>
+                    <p className="truncate text-xs text-slate-400">
+                      {userProfile?.email}
+                    </p>
+                    <div className="mt-2">
+                      <VerificationStatusBadge
+                          status={userProfile?.verification?.status}
                       />
-                    ) : (
-                      <div className="text-center">
-                        <Camera className="w-8 h-8 mx-auto text-gray-500" />
-                        <p className="text-sm text-gray-500 mt-2">
-                          {t("clickToUpload")}
-                        </p>
-                      </div>
-                    )}
-                    <Input
-                      type="file"
-                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                      accept="image/*"
-                      onChange={(e) => handleFileChange(e, "front")}
-                    />
+                    </div>
                   </div>
                 </div>
-                {/* Back ID */}
-                <div className="space-y-2">
-                  <Label>{t("backId")}</Label>
-                  <div className="w-full h-48 border-2 border-dashed border-gray-700 rounded-lg flex items-center justify-center bg-gray-950 relative">
-                    {backIdPreview ? (
-                      <img
-                        src={backIdPreview}
-                        alt="Back ID Preview"
-                        className="h-full w-full object-contain"
-                      />
-                    ) : (
-                      <div className="text-center">
-                        <Camera className="w-8 h-8 mx-auto text-gray-500" />
-                        <p className="text-sm text-gray-500 mt-2">
-                          {t("clickToUpload")}
-                        </p>
-                      </div>
-                    )}
-                    <Input
-                      type="file"
-                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                      accept="image/*"
-                      onChange={(e) => handleFileChange(e, "back")}
-                    />
+
+                <div className="mt-2 rounded-xl bg-slate-900/80 px-3 py-2 text-xs text-slate-300">
+                  <div className="flex items-center justify-between">
+                  <span className="text-slate-400">
+                    {t("availableForWithdrawal")}
+                  </span>
+                    <span className="font-mono font-semibold text-purple-200">
+                    ${equity}
+                  </span>
                   </div>
                 </div>
-              </div>
+              </CardContent>
+            </Card>
 
-              {/* Address Information */}
-              <div className="grid md:grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="verification-address">{t("address")}</Label>
-                  <Input
-                    id="verification-address"
-                    value={verificationAddress}
-                    onChange={(e) => setVerificationAddress(e.target.value)}
-                    placeholder={t("enterYourFullAddress")}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="verification-city">{t("city")}</Label>
-                  <Input
-                    id="verification-city"
-                    value={verificationCity}
-                    onChange={(e) => setVerificationCity(e.target.value)}
-                    placeholder={t("enterYourCity")}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="verification-postal">{t("postalCode")}</Label>
-                  <Input
-                    id="verification-postal"
-                    value={verificationPostalCode}
-                    onChange={(e) => setVerificationPostalCode(e.target.value)}
-                    placeholder={t("enterPostalCode")}
-                  />
-                </div>
-              </div>
+            {/* Navigation (Telegram-like) */}
+            <Card className="hidden bg-slate-900/80 border-slate-800/80 shadow-sm md:block">
+              <CardContent className="p-2">
+                <nav className="flex flex-col gap-1">
+                  {sections.map((item) => {
+                    const Icon = item.icon;
+                    const active = selectedSection === item.key;
+                    return (
+                        <button
+                            key={item.key}
+                            type="button"
+                            onClick={() => handleSectionChange(item.key)}
+                            className={`flex items-center justify-between rounded-xl px-3 py-2.5 text-xs transition-all ${
+                                active
+                                    ? "bg-gradient-to-r from-purple-600/80 to-indigo-500/80 text-white shadow-md shadow-purple-500/25"
+                                    : "text-slate-300 hover:bg-slate-800/70"
+                            }`}
+                        >
+                      <span className="flex items-center gap-2">
+                        <Icon
+                            className={`h-4 w-4 ${
+                                active
+                                    ? "text-white"
+                                    : "text-slate-400 group-hover:text-slate-100"
+                            }`}
+                        />
+                        <span className="font-medium">
+                          {t(item.i18nKey)}
+                        </span>
+                      </span>
+                        </button>
+                    );
+                  })}
+                </nav>
+              </CardContent>
+            </Card>
 
+            {/* Mobile top nav */}
+            <Card className="bg-slate-900/80 border-slate-800/80 shadow-sm md:hidden">
+              <CardContent className="flex gap-2 overflow-x-auto p-2">
+                {sections.map((item) => {
+                  const Icon = item.icon;
+                  const active = selectedSection === item.key;
+                  return (
+                      <button
+                          key={item.key}
+                          type="button"
+                          onClick={() => handleSectionChange(item.key)}
+                          className={`flex flex-shrink-0 items-center gap-1 rounded-full px-3 py-2 text-xs transition ${
+                              active
+                                  ? "bg-purple-600 text-white shadow-sm"
+                                  : "bg-slate-800 text-slate-200"
+                          }`}
+                      >
+                        <Icon className="h-3.5 w-3.5" />
+                        <span>{t(item.i18nKey)}</span>
+                      </button>
+                  );
+                })}
+              </CardContent>
+            </Card>
+
+            {/* Logout button at bottom of sidebar (md+) */}
+            <div className="mt-4 hidden md:block">
               <Button
-                onClick={handleSubmitVerification}
-                disabled={
-                  isSubmitting ||
-                  userProfile?.verification?.status === "APPROVED"
-                }
+                  variant="outline"
+                  size="sm"
+                  onClick={logout}
+                  className="flex w-full items-center justify-center gap-2 rounded-xl border-slate-700 bg-slate-900/80 text-xs text-slate-200 hover:border-rose-500 hover:bg-rose-500/10 hover:text-rose-200"
               >
-                {isSubmitting
-                  ? t("submitting") + "..."
-                  : userProfile?.verification?.status === "APPROVED"
-                  ? t("verified")
-                  : t("submitForReview")}
+                <LogOut className="h-4 w-4" />
+                {t("logoutLabel")}
               </Button>
-            </CardContent>
-          </Card>
-        </TabsContent>
+            </div>
+          </aside>
 
-        {/* Withdraw Tab */}
-        <TabsContent value="withdraw" className="mt-6">
-          <Card className="bg-gray-900/80 border-gray-800">
-            <CardHeader>
-              <CardTitle>{t("withdraw")}</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <p className="text-gray-400">{t("availableForWithdrawal")}</p>
-                <p className="text-2xl font-bold">
-                  ${(balance + liveProfit).toFixed(2)}
-                </p>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="withdraw-amount">{t("amountUsd")}</Label>
-                <Input
-                  id="withdraw-amount"
-                  type="number"
-                  placeholder="0.00"
-                  value={withdrawAmount}
-                  onChange={(e) => setWithdrawAmount(e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>{t("method")}</Label>
-                <Select
-                  value={withdrawMethod}
-                  onValueChange={setWithdrawMethod}
+          {/* RIGHT: Main content */}
+          <main className="flex-1 space-y-4">
+            {/* Section: Profile / Account */}
+            {selectedSection === "profile" && (
+                <motion.div
+                    key="profile-section"
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.25 }}
+                    className="space-y-4"
                 >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="crypto">{t("crypto")}</SelectItem>
-                    <SelectItem value="bank">{t("bankTransfer")}</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+                  <Card className="bg-slate-900/80 border-slate-800">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="flex items-center gap-2 text-base">
+                        <User className="h-4 w-4 text-purple-300" />
+                        {t("accountDetails")}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                      <div className="grid gap-4 md:grid-cols-2">
+                        <div className="space-y-2">
+                          <Label
+                              htmlFor="name"
+                              className="text-xs text-slate-300"
+                          >
+                            {t("name")}
+                          </Label>
+                          <Input
+                              id="name"
+                              value={name}
+                              onChange={(e) => setName(e.target.value)}
+                              className="h-9 rounded-xl border-slate-700 bg-slate-900 text-sm"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label
+                              htmlFor="language"
+                              className="text-xs text-slate-300"
+                          >
+                            {t("language")}
+                          </Label>
+                          <Select
+                              value={selectedLanguage}
+                              onValueChange={(v) => setSelectedLanguage(v)}
+                          >
+                            <SelectTrigger className="h-9 rounded-xl border-slate-700 bg-slate-900 text-sm">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent className="border-slate-700 bg-slate-900">
+                              <SelectItem value="en">
+                                {t("english")}
+                              </SelectItem>
+                              <SelectItem value="es">
+                                {t("spanish")}
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
 
-              {withdrawMethod === "crypto" && (
-                <div className="space-y-2">
-                  <Label htmlFor="crypto-address">
-                    {t("cryptoAddressLabel")}
-                  </Label>
-                  <Input
-                    id="crypto-address"
-                    placeholder="0x..."
-                    value={cryptoAddress}
-                    onChange={(e) => setCryptoAddress(e.target.value)}
-                  />
-                </div>
-              )}
-              {withdrawMethod === "bank" && (
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="bank-name">{t("bankName")}</Label>
-                    <Input
-                      id="bank-name"
-                      placeholder="e.g., Chase"
-                      value={bankName}
-                      onChange={(e) => setBankName(e.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="card-number">{t("accountNumber")}</Label>
-                    <Input
-                      id="card-number"
-                      placeholder="**** **** **** 1234"
-                      value={cardNumber}
-                      onChange={(e) => setCardNumber(e.target.value)}
-                    />
-                  </div>
-                </div>
-              )}
+                      <div className="flex flex-wrap gap-3">
+                        <Button
+                            onClick={handleUpdateProfile}
+                            className="rounded-xl bg-purple-600 px-5 text-xs font-medium hover:bg-purple-700"
+                        >
+                          {t("updateProfile")}
+                        </Button>
+                      </div>
 
+                      <div className="mt-3 rounded-2xl border border-slate-800/80 bg-slate-900/70 p-4">
+                        <h4 className="mb-3 flex items-center gap-2 text-sm font-semibold text-slate-100">
+                          <Shield className="h-4 w-4 text-purple-300" />
+                          {t("changePassword")}
+                        </h4>
+                        <div className="grid gap-4 md:grid-cols-2">
+                          <div className="space-y-2">
+                            <Label
+                                htmlFor="current-password"
+                                className="text-xs text-slate-300"
+                            >
+                              {t("currentPassword")}
+                            </Label>
+                            <Input
+                                id="current-password"
+                                type="password"
+                                value={currentPassword}
+                                onChange={(e) =>
+                                    setCurrentPassword(e.target.value)
+                                }
+                                className="h-9 rounded-xl border-slate-700 bg-slate-900 text-sm"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label
+                                htmlFor="new-password"
+                                className="text-xs text-slate-300"
+                            >
+                              {t("newPassword")}
+                            </Label>
+                            <Input
+                                id="new-password"
+                                type="password"
+                                value={newPassword}
+                                onChange={(e) => setNewPassword(e.target.value)}
+                                className="h-9 rounded-xl border-slate-700 bg-slate-900 text-sm"
+                            />
+                          </div>
+                        </div>
+                        <div className="mt-3">
+                          <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={handleChangePassword}
+                              className="rounded-xl border-slate-700 bg-slate-900 text-xs text-slate-100 hover:border-purple-500 hover:bg-purple-500/10"
+                          >
+                            {t("savePassword")}
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+            )}
+
+            {/* Section: Verification */}
+            {selectedSection === "verification" && (
+                <motion.div
+                    key="verification-section"
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.25 }}
+                >
+                  <Card className="bg-slate-900/80 border-slate-800">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="flex items-center gap-2 text-base">
+                        <Shield className="h-4 w-4 text-purple-300" />
+                        {t("identityVerification")}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                      <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-slate-300">
+                        <p>{t("uploadGovId")}</p>
+                        <VerificationStatusBadge
+                            status={userProfile?.verification?.status}
+                        />
+                      </div>
+
+                      <div className="grid gap-6 md:grid-cols-2">
+                        {/* Front ID */}
+                        <div className="space-y-2">
+                          <Label className="text-xs text-slate-300">
+                            {t("frontId")}
+                          </Label>
+                          <div className="relative flex h-44 w-full items-center justify-center rounded-2xl border border-dashed border-slate-700 bg-slate-950/80">
+                            {frontIdPreview ? (
+                                <img
+                                    src={frontIdPreview}
+                                    alt="Front ID Preview"
+                                    className="h-full w-full rounded-2xl object-contain"
+                                />
+                            ) : (
+                                <div className="text-center text-xs text-slate-500">
+                                  <Camera className="mx-auto h-7 w-7 text-slate-500" />
+                                  <p className="mt-2">
+                                    {t("clickToUpload")}
+                                  </p>
+                                </div>
+                            )}
+                            <Input
+                                type="file"
+                                className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+                                accept="image/*"
+                                onChange={(e) => handleFileChange(e, "front")}
+                            />
+                          </div>
+                        </div>
+
+                        {/* Back ID */}
+                        <div className="space-y-2">
+                          <Label className="text-xs text-slate-300">
+                            {t("backId")}
+                          </Label>
+                          <div className="relative flex h-44 w-full items-center justify-center rounded-2xl border border-dashed border-slate-700 bg-slate-950/80">
+                            {backIdPreview ? (
+                                <img
+                                    src={backIdPreview}
+                                    alt="Back ID Preview"
+                                    className="h-full w-full rounded-2xl object-contain"
+                                />
+                            ) : (
+                                <div className="text-center text-xs text-slate-500">
+                                  <Camera className="mx-auto h-7 w-7 text-slate-500" />
+                                  <p className="mt-2">
+                                    {t("clickToUpload")}
+                                  </p>
+                                </div>
+                            )}
+                            <Input
+                                type="file"
+                                className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+                                accept="image/*"
+                                onChange={(e) => handleFileChange(e, "back")}
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Address Information */}
+                      <div className="grid gap-4 md:grid-cols-3">
+                        <div className="space-y-2">
+                          <Label
+                              htmlFor="verification-address"
+                              className="text-xs text-slate-300"
+                          >
+                            {t("address")}
+                          </Label>
+                          <Input
+                              id="verification-address"
+                              value={verificationAddress}
+                              onChange={(e) =>
+                                  setVerificationAddress(e.target.value)
+                              }
+                              placeholder={t("enterYourFullAddress")}
+                              className="h-9 rounded-xl border-slate-700 bg-slate-900 text-sm"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label
+                              htmlFor="verification-city"
+                              className="text-xs text-slate-300"
+                          >
+                            {t("city")}
+                          </Label>
+                          <Input
+                              id="verification-city"
+                              value={verificationCity}
+                              onChange={(e) =>
+                                  setVerificationCity(e.target.value)
+                              }
+                              placeholder={t("enterYourCity")}
+                              className="h-9 rounded-xl border-slate-700 bg-slate-900 text-sm"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label
+                              htmlFor="verification-postal"
+                              className="text-xs text-slate-300"
+                          >
+                            {t("postalCode")}
+                          </Label>
+                          <Input
+                              id="verification-postal"
+                              value={verificationPostalCode}
+                              onChange={(e) =>
+                                  setVerificationPostalCode(e.target.value)
+                              }
+                              placeholder={t("enterPostalCode")}
+                              className="h-9 rounded-xl border-slate-700 bg-slate-900 text-sm"
+                          />
+                        </div>
+                      </div>
+
+                      <Button
+                          onClick={handleSubmitVerification}
+                          disabled={
+                              isSubmitting ||
+                              userProfile?.verification?.status === "APPROVED"
+                          }
+                          className="rounded-xl bg-purple-600 px-5 text-xs font-medium hover:bg-purple-700"
+                      >
+                        {isSubmitting
+                            ? t("submitting") + "..."
+                            : userProfile?.verification?.status === "APPROVED"
+                                ? t("verified")
+                                : t("submitForReview")}
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+            )}
+
+            {/* Section: Withdraw */}
+            {selectedSection === "withdraw" && (
+                <motion.div
+                    key="withdraw-section"
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.25 }}
+                >
+                  <Card className="bg-slate-900/80 border-slate-800">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="flex items-center gap-2 text-base">
+                        <CreditCard className="h-4 w-4 text-purple-300" />
+                        {t("withdraw")}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-5">
+                      <div className="rounded-2xl bg-slate-950/60 px-4 py-3 text-xs text-slate-300">
+                        <div className="flex items-center justify-between">
+                          <span>{t("availableForWithdrawal")}</span>
+                          <span className="font-mono text-sm font-semibold text-purple-200">
+                        ${equity}
+                      </span>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label
+                            htmlFor="withdraw-amount"
+                            className="text-xs text-slate-300"
+                        >
+                          {t("amountUsd")}
+                        </Label>
+                        <Input
+                            id="withdraw-amount"
+                            type="number"
+                            placeholder="0.00"
+                            value={withdrawAmount}
+                            onChange={(e) => setWithdrawAmount(e.target.value)}
+                            className="h-9 rounded-xl border-slate-700 bg-slate-900 text-sm"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label className="text-xs text-slate-300">
+                          {t("method")}
+                        </Label>
+                        <Select
+                            value={withdrawMethod}
+                            onValueChange={(v: "crypto" | "bank") =>
+                                setWithdrawMethod(v)
+                            }
+                        >
+                          <SelectTrigger className="h-9 rounded-xl border-slate-700 bg-slate-900 text-sm">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent className="border-slate-700 bg-slate-900 text-sm">
+                            <SelectItem value="crypto">
+                              {t("crypto")}
+                            </SelectItem>
+                            <SelectItem value="bank">
+                              {t("bankTransfer")}
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {withdrawMethod === "crypto" && (
+                          <div className="space-y-2">
+                            <Label
+                                htmlFor="crypto-address"
+                                className="text-xs text-slate-300"
+                            >
+                              {t("cryptoAddressLabel")}
+                            </Label>
+                            <Input
+                                id="crypto-address"
+                                placeholder="0x..."
+                                value={cryptoAddress}
+                                onChange={(e) => setCryptoAddress(e.target.value)}
+                                className="h-9 rounded-xl border-slate-700 bg-slate-900 text-sm"
+                            />
+                          </div>
+                      )}
+
+                      {withdrawMethod === "bank" && (
+                          <div className="space-y-4">
+                            <div className="space-y-2">
+                              <Label
+                                  htmlFor="bank-name"
+                                  className="text-xs text-slate-300"
+                              >
+                                {t("bankName")}
+                              </Label>
+                              <Input
+                                  id="bank-name"
+                                  placeholder="e.g., Chase"
+                                  value={bankName}
+                                  onChange={(e) => setBankName(e.target.value)}
+                                  className="h-9 rounded-xl border-slate-700 bg-slate-900 text-sm"
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label
+                                  htmlFor="card-number"
+                                  className="text-xs text-slate-300"
+                              >
+                                {t("accountNumber")}
+                              </Label>
+                              <Input
+                                  id="card-number"
+                                  placeholder="**** **** **** 1234"
+                                  value={cardNumber}
+                                  onChange={(e) => setCardNumber(e.target.value)}
+                                  className="h-9 rounded-xl border-slate-700 bg-slate-900 text-sm"
+                              />
+                            </div>
+                          </div>
+                      )}
+
+                      <Button
+                          onClick={handleWithdraw}
+                          disabled={userProfile?.isVerif !== true}
+                          className="rounded-xl bg-purple-600 px-5 text-xs font-medium hover:bg-purple-700"
+                      >
+                        {userProfile?.isVerif !== true
+                            ? t("verificationRequired")
+                            : t("submitWithdrawal")}
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+            )}
+
+            {/* Section: History */}
+            {selectedSection === "history" && (
+                <motion.div
+                    key="history-section"
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.25 }}
+                >
+                  <Card className="bg-slate-900/80 border-slate-800">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="flex items-center gap-2 text-base">
+                        <FileText className="h-4 w-4 text-purple-300" />
+                        {t("transactionHistory")}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      {transactions.length > 0 ? (
+                          <div className="overflow-x-auto">
+                            <table className="w-full text-xs md:text-sm">
+                              <thead>
+                              <tr className="border-b border-slate-800 text-left text-slate-400">
+                                <th className="pb-2 font-medium">
+                                  {t("type")}
+                                </th>
+                                <th className="pb-2 font-medium">
+                                  {t("amount")}
+                                </th>
+                                <th className="pb-2 font-medium">
+                                  {t("status")}
+                                </th>
+                                <th className="pb-2 font-medium">
+                                  {t("date")}
+                                </th>
+                              </tr>
+                              </thead>
+                              <tbody>
+                              {transactions.map((tx) => (
+                                  <tr
+                                      key={tx.id}
+                                      className="border-t border-slate-800 text-slate-200"
+                                  >
+                                    <td className="py-2">
+                                <span
+                                    className={`font-semibold ${
+                                        tx.type === "DEPOSIT"
+                                            ? "text-emerald-300"
+                                            : "text-orange-300"
+                                    }`}
+                                >
+                                  {tx.type}
+                                </span>
+                                    </td>
+                                    <td className="py-2">
+                                      ${tx.amount.toFixed(2)}
+                                    </td>
+                                    <td className="py-2">
+                                      <Badge className="rounded-full border-slate-700 bg-slate-800/80 text-xs">
+                                        {tx.status}
+                                      </Badge>
+                                    </td>
+                                    <td className="py-2 text-slate-400">
+                                      {new Date(tx.createdAt).toLocaleString()}
+                                    </td>
+                                  </tr>
+                              ))}
+                              </tbody>
+                            </table>
+                          </div>
+                      ) : (
+                          <p className="py-4 text-center text-sm text-slate-500">
+                            {t("noTransactions")}
+                          </p>
+                      )}
+                    </CardContent>
+                  </Card>
+                </motion.div>
+            )}
+
+            {/* Mobile logout inside main on small screens */}
+            <div className="mt-3 md:hidden">
               <Button
-                onClick={handleWithdraw}
-                disabled={userProfile?.isVerif !== true}
+                  variant="outline"
+                  size="sm"
+                  onClick={logout}
+                  className="flex w-full items-center justify-center gap-2 rounded-xl border-slate-700 bg-slate-900 text-xs text-slate-200 hover:border-rose-500 hover:bg-rose-500/10 hover:text-rose-200"
               >
-                {userProfile?.isVerif !== true
-                  ? t("verificationRequired")
-                  : t("submitWithdrawal")}
+                <LogOut className="h-4 w-4" />
+                {t("logoutLabel")}
               </Button>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* History Tab */}
-        <TabsContent value="history" className="mt-6">
-          <Card className="bg-gray-900/80 border-gray-800">
-            <CardHeader>
-              <CardTitle>{t("transactionHistory")}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {transactions.length > 0 ? (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="text-gray-400 text-left">
-                        <th className="pb-2 font-medium">{t("type")}</th>
-                        <th className="pb-2 font-medium">{t("amount")}</th>
-                        <th className="pb-2 font-medium">{t("status")}</th>
-                        <th className="pb-2 font-medium">{t("date")}</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {transactions.map((tx) => (
-                        <tr key={tx.id} className="border-t border-gray-800">
-                          <td className="py-2 font-semibold {tx.type === 'DEPOSIT' ? 'text-green-400' : 'text-orange-400'}">
-                            {tx.type}
-                          </td>
-                          <td className="py-2">${tx.amount.toFixed(2)}</td>
-                          <td className="py-2">
-                            <Badge>{tx.status}</Badge>
-                          </td>
-                          <td className="py-2">
-                            {new Date(tx.createdAt).toLocaleString()}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              ) : (
-                <p className="text-center text-gray-500 py-4">
-                  {t("noTransactions")}
-                </p>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
-    </div>
+            </div>
+          </main>
+        </div>
+      </motion.div>
   );
 }

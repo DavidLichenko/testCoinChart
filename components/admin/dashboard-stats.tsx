@@ -1,16 +1,10 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { motion } from "framer-motion"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { 
-  Users, 
-  DollarSign, 
-  TrendingUp, 
-  CreditCard,
-  Activity,
-  AlertTriangle
-} from "lucide-react"
+import { Users, DollarSign, TrendingUp, Activity, AlertTriangle } from "lucide-react"
 
 interface DashboardStats {
   totalUsers: number
@@ -25,6 +19,7 @@ interface DashboardStats {
     name: string | null
     createdAt: string
     role: string
+    isVerif: boolean
   }>
   recentTrades: Array<{
     id: string
@@ -32,6 +27,10 @@ interface DashboardStats {
     type: string
     profit: number | null
     createdAt: string
+    User?: {
+      name: string | null
+      email: string
+    }
   }>
 }
 
@@ -59,144 +58,245 @@ export default function DashboardStats() {
 
   if (loading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {[...Array(4)].map((_, i) => (
-          <Card key={i} className="bg-gray-800 border-gray-700">
-            <CardContent className="p-6">
-              <div className="animate-pulse">
-                <div className="h-4 bg-gray-700 rounded w-3/4 mb-2"></div>
-                <div className="h-8 bg-gray-700 rounded w-1/2"></div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4 sm:gap-4">
+          {[...Array(4)].map((_, i) => (
+              <Card
+                  key={i}
+                  className="bg-slate-950/80 border-slate-900/80 shadow-[0_0_0_1px_rgba(148,27,255,0.2)]"
+              >
+                <CardContent className="p-4 sm:p-5">
+                  <div className="animate-pulse space-y-2">
+                    <div className="h-3 w-2/3 rounded-full bg-slate-800/80" />
+                    <div className="h-6 w-1/2 rounded-full bg-slate-800/80" />
+                  </div>
+                </CardContent>
+              </Card>
+          ))}
+        </div>
     )
   }
 
   if (!stats) {
-    return <div className="text-center text-gray-400">Failed to load dashboard stats</div>
+    return (
+        <div className="rounded-2xl border border-rose-500/30 bg-rose-950/40 px-4 py-3 text-center text-sm text-rose-100">
+          Failed to load dashboard stats
+        </div>
+    )
   }
 
   return (
-    <div className="space-y-4 sm:space-y-6 px-2 sm:px-0">
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
-        <Card className="bg-gray-800 border-gray-700">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-4 sm:p-6">
-            <CardTitle className="text-xs sm:text-sm font-medium">Total Users</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-          </CardHeader>
-          <CardContent className="p-4 pt-0 sm:p-6 sm:pt-0">
-            <div className="text-xl sm:text-2xl font-bold">{stats.totalUsers.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">
-              Registered users
-            </p>
-          </CardContent>
-        </Card>
+      <div className="space-y-5 sm:space-y-6">
+        {/* Верхние карточки со статистикой */}
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4 sm:gap-4">
+          <StatCard
+              title="Total Users"
+              icon={Users}
+              value={stats.totalUsers.toLocaleString()}
+              sub="Registered users"
+          />
+          <StatCard
+              title="Total Balance"
+              icon={DollarSign}
+              value={`$${stats.totalBalance.toLocaleString()}`}
+              sub="Platform balance"
+          />
+          <StatCard
+              title="Active Trades"
+              icon={Activity}
+              value={stats.activeTrades.toString()}
+              sub="Open positions"
+          />
+          <StatCard
+              title="Pending Verifications"
+              icon={AlertTriangle}
+              value={stats.pendingVerifications.toString()}
+              sub="Awaiting review"
+              accent="warning"
+          />
+        </div>
 
-        <Card className="bg-gray-800 border-gray-700">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-4 sm:p-6">
-            <CardTitle className="text-xs sm:text-sm font-medium">Total Balance</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-          </CardHeader>
-          <CardContent className="p-4 pt-0 sm:p-6 sm:pt-0">
-            <div className="text-xl sm:text-2xl font-bold">${stats.totalBalance.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">
-              Platform balance
-            </p>
-          </CardContent>
-        </Card>
+        {/* Нижний блок – недавние пользователи и сделки */}
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-5">
+          {/* Recent Users */}
+          <motion.div
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.25 }}
+          >
+            <Card className="bg-slate-950/80 border-slate-900/80 shadow-[0_0_40px_rgba(15,23,42,0.8)]">
+              <CardHeader className="flex flex-row items-center justify-between gap-2 p-4 pb-3 sm:p-5 sm:pb-3">
+                <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-purple-500/15 text-purple-300">
+                  <Users className="h-4 w-4" />
+                </span>
+                  <span>Recent Users</span>
+                </CardTitle>
+                <Badge className="rounded-full bg-slate-900/80 text-[11px] text-slate-200">
+                  {stats.totalUsers.toLocaleString()} total
+                </Badge>
+              </CardHeader>
+              <CardContent className="p-4 pt-0 sm:p-5 sm:pt-1">
+                <div className="space-y-2.5 sm:space-y-3">
+                  {stats.recentUsers.length === 0 && (
+                      <p className="py-4 text-center text-xs text-slate-500">
+                        No users yet.
+                      </p>
+                  )}
 
-        <Card className="bg-gray-800 border-gray-700">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-4 sm:p-6">
-            <CardTitle className="text-xs sm:text-sm font-medium">Active Trades</CardTitle>
-            <Activity className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-          </CardHeader>
-          <CardContent className="p-4 pt-0 sm:p-6 sm:pt-0">
-            <div className="text-xl sm:text-2xl font-bold">{stats.activeTrades}</div>
-            <p className="text-xs text-muted-foreground">
-              Open positions
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gray-800 border-gray-700">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-4 sm:p-6">
-            <CardTitle className="text-xs sm:text-sm font-medium">Pending Verifications</CardTitle>
-            <AlertTriangle className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-          </CardHeader>
-          <CardContent className="p-4 pt-0 sm:p-6 sm:pt-0">
-            <div className="text-xl sm:text-2xl font-bold">{stats.pendingVerifications}</div>
-            <p className="text-xs text-muted-foreground">
-              Awaiting review
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Recent Activity */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-        {/* Recent Users */}
-        <Card className="bg-gray-800 border-gray-700">
-          <CardHeader className="p-4 sm:p-6">
-            <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
-              <Users className="w-4 h-4 sm:w-5 sm:h-5" />
-              Recent Users
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-4 pt-0 sm:p-6 sm:pt-0">
-            <div className="space-y-2 sm:space-y-3">
-              {stats.recentUsers.map((user) => (
-                <div key={user.id} className="flex items-center justify-between p-2 sm:p-3 bg-gray-700 rounded-lg">
-                  <div className="flex-1 min-w-0">
-                    <div className="font-medium text-xs sm:text-sm truncate">{user.name || user.email}</div>
-                    <div className="text-xs text-gray-400 truncate">{user.email}</div>
-                  </div>
-                  <div className="text-right flex-shrink-0 ml-2">
-                    <Badge variant="outline" className="text-xs">
-                      {user.role}
-                    </Badge>
-                    <div className="text-xs text-gray-400 mt-1">
-                      {new Date(user.createdAt).toLocaleDateString()}
-                    </div>
-                  </div>
+                  {stats.recentUsers.map((user) => (
+                      <div
+                          key={user.id}
+                          className="flex items-center justify-between rounded-xl bg-slate-900/80 px-3 py-2.5 text-xs sm:text-sm"
+                      >
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate font-medium text-slate-100">
+                            {user.name || user.email}
+                          </p>
+                          <p className="truncate text-[11px] text-slate-400">
+                            {user.email}
+                          </p>
+                        </div>
+                        <div className="ml-3 flex flex-col items-end gap-1 text-[11px] sm:text-xs">
+                          <Badge
+                              variant="outline"
+                              className="rounded-full border-slate-700 bg-slate-900/80 px-2 py-0.5 text-[10px] uppercase tracking-wide text-slate-200"
+                          >
+                            {user.role}
+                          </Badge>
+                          <span className="text-slate-400">
+                        {new Date(user.createdAt).toLocaleDateString()}
+                      </span>
+                        </div>
+                      </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+              </CardContent>
+            </Card>
+          </motion.div>
 
-        {/* Recent Trades */}
-        <Card className="bg-gray-800 border-gray-700">
-          <CardHeader className="p-4 sm:p-6">
-            <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
-              <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5" />
-              Recent Trades
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-4 pt-0 sm:p-6 sm:pt-0">
-            <div className="space-y-2 sm:space-y-3">
-              {stats.recentTrades.map((trade) => (
-                <div key={trade.id} className="flex items-center justify-between p-2 sm:p-3 bg-gray-700 rounded-lg">
-                  <div className="flex-1 min-w-0">
-                    <div className="font-medium text-xs sm:text-sm">{trade.ticker}</div>
-                    <div className="text-xs text-gray-400">{trade.type}</div>
-                  </div>
-                  <div className="text-right flex-shrink-0 ml-2">
-                    <div className={`text-xs sm:text-sm font-semibold ${(trade.profit || 0) >= 0 ? "text-green-400" : "text-red-400"}`}>
-                      {(trade.profit || 0) >= 0 ? "+" : ""}${(trade.profit || 0).toFixed(2)}
-                    </div>
-                    <div className="text-xs text-gray-400 mt-1">
-                      {new Date(trade.createdAt).toLocaleDateString()}
-                    </div>
-                  </div>
+          {/* Recent Trades */}
+          <motion.div
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.25, delay: 0.05 }}
+          >
+            <Card className="bg-slate-950/80 border-slate-900/80 shadow-[0_0_40px_rgba(15,23,42,0.8)]">
+              <CardHeader className="flex flex-row items-center justify-between gap-2 p-4 pb-3 sm:p-5 sm:pb-3">
+                <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-indigo-500/15 text-indigo-300">
+                  <TrendingUp className="h-4 w-4" />
+                </span>
+                  <span>Recent Trades</span>
+                </CardTitle>
+                <Badge className="rounded-full bg-slate-900/80 text-[11px] text-slate-200">
+                  {stats.totalTrades.toLocaleString()} total
+                </Badge>
+              </CardHeader>
+              <CardContent className="p-4 pt-0 sm:p-5 sm:pt-1">
+                <div className="space-y-2.5 sm:space-y-3">
+                  {stats.recentTrades.length === 0 && (
+                      <p className="py-4 text-center text-xs text-slate-500">
+                        No trades yet.
+                      </p>
+                  )}
+
+                  {stats.recentTrades.map((trade) => {
+                    const profit = trade.profit || 0
+                    const positive = profit >= 0
+                    const userLabel = trade.User?.name || trade.User?.email || "Unknown user"
+
+                    return (
+                        <div
+                            key={trade.id}
+                            className="flex items-center justify-between rounded-xl bg-slate-900/80 px-3 py-2.5 text-xs sm:text-sm"
+                        >
+                          <div className="min-w-0 flex-1">
+                            <p className="font-semibold text-slate-100">
+                              {trade.ticker}
+                            </p>
+                            <p className="text-[11px] text-slate-400">
+                              {trade.type} • {userLabel}
+                              {trade.User?.email ? ` (${trade.User.email})` : ""}
+                            </p>
+                          </div>
+                          <div className="ml-3 flex flex-col items-end gap-1 text-[11px] sm:text-xs">
+                        <span
+                            className={`font-semibold ${
+                                positive ? "text-emerald-300" : "text-rose-300"
+                            }`}
+                        >
+                          {positive ? "+" : "-"}$
+                          {Math.abs(profit).toFixed(2)}
+                        </span>
+                            <span className="text-slate-400">
+                          {new Date(trade.createdAt).toLocaleDateString()}
+                        </span>
+                          </div>
+                        </div>
+                    )
+                  })}
                 </div>
-              ))}
+              </CardContent>
+            </Card>
+          </motion.div>
+        </div>
+      </div>
+  )
+}
+
+/** Маленький реюзабельный компонент для верхних карточек */
+type StatCardProps = {
+  title: string
+  value: string
+  sub: string
+  icon: React.ComponentType<{ className?: string }>
+  accent?: "default" | "warning"
+}
+
+function StatCard({
+                    title,
+                    value,
+                    sub,
+                    icon: Icon,
+                    accent = "default",
+                  }: StatCardProps) {
+  const accentColor =
+      accent === "warning"
+          ? "from-amber-500/30 via-amber-400/10 to-transparent"
+          : "from-purple-500/30 via-indigo-500/10 to-transparent"
+
+  const iconBg =
+      accent === "warning"
+          ? "bg-amber-500/15 text-amber-300"
+          : "bg-purple-500/15 text-purple-300"
+
+  return (
+      <motion.div
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.25 }}
+      >
+        <Card className="relative overflow-hidden rounded-2xl border border-slate-900/90 bg-slate-950/90 shadow-[0_18px_45px_rgba(15,23,42,0.8)]">
+          <div
+              className={`pointer-events-none absolute inset-x-0 top-0 h-16 bg-gradient-to-b ${accentColor} opacity-80`}
+          />
+          <CardHeader className="relative flex flex-row items-center justify-between space-y-0 p-4 pb-2 sm:p-5 sm:pb-2">
+            <CardTitle className="text-xs font-medium text-slate-300 sm:text-sm">
+              {title}
+            </CardTitle>
+            <div
+                className={`flex h-8 w-8 items-center justify-center rounded-xl ${iconBg}`}
+            >
+              <Icon className="h-4 w-4" />
             </div>
+          </CardHeader>
+          <CardContent className="relative p-4 pt-0 sm:p-5 sm:pt-0">
+            <div className="text-xl font-bold text-slate-50 sm:text-2xl">
+              {value}
+            </div>
+            <p className="mt-1 text-[11px] text-slate-400 sm:text-xs">{sub}</p>
           </CardContent>
         </Card>
-      </div>
-    </div>
+      </motion.div>
   )
 }
