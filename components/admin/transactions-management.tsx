@@ -23,6 +23,8 @@ import { Label } from "@/components/ui/label"
 import { TrendingUp, Search, X, Edit } from "lucide-react"
 import { useTickers } from "@/hooks/market-data"
 import OpenTradeAdminDialog from "./open-trade_modal"
+import { hasAdminAccess } from "@/lib/admin-access"
+import { useAuth } from "@/components/auth-provider"
 
 interface Trade {
   id: string
@@ -49,9 +51,27 @@ interface Trade {
 const TRADES_PER_PAGE = 15
 
 export default function TransactionsManagement() {
+  const { user } = useAuth()
   const [users, setUsers] = useState<any[]>([])
   const [trades, setTrades] = useState<Trade[]>([])
   const [loading, setLoading] = useState(true)
+  const [accessDenied, setAccessDenied] = useState(false)
+  
+  // Add access control check
+  useEffect(() => {
+    if (!hasAdminAccess(user)) {
+      setAccessDenied(true)
+    }
+  }, [user])
+  
+  // If access is denied, show an error message
+  if (accessDenied) {
+    return (
+      <div className="rounded-2xl border border-rose-500/30 bg-rose-950/40 px-4 py-3 text-center text-sm text-rose-100">
+        Access denied. You don't have permission to view this page.
+      </div>
+    )
+  }
 
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState<"all" | "OPEN" | "CLOSE">("all")

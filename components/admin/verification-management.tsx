@@ -36,6 +36,8 @@ import {
 } from "@/components/ui/hover-card"
 
 import { toast } from "react-hot-toast"
+import { hasAdminAccess } from "@/lib/admin-access"
+import { useAuth } from "@/components/auth-provider"
 
 interface Verification {
   id: string
@@ -55,12 +57,30 @@ interface Verification {
 }
 
 export default function VerificationManagement() {
+  const { user } = useAuth()
   const [verifications, setVerifications] = useState<Verification[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
   const [imageToView, setImageToView] = useState<string | null>(null)
-
+  const [accessDenied, setAccessDenied] = useState(false)
+  
+  // Add access control check
+  useEffect(() => {
+    if (!hasAdminAccess(user)) {
+      setAccessDenied(true)
+    }
+  }, [user])
+  
+  // If access is denied, show an error message
+  if (accessDenied) {
+    return (
+      <div className="rounded-2xl border border-rose-500/30 bg-rose-950/40 px-4 py-3 text-center text-sm text-rose-100">
+        Access denied. You don't have permission to view this page.
+      </div>
+    )
+  }
+  
   useEffect(() => {
     fetchVerifications()
   }, [])

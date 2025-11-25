@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { getCurrentUser } from "@/lib/auth"
-import { UserRole } from "@prisma/client"
+import { hasAdminAccess } from "@/lib/admin-access"
 
 export async function GET(request: NextRequest) {
   try {
@@ -14,62 +14,57 @@ export async function GET(request: NextRequest) {
       where: { id: basicUser.id },
     })
 
-    if (
-        !user ||
-        (user.role !== UserRole.OWNER &&
-            user.role !== UserRole.CR_MANAGMENT &&
-            user.role !== UserRole.TEAMLEAD)
-    ) {
+    if (!user || !hasAdminAccess(user)) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
 
-    // ----- только обычные пользователи (ROLE = USER) -----
+    // ----- only regular users (ROLE = USER) -----
 
-    // Кол-во пользователей
+    // Count of users
     const totalUsers = await prisma.user.count({
-      where: { role: UserRole.USER },
+      where: { role: "USER" },
     })
 
-    // Суммарный баланс только USER
+    // Total balance only for USERs
     const totalBalanceResult = await prisma.user.aggregate({
       _sum: { TotalBalance: true },
-      where: { role: UserRole.USER },
+      where: { role: "USER" },
     })
 
-    // Всего сделок только USER
+    // Total trades only for USERs
     const totalTrades = await prisma.trade_Transaction.count({
       where: {
-        User: { role: UserRole.USER },
+        User: { role: "USER" },
       },
     })
 
-    // Кол-во ордеров (депозиты/выводы) только USER
+    // Count of orders (deposits/withdrawals) only for USERs
     const totalOrders = await prisma.orders.count({
       where: {
-        User: { role: UserRole.USER },
+        User: { role: "USER" },
       },
     })
 
-    // Открытые сделки только USER
+    // Open trades only for USERs
     const activeTrades = await prisma.trade_Transaction.count({
       where: {
         status: "OPEN",
-        User: { role: UserRole.USER },
+        User: { role: "USER" },
       },
     })
 
-    // Ожидающие верификации только USER
+    // Pending verifications only for USERs
     const pendingVerifications = await prisma.verification.count({
       where: {
         status: "PENDING",
-        // у verification связь называется `user`, не `User`
-        user: { role: UserRole.USER },
+        // verification has a relation called `user`, not `User`
+        user: { role: "USER" },
       },
     })
 
-    // Недавние пользователи (только USER)
+    // Recent users (only USERs)
     const recentUsers = await prisma.user.findMany({
-      where: { role: UserRole.USER },
+      where: { role: "USER" },
       take: 5,
       orderBy: { createdAt: "desc" },
       select: {
@@ -82,10 +77,10 @@ export async function GET(request: NextRequest) {
       },
     })
 
-    // Недавние сделки (только USER) + имя/почта юзера
+    // Recent trades (only USERs) + user name/email
     const recentTrades = await prisma.trade_Transaction.findMany({
       where: {
-        User: { role: UserRole.USER },
+        User: { role: "USER" },
       },
       take: 5,
       orderBy: { createdAt: "desc" },

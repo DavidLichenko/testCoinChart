@@ -697,7 +697,7 @@ export const useCandlestickChart = ({
     // Calculate the time range to show the last 50 candles with space to the right
     const visibleBars = 50;
     const firstVisibleTime = candles[Math.max(0, candles.length - visibleBars)].time;
-    const lastVisibleTime = lastTime + (xspanRef.current * 10); // Add 10 bars of space to the right
+    const lastVisibleTime = lastTime + (xspanRef.current * 25); // Increase padding to 25 bars for ~100px
     
     timeScale.setVisibleRange({
       from: firstVisibleTime,
@@ -740,9 +740,19 @@ export const useCandlestickChart = ({
     chartRef.current = createChart(container, {
       width: container.clientWidth,
       height: container.clientHeight,
-      layout: { background: { color: 'hsl(260, 20%, 10%)' }, textColor: '#d1d4dc' },
+      layout: { 
+        background: { 
+          color: 'hsl(229, 84%, 5%)',
+        }, 
+        textColor: '#d1d4dc' 
+      },
       grid: { vertLines: { color: '#1e1e1e' }, horzLines: { color: '#1e1e1e' } },
-      timeScale: { timeVisible: true, secondsVisible: true, borderColor: '#2B2B43' },
+      timeScale: { 
+        timeVisible: true, 
+        secondsVisible: true, 
+        borderColor: '#2B2B43',
+        rightOffset: 20 // Increase right-side padding for ~100px
+      },
       rightPriceScale: { borderColor: '#2B2B43' },
       crosshair: { mode: CrosshairMode.Normal },
     });

@@ -27,6 +27,9 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
 
 interface AdminUser {
     id: string
@@ -63,6 +66,39 @@ interface UserOrder {
     createdAt: string
 }
 
+// New interfaces for creating/editing transactions
+interface NewTrade {
+    type: "BUY" | "SELL"
+    ticker: string
+    volume: number
+    leverage: number
+    margin: number
+    openIn: number
+    takeProfit: number | null
+    stopLoss: number | null
+    assetType: string
+}
+
+interface EditTrade {
+    id: string
+    profit: number | null
+    openIn: number
+    closeIn: number | null
+    status: string
+}
+
+interface NewOrder {
+    type: "DEPOSIT" | "WITHDRAW"
+    amount: number
+    status: string
+}
+
+interface EditOrder {
+    id: string
+    status: string
+    amount: number
+}
+
 export default function AdminUserPage() {
     const router = useRouter()
     const params = useParams()
@@ -75,6 +111,46 @@ export default function AdminUserPage() {
     const [trades, setTrades] = useState<UserTrade[]>([])
     const [orders, setOrders] = useState<UserOrder[]>([])
     const [loadingRelations, setLoadingRelations] = useState(true)
+
+    // State for dialogs
+    const [isTradeDialogOpen, setIsTradeDialogOpen] = useState(false)
+    const [isOrderDialogOpen, setIsOrderDialogOpen] = useState(false)
+    const [isEditTradeDialogOpen, setIsEditTradeDialogOpen] = useState(false)
+    const [isEditOrderDialogOpen, setIsEditOrderDialogOpen] = useState(false)
+    
+    // State for new transactions
+    const [newTrade, setNewTrade] = useState<NewTrade>({
+        type: "BUY",
+        ticker: "BTCUSDT",
+        volume: 0.1,
+        leverage: 10,
+        margin: 100,
+        openIn: 0,
+        takeProfit: null,
+        stopLoss: null,
+        assetType: "CRYPTO"
+    })
+    
+    const [newOrder, setNewOrder] = useState<NewOrder>({
+        type: "DEPOSIT",
+        amount: 100,
+        status: "PENDING"
+    })
+    
+    // State for editing transactions
+    const [editTrade, setEditTrade] = useState<EditTrade>({
+        id: "",
+        profit: null,
+        openIn: 0,
+        closeIn: null,
+        status: "OPEN"
+    })
+    
+    const [editOrder, setEditOrder] = useState<EditOrder>({
+        id: "",
+        status: "PENDING",
+        amount: 0
+    })
 
     // локальные стейты для редактирования
     const [name, setName] = useState("")
@@ -157,6 +233,125 @@ export default function AdminUserPage() {
         } finally {
             setSaving(false)
         }
+    }
+
+    const handleCreateTrade = async () => {
+        if (!user) return
+        
+        try {
+            const res = await fetch("/api/admin/opentrade", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    userId: user.id,
+                    ...newTrade
+                }),
+            })
+            
+            if (res.ok) {
+                // Refresh trades
+                const tradesRes = await fetch(`/api/admin/trades?userId=${userId}`)
+                if (tradesRes.ok) {
+                    const t = await tradesRes.json()
+                    setTrades(t)
+                }
+                setIsTradeDialogOpen(false)
+            }
+        } catch (e) {
+            console.error("Error creating trade:", e)
+        }
+    }
+
+    const handleCreateOrder = async () => {
+        if (!user) return
+        
+        try {
+            const res = await fetch("/api/admin/orders", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    userId: user.id,
+                    ...newOrder
+                }),
+            })
+            
+            if (res.ok) {
+                // Refresh orders
+                const ordersRes = await fetch(`/api/admin/orders?userId=${userId}`)
+                if (ordersRes.ok) {
+                    const o = await ordersRes.json()
+                    setOrders(o)
+                }
+                setIsOrderDialogOpen(false)
+            }
+        } catch (e) {
+            console.error("Error creating order:", e)
+        }
+    }
+
+    const handleEditTrade = async () => {
+        try {
+            const res = await fetch(`/api/admin/trades/${editTrade.id}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(editTrade),
+            })
+            
+            if (res.ok) {
+                // Refresh trades
+                const tradesRes = await fetch(`/api/admin/trades?userId=${userId}`)
+                if (tradesRes.ok) {
+                    const t = await tradesRes.json()
+                    setTrades(t)
+                }
+                setIsEditTradeDialogOpen(false)
+            }
+        } catch (e) {
+            console.error("Error updating trade:", e)
+        }
+    }
+
+    const handleEditOrder = async () => {
+        try {
+            const res = await fetch(`/api/admin/orders/${editOrder.id}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ status: editOrder.status }),
+            })
+            
+            if (res.ok) {
+                // Refresh orders
+                const ordersRes = await fetch(`/api/admin/orders?userId=${userId}`)
+                if (ordersRes.ok) {
+                    const o = await ordersRes.json()
+                    setOrders(o)
+                }
+                setIsEditOrderDialogOpen(false)
+            }
+        } catch (e) {
+            console.error("Error updating order:", e)
+        }
+    }
+
+    // Functions to open edit dialogs with existing data
+    const openEditTradeDialog = (trade: UserTrade) => {
+        setEditTrade({
+            id: trade.id,
+            profit: trade.profit,
+            openIn: trade.openIn,
+            closeIn: trade.closeIn,
+            status: trade.status
+        })
+        setIsEditTradeDialogOpen(true)
+    }
+
+    const openEditOrderDialog = (order: UserOrder) => {
+        setEditOrder({
+            id: order.id,
+            status: order.status,
+            amount: order.amount
+        })
+        setIsEditOrderDialogOpen(true)
     }
 
     if (loading && !user) {
@@ -422,17 +617,149 @@ export default function AdminUserPage() {
                         <Card className="rounded-2xl border-slate-900 bg-slate-950/80">
                             <CardHeader className="flex items-center justify-between pb-3">
                                 <CardTitle className="flex items-center gap-2 text-base font-semibold">
-                  <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-sky-500/20 text-sky-200">
-                    <TrendingUp className="h-4 w-4" />
-                  </span>
+                            <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-sky-500/20 text-sky-200">
+                                <TrendingUp className="h-4 w-4" />
+                            </span>
                                     Trades
                                 </CardTitle>
-                                <Badge
-                                    variant="outline"
-                                    className="rounded-full border-slate-800 bg-slate-900/80 px-2.5 text-[11px] text-slate-300"
-                                >
-                                    {trades.length} total
-                                </Badge>
+                                <div className="flex items-center gap-2">
+                                    <Badge
+                                        variant="outline"
+                                        className="rounded-full border-slate-800 bg-slate-900/80 px-2.5 text-[11px] text-slate-300"
+                                    >
+                                        {trades.length} total
+                                    </Badge>
+                                    <Dialog open={isTradeDialogOpen} onOpenChange={setIsTradeDialogOpen}>
+                                        <DialogTrigger asChild>
+                                            <Button 
+                                                size="sm" 
+                                                className="h-7 rounded-full bg-purple-600 px-2.5 text-xs hover:bg-purple-700"
+                                                onClick={() => setIsTradeDialogOpen(true)}
+                                            >
+                                                New Trade
+                                            </Button>
+                                        </DialogTrigger>
+                                        <DialogContent className="rounded-2xl border-slate-800 bg-slate-900 text-slate-100 sm:max-w-md">
+                                            <DialogHeader>
+                                                <DialogTitle className="text-lg font-semibold">Create New Trade</DialogTitle>
+                                            </DialogHeader>
+                                            <div className="space-y-4">
+                                                <div className="grid grid-cols-2 gap-3">
+                                                    <div className="space-y-2">
+                                                        <Label className="text-xs text-slate-400">Type</Label>
+                                                        <Select
+                                                            value={newTrade.type}
+                                                            onValueChange={(v) => setNewTrade({...newTrade, type: v as "BUY" | "SELL"})}
+                                                        >
+                                                            <SelectTrigger className="h-9 rounded-xl border-slate-800 bg-slate-900 text-sm">
+                                                                <SelectValue />
+                                                            </SelectTrigger>
+                                                            <SelectContent className="border-slate-800 bg-slate-900 text-sm">
+                                                                <SelectItem value="BUY">Buy</SelectItem>
+                                                                <SelectItem value="SELL">Sell</SelectItem>
+                                                            </SelectContent>
+                                                        </Select>
+                                                    </div>
+                                                    <div className="space-y-2">
+                                                        <Label className="text-xs text-slate-400">Asset Type</Label>
+                                                        <Select
+                                                            value={newTrade.assetType}
+                                                            onValueChange={(v) => setNewTrade({...newTrade, assetType: v})}
+                                                        >
+                                                            <SelectTrigger className="h-9 rounded-xl border-slate-800 bg-slate-900 text-sm">
+                                                                <SelectValue />
+                                                            </SelectTrigger>
+                                                            <SelectContent className="border-slate-800 bg-slate-900 text-sm">
+                                                                <SelectItem value="CRYPTO">Crypto</SelectItem>
+                                                                <SelectItem value="STOCK">Stock</SelectItem>
+                                                                <SelectItem value="FOREX">Forex</SelectItem>
+                                                            </SelectContent>
+                                                        </Select>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div className="space-y-2">
+                                                    <Label className="text-xs text-slate-400">Ticker</Label>
+                                                    <Input
+                                                        value={newTrade.ticker}
+                                                        onChange={(e) => setNewTrade({...newTrade, ticker: e.target.value})}
+                                                        className="h-9 rounded-xl border-slate-800 bg-slate-900 text-sm"
+                                                    />
+                                                </div>
+                                                
+                                                <div className="grid grid-cols-2 gap-3">
+                                                    <div className="space-y-2">
+                                                        <Label className="text-xs text-slate-400">Volume</Label>
+                                                        <Input
+                                                            type="number"
+                                                            value={newTrade.volume}
+                                                            onChange={(e) => setNewTrade({...newTrade, volume: parseFloat(e.target.value) || 0})}
+                                                            className="h-9 rounded-xl border-slate-800 bg-slate-900 text-sm"
+                                                        />
+                                                    </div>
+                                                    <div className="space-y-2">
+                                                        <Label className="text-xs text-slate-400">Leverage</Label>
+                                                        <Input
+                                                            type="number"
+                                                            value={newTrade.leverage}
+                                                            onChange={(e) => setNewTrade({...newTrade, leverage: parseInt(e.target.value) || 1})}
+                                                            className="h-9 rounded-xl border-slate-800 bg-slate-900 text-sm"
+                                                        />
+                                                    </div>
+                                                </div>
+                                                
+                                                <div className="grid grid-cols-2 gap-3">
+                                                    <div className="space-y-2">
+                                                        <Label className="text-xs text-slate-400">Margin</Label>
+                                                        <Input
+                                                            type="number"
+                                                            value={newTrade.margin}
+                                                            onChange={(e) => setNewTrade({...newTrade, margin: parseFloat(e.target.value) || 0})}
+                                                            className="h-9 rounded-xl border-slate-800 bg-slate-900 text-sm"
+                                                        />
+                                                    </div>
+                                                    <div className="space-y-2">
+                                                        <Label className="text-xs text-slate-400">Open Price</Label>
+                                                        <Input
+                                                            type="number"
+                                                            value={newTrade.openIn}
+                                                            onChange={(e) => setNewTrade({...newTrade, openIn: parseFloat(e.target.value) || 0})}
+                                                            className="h-9 rounded-xl border-slate-800 bg-slate-900 text-sm"
+                                                        />
+                                                    </div>
+                                                </div>
+                                                
+                                                <div className="grid grid-cols-2 gap-3">
+                                                    <div className="space-y-2">
+                                                        <Label className="text-xs text-slate-400">Take Profit (Optional)</Label>
+                                                        <Input
+                                                            type="number"
+                                                            value={newTrade.takeProfit || ''}
+                                                            onChange={(e) => setNewTrade({...newTrade, takeProfit: e.target.value ? parseFloat(e.target.value) : null})}
+                                                            className="h-9 rounded-xl border-slate-800 bg-slate-900 text-sm"
+                                                        />
+                                                    </div>
+                                                    <div className="space-y-2">
+                                                        <Label className="text-xs text-slate-400">Stop Loss (Optional)</Label>
+                                                        <Input
+                                                            type="number"
+                                                            value={newTrade.stopLoss || ''}
+                                                            onChange={(e) => setNewTrade({...newTrade, stopLoss: e.target.value ? parseFloat(e.target.value) : null})}
+                                                            className="h-9 rounded-xl border-slate-800 bg-slate-900 text-sm"
+                                                        />
+                                                    </div>
+                                                </div>
+                                                
+                                                <Button 
+                                                    onClick={handleCreateTrade}
+                                                    className="w-full rounded-xl bg-purple-600 text-sm font-medium hover:bg-purple-700"
+                                                >
+                                                    Create Trade
+                                                </Button>
+                                            </div>
+                                        </DialogContent>
+                                    </Dialog>
+                                </div>
                             </CardHeader>
                             <CardContent className="space-y-2 text-xs sm:text-sm max-h-[300px] h-full overflow-y-auto">
                                 {loadingRelations && (
@@ -457,9 +784,9 @@ export default function AdminUserPage() {
                                             >
                                                 <div className="min-w-0 flex-1">
                                                     <div className="flex items-center gap-2">
-                            <span className="font-mono text-xs font-semibold text-slate-100 sm:text-sm">
-                              {t.ticker}
-                            </span>
+                                                        <span className="font-mono text-xs font-semibold text-slate-100 sm:text-sm">
+                                                            {t.ticker}
+                                                        </span>
                                                         <Badge
                                                             className={`rounded-full px-2 text-[10px] ${
                                                                 t.type === "BUY"
@@ -481,40 +808,190 @@ export default function AdminUserPage() {
                                                         {new Date(t.createdAt).toLocaleString()}
                                                     </div>
                                                 </div>
-                                                <div className="ml-3 text-right">
-                                                    <div
-                                                        className={`text-xs font-semibold ${
-                                                            isProfit ? "text-emerald-400" : "text-rose-400"
-                                                        }`}
+                                                <div className="ml-3 flex items-center gap-2">
+                                                    <div className="text-right">
+                                                        <div
+                                                            className={`text-xs font-semibold ${
+                                                                isProfit ? "text-emerald-400" : "text-rose-400"
+                                                            }`}
+                                                        >
+                                                            {(isProfit ? "+" : "")}$
+                                                            {(t.profit ?? 0).toFixed(2)}
+                                                        </div>
+                                                        <div className="text-[11px] text-slate-400">
+                                                            Open: {t.openIn.toFixed(5)}
+                                                        </div>
+                                                    </div>
+                                                    <Button 
+                                                        size="sm" 
+                                                        variant="ghost"
+                                                        className="h-7 w-7 p-0 text-slate-400 hover:bg-slate-800 hover:text-slate-200"
+                                                        onClick={() => openEditTradeDialog(t)}
                                                     >
-                                                        {(isProfit ? "+" : "")}$
-                                                        {(t.profit ?? 0).toFixed(2)}
-                                                    </div>
-                                                    <div className="text-[11px] text-slate-400">
-                                                        Open: {t.openIn.toFixed(5)}
-                                                    </div>
+                                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                            <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
+                                                        </svg>
+                                                    </Button>
                                                 </div>
                                             </div>
                                         )
                                     })}
+
                             </CardContent>
                         </Card>
+
+                        {/* Edit Trade Dialog */}
+                        <Dialog open={isEditTradeDialogOpen} onOpenChange={setIsEditTradeDialogOpen}>
+                            <DialogContent className="rounded-2xl border-slate-800 bg-slate-900 text-slate-100 sm:max-w-md">
+                                <DialogHeader>
+                                    <DialogTitle className="text-lg font-semibold">Edit Trade</DialogTitle>
+                                </DialogHeader>
+                                <div className="space-y-4">
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <div className="space-y-2">
+                                            <Label className="text-xs text-slate-400">Status</Label>
+                                            <Select
+                                                value={editTrade.status}
+                                                onValueChange={(v) => setEditTrade({...editTrade, status: v})}
+                                            >
+                                                <SelectTrigger className="h-9 rounded-xl border-slate-800 bg-slate-900 text-sm">
+                                                    <SelectValue />
+                                                </SelectTrigger>
+                                                <SelectContent className="border-slate-800 bg-slate-900 text-sm">
+                                                    <SelectItem value="OPEN">Open</SelectItem>
+                                                    <SelectItem value="CLOSE">Close</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label className="text-xs text-slate-400">Profit</Label>
+                                            <Input
+                                                type="number"
+                                                value={editTrade.profit || ''}
+                                                onChange={(e) => setEditTrade({...editTrade, profit: e.target.value ? parseFloat(e.target.value) : null})}
+                                                className="h-9 rounded-xl border-slate-800 bg-slate-900 text-sm"
+                                            />
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <div className="space-y-2">
+                                            <Label className="text-xs text-slate-400">Open Price</Label>
+                                            <Input
+                                                type="number"
+                                                value={editTrade.openIn}
+                                                onChange={(e) => setEditTrade({...editTrade, openIn: parseFloat(e.target.value) || 0})}
+                                                className="h-9 rounded-xl border-slate-800 bg-slate-900 text-sm"
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label className="text-xs text-slate-400">Close Price</Label>
+                                            <Input
+                                                type="number"
+                                                value={editTrade.closeIn || ''}
+                                                onChange={(e) => setEditTrade({...editTrade, closeIn: e.target.value ? parseFloat(e.target.value) : null})}
+                                                className="h-9 rounded-xl border-slate-800 bg-slate-900 text-sm"
+                                            />
+                                        </div>
+                                    </div>
+                                    
+                                    <Button 
+                                        onClick={handleEditTrade}
+                                        className="w-full rounded-xl bg-purple-600 text-sm font-medium hover:bg-purple-700"
+                                    >
+                                        Update Trade
+                                    </Button>
+                                </div>
+                            </DialogContent>
+                        </Dialog>
 
                         {/* Deposits / Withdrawals */}
                         <Card className="rounded-2xl border-slate-900 bg-slate-950/80">
                             <CardHeader className="flex items-center justify-between pb-3">
                                 <CardTitle className="flex items-center gap-2 text-base font-semibold">
-                  <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-amber-500/20 text-amber-200">
-                    <CreditCard className="h-4 w-4" />
-                  </span>
+                            <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-amber-500/20 text-amber-200">
+                                <CreditCard className="h-4 w-4" />
+                            </span>
                                     Deposits & Withdrawals
                                 </CardTitle>
-                                <Badge
-                                    variant="outline"
-                                    className="rounded-full border-slate-800 bg-slate-900/80 px-2.5 text-[11px] text-slate-300"
-                                >
-                                    {orders.length} records
-                                </Badge>
+                                <div className="flex items-center gap-2">
+                                    <Badge
+                                        variant="outline"
+                                        className="rounded-full border-slate-800 bg-slate-900/80 px-2.5 text-[11px] text-slate-300"
+                                    >
+                                        {orders.length} records
+                                    </Badge>
+                                    <Dialog open={isOrderDialogOpen} onOpenChange={setIsOrderDialogOpen}>
+                                        <DialogTrigger asChild>
+                                            <Button 
+                                                size="sm" 
+                                                className="h-7 rounded-full bg-amber-600 px-2.5 text-xs hover:bg-amber-700"
+                                                onClick={() => setIsOrderDialogOpen(true)}
+                                            >
+                                                New Order
+                                            </Button>
+                                        </DialogTrigger>
+                                        <DialogContent className="rounded-2xl border-slate-800 bg-slate-900 text-slate-100 sm:max-w-md">
+                                            <DialogHeader>
+                                                <DialogTitle className="text-lg font-semibold">Create New Order</DialogTitle>
+                                            </DialogHeader>
+                                            <div className="space-y-4">
+                                                <div className="grid grid-cols-2 gap-3">
+                                                    <div className="space-y-2">
+                                                        <Label className="text-xs text-slate-400">Type</Label>
+                                                        <Select
+                                                            value={newOrder.type}
+                                                            onValueChange={(v) => setNewOrder({...newOrder, type: v as "DEPOSIT" | "WITHDRAW"})}
+                                                        >
+                                                            <SelectTrigger className="h-9 rounded-xl border-slate-800 bg-slate-900 text-sm">
+                                                                <SelectValue />
+                                                            </SelectTrigger>
+                                                            <SelectContent className="border-slate-800 bg-slate-900 text-sm">
+                                                                <SelectItem value="DEPOSIT">Deposit</SelectItem>
+                                                                <SelectItem value="WITHDRAW">Withdraw</SelectItem>
+                                                            </SelectContent>
+                                                        </Select>
+                                                    </div>
+                                                    <div className="space-y-2">
+                                                        <Label className="text-xs text-slate-400">Status</Label>
+                                                        <Select
+                                                            value={newOrder.status}
+                                                            onValueChange={(v) => setNewOrder({...newOrder, status: v})}
+                                                        >
+                                                            <SelectTrigger className="h-9 rounded-xl border-slate-800 bg-slate-900 text-sm">
+                                                                <SelectValue />
+                                                            </SelectTrigger>
+                                                            <SelectContent className="border-slate-800 bg-slate-900 text-sm">
+                                                                <SelectItem value="PENDING">Pending</SelectItem>
+                                                                <SelectItem value="PROCESSING">Processing</SelectItem>
+                                                                <SelectItem value="SUCCESSFUL">Successful</SelectItem>
+                                                                <SelectItem value="FAILED">Failed</SelectItem>
+                                                                <SelectItem value="CANCELLED">Cancelled</SelectItem>
+                                                            </SelectContent>
+                                                        </Select>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div className="space-y-2">
+                                                    <Label className="text-xs text-slate-400">Amount (USD)</Label>
+                                                    <Input
+                                                        type="number"
+                                                        value={newOrder.amount}
+                                                        onChange={(e) => setNewOrder({...newOrder, amount: parseFloat(e.target.value) || 0})}
+                                                        className="h-9 rounded-xl border-slate-800 bg-slate-900 text-sm"
+                                                    />
+                                                </div>
+                                                
+                                                <Button 
+                                                    onClick={handleCreateOrder}
+                                                    className="w-full rounded-xl bg-amber-600 text-sm font-medium hover:bg-amber-700"
+                                                >
+                                                    Create Order
+                                                </Button>
+                                            </div>
+                                        </DialogContent>
+                                    </Dialog>
+                                </div>
                             </CardHeader>
                             <CardContent className="space-y-2 text-xs sm:text-sm max-h-[300px] h-full overflow-y-auto">
                                 {loadingRelations && (
@@ -557,15 +1034,74 @@ export default function AdminUserPage() {
                                                     {new Date(o.createdAt).toLocaleString()}
                                                 </div>
                                             </div>
-                                            <div className="ml-3 text-right">
-                                                <div className="text-xs font-semibold text-slate-100">
-                                                    ${o.amount.toFixed(2)}
+                                            <div className="ml-3 flex items-center gap-2">
+                                                <div className="text-right">
+                                                    <div className="text-xs font-semibold text-slate-100">
+                                                        ${o.amount.toFixed(2)}
+                                                    </div>
                                                 </div>
+                                                <Button 
+                                                    size="sm" 
+                                                    variant="ghost"
+                                                    className="h-7 w-7 p-0 text-slate-400 hover:bg-slate-800 hover:text-slate-200"
+                                                    onClick={() => openEditOrderDialog(o)}
+                                                >
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                        <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
+                                                    </svg>
+                                                </Button>
                                             </div>
                                         </div>
                                     ))}
+
                             </CardContent>
                         </Card>
+
+                        {/* Edit Order Dialog */}
+                        <Dialog open={isEditOrderDialogOpen} onOpenChange={setIsEditOrderDialogOpen}>
+                            <DialogContent className="rounded-2xl border-slate-800 bg-slate-900 text-slate-100 sm:max-w-md">
+                                <DialogHeader>
+                                    <DialogTitle className="text-lg font-semibold">Edit Order</DialogTitle>
+                                </DialogHeader>
+                                <div className="space-y-4">
+                                    <div className="space-y-2">
+                                        <Label className="text-xs text-slate-400">Status</Label>
+                                        <Select
+                                            value={editOrder.status}
+                                            onValueChange={(v) => setEditOrder({...editOrder, status: v})}
+                                        >
+                                            <SelectTrigger className="h-9 rounded-xl border-slate-800 bg-slate-900 text-sm">
+                                                <SelectValue />
+                                            </SelectTrigger>
+                                            <SelectContent className="border-slate-800 bg-slate-900 text-sm">
+                                                <SelectItem value="PENDING">Pending</SelectItem>
+                                                <SelectItem value="PROCESSING">Processing</SelectItem>
+                                                <SelectItem value="SUCCESSFUL">Successful</SelectItem>
+                                                <SelectItem value="FAILED">Failed</SelectItem>
+                                                <SelectItem value="CANCELLED">Cancelled</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                    
+                                    <div className="space-y-2">
+                                        <Label className="text-xs text-slate-400">Amount (USD)</Label>
+                                        <Input
+                                            type="number"
+                                            value={editOrder.amount}
+                                            onChange={(e) => setEditOrder({...editOrder, amount: parseFloat(e.target.value) || 0})}
+                                            className="h-9 rounded-xl border-slate-800 bg-slate-900 text-sm"
+                                        />
+                                    </div>
+                                    
+                                    <Button 
+                                        onClick={handleEditOrder}
+                                        className="w-full rounded-xl bg-amber-600 text-sm font-medium hover:bg-amber-700"
+                                    >
+                                        Update Order
+                                    </Button>
+                                </div>
+                            </DialogContent>
+                        </Dialog>
                     </div>
                 </div>
             </div>

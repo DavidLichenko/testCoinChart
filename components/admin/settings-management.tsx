@@ -9,6 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from "@/components/ui/dialog"
 import { toast } from "@/components/toast";
 import { Settings, PlusCircle, Edit, Trash2, Copy, Check } from "lucide-react"
+import { hasAdminAccess, hasOwnerAccess } from "@/lib/admin-access"
+import { useAuth } from "@/components/auth-provider"
 
 interface DepositAddress {
   id: string
@@ -29,11 +31,29 @@ const cryptoOptions: Record<string, string[]> = {
 }
 
 export default function SettingsManagement() {
+  const { user } = useAuth()
   const [addresses, setAddresses] = useState<DepositAddress[]>([])
   const [loading, setLoading] = useState(true)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingAddress, setEditingAddress] = useState<DepositAddress | null>(null)
   const [copiedAddress, setCopiedAddress] = useState<string | null>(null)
+  const [accessDenied, setAccessDenied] = useState(false)
+  
+  // Add access control check
+  useEffect(() => {
+    if (!hasOwnerAccess(user)) {
+      setAccessDenied(true)
+    }
+  }, [user])
+  
+  // If access is denied, show an error message
+  if (accessDenied) {
+    return (
+      <div className="rounded-2xl border border-rose-500/30 bg-rose-950/40 px-4 py-3 text-center text-sm text-rose-100">
+        Access denied. Only owners can access settings.
+      </div>
+    )
+  }
   
   // Form state
   const [selectedToken, setSelectedToken] = useState<string>("")

@@ -35,6 +35,7 @@ import {
 } from "lucide-react"
 import { useAuth } from "@/components/auth-provider"
 import { useRouter } from "next/navigation"
+import { hasAdminAccess, hasOwnerOrCRManagementAccess } from "@/lib/admin-access"
 
 interface User {
   id: string
@@ -54,6 +55,24 @@ const USERS_PER_PAGE = 15
 
 export default function UsersManagement() {
   const { user } = useAuth()
+  // Add access control check
+  const [accessDenied, setAccessDenied] = useState(false)
+  
+  useEffect(() => {
+    if (!hasAdminAccess(user)) {
+      setAccessDenied(true)
+    }
+  }, [user])
+  
+  // If access is denied, show an error message
+  if (accessDenied) {
+    return (
+      <div className="rounded-2xl border border-rose-500/30 bg-rose-950/40 px-4 py-3 text-center text-sm text-rose-100">
+        Access denied. You don't have permission to view this page.
+      </div>
+    )
+  }
+  
   const [users, setUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(true)
   const router = useRouter()
@@ -638,7 +657,7 @@ export default function UsersManagement() {
                                             role: value,
                                           })
                                       }
-                                      disabled={user.role !== "OWNER"}
+                                      disabled={!user || user.role !== "OWNER"}
                                   >
                                     <SelectTrigger className="mt-1 h-9 rounded-xl border-slate-800 bg-slate-900 text-sm">
                                       <SelectValue />

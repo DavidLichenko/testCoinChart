@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import { useAuth } from "@/components/auth-provider"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import {
@@ -25,6 +25,7 @@ import {
 
 // Admin sections
 import UsersManagement from "@/components/admin/users-management"
+import TeamManagement from "@/components/admin/team-management"
 import TransactionsManagement from "@/components/admin/transactions-management"
 import OrdersManagement from "@/components/admin/orders-management"
 import SettingsManagement from "@/components/admin/settings-management"
@@ -35,6 +36,7 @@ import ChatManagement from "@/components/admin/chat-management"
 type SectionKey =
     | "dashboard"
     | "users"
+    | "team"
     | "transactions"
     | "orders"
     | "verification"
@@ -48,6 +50,7 @@ const baseSections: {
 }[] = [
   { key: "dashboard", label: "Dashboard", icon: BarChart3 },
   { key: "users", label: "Users", icon: Users },
+  { key: "team", label: "Team", icon: Users },
   { key: "transactions", label: "Trades", icon: TrendingUp },
   { key: "orders", label: "Orders", icon: CreditCard },
   { key: "verification", label: "Verification", icon: Shield },
@@ -57,6 +60,7 @@ const baseSections: {
 export default function AdminPage() {
   const { user } = useAuth()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [selectedSection, setSelectedSection] =
       useState<SectionKey>("dashboard")
 
@@ -76,6 +80,14 @@ export default function AdminPage() {
       router.push("/dashboard")
     }
   }, [user, router])
+
+  // Handle section parameter from URL
+  useEffect(() => {
+    const sectionParam = searchParams.get("section")
+    if (sectionParam && sectionParam in baseSections) {
+      setSelectedSection(sectionParam as SectionKey)
+    }
+  }, [ searchParams])
 
   if (
       !user ||
@@ -239,6 +251,18 @@ export default function AdminPage() {
                     className="space-y-4"
                 >
                   <UsersManagement />
+                </motion.div>
+            )}
+
+            {selectedSection === "team" && (
+                <motion.div
+                    key="admin-team"
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.25 }}
+                    className="space-y-4"
+                >
+                  <TeamManagement />
                 </motion.div>
             )}
 

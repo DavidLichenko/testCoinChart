@@ -17,6 +17,8 @@ import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { toast } from "@/components/toast"
 import { pusherClient } from "@/lib/pusher-client"
+import { hasAdminAccess } from "@/lib/admin-access"
+import { useAuth } from "@/components/auth-provider"
 
 interface Message {
   id: string
@@ -44,6 +46,7 @@ interface ChatSession {
 }
 
 export default function ChatManagement() {
+  const { user } = useAuth()
   const [chatSessions, setChatSessions] = useState<ChatSession[]>([])
   const [selectedSession, setSelectedSession] = useState<ChatSession | null>(null)
   const [messages, setMessages] = useState<Message[]>([])
@@ -52,7 +55,24 @@ export default function ChatManagement() {
   const [uploading, setUploading] = useState(false)
   const [isTyping, setIsTyping] = useState(false)
   const [showConversations, setShowConversations] = useState(true)
-
+  const [accessDenied, setAccessDenied] = useState(false)
+  
+  // Add access control check
+  useEffect(() => {
+    if (!hasAdminAccess(user)) {
+      setAccessDenied(true)
+    }
+  }, [user])
+  
+  // If access is denied, show an error message
+  if (accessDenied) {
+    return (
+      <div className="rounded-2xl border border-rose-500/30 bg-rose-950/40 px-4 py-3 text-center text-sm text-rose-100">
+        Access denied. You don't have permission to view this page.
+      </div>
+    )
+  }
+  
   // загрузка сессий
   useEffect(() => {
     fetchChatSessions()

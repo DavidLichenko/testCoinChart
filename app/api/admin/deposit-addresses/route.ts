@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { getCurrentUser } from "@/lib/auth"
-import { UserRole } from "@prisma/client"
+import { hasAdminAccess } from "@/lib/admin-access"
 
 // GET all deposit addresses
 export async function GET(request: NextRequest) {
   try {
-
     const addresses = await prisma.depositAddress.findMany()
     return NextResponse.json(addresses)
   } catch (error) {
@@ -28,7 +27,7 @@ export async function POST(request: NextRequest) {
       where: { id: basicUser.id },
     })
 
-    if (!user || (user.role !== UserRole.OWNER && user.role !== UserRole.CR_MANAGMENT && user.role !== UserRole.TEAMLEAD)) {
+    if (!user || !hasAdminAccess(user)) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
 
@@ -63,4 +62,4 @@ export async function POST(request: NextRequest) {
     console.error("Error creating deposit address:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
-} 
+}

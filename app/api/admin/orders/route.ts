@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/auth"
 import { getCurrentUser } from "@/lib/auth"
-import { UserRole } from "@prisma/client"
+import { hasAdminAccess, hasOwnerOrCRManagementAccess } from "@/lib/admin-access"
 import { updateBalance } from "@/app/actions/updateBalance"
 
 export async function GET(request: NextRequest) {
@@ -19,12 +19,23 @@ export async function GET(request: NextRequest) {
       select: { role: true }
     })
 
-    if (!user || (user.role !== 'OWNER' && user.role !== 'CR_MANAGMENT' && user.role !== 'TEAMLEAD')) {
+    if (!user || !hasAdminAccess(user)) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
 
-    // Fetch all orders with all user details
+    // Get query parameters
+    const { searchParams } = new URL(request.url)
+    const userId = searchParams.get('userId')
+
+    // Build where clause
+    const whereClause: any = {}
+    if (userId) {
+      whereClause.userId = userId
+    }
+
+    // Fetch orders (filtered by userId if provided)
     const orders = await prisma.orders.findMany({
+      where: whereClause,
       orderBy: { createdAt: "desc" },
       include: {
         User: true, // This will pull all fields from the User model for each order
@@ -46,7 +57,7 @@ export async function POST(req: NextRequest) {
     }
 
     const adminDetails = await prisma.user.findUnique({ where: { id: adminUser.id } })
-    if (!adminDetails || (adminDetails.role !== UserRole.OWNER && adminDetails.role !== UserRole.CR_MANAGMENT)) {
+    if (!adminDetails || !hasOwnerOrCRManagementAccess(adminDetails)) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
 
@@ -83,4 +94,4 @@ export async function POST(req: NextRequest) {
     console.error("Error creating order:", error)
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 })
   }
-} 
+}

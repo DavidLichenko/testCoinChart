@@ -39,9 +39,9 @@ export default function Header() {
     if (isMobile) {
         return (
             <header className="sticky top-0 z-[60] bg-gray-950/95 backdrop-blur-md border-b border-gray-800 h-16 flex items-center justify-between px-4">
-                <Link href="/dashboard" className="flex items-end gap-2">
-                    <BarChart3 className="h-6 w-6 text-white" />
-                    <span className="text-white font-bold text-lg">AT</span>
+                <Link href="/dashboard" className="flex items-center gap-2">
+                    <img src={'/logo.png'}   className="h-12 w-12text-white" />
+                    <span className="text-white font-bold text-xs uppercase">Aragon Trade</span>
                 </Link>
 
                 <div className="flex items-center gap-2">
@@ -124,7 +124,7 @@ export default function Header() {
                     {/* LEFT SIDE */}
                     <div className="flex items-center gap-8">
                         <Link href="/dashboard" className="flex items-center gap-2">
-                            <BarChart3 className="h-6 w-6 text-white" />
+                            <img src={'/logo.png'} className="h-16 w-16"/>
                             <span className="text-white font-bold text-lg">AragonTrade</span>
                         </Link>
 

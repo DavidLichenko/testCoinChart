@@ -1,26 +1,24 @@
-'use client'
+"use client"
 import { useEffect, useState } from "react"
 
-type Ticker = {
-    symbol: string
-    name: string
-    category: string
-    price: number
-    change: number
-    changePercent: number
-    restsymbol: string
+import {
+    tickerMeta,
+    tickerMetaMap,
+    tickerOrderMap,
+    tickerSymbolSet,
+    type TickerMeta,
+} from "@/data/ticker-meta"
 
-}
 type TickerData = {
-    symbol: string;
-    price: number;
-    time: number;
-    type: string;
-    bid?: number;
-};
+    symbol: string
+    price?: number
+    time?: number
+    bid?: number
+    ask?: number
+}
 
 type Candle = {
-    time: number // UNIX timestamp in seconds
+    time: number
     open: number
     high: number
     low: number
@@ -28,136 +26,135 @@ type Candle = {
     volume: number
 }
 
-const categories = {
-    Forex: [
-        'EURUSD', 'GBPUSD', 'USDCHF', 'USDJPY', 'USDCAD',
-        'AUDUSD', 'AUDNZD', 'AUDCAD', 'AUDCHF', 'AUDJPY',
-        'CHFJPY', 'EURGBP', 'EURAUD', 'EURJPY', 'EURCHF', 'EURNZD',
-        'EURCAD', 'GBPCHF', 'GBPJPY', 'CADCHF', 'CADJPY',
-        'GBPAUD', 'GBPCAD', 'GBPNZD', 'NZDCAD', 'NZDCHF', 'NZDJPY', 'NZDUSD',
-    ],
-    Commodities: ['XAUUSD', 'XAGUSD', 'USOIL'],
-    Indices: ['US500', 'US30', 'USTEC', 'AUS200'],
-    Crypto: ['BTCUSD', 'ETHUSD', 'XRPUSD', 'XLMUSD'],
-    Stocks: [
-        'AAPL.NAS', 'MSFT.NAS', 'GOOG.NAS', 'NVDA.NAS', 'TSLA.NAS',
-        'MVRS.NAS', 'AMZN.NAS', 'NFLX.NAS', 'INTC.NAS', 'ADBE.NAS', 'PYPL.NAS',
-        'JPM.NYSE', 'GS.NYSE', 'BAC.NYSE', 'XOM.NYSE', 'CVX.NYSE', 'UNH.NYSE',
-        'JNJ.NYSE', 'PFE.NYSE', 'KO.NYSE', 'DIS.NYSE', 'WMT.NYSE',
-        'V.NYSE', 'MA.NYSE', 'ORCL.NYSE',
-    ],
-};
-
-// Convert symbol + category into full ticker object
-function buildTicker(symbol: string, type: string): TickerData {
-    return {
-        symbol,
-        type,
-        price: 0,
-        time:0
-    }
+export type MarketTicker = TickerMeta & {
+    price: number
+    time: number
+    bid?: number
+    ask?: number
 }
 
-export function useTickers(initialTimeframe = "M1") {
-    const [tickers, setTickers] = useState<TickerData[]>([])
+const initialTickers: MarketTicker[] = tickerMeta.map((meta) => ({
+    ...meta,
+    price: 0,
+    time: 0,
+}))
+
+export function useTickers(initialTimeframe = "H1") {
+    const [tickers, setTickers] = useState<MarketTicker[]>(initialTickers)
     const [candlesBySymbol, setCandlesBySymbol] = useState<Candle[]>([])
-    const [selectedTicker, setSelectedTicker] = useState<TickerData | null>(null)
+    const [isCandlesLoading, setIsCandlesLoading] = useState(false)
+    const [selectedTicker, setSelectedTicker] = useState<MarketTicker | null>(null)
     const [timeframe, setTimeframe] = useState(initialTimeframe)
-    const [isLoading, setIsLoading] = useState(true)
+    const [isLoading] = useState(false)
 
-    // Step 1: Initialize ticker list from categories
     useEffect(() => {
-        const all: TickerData[] = []
-        Object.entries(categories).forEach(([category, symbols]) => {
-            symbols.forEach((symbol) => all.push(buildTicker(symbol, category)))
-        })
-        setTickers(all)
-        setIsLoading(false)
-        // Don't auto-select first ticker - let user choose
-        // setSelectedTicker(all[0] || null)
-    }, [])
+        if (!selectedTicker?.symbol) {
+            setIsCandlesLoading(false)
+            return
+        }
 
-    // Step 2: Fetch historical candles for the selected ticker and timeframe
-    useEffect(() => {
-        if (!selectedTicker) return
+        setIsCandlesLoading(true)
+        setCandlesBySymbol([])
 
+        const controller = new AbortController()
         const url = `https://api.aragon-trade.com/candles?symbol=${selectedTicker.symbol}&timeframe=${timeframe}&count=100`
 
-        fetch(url)
+        fetch(url, { signal: controller.signal })
             .then((res) => res.json())
             .then((data: Candle[]) => {
                 setCandlesBySymbol(data)
+                setIsCandlesLoading(false)
             })
             .catch(() => {
                 setCandlesBySymbol([])
+                setIsCandlesLoading(false)
             })
-    }, [selectedTicker, timeframe])
 
-    // Step 3: WebSocket for live updates (price + new candles)
+        return () => {
+            controller.abort()
+        }
+    }, [selectedTicker?.symbol, timeframe])
+
     useEffect(() => {
-        if (tickers.length === 0) return
+        if (!selectedTicker) return
+        const refreshed = tickers.find((ticker) => ticker.symbol === selectedTicker.symbol)
+        if (refreshed && refreshed !== selectedTicker) {
+            setSelectedTicker(refreshed)
+        }
+    }, [tickers, selectedTicker])
 
+    useEffect(() => {
         const ws = new WebSocket("wss://api.aragon-trade.com/ws")
+        
+        // Batch updates to reduce re-renders
+        let updateQueue: TickerData[] = []
+        let updateTimer: NodeJS.Timeout | null = null
+        
+        const processUpdates = () => {
+            if (updateQueue.length === 0) return
+            
+            const data = [...updateQueue]
+            updateQueue = []
+            
+            setTickers((prev) => {
+                const map = new Map(prev.map((t) => [t.symbol, t]))
+                for (const tick of data) {
+                    const meta = tickerMetaMap.get(tick.symbol)
+                    if (!meta) continue
+                    const existing = map.get(tick.symbol) || { ...meta, price: 0, time: 0 }
+                    const price =
+                        typeof tick.bid === "number"
+                            ? tick.bid
+                            : typeof tick.price === "number"
+                                ? tick.price
+                                : existing.price
+
+                    map.set(tick.symbol, {
+                        ...existing,
+                        ...meta,
+                        bid: typeof tick.bid === "number" ? tick.bid : existing.bid,
+                        ask: typeof tick.ask === "number" ? tick.ask : existing.ask,
+                        price,
+                        time: tick.time ?? existing.time,
+                    })
+                }
+
+                return Array.from(map.values()).sort(
+                    (a, b) =>
+                        (tickerOrderMap.get(a.symbol) ?? 0) -
+                        (tickerOrderMap.get(b.symbol) ?? 0),
+                )
+            })
+        }
 
         ws.onopen = () => {
             ws.send(
                 JSON.stringify({
                     action: "subscribe",
-                    symbols: tickers.map((t) => t.symbol),
+                    symbols: tickerMeta.map((t) => t.symbol),
                 }),
             )
         }
-        const validSymbols = new Set(
-            Object.values(categories).flat()
-        );
+
         ws.onmessage = async (event) => {
             try {
-                const data: TickerData[] = JSON.parse(event.data);
-                const filteredData = data.filter(tick => validSymbols.has(tick.symbol));
-
-                const updatedTickers: TickerData[] = await Promise.all(
-                    filteredData.map(async (tick) => {
-                        const hasValidBid = typeof tick.bid === "number" && !isNaN(tick.bid);
-
-                        if (!hasValidBid) {
-                            try {
-                                const response = await fetch(
-                                    `https://api.aragon-trade.com/candles?symbol=${tick.symbol}&timeframe=${timeframe}&count=1`
-                                );
-                                if (response.ok) {
-                                    const candles = await response.json();
-                                    const lastCandle = candles?.[0];
-                                    if (lastCandle && typeof lastCandle.close === "number") {
-                                        return {
-                                            ...tick,
-                                            bid: lastCandle.close, // fallback to candle close
-                                        };
-                                    }
-                                } else {
-                                    console.warn(`Failed to fetch historical for ${tick.symbol}:`, response.status);
-                                }
-                            } catch (err) {
-                                console.error(`Error fetching historical for ${tick.symbol}:`, err);
-                            }
-                        }
-
-                        return tick; // original tick if bid was valid or fallback failed
-                    })
-                );
-
-                // Merge into ticker state
-                setTickers((prev) => {
-                    const map = new Map(prev.map(t => [t.symbol, t]));
-                    for (const tick of updatedTickers) {
-                        map.set(tick.symbol, tick);
-                    }
-                    return Array.from(map.values());
-                });
-
+                const data: TickerData[] = JSON.parse(event.data)
+                const filteredData = data.filter((tick) => tickerSymbolSet.has(tick.symbol))
+                
+                // Add to queue instead of processing immediately
+                updateQueue.push(...filteredData)
+                
+                // Process updates in batches every 100ms
+                if (!updateTimer) {
+                    updateTimer = setTimeout(() => {
+                        processUpdates()
+                        updateTimer = null
+                    }, 100)
+                }
             } catch (error) {
-                console.error('Error parsing WebSocket tickers:', error);
+                console.error("Error parsing WebSocket tickers:", error)
             }
-        };
+        }
 
         ws.onerror = (err) => {
             console.error("WebSocket error", err)
@@ -165,9 +162,10 @@ export function useTickers(initialTimeframe = "M1") {
 
         return () => {
             ws.close()
+            if (updateTimer) clearTimeout(updateTimer)
         }
-    }, [tickers.length, timeframe])
-    
+    }, [timeframe])
+
     return {
         tickers,
         candlesBySymbol,
@@ -176,5 +174,6 @@ export function useTickers(initialTimeframe = "M1") {
         timeframe,
         setTimeframe,
         isLoading,
+        isCandlesLoading,
     }
 }

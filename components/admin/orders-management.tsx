@@ -42,6 +42,8 @@ import {
     PlusCircle,
     ChevronsUpDown,
 } from "lucide-react"
+import { hasAdminAccess } from "@/lib/admin-access"
+import { useAuth } from "@/components/auth-provider"
 
 interface Order {
     id: string
@@ -72,10 +74,28 @@ interface User {
 const ORDERS_PER_PAGE = 15
 
 export default function OrdersManagement() {
+    const { user } = useAuth()
     const [orders, setOrders] = useState<Order[]>([])
     const [users, setUsers] = useState<User[]>([])
     const [loading, setLoading] = useState(true)
+    const [accessDenied, setAccessDenied] = useState(false)
 
+    // Add access control check
+    useEffect(() => {
+        if (!hasAdminAccess(user)) {
+            setAccessDenied(true)
+        }
+    }, [user])
+    
+    // If access is denied, show an error message
+    if (accessDenied) {
+        return (
+            <div className="rounded-2xl border border-rose-500/30 bg-rose-950/40 px-4 py-3 text-center text-sm text-rose-100">
+                Access denied. You don't have permission to view this page.
+            </div>
+        )
+    }
+    
     const [searchTerm, setSearchTerm] = useState("")
     const [statusFilter, setStatusFilter] = useState("all")
     const [typeFilter, setTypeFilter] = useState("all")

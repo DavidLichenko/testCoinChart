@@ -76,8 +76,9 @@ export function useBalance() {
     updateAndNotify()
   }, [])
 
-  return { balance, liveProfit, setLiveProfit: setProfit }
+  return { balance, liveProfit, setLiveProfit: setProfit, refetchBalance }
 }
+
 export async function refetchBalance() {
   await fetchInitialBalance()
 }

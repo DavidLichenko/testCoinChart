@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { getCurrentUser } from "@/lib/auth"
+import { hasAdminAccess } from "@/lib/admin-access"
 
 export async function GET(request: NextRequest) {
   try {
@@ -16,12 +17,23 @@ export async function GET(request: NextRequest) {
       select: { role: true }
     })
 
-    if (!user || (user.role !== 'OWNER' && user.role !== 'CR_MANAGMENT' && user.role !== 'TEAMLEAD')) {
+    if (!user || !hasAdminAccess(user)) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
 
-    // Get ALL trades from ALL users
+    // Get query parameters
+    const { searchParams } = new URL(request.url)
+    const userId = searchParams.get('userId')
+
+    // Build where clause
+    const whereClause: any = {}
+    if (userId) {
+      whereClause.userId = userId
+    }
+
+    // Get trades (filtered by userId if provided)
     const trades = await prisma.trade_Transaction.findMany({
+      where: whereClause,
       orderBy: { createdAt: "desc" },
       include: {
         User: {
@@ -39,4 +51,4 @@ export async function GET(request: NextRequest) {
     console.error("Error fetching trades:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
-} 
+}
