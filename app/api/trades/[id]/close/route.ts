@@ -7,7 +7,7 @@ import { getCurrentUser } from "@/lib/auth";
 export async function POST(request: Request) {
   try {
     const userId = await requireAuth();
-    const currentUser = await getCurrentUser();
+    const authUser = await getCurrentUser();
 
     const url = new URL(request.url);
     const parts = url.pathname.split("/");
@@ -33,7 +33,15 @@ export async function POST(request: Request) {
       }
 
       // Verify trade belongs to user OR user is admin
-      const isAdmin = currentUser && ['OWNER', 'CR_MANAGMENT', 'TEAMLEAD'].includes(currentUser.role);
+      let isAdmin = false;
+      if (authUser) {
+        const fullUser = await tx.user.findUnique({
+          where: { id: authUser.id },
+          select: { role: true }
+        });
+        isAdmin = !!fullUser && ['OWNER', 'CR_MANAGMENT', 'TEAMLEAD'].includes(fullUser.role || '');
+      }
+      
       if (trade.userId !== userId && !isAdmin) {
         throw new Error("Unauthorized");
       }
@@ -70,17 +78,17 @@ export async function POST(request: Request) {
       });
 
       // Get current user balance
-      const currentUser = await tx.user.findUnique({
+      const tradeUser = await tx.user.findUnique({
         where: { id: trade.userId },
         select: { TotalBalance: true },
       });
 
-      if (!currentUser) {
+      if (!tradeUser) {
         throw new Error("User not found");
       }
 
       // Calculate new balance: return margin + profit
-      const currentBalance = currentUser.TotalBalance || 0;
+      const currentBalance = tradeUser.TotalBalance || 0;
       const balanceChange = trade.margin + profit;
       const newBalance = Math.max(0, currentBalance + balanceChange); // Never go below 0
 
