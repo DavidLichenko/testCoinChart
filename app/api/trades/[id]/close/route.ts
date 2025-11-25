@@ -2,10 +2,12 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth-utils";
 import { updateBalance } from "@/app/actions/updateBalance";
+import { getCurrentUser } from "@/lib/auth";
 
 export async function POST(request: Request) {
   try {
     const userId = await requireAuth();
+    const currentUser = await getCurrentUser();
 
     const url = new URL(request.url);
     const parts = url.pathname.split("/");
@@ -30,8 +32,9 @@ export async function POST(request: Request) {
         throw new Error("Trade not found");
       }
 
-      // Verify trade belongs to user
-      if (trade.userId !== userId) {
+      // Verify trade belongs to user OR user is admin
+      const isAdmin = currentUser && ['OWNER', 'CR_MANAGMENT', 'TEAMLEAD'].includes(currentUser.role);
+      if (trade.userId !== userId && !isAdmin) {
         throw new Error("Unauthorized");
       }
 
