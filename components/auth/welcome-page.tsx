@@ -300,7 +300,7 @@ export default function WelcomePage({
                 {...fadeUp(0)}
                 className="mb-8 flex flex-row  justify-between gap-4 md:flex-row md:items-center md:justify-between"
             >
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-0 flex-col md:items-start">
                 <div className="mb-4 flex items-center gap-2">
                   <div className="flex h-12 w-12 items-center justify-center">
                     <img src={'/logo.png'} className="h-14 w-14 text-white"/>
