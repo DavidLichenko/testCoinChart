@@ -338,9 +338,6 @@ export default function TradePage() {
               <div className="truncate text-xs font-semibold text-slate-100">
                 {ticker.showName}
               </div>
-              <div className="text-[10px] uppercase text-slate-500">
-                {ticker.fullName}
-              </div>
             </div>
           </div>
           <div className="text-right">
@@ -1324,9 +1321,6 @@ export default function TradePage() {
                   </span>
                   )}
                 </div>
-                <p className="truncate text-[11px] uppercase text-slate-500">
-                  {selectedTicker.fullName}
-                </p>
                 <p className="text-[10px] text-slate-500">
                   {tickerCategoryLabels[selectedTicker.category]}
                 </p>
