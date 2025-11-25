@@ -363,7 +363,6 @@ export default function ProfilePage() {
                 ? {
                   ...prev,
                   verification: updatedData.verification,
-                  isVerif: updatedData.isVerif,
                 }
                 : null,
         );

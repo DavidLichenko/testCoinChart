@@ -11,18 +11,23 @@ cloudinary.config({
 })
 
 async function uploadImage(file: File): Promise<string> {
-  const fileBuffer = await file.arrayBuffer()
-  const mime = file.type
-  const encoding = 'base64'
-  const base64Data = Buffer.from(fileBuffer).toString('base64')
-  const fileUri = 'data:' + mime + ';' + encoding + ',' + base64Data
+  try {
+    const fileBuffer = await file.arrayBuffer()
+    const mime = file.type
+    const encoding = 'base64'
+    const base64Data = Buffer.from(fileBuffer).toString('base64')
+    const fileUri = 'data:' + mime + ';' + encoding + ',' + base64Data
 
-  const result = await cloudinary.uploader.upload(fileUri, {
-    folder: 'verification-documents',
-    transformation: [{ width: 1024, height: 1024, crop: "limit" }]
-  })
+    const result = await cloudinary.uploader.upload(fileUri, {
+      folder: 'verification-documents',
+      transformation: [{ width: 1024, height: 1024, crop: "limit" }]
+    })
 
-  return result.secure_url
+    return result.secure_url
+  } catch (error) {
+    console.error('Error uploading image to Cloudinary:', error)
+    throw new Error(`Failed to upload image: ${error instanceof Error ? error.message : 'Unknown error'}`)
+  }
 }
 
 export async function POST(request: NextRequest) {
@@ -51,7 +56,7 @@ export async function POST(request: NextRequest) {
       uploadImage(frontIdFile),
       uploadImage(backIdFile)
     ]);
-    
+
     // Using a transaction to ensure data integrity
     const result = await prisma.$transaction(async (tx) => {
       // Create or update the verification record
@@ -92,6 +97,12 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('Error in verification upload:', error)
+    if (error instanceof Error) {
+      // Check if it's a specific upload error we created
+      if (error.message.startsWith('Failed to upload image:')) {
+        return NextResponse.json({ error: error.message }, { status: 400 });
+      }
+    }
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
-} 
+}

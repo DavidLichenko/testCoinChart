@@ -135,10 +135,52 @@ export async function PATCH(
 
     // Остальные поля (name, role, status, blocked, isVerif, can_withdraw)
     if (Object.keys(filteredUpdates).length > 0) {
-      await prisma.user.update({
-        where: { id: userId },
-        data: filteredUpdates,
-      })
+      // If isVerif is being updated, also update the corresponding verification record
+      if ("isVerif" in filteredUpdates) {
+        // Update the user's isVerif flag
+        await prisma.user.update({
+          where: { id: userId },
+          data: { isVerif: filteredUpdates.isVerif },
+        });
+
+        // Also update or create the verification record to keep them synchronized
+        const verificationStatus = filteredUpdates.isVerif ? "APPROVED" : "REJECTED";
+        
+        // Check if a verification record exists for this user
+        const existingVerification = await prisma.verification.findUnique({
+          where: { userId: userId },
+        });
+
+        if (existingVerification) {
+          // Update existing verification record
+          await prisma.verification.update({
+            where: { userId: userId },
+            data: { status: verificationStatus },
+          });
+        } else if (filteredUpdates.isVerif) {
+          // Create a new verification record if user is being verified (not rejected)
+          // We'll create a minimal verification record since we don't have document URLs
+          await prisma.verification.create({
+            data: {
+              userId: userId,
+              status: verificationStatus,
+              frontIdUrl: "",
+              backIdUrl: "",
+            },
+          });
+        }
+
+        // Remove isVerif from filteredUpdates so it's not updated again below
+        delete filteredUpdates.isVerif;
+      }
+
+      // Update remaining fields
+      if (Object.keys(filteredUpdates).length > 0) {
+        await prisma.user.update({
+          where: { id: userId },
+          data: filteredUpdates,
+        });
+      }
     }
 
     const updatedUser = await prisma.user.findUnique({
