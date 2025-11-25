@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
 import {
   Eye,
@@ -82,19 +82,19 @@ export function RegisterForm({
       >
         {/* FORM CARD */}
         <motion.div
-            initial={{ opacity: 0, scale: 0.96 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.35, ease: "easeOut" }}
+            initial={{opacity: 0, scale: 0.96}}
+            animate={{opacity: 1, scale: 1}}
+            transition={{duration: 0.35, ease: "easeOut"}}
             className="w-full max-w-md rounded-2xl border border-slate-800 bg-slate-900/90 px-6 py-8 shadow-2xl backdrop-blur-xl"
         >
           {/* Branding */}
-          <div className="mb-6 flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-purple-500 via-fuchsia-500 to-indigo-500 shadow-lg shadow-purple-500/40">
-              <BarChart3 className="h-4 w-4 text-white" />
+          <div className="mb-4 flex items-center gap-2">
+            <div className="flex h-12 w-12 items-center justify-center">
+              <img src={'/logo.png'} className="h-14 w-14 text-white"/>
             </div>
-            <div className="text-xs font-semibold tracking-[0.18em] text-slate-300">
-              ARAGONTRADE
-            </div>
+            <span className="text-xs font-semibold tracking-[0.18em] text-slate-300">
+                  ARAGON<br/>TRADE
+                </span>
           </div>
 
           {/* Header */}
@@ -110,8 +110,8 @@ export function RegisterForm({
             {/* Error message */}
             {error && (
                 <motion.div
-                    initial={{ opacity: 0, y: -6 }}
-                    animate={{ opacity: 1, y: 0 }}
+                    initial={{opacity: 0, y: -6}}
+                    animate={{opacity: 1, y: 0}}
                     className="rounded-lg border border-red-500/40 bg-red-900/10 px-3 py-2.5 text-sm text-red-400"
                 >
                   {error}
@@ -124,7 +124,7 @@ export function RegisterForm({
                 {t("fullName")}
               </label>
               <div className="relative">
-                <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"/>
                 <Input
                     id="name"
                     type="text"
@@ -143,7 +143,7 @@ export function RegisterForm({
                 {t("email")}
               </label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"/>
                 <Input
                     id="email"
                     type="email"
@@ -162,7 +162,7 @@ export function RegisterForm({
                 {t("password")}
               </label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"/>
                 <Input
                     id="password"
                     type={showPassword ? "text" : "password"}
@@ -179,7 +179,7 @@ export function RegisterForm({
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-2 top-1/2 -translate-y-1/2 p-0 text-slate-400 hover:text-white"
                 >
-                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  {showPassword ? <EyeOff size={16}/> : <Eye size={16}/>}
                 </Button>
               </div>
             </div>
@@ -190,7 +190,7 @@ export function RegisterForm({
                 {t("confirmPassword")}
               </label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"/>
                 <Input
                     id="confirmPassword"
                     type={showConfirmPassword ? "text" : "password"}
@@ -208,9 +208,9 @@ export function RegisterForm({
                     className="absolute right-2 top-1/2 -translate-y-1/2 p-0 text-slate-400 hover:text-white"
                 >
                   {showConfirmPassword ? (
-                      <EyeOff size={16} />
+                      <EyeOff size={16}/>
                   ) : (
-                      <Eye size={16} />
+                      <Eye size={16}/>
                   )}
                 </Button>
               </div>
@@ -224,13 +224,13 @@ export function RegisterForm({
             >
               {loading ? (
                   <>
-                    <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-white" />
+                    <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-white"/>
                     {t("registering")}
                   </>
               ) : (
                   <>
                     {t("register")}
-                    <ArrowRight className="h-4 w-4" />
+                    <ArrowRight className="h-4 w-4"/>
                   </>
               )}
             </Button>

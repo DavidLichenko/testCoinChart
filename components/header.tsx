@@ -40,8 +40,9 @@ export default function Header() {
         return (
             <header className="sticky top-0 z-[60] bg-gray-950/95 backdrop-blur-md border-b border-gray-800 h-16 flex items-center justify-between px-4">
                 <Link href="/dashboard" className="flex items-center gap-2">
-                    <img src={'/logo.png'}   className="h-12 w-12text-white" />
-                    <span className="text-white font-bold text-xs uppercase">Aragon Trade</span>
+                    <img src={'/logo.png'}   className="h-12 w-12 text-white" />
+                    <span className="text-white font-bold relative -left-4 text-[8px] uppercase">Aragon <br/> Trade</span>
+                    {/*<span className="text-white font-bold text-xs uppercase">Aragon Trade</span>*/}
                 </Link>
 
                 <div className="flex items-center gap-2">

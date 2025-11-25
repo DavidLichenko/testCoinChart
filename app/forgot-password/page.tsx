@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Mail, ArrowLeft, ArrowRight, BarChart3 } from "lucide-react";
@@ -52,19 +52,19 @@ export default function ForgotPasswordPage() {
         >
             {/* Container */}
             <motion.div
-                initial={{ opacity: 0, scale: 0.96 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.35, ease: "easeOut" }}
+                initial={{opacity: 0, scale: 0.96}}
+                animate={{opacity: 1, scale: 1}}
+                transition={{duration: 0.35, ease: "easeOut"}}
                 className="w-full max-w-md rounded-2xl border border-slate-800 bg-slate-900/90 px-6 py-8 shadow-2xl backdrop-blur-xl"
             >
                 {/* Branding */}
-                <div className="mb-6 flex items-center gap-3">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-purple-500 via-fuchsia-500 to-indigo-500 shadow-md shadow-purple-500/40">
-                        <BarChart3 className="h-4 w-4 text-white" />
+                <div className="mb-4 flex items-center gap-2">
+                    <div className="flex h-12 w-12 items-center justify-center">
+                        <img src={'/logo.png'} className="h-14 w-14 text-white"/>
                     </div>
-                    <div className="text-xs font-semibold tracking-[0.18em] text-slate-300">
-                        ARAGONTRADE
-                    </div>
+                    <span className="text-xs font-semibold tracking-[0.18em] text-slate-300">
+                  ARAGON<br/>TRADE
+                </span>
                 </div>
 
                 {/* Title */}
@@ -80,8 +80,8 @@ export default function ForgotPasswordPage() {
                     {/* Error */}
                     {error && (
                         <motion.div
-                            initial={{ opacity: 0, y: -6 }}
-                            animate={{ opacity: 1, y: 0 }}
+                            initial={{opacity: 0, y: -6}}
+                            animate={{opacity: 1, y: 0}}
                             className="rounded-lg border border-red-500/40 bg-red-900/10 px-3 py-2.5 text-sm text-red-400"
                         >
                             {error}
@@ -91,8 +91,8 @@ export default function ForgotPasswordPage() {
                     {/* Success */}
                     {message && (
                         <motion.div
-                            initial={{ opacity: 0, y: -6 }}
-                            animate={{ opacity: 1, y: 0 }}
+                            initial={{opacity: 0, y: -6}}
+                            animate={{opacity: 1, y: 0}}
                             className="rounded-lg border border-emerald-500/40 bg-emerald-900/10 px-3 py-2.5 text-sm text-emerald-300"
                         >
                             {message}
@@ -105,7 +105,8 @@ export default function ForgotPasswordPage() {
                             {t("email")}
                         </label>
                         <div className="relative">
-                            <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                            <Mail
+                                className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"/>
                             <Input
                                 id="email"
                                 type="email"
@@ -126,13 +127,13 @@ export default function ForgotPasswordPage() {
                     >
                         {loading ? (
                             <>
-                                <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-white" />
+                                <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-white"/>
                                 {t("sending")}
                             </>
                         ) : (
                             <>
                                 {t("sendResetLink")}
-                                <ArrowRight className="h-4 w-4" />
+                                <ArrowRight className="h-4 w-4"/>
                             </>
                         )}
                     </Button>
@@ -143,7 +144,7 @@ export default function ForgotPasswordPage() {
                             href="/"
                             className="inline-flex items-center gap-1 text-purple-300 hover:text-purple-200"
                         >
-                            <ArrowLeft className="h-3 w-3" />
+                            <ArrowLeft className="h-3 w-3"/>
                             {t("returnToLogin")}
                         </Link>
                     </div>

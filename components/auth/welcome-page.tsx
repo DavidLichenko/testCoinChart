@@ -59,7 +59,7 @@
 
 "use client";
 
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { motion, MotionConfig } from "framer-motion";
 import {
   ArrowRight,
@@ -298,19 +298,18 @@ export default function WelcomePage({
             {/* HEADER + компактный верх */}
             <motion.header
                 {...fadeUp(0)}
-                className="mb-8 flex flex-row gap-4 md:flex-row md:items-center md:justify-between"
+                className="mb-8 flex flex-row  justify-between gap-4 md:flex-row md:items-center md:justify-between"
             >
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-500 via-fuchsia-500 to-indigo-500 shadow-md shadow-purple-500/40">
-                  <BarChart3 className="h-5 w-5 text-white" />
+                <div className="mb-4 flex items-center gap-2">
+                  <div className="flex h-12 w-12 items-center justify-center">
+                    <img src={'/logo.png'} className="h-14 w-14 text-white"/>
+                  </div>
+                  <span className="text-xs font-semibold tracking-[0.18em] text-slate-300">
+                  ARAGON<br/>TRADE
+                </span>
                 </div>
                 <div className="flex flex-col leading-tight">
-                <span className="hidden md:block text-xs font-semibold tracking-[0.22em] text-purple-100">
-                  ARAGONTRADE
-                </span>
-                  <span className="block md:hidden text-xs font-semibold tracking-[0.22em] text-purple-100">
-                  AT
-                </span>
                   <span className="hidden md:block md:text-[11px] text-slate-200/80">
                   {t("institutionalTag")}
                 </span>

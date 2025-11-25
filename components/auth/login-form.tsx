@@ -96,11 +96,11 @@ export function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormProps) {
               <div className="p-6 sm:p-7">
                 {/* мини-лого/бренд */}
                 <div className="mb-4 flex items-center gap-2">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-purple-500 via-fuchsia-500 to-indigo-500 shadow-sm shadow-purple-500/40">
-                    <BarChart3 className="h-4 w-4 text-white" />
+                  <div className="flex h-12 w-12 items-center justify-center">
+                    <img src={'/logo.png'} className="h-14 w-14 text-white" />
                   </div>
                   <span className="text-xs font-semibold tracking-[0.18em] text-slate-300">
-                  ARAGONTRADE
+                  ARAGON<br/>TRADE
                 </span>
                 </div>
 
