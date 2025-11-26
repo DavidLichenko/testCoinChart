@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { getCurrentUser } from "@/lib/auth"
 import { pusherServer } from "@/lib/pusher-server"
+import { hasAdminAccess } from "@/lib/admin-access"
 
 export async function POST(request: NextRequest) {
   try {
@@ -11,13 +12,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    // Check if user is admin
+    // Check if user is admin using standardized function
     const adminUser = await prisma.user.findUnique({
       where: { id: currentUser.id },
       select: { role: true }
     })
 
-    if (!adminUser || (adminUser.role !== 'OWNER' && adminUser.role !== 'CR_MANAGMENT' && adminUser.role !== 'TEAMLEAD')) {
+    if (!adminUser || !hasAdminAccess(adminUser)) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
 
@@ -42,33 +43,32 @@ export async function POST(request: NextRequest) {
           // Update user's TotalBalance
           await tx.user.update({
             where: { id: userId },
-            data: { TotalBalance: newBalance }
+            data: { TotalBalance: newBalance },
           })
 
-          // Update or create Balances record
+          // Update balances record
           await tx.balances.upsert({
             where: { userId },
             update: { usd: newBalance },
-            create: { userId, usd: newBalance }
+            create: { userId, usd: newBalance },
+          })
+
+          // Notify via Pusher
+          await pusherServer.trigger(`balance-update-${userId}`, "balance-update", {
+            balance: newBalance,
           })
         })
 
-        // Trigger real-time update
-        await pusherServer.trigger(`user-${userId}`, 'balance-update', {
-          totalBalance: newBalance,
-        })
-
-        results.push({ userId, success: true, newBalance })
+        results.push({ userId, success: true })
       } catch (error) {
         console.error(`Error updating balance for user ${userId}:`, error)
-        results.push({ userId, success: false, error: "Update failed" })
+        results.push({ userId, success: false, error: "Failed to update balance" })
       }
     }
 
     return NextResponse.json({ results })
-
   } catch (error) {
     console.error("Error in bulk balance update:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
-} 
+}

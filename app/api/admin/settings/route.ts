@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/auth"
+import { hasAdminAccess } from "@/lib/admin-access"
 
 export async function GET(request: NextRequest) {
   try {
@@ -10,13 +11,13 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    // Check if user is admin
+    // Check if user is admin using standardized function
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
       select: { role: true }
     })
 
-    if (!user || (user.role !== 'OWNER' && user.role !== 'CR_MANAGMENT' && user.role !== 'TEAMLEAD')) {
+    if (!user || !hasAdminAccess(user)) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
 
@@ -51,13 +52,13 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    // Check if user is admin
+    // Check if user is admin using standardized function
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
       select: { role: true }
     })
 
-    if (!user || (user.role !== 'OWNER' && user.role !== 'CR_MANAGMENT' && user.role !== 'TEAMLEAD')) {
+    if (!user || !hasAdminAccess(user)) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
 
@@ -97,4 +98,4 @@ export async function PUT(request: NextRequest) {
     console.error("Error updating settings:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
-} 
+}

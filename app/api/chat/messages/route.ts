@@ -51,7 +51,8 @@ export async function POST(request: NextRequest) {
         content: content || "📷 Image",
         imageUrl,
         userId: currentUser.id,
-        isSupportMessage: false
+        isSupportMessage: false,
+        isRead: false // User messages are unread by default until admin reads them
       },
       include: {
         user: {
@@ -61,7 +62,7 @@ export async function POST(request: NextRequest) {
           }
         }
       }
-    })
+    } as any)
 
     // Trigger Pusher event for admin
     await pusherServer.trigger("admin-chat", "new-user-message", {
@@ -73,7 +74,7 @@ export async function POST(request: NextRequest) {
         },
         lastMessage: message.content,
         lastMessageTime: message.createdAt,
-        unreadCount: 1,
+        unreadCount: (message as any).isRead ? 0 : 1,
         isOnline: true
       },
       message

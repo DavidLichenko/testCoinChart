@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getCurrentUser } from "@/lib/auth"
+import { hasAdminAccess } from "@/lib/admin-access"
 import { v2 as cloudinary } from "cloudinary"
 
 // Configure Cloudinary
@@ -17,14 +18,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    // Check if user is admin
+    // Check if user is admin using standardized function
     const { prisma } = await import("@/lib/prisma")
     const user = await prisma.user.findUnique({
       where: { id: currentUser.id },
       select: { role: true }
     })
 
-    if (!user || (user.role !== 'OWNER' && user.role !== 'CR_MANAGMENT' && user.role !== 'TEAMLEAD')) {
+    if (!user || !hasAdminAccess(user)) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
 
@@ -40,30 +41,20 @@ export async function POST(request: NextRequest) {
     const buffer = Buffer.from(bytes)
 
     // Upload to Cloudinary
-    const result = await new Promise<{ secure_url: string; public_id: string }>((resolve, reject) => {
-      cloudinary.uploader.upload_stream(
-        {
-          folder: "admin-chat-images",
-          resource_type: "image",
-          transformation: [
-            { width: 800, height: 600, crop: "limit" },
-            { quality: "auto" }
-          ]
-        },
-        (error: any, result: any) => {
+    const uploadResult = await new Promise((resolve, reject) => {
+      const uploadStream = cloudinary.uploader.upload_stream(
+        { folder: "admin_chat" },
+        (error, result) => {
           if (error) reject(error)
           else resolve(result)
         }
-      ).end(buffer)
-    })
+      )
+      uploadStream.end(buffer)
+    }) as any
 
-    return NextResponse.json({ 
-      imageUrl: result.secure_url,
-      publicId: result.public_id
-    })
-
+    return NextResponse.json({ url: uploadResult.secure_url })
   } catch (error) {
     console.error("Error uploading image:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
-} 
+}

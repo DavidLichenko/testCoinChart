@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { getCurrentUser } from "@/lib/auth"
-import { UserRole } from "@prisma/client"
+import { hasAdminAccess } from "@/lib/admin-access"
 
 // PATCH an existing deposit address
 export async function PATCH(
@@ -14,8 +14,12 @@ export async function PATCH(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const fullUser = await prisma.user.findUnique({ where: { id: basicUser.id }});
-    if (!fullUser || (fullUser.role !== UserRole.OWNER && fullUser.role !== UserRole.CR_MANAGMENT && fullUser.role !== UserRole.TEAMLEAD)) {
+    const fullUser = await prisma.user.findUnique({ 
+      where: { id: basicUser.id },
+      select: { role: true }
+    });
+    
+    if (!fullUser || !hasAdminAccess(fullUser)) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
 
@@ -49,8 +53,12 @@ export async function DELETE(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const fullUser = await prisma.user.findUnique({ where: { id: basicUser.id }});
-    if (!fullUser || (fullUser.role !== UserRole.OWNER && fullUser.role !== UserRole.CR_MANAGMENT && fullUser.role !== UserRole.TEAMLEAD)) {
+    const fullUser = await prisma.user.findUnique({ 
+      where: { id: basicUser.id },
+      select: { role: true }
+    });
+    
+    if (!fullUser || !hasAdminAccess(fullUser)) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
 
@@ -63,4 +71,4 @@ export async function DELETE(
     console.error("Error deleting deposit address:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
-} 
+}

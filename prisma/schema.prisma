@@ -115,6 +115,7 @@ model Message {
   content          String
   imageUrl         String?
   isSupportMessage Boolean  @default(false)
+  isRead           Boolean  @default(false)
   createdAt        DateTime @default(now())
   userId           String
   user             User     @relation(fields: [userId], references: [id])

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { getCurrentUser } from "@/lib/auth"
-import { UserRole } from "@prisma/client"
+import { hasAdminAccess } from "@/lib/admin-access"
 
 export async function PATCH(
   request: NextRequest,
@@ -19,7 +19,7 @@ export async function PATCH(
       select: { role: true }
     });
 
-    if (!fullUser || (fullUser.role !== UserRole.OWNER && fullUser.role !== UserRole.CR_MANAGMENT && fullUser.role !== UserRole.TEAMLEAD)) {
+    if (!fullUser || !hasAdminAccess(fullUser)) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
 
@@ -38,19 +38,20 @@ export async function PATCH(
         data: { status },
       })
 
-      const isUserVerified = status === 'APPROVED';
-      
-      await tx.user.update({
-        where: { id: updatedVerification.userId },
-        data: { isVerif: isUserVerified },
-      })
+      // If approving verification, update user's isVerif status
+      if (status === 'APPROVED') {
+        await tx.user.update({
+          where: { id: updatedVerification.userId },
+          data: { isVerif: true },
+        })
+      }
 
-      return updatedVerification;
-    });
+      return updatedVerification
+    })
 
     return NextResponse.json(transactionResult)
   } catch (error) {
     console.error("Error updating verification:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
-} 
+}

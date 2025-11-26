@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react"
 import { createPortal } from "react-dom"
 import { motion, AnimatePresence } from "framer-motion"
-import { MessageCircle, X, Send, Image as ImageIcon } from "lucide-react"
+import { MessageCircle, X, Send, Image as ImageIcon, Clock } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
@@ -17,6 +17,7 @@ interface Message {
     content: string
     imageUrl?: string
     isSupportMessage: boolean
+    isRead: boolean
     createdAt: string
     userId: string
     user: {
@@ -88,26 +89,60 @@ export default function ChatButton() {
             }
         }
 
+        // Listen for when admin reads user messages
+        const handleMessagesReadByAdmin = (data: { messageIds: string[] }) => {
+            // Update the messages state to mark messages as read
+            setMessages(prev => prev.map(msg => 
+                data.messageIds.includes(msg.id) && !msg.isSupportMessage 
+                    ? { ...msg, isRead: true } 
+                    : msg
+            ))
+            
+            // Update unread count
+            const readUnreadMessages = data.messageIds.filter(id => 
+                messages.some(msg => msg.id === id && !msg.isSupportMessage && !msg.isRead)
+            ).length
+            
+            if (readUnreadMessages > 0) {
+                setUnreadCount(prev => Math.max(0, prev - readUnreadMessages))
+            }
+        }
+
         channel.bind("new-message", handleNewMessage)
         channel.bind("typing", handleTyping)
+        channel.bind("messages-read-by-admin", handleMessagesReadByAdmin)
 
         return () => {
             channel.unbind("new-message", handleNewMessage)
             channel.unbind("typing", handleTyping)
+            channel.unbind("messages-read-by-admin", handleMessagesReadByAdmin)
             pusherClient.unsubscribe(channelName)
         }
     }, [user?.id, chatOpen])
 
     const fetchMessages = async () => {
-        try {
-            const res = await fetch("/api/chat/messages")
-            if (res.ok) {
-                const data = await res.json()
-                setMessages(data)
-            }
-        } catch (e) {
-            console.error("Error fetching messages", e)
+      try {
+        const res = await fetch("/api/chat/messages")
+        if (res.ok) {
+          const data = await res.json()
+          setMessages(data)
+          
+          // Mark admin messages as read
+          const unreadAdminMessageIds = data
+            .filter((msg: Message) => msg.isSupportMessage && !msg.isRead)
+            .map((msg: Message) => msg.id)
+          
+          if (unreadAdminMessageIds.length > 0) {
+            await fetch("/api/chat/messages/mark-as-read", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ messageIds: unreadAdminMessageIds })
+            })
+          }
         }
+      } catch (e) {
+        console.error("Error fetching messages", e)
+      }
     }
 
     const sendMessage = async () => {
@@ -306,12 +341,17 @@ export default function ChatButton() {
                                                     <div
                                                         className={`max-w-[80%] w-1/2 rounded-2xl py-2 px-2 text-sm shadow-lg ${
                                                             message.isSupportMessage
-                                                                ? "bg-gray-800 text-white"
+                                                                ? `bg-gray-800 text-white ${!message.isRead && message.isSupportMessage ? 'ring-2 ring-blue-400' : ''}`
                                                                 : "bg-gradient-to-r from-blue-600 to-blue-700 text-white  text-right"
                                                         }`}
                                                     >
                                                         <div className="mb-1 text-[10px] uppercase tracking-wide text-gray-300/80">
                                                             {message.isSupportMessage ? "Support" : "You"}
+                                                            {!message.isRead && message.isSupportMessage && (
+                                                                <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded-full text-[8px] font-medium bg-blue-100 text-blue-800">
+                                                                    New
+                                                                </span>
+                                                            )}
                                                         </div>
                                                         <div className="leading-relaxed">
                                                             {message.content}
@@ -320,14 +360,17 @@ export default function ChatButton() {
                                                             <img
                                                                 src={message.imageUrl}
                                                                 alt="Chat image"
-                                                                className="mt-2 max-h-48 w-full rounded-lg object-cover"
+                                                                className="mt-2 rounded-lg max-h-48 w-auto object-cover"
                                                             />
                                                         )}
-                                                        <div className="mt-1 text-[10px] text-gray-300/70">
-                                                            {new Date(message.createdAt).toLocaleTimeString(
-                                                                [],
-                                                                { hour: "2-digit", minute: "2-digit" }
-                                                            )}
+                                                        <div className="mt-1 flex items-center gap-1 text-[10px] text-gray-300/70">
+                                                            <Clock className="h-3 w-3" />
+                                                            <span>
+                                                                {new Date(message.createdAt).toLocaleTimeString(
+                                                                    [],
+                                                                    { hour: "2-digit", minute: "2-digit" }
+                                                                )}
+                                                            </span>
                                                         </div>
                                                     </div>
                                                 </motion.div>

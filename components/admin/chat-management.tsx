@@ -9,6 +9,8 @@ import {
   User,
   Clock,
   Search,
+  CheckCheck,
+  Check,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -25,6 +27,7 @@ interface Message {
   content: string
   imageUrl?: string
   isSupportMessage: boolean
+  isRead: boolean
   createdAt: string
   userId: string
   user: {
@@ -82,66 +85,100 @@ export default function ChatManagement() {
 
   // Pusher
   useEffect(() => {
-    const channel = pusherClient.subscribe("admin-chat")
+    if (!user?.id) return
 
-    channel.bind(
+    const adminChannel = pusherClient.subscribe("admin-chat")
+        
+    // Listen for new user messages
+    adminChannel.bind(
         "new-user-message",
         (data: { session: ChatSession; message: Message }) => {
-          setChatSessions((prev) => {
-            const exists = prev.find((s) => s.userId === data.session.userId)
+            setChatSessions((prev) => {
+                const exists = prev.find((s) => s.userId === data.session.userId)
 
-            if (!exists) {
-              // новая сессия
-              return [
-                {
-                  ...data.session,
-                  lastMessage: data.message.content,
-                  lastMessageTime: data.message.createdAt,
-                  unreadCount: 1,
-                },
-                ...prev,
-              ]
+                if (!exists) {
+                    // новая сессия
+                    return [
+                        {
+                            ...data.session,
+                            lastMessage: data.message.content,
+                            lastMessageTime: data.message.createdAt,
+                            unreadCount: data.message.isRead ? 0 : 1,
+                        },
+                        ...prev,
+                    ]
+                }
+
+                return prev.map((session) =>
+                    session.userId === data.session.userId
+                        ? {
+                            ...session,
+                            lastMessage: data.message.content,
+                            lastMessageTime: data.message.createdAt,
+                            unreadCount:
+                                selectedSession?.userId === data.session.userId
+                                    ? session.unreadCount
+                                    : data.message.isRead 
+                                        ? session.unreadCount 
+                                        : session.unreadCount + 1,
+                        }
+                        : session
+                )
+            })
+
+            if (selectedSession?.userId === data.message.userId) {
+                setMessages((prev) => [...prev, data.message])
             }
 
-            return prev.map((session) =>
-                session.userId === data.session.userId
-                    ? {
-                      ...session,
-                      lastMessage: data.message.content,
-                      lastMessageTime: data.message.createdAt,
-                      unreadCount:
-                          selectedSession?.userId === data.session.userId
-                              ? 0
-                              : session.unreadCount + 1,
-                    }
-                    : session
-            )
-          })
-
-          if (selectedSession?.userId === data.message.userId) {
-            setMessages((prev) => [...prev, data.message])
-          }
-
-          toast({
-            title: "New Message",
-            description: `New message from ${data.session.user.email}`,
-            variant: "default",
-          })
+            toast({
+                title: "New Message",
+                description: `New message from ${data.session.user.email}`,
+                variant: "default",
+            })
         }
     )
 
-    channel.bind("user-typing", (data: { userId: string; isTyping: boolean }) => {
-      if (selectedSession?.userId === data.userId) {
-        setIsTyping(data.isTyping)
-      }
+    // Listen for user typing
+    adminChannel.bind("user-typing", (data: { userId: string; isTyping: boolean }) => {
+        if (selectedSession?.userId === data.userId) {
+            setIsTyping(data.isTyping)
+        }
     })
 
+    // Listen for when user reads admin messages
+    adminChannel.bind("messages-read", (data: { userId: string; messageIds: string[] }) => {
+        // Update the messages state to mark messages as read
+        setMessages(prev => prev.map(msg => 
+            data.messageIds.includes(msg.id) && msg.isSupportMessage 
+                ? { ...msg, isRead: true } 
+                : msg
+        ))
+        
+        // Update session unread count
+        setChatSessions(prev => prev.map(session => {
+            if (session.userId === data.userId) {
+                // Count how many of the read messages were previously unread
+                const readUnreadCount = data.messageIds.filter(id => 
+                    messages.some(msg => msg.id === id && msg.isSupportMessage && !msg.isRead)
+                ).length
+                
+                return { 
+                    ...session, 
+                    unreadCount: Math.max(0, session.unreadCount - readUnreadCount) 
+                }
+            }
+            return session
+        }))
+    })
+
+    // Cleanup function
     return () => {
-      channel.unbind("new-user-message")
-      channel.unbind("user-typing")
-      pusherClient.unsubscribe("admin-chat")
+        adminChannel.unbind("new-user-message")
+        adminChannel.unbind("user-typing")
+        adminChannel.unbind("messages-read")
+        pusherClient.unsubscribe("admin-chat")
     }
-  }, [selectedSession])
+  }, [selectedSession, messages, user?.id])
 
   const fetchChatSessions = async () => {
     try {
@@ -167,18 +204,51 @@ export default function ChatManagement() {
     }
   }
 
-  const handleSelectSession = (session: ChatSession) => {
+  const handleSelectSession = async (session: ChatSession) => {
     setSelectedSession(session)
-    fetchMessages(session.userId)
+    
+    // Fetch messages
+    try {
+      const res = await fetch(`/api/admin/chat/messages/${session.userId}`)
+      if (res.ok) {
+        const data = await res.json()
+        setMessages(data)
+        
+        // Mark user messages as read
+        const unreadUserMessageIds = data
+          .filter((msg: Message) => !msg.isSupportMessage /* && !msg.isRead */)
+          .map((msg: Message) => msg.id)
+        
+        if (unreadUserMessageIds.length > 0) {
+          try {
+            await fetch("/api/admin/chat/messages/mark-as-read", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ 
+                userId: session.userId,
+                messageIds: unreadUserMessageIds 
+              })
+            })
+            
+            // Refresh sessions to update unread count
+            fetchChatSessions()
+          } catch (err) {
+            console.error("Error marking messages as read:", err)
+          }
+        }
+      }
+    } catch (err) {
+      console.error("Error fetching messages:", err)
+    }
 
-    // сброс непрочитанных
+    // Reset unread count for this session
     setChatSessions((prev) =>
         prev.map((s) =>
             s.userId === session.userId ? { ...s, unreadCount: 0 } : s
         )
     )
 
-    // на мобиле прячем список
+    // Hide conversations list on mobile
     setShowConversations(false)
   }
 
@@ -196,6 +266,8 @@ export default function ChatManagement() {
       })
 
       if (res.ok) {
+        const savedMessage = await res.json()
+        setMessages(prev => [...prev, savedMessage])
         setNewMessage("")
       } else {
         toast({
@@ -266,6 +338,9 @@ export default function ChatManagement() {
           description: "Failed to send image message",
           variant: "destructive",
         })
+      } else {
+        const savedMessage = await msgRes.json()
+        setMessages(prev => [...prev, savedMessage])
       }
     } catch (err) {
       console.error("Error uploading image:", err)
@@ -466,54 +541,62 @@ export default function ChatManagement() {
 
                   {/* Messages */}
                   <CardContent className="flex-1 p-0 flex flex-col max-h-[550px]">
-                    <div className="flex-1 overflow-y-auto px-2 sm:px-4 py-3 space-y-3 sm:space-y-4">
-                      <AnimatePresence initial={false}>
-                        {messages.map((message) => (
-                            <motion.div
-                                key={message.id}
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -10 }}
-                                className={`flex ${
-                                    message.isSupportMessage
-                                        ? "justify-end"
-                                        : "justify-start"
-                                }`}
+                    <div className="flex-1 space-y-3 overflow-y-auto px-3 py-3">
+                      <AnimatePresence mode="popLayout">
+                        {messages.map(message => (
+                          <motion.div
+                            key={message.id}
+                            initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: -20, scale: 0.95 }}
+                            transition={{ duration: 0.2 }}
+                            className={`flex ${
+                              message.isSupportMessage
+                                ? "justify-end"
+                                : "justify-start"
+                            }`}
+                          >
+                            <div
+                              className={`max-w-[80%] sm:max-w-[70%] rounded-2xl px-3 py-2.5 text-xs sm:text-sm shadow-sm ${
+                                message.isSupportMessage
+                                  ? `bg-indigo-600 text-slate-50 rounded-br-none ${!message.isRead ? 'ring-2 ring-blue-400' : ''}`
+                                  : `bg-slate-800 text-slate-50 rounded-bl-none ${!message.isRead && !message.isSupportMessage ? 'ring-2 ring-yellow-400' : ''}`
+                              }`}
                             >
-                              <div
-                                  className={`max-w-[80%] sm:max-w-[70%] rounded-2xl px-3 py-2.5 text-xs sm:text-sm shadow-sm ${
-                                      message.isSupportMessage
-                                          ? "bg-indigo-600 text-slate-50 rounded-br-none"
-                                          : "bg-slate-800 text-slate-50 rounded-bl-none"
-                                  }`}
-                              >
-                                <div className="text-[10px] text-slate-200/80 mb-1">
+                              <div className="text-[10px] text-slate-200/80 mb-1 flex items-center justify-between">
+                                <span>
                                   {message.isSupportMessage
-                                      ? "Support"
-                                      : selectedSession.user.name ||
-                                      selectedSession.user.email}
-                                </div>
-                                <div className="whitespace-pre-wrap break-words">
-                                  {message.content}
-                                </div>
-                                {message.imageUrl && (
-                                    <img
-                                        src={message.imageUrl}
-                                        alt="Chat image"
-                                        className="mt-2 rounded-lg max-h-48 w-auto object-cover"
-                                    />
+                                    ? "Support"
+                                    : selectedSession?.user.name ||
+                                    selectedSession?.user.email}
+                                </span>
+                                {!message.isRead && (
+                                  <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[8px] font-medium bg-yellow-100 text-yellow-800">
+                                    New
+                                  </span>
                                 )}
-                                <div className="mt-1 flex items-center gap-1 text-[10px] text-slate-300/80">
-                                  <Clock className="h-3 w-3" />
-                                  <span>
-                              {new Date(message.createdAt).toLocaleTimeString(
-                                  [],
-                                  { hour: "2-digit", minute: "2-digit" }
-                              )}
-                            </span>
-                                </div>
                               </div>
-                            </motion.div>
+                              <div className="whitespace-pre-wrap break-words">
+                                {message.content}
+                              </div>
+                              {message.imageUrl && (
+                                <img
+                                  src={message.imageUrl}
+                                  alt="Chat image"
+                                  className="mt-2 rounded-lg max-h-48 w-auto object-cover"
+                                />
+                              )}
+                              <div className="mt-1 flex items-center gap-1 text-[10px] text-slate-300/80">
+                                {message.isRead ? <CheckCheck className="h-3 w-3"/> :<Check className="h-3 w-3" />}
+                                <span>
+                                  {new Date(message.createdAt).toLocaleTimeString(
+                                    [],
+                                    { hour: "2-digit", minute: "2-digit" }
+                                  )}
+                                </span>
+                              </div>
+                            </div>
+                          </motion.div>
                         ))}
                       </AnimatePresence>
                     </div>

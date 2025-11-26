@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { getCurrentUser } from "@/lib/auth"
+import { hasAdminAccess } from "@/lib/admin-access"
 
 export async function GET(
   request: NextRequest,
@@ -13,13 +14,13 @@ export async function GET(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    // Check if user is admin
+    // Check if user is admin using standardized function
     const user = await prisma.user.findUnique({
       where: { id: currentUser.id },
       select: { role: true }
     })
 
-    if (!user || (user.role !== 'OWNER' && user.role !== 'CR_MANAGMENT' && user.role !== 'TEAMLEAD')) {
+    if (!user || !hasAdminAccess(user)) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
 
@@ -42,4 +43,4 @@ export async function GET(
     console.error("Error fetching messages:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
-} 
+}
