@@ -37,6 +37,21 @@ model User {
   updatedAt           DateTime             @updatedAt
   Authenticator       Authenticator[]
   PasswordResetToken  PasswordResetToken[]
+  chartDrawings       ChartDrawing[]
+}
+
+model ChartDrawing {
+  id        String   @id @default(cuid())
+  userId    String
+  symbol    String
+  timeframe String // "1m", "5m", "15m", "1h", "4h", "1d" и т.д.
+  drawings  Json // массив твоих объектов {type,x1,y1,x2,y2,color,...}
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, symbol, timeframe])
 }
 
 model Orders {

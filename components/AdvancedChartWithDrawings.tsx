@@ -32,6 +32,8 @@ export interface AdvancedChartWithDrawingsProps {
   currentTimeframe?: string
   onTimeframeChange?: (timeframe: string) => void
   isMobile?: boolean
+  onDrawingsChange?: (drawings: Array<{ type: 'line', points: { time: number, price: number }[] }>) => void
+  initialDrawings?: Array<{ type: 'line', points: { time: number, price: number }[] }> // Add this prop
 }
 
 export type AdvancedChartHandle = {
@@ -53,6 +55,8 @@ export const AdvancedChartWithDrawings = forwardRef<
       timeframeInSeconds = 60,
       isLoaded = true,
       isMobile = false,
+      onDrawingsChange,
+      initialDrawings = [], // Add this prop
     },
     ref,
 ) {
@@ -69,13 +73,22 @@ export const AdvancedChartWithDrawings = forwardRef<
     zoomIn,
     zoomOut,
     isChartLoading,
+    setInitialDrawings, // Add this
   } = useCandlestickChart({
     candles,
     liveTickers,
     selectedSymbol,
     timeframeInSeconds,
     isLoaded,
+    initialDrawings, // Add this prop
   })
+
+  // Notify parent component when drawings change
+  useEffect(() => {
+    if (onDrawingsChange) {
+      onDrawingsChange(drawings)
+    }
+  }, [drawings, onDrawingsChange])
 
   const handleResetView = () => {
     autofocusChart()

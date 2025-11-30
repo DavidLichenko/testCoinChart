@@ -1,3 +1,4 @@
+// "@/data/ticker-meta.ts"
 import rawSymbols from "@/data/ticker-symbols.json"
 
 export type TickerCategory = "forex" | "stocks" | "indices" | "commodities" | "crypto" | "other"
@@ -10,6 +11,7 @@ export interface TickerMeta {
   exchange?: string
   baseCurrency?: string
   quoteCurrency?: string
+  icon?: string
 }
 
 const currencyCodes = new Set([
@@ -107,7 +109,18 @@ const cryptoBases = new Set([
   "GRT",
 ])
 
-const cryptoSymbols = new Set(["BTCUSD", "ETHUSD", "ADAUSD", "SOLUSD", "XRPUSD", "BNBUSD", "DOGUSD", "DOTUSD", "LTCUSD", "MATICUSD"])
+const cryptoSymbols = new Set([
+  "BTCUSD",
+  "ETHUSD",
+  "ADAUSD",
+  "SOLUSD",
+  "XRPUSD",
+  "BNBUSD",
+  "DOGUSD",
+  "DOTUSD",
+  "LTCUSD",
+  "MATICUSD",
+])
 
 const exchangeSuffixMap: Record<
     string,
@@ -198,74 +211,111 @@ function formatPair(base?: string, quote?: string) {
   return undefined
 }
 
-function buildMeta(symbol: string): TickerMeta {
-  const upperSymbol = symbol.toUpperCase()
-  if (symbol.includes(".")) {
-    const [base, suffix] = symbol.split(".")
+/* ================= ИСКЛЮЧЕНИЯ =================
+ * КЛЮЧИ ВСЕГДА В UPPERCASE!
+ * Для акций с биржей — полный символ: "REP.BME", "AAPL.NAS" и т.п.
+ */
+type TickerOverride = Partial<Omit<TickerMeta, "symbol" | "category">> & {
+  icon?: string
+}
+
+const tickerOverrides: Record<string, TickerOverride> = {
+  // твой пример:
+  "REP.MAD": {
+    showName: "Repsol",
+    icon: "/icons/other_icons/repsol.png",
+  },
+  "ES35":{
+    showName:"IBEX 35",
+    icon: "/icons/other_icons/ibex35.png",
+  },
+  // примеры:
+  "AAPL.NAS": {
+    showName: "Apple",
+    icon: "/icons/ticker_icons/aapl.png",
+  },
+  // "BTCUSD": {
+  //   showName: "Bitcoin",
+  //   icon: "/icons/crypto_icons/btc.png",
+  // },
+}
+/* ============================================ */
+
+function buildMeta(rawSymbol: string): TickerMeta {
+  const upperSymbol = rawSymbol.toUpperCase()
+
+  let baseMeta: TickerMeta
+  if (upperSymbol.includes(".")) {
+    const [base, suffix] = upperSymbol.split(".")
     const info = exchangeSuffixMap[suffix] || { exchange: suffix, tradingView: suffix }
-    return {
-      symbol,
+    baseMeta = {
+      symbol: upperSymbol,
       showName: base,
       fullName: `${info.tradingView}:${base}`,
       category: "stocks",
       exchange: info.exchange,
     }
-  }
+  } else {
+    const base = upperSymbol.slice(0, 3)
+    const quote = upperSymbol.slice(-3)
 
-  const base = upperSymbol.slice(0, 3)
-  const quote = upperSymbol.slice(-3)
-
-  if (isCommoditySymbol(upperSymbol, base, quote)) {
-    return {
-      symbol,
-      showName: formatPair(base, quote) || upperSymbol.replaceAll("_", " "),
-      fullName: `${commodityFullNamePrefix}:${upperSymbol}`,
-      category: "commodities",
-      baseCurrency: base,
-      quoteCurrency: quote,
+    if (isCommoditySymbol(upperSymbol, base, quote)) {
+      baseMeta = {
+        symbol: upperSymbol,
+        showName: formatPair(base, quote) || upperSymbol.replaceAll("_", " "),
+        fullName: `${commodityFullNamePrefix}:${upperSymbol}`,
+        category: "commodities",
+        baseCurrency: base,
+        quoteCurrency: quote,
+      }
+    } else if (isForexPair(upperSymbol, base, quote)) {
+      baseMeta = {
+        symbol: upperSymbol,
+        showName: `${base}/${quote}`,
+        fullName: `${forexFullNamePrefix}:${upperSymbol}`,
+        category: "forex",
+        baseCurrency: base,
+        quoteCurrency: quote,
+      }
+    } else if (isCryptoPair(upperSymbol)) {
+      const parts = extractCryptoParts(upperSymbol)
+      const baseCurrency = parts?.base || base
+      const quoteCurrency = parts?.quote || quote
+      baseMeta = {
+        symbol: upperSymbol,
+        showName: formatPair(baseCurrency, quoteCurrency) || upperSymbol,
+        fullName: `${cryptoFullNamePrefix}:${upperSymbol}`,
+        category: "crypto",
+        baseCurrency,
+        quoteCurrency,
+      }
+    } else if (/\d/.test(upperSymbol)) {
+      baseMeta = {
+        symbol: upperSymbol,
+        showName: indexNameOverrides[upperSymbol] || upperSymbol.replaceAll("_", " "),
+        fullName: `${indexFullNamePrefix}:${upperSymbol}`,
+        category: "indices",
+      }
+    } else {
+      baseMeta = {
+        symbol: upperSymbol,
+        showName: upperSymbol.replaceAll("_", " "),
+        fullName: upperSymbol,
+        category: "other",
+      }
     }
   }
 
-  if (isForexPair(upperSymbol, base, quote)) {
+  // ищем оверрайд по upperSymbol
+  const override = tickerOverrides[upperSymbol]
+  if (override) {
     return {
-      symbol,
-      showName: `${base}/${quote}`,
-      fullName: `${forexFullNamePrefix}:${upperSymbol}`,
-      category: "forex",
-      baseCurrency: base,
-      quoteCurrency: quote,
+      ...baseMeta,
+      ...override,
     }
   }
 
-  if (isCryptoPair(upperSymbol)) {
-    const parts = extractCryptoParts(upperSymbol)
-    const baseCurrency = parts?.base || base
-    const quoteCurrency = parts?.quote || quote
-    return {
-      symbol,
-      showName: formatPair(baseCurrency, quoteCurrency) || upperSymbol,
-      fullName: `${cryptoFullNamePrefix}:${upperSymbol}`,
-      category: "crypto",
-      baseCurrency,
-      quoteCurrency,
-    }
-  }
-
-  if (/\d/.test(symbol)) {
-    return {
-      symbol,
-      showName: indexNameOverrides[upperSymbol] || upperSymbol.replaceAll("_", " "),
-      fullName: `${indexFullNamePrefix}:${upperSymbol}`,
-      category: "indices",
-    }
-  }
-
-  return {
-    symbol,
-    showName: upperSymbol.replaceAll("_", " "),
-    fullName: upperSymbol,
-    category: "other",
-  }
+  return baseMeta
 }
 
 export const tickerMeta: TickerMeta[] = (rawSymbols as string[]).map(buildMeta)
@@ -286,4 +336,3 @@ export const tickerCategoryLabels: Record<TickerCategory, string> = {
 }
 
 export const orderedCategories: TickerCategory[] = ["forex", "indices", "commodities", "stocks", "crypto", "other"]
-

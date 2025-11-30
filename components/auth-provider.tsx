@@ -4,6 +4,7 @@ import type React from "react"
 import { createContext, useContext, useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import WelcomePage from "@/components/auth/welcome-page"
+import { usePathname } from 'next/navigation'
 import Header from "@/components/header";
 import MobileFooter from "@/components/mobile-footer";
 
@@ -38,7 +39,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
   const router = useRouter()
-
+  const pathname = usePathname()
   const checkAuth = async () => {
     try {
       const response = await fetch("/api/auth/me")
@@ -121,7 +122,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       <AuthContext.Provider value={{ user, loading, logout, refreshUser }}>
         <Header />
         {children}
-        <MobileFooter />
+        {pathname !== `/test-chart` && (
+            <MobileFooter />
+        )}
+
       </AuthContext.Provider>
   )
 }

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { useTVLibrary } from './use-tv-library';
 
 interface Candle {
@@ -24,6 +24,7 @@ interface UseCandlestickChartProps {
   selectedSymbol: string;
   timeframeInSeconds?: number;
   isLoaded?: boolean;
+  initialDrawings?: Array<{ type: 'line', points: { time: number, price: number }[] }>; // Add this prop
 }
 
 export const useCandlestickChart = ({
@@ -32,6 +33,7 @@ export const useCandlestickChart = ({
   selectedSymbol,
   timeframeInSeconds = 60,
   isLoaded = true,
+  initialDrawings = [], // Add this prop
 }: UseCandlestickChartProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<any>(null);
@@ -49,7 +51,7 @@ export const useCandlestickChart = ({
 
   // Drawing state
   const [drawingMode, setDrawingMode] = useState<'none' | 'line'>('none');
-  const [drawings, setDrawings] = useState<Array<{ type: 'line', points: { time: number, price: number }[] }>>([]);
+  const [drawings, setDrawings] = useState<Array<{ type: 'line', points: { time: number, price: number }[] }>>(initialDrawings);
   const [preview, setPreview] = useState<{ type: 'line', points: { time: number, price: number }[] } | null>(null);
   const [isChartLoading, setIsChartLoading] = useState<boolean>(false);
 
@@ -751,10 +753,37 @@ export const useCandlestickChart = ({
         timeVisible: true, 
         secondsVisible: true, 
         borderColor: '#2B2B43',
-        rightOffset: 20 // Increase right-side padding for ~100px
+        rightOffset: 20, // Increase right-side padding for ~100px
+        // Enable better panning experience
+        fixLeftEdge: true, // Prevent panning beyond the left edge
+        fixRightEdge: false, // Allow panning beyond the right edge
+        lockVisibleTimeRangeOnResize: true, // Keep the same time range on resize
+        allowShiftVisibleRangeOnWhitespaceReplacement: true, // Allow shifting when replacing whitespace
       },
-      rightPriceScale: { borderColor: '#2B2B43' },
+      rightPriceScale: { 
+        borderColor: '#2B2B43',
+        // Enable better zooming experience
+        scaleMargins: {
+          top: 0.1,
+          bottom: 0.1,
+        },
+      },
       crosshair: { mode: CrosshairMode.Normal },
+      // Enable better interaction handling
+      handleScroll: {
+        mouseWheel: true, // Enable mouse wheel scrolling
+        pressedMouseMove: true, // Enable panning with mouse drag
+        horzTouchDrag: true, // Enable horizontal touch drag on mobile
+        vertTouchDrag: true, // Enable vertical touch drag on mobile
+      },
+      handleScale: {
+        axisPressedMouseMove: {
+          time: true, // Enable time axis scaling with mouse drag
+          price: true, // Enable price axis scaling with mouse drag
+        },
+        mouseWheel: true, // Enable mouse wheel zooming
+        pinch: true, // Enable pinch zoom on mobile
+      },
     });
 
     candleSeriesRef.current = chartRef.current.addCandlestickSeries({
@@ -1105,6 +1134,11 @@ export const useCandlestickChart = ({
     }
   };
 
+  // Add function to set initial drawings
+  const setInitialDrawings = useCallback((drawings: Array<{ type: 'line', points: { time: number, price: number }[] }>) => {
+    setDrawings(drawings);
+  }, []);
+
   // Zoom functions
   const zoomIn = () => {
     if (!chartRef.current) return;
@@ -1193,5 +1227,6 @@ export const useCandlestickChart = ({
     zoomIn,
     zoomOut,
     isChartLoading,
+    setInitialDrawings, // Add this to the return object
   };
 }; 

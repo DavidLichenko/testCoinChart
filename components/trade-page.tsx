@@ -1298,6 +1298,7 @@ export default function TradePage() {
                   baseCurrency={selectedTicker.baseCurrency}
                   quoteCurrency={selectedTicker.quoteCurrency}
                   size={compact ? 38 : 48}
+                  icon={selectedTicker.icon}
               />
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
@@ -1308,12 +1309,12 @@ export default function TradePage() {
                 >
                   {selectedTicker.showName}
                 </span>
-                  <Badge
-                      variant="outline"
-                      className="border-slate-800 bg-slate-900/60 text-[10px] uppercase"
-                  >
-                    {selectedTicker.symbol}
-                  </Badge>
+                  {/*<Badge*/}
+                  {/*    variant="outline"*/}
+                  {/*    className="border-slate-800 bg-slate-900/60 text-[10px] uppercase"*/}
+                  {/*>*/}
+                  {/*  {selectedTicker.symbol}*/}
+                  {/*</Badge>*/}
                   {!compact && (
                       <span className="flex items-center gap-1 text-[11px] font-semibold text-emerald-400">
                     <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-400" />

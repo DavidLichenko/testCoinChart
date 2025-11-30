@@ -57,7 +57,7 @@ export function useTickers(initialTimeframe = "H1") {
         setCandlesBySymbol([])
 
         const controller = new AbortController()
-        const url = `https://api.aragon-trade.com/candles?symbol=${selectedTicker.symbol}&timeframe=${timeframe}&count=100`
+        const url = `https://api.aragon-trade.com/candles?symbol=${selectedTicker.symbol}&timeframe=${timeframe}&count=365`
 
         fetch(url, { signal: controller.signal })
             .then((res) => res.json())
