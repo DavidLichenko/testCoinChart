@@ -28,7 +28,7 @@ async function uploadImage(file: File): Promise<string> {
     const uploadStream = cloudinary.uploader.upload_stream(
         {
           folder: "verification-documents",
-          resource_type: "image", // HEIC, JPG, PNG и т.д.
+          resource_type: "auto", // HEIC, JPG, PNG и т.д.
           // без transformation → Cloudinary сохраняет оригинал
         },
         (error, result) => {
