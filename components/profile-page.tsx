@@ -55,6 +55,33 @@ interface Order {
   createdAt: string;
 }
 
+// Cloudinary preview helper
+const toCloudinaryPreviewUrl = (url: string | null | undefined) => {
+  if (!url) return null;
+  if (url.includes("/upload/")) {
+    return url.replace("/upload/", "/upload/f_auto,q_auto/");
+  }
+  return url;
+};
+async function convertHeicToJpeg(file: File): Promise<string> {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = function (e) {
+      const img = new Image();
+      img.onload = function () {
+        const canvas = document.createElement("canvas");
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext("2d");
+        ctx?.drawImage(img, 0, 0);
+        resolve(canvas.toDataURL("image/jpeg"));
+      };
+      img.src = e.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
 const VerificationStatusBadge = ({ status }: { status?: string }) => {
   if (!status) {
     return (
@@ -168,7 +195,7 @@ export default function ProfilePage() {
     setSelectedLanguage(lang);
   }, [lang]);
 
-  // 🟣 URL → selectedSection (поддержка ?tab=withdraw)
+  // URL → selectedSection (поддержка ?tab=withdraw)
   useEffect(() => {
     if (typeof window === "undefined") return;
     const params = new URLSearchParams(window.location.search);
@@ -204,13 +231,15 @@ export default function ProfilePage() {
           setName(profileData.name || "");
 
           if (profileData.verification) {
-            setFrontIdPreview(profileData.verification.frontIdUrl || null);
-            setBackIdPreview(profileData.verification.backIdUrl || null);
+            setFrontIdPreview(
+                toCloudinaryPreviewUrl(profileData.verification.frontIdUrl)
+            );
+            setBackIdPreview(
+                toCloudinaryPreviewUrl(profileData.verification.backIdUrl)
+            );
             setVerificationAddress(profileData.verification.address || "");
             setVerificationCity(profileData.verification.city || "");
-            setVerificationPostalCode(
-                profileData.verification.postalCode || "",
-            );
+            setVerificationPostalCode(profileData.verification.postalCode || "");
           }
         }
 
@@ -294,29 +323,34 @@ export default function ProfilePage() {
     }
   };
 
-  const handleFileChange = (
+  const handleFileChange = async (
       e: React.ChangeEvent<HTMLInputElement>,
-      type: "front" | "back",
+      type: "front" | "back"
   ) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 5 * 1024 * 1024) {
-      toast({
-        title: t("fileTooLarge"),
-        description: t("selectImageSmallerThan5mb"),
-        variant: "destructive" as any,
-      });
-      return;
+    // Сохраняем файл
+    if (type === "front") setFrontIdFile(file);
+    else setBackIdFile(file);
+
+    const ext = file.name.toLowerCase();
+
+    // Если это HEIC — пробуем сделать JPEG превью
+    if (ext.endsWith(".heic") || file.type === "image/heic") {
+      try {
+        const jpgPreview = await convertHeicToJpeg(file);
+        if (type === "front") setFrontIdPreview(jpgPreview);
+        else setBackIdPreview(jpgPreview);
+        return;
+      } catch (e) {
+        console.error("HEIC convert error → fallback to ObjectURL", e);
+      }
     }
 
-    if (type === "front") {
-      setFrontIdFile(file);
-      setFrontIdPreview(URL.createObjectURL(file));
-    } else {
-      setBackIdFile(file);
-      setBackIdPreview(URL.createObjectURL(file));
-    }
+    // Иначе обычный превью
+    if (type === "front") setFrontIdPreview(URL.createObjectURL(file));
+    else setBackIdPreview(URL.createObjectURL(file));
   };
 
   const handleSubmitVerification = async () => {
