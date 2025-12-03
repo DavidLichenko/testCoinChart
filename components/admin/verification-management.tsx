@@ -56,6 +56,19 @@ interface Verification {
   }
 }
 
+/**
+ * Преобразуем Cloudinary URL к виду с авто-конвертацией:
+ * .../upload/... → .../upload/f_auto,q_auto/...
+ * Тогда HEIC / HEIF / WebP и т.д. всегда показываются как нормальный JPEG/WebP.
+ */
+const toCloudinaryPreviewUrl = (url: string | null | undefined) => {
+  if (!url) return ""
+  if (url.includes("/upload/")) {
+    return url.replace("/upload/", "/upload/f_auto,q_auto/")
+  }
+  return url
+}
+
 export default function VerificationManagement() {
   const { user } = useAuth()
   const [verifications, setVerifications] = useState<Verification[]>([])
@@ -64,23 +77,23 @@ export default function VerificationManagement() {
   const [statusFilter, setStatusFilter] = useState("all")
   const [imageToView, setImageToView] = useState<string | null>(null)
   const [accessDenied, setAccessDenied] = useState(false)
-  
+
   // Add access control check
   useEffect(() => {
     if (!hasAdminAccess(user)) {
       setAccessDenied(true)
     }
   }, [user])
-  
+
   // If access is denied, show an error message
   if (accessDenied) {
     return (
-      <div className="rounded-2xl border border-rose-500/30 bg-rose-950/40 px-4 py-3 text-center text-sm text-rose-100">
-        Access denied. You don't have permission to view this page.
-      </div>
+        <div className="rounded-2xl border border-rose-500/30 bg-rose-950/40 px-4 py-3 text-center text-sm text-rose-100">
+          Access denied. You don't have permission to view this page.
+        </div>
     )
   }
-  
+
   useEffect(() => {
     fetchVerifications()
   }, [])
@@ -137,9 +150,10 @@ export default function VerificationManagement() {
   }
 
   const filtered = verifications.filter((v) => {
+    const search = searchTerm.toLowerCase()
     const matchSearch =
-        v.user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        v.user.name?.toLowerCase().includes(searchTerm.toLowerCase())
+        v.user.email.toLowerCase().includes(search) ||
+        (v.user.name || "").toLowerCase().includes(search)
 
     const matchStatus =
         statusFilter === "all" || v.status.toLowerCase() === statusFilter
@@ -273,7 +287,7 @@ export default function VerificationManagement() {
                         {v.frontIdUrl && (
                             <HoverCardContent className="w-auto max-w-xs bg-slate-950 border-slate-800 p-2">
                               <img
-                                  src={v.frontIdUrl}
+                                  src={toCloudinaryPreviewUrl(v.frontIdUrl)}
                                   alt="Front ID preview"
                                   className="max-h-60 w-auto rounded-lg object-contain"
                               />
@@ -295,7 +309,7 @@ export default function VerificationManagement() {
                         {v.backIdUrl && (
                             <HoverCardContent className="w-auto max-w-xs bg-slate-950 border-slate-800 p-2">
                               <img
-                                  src={v.backIdUrl}
+                                  src={toCloudinaryPreviewUrl(v.backIdUrl)}
                                   alt="Back ID preview"
                                   className="max-h-60 w-auto rounded-lg object-contain"
                               />
@@ -337,7 +351,7 @@ export default function VerificationManagement() {
             </DialogHeader>
             {imageToView && (
                 <img
-                    src={imageToView}
+                    src={toCloudinaryPreviewUrl(imageToView)}
                     className="rounded-xl w-full h-auto"
                     alt="Verification document"
                 />

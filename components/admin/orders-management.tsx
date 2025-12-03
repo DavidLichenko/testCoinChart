@@ -576,12 +576,18 @@ export default function OrdersManagement() {
                                                         order.bankName}
                                                 </p>
                                             )}
+                                            {order.cryptoAddress &&
+                                                <p className="truncate text-[11px] text-slate-500 sm:text-xs">
+                                                    {order.cryptoNetwork}
+                                                    {order.cryptoAddress}
+                                                </p>
+                                            }
                                         </div>
                                     </div>
 
                                     {/* Right: amount + date + actions */}
                                     <div className="flex items-center justify-between gap-3 sm:justify-end sm:gap-4">
-                                        <div className="text-right">
+                                    <div className="text-right">
                                             <div className="text-xs font-semibold text-slate-50 sm:text-sm">
                                                 ${order.amount.toLocaleString()}
                                             </div>

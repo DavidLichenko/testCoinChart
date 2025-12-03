@@ -5,6 +5,12 @@ import { motion } from "framer-motion";
 import { LineChart, ArrowUpRight, ArrowDownRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {useI18n} from "@/components/i18n-provider";
+import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart";
 
 type DayData = { date: string; pnl: number };
 
@@ -40,6 +46,13 @@ export function PerformanceWidget() {
 
     const max = data?.days ? Math.max(...data.days.map((d) => d.pnl)) : 1;
     const min = data?.days ? Math.min(...data.days.map((d) => d.pnl)) : -1;
+
+    const chartConfig = {
+      pnl: {
+        label: "PnL",
+        color: "hsl(var(--chart-1))",
+      },
+    };
 
     return (
         <motion.div
@@ -119,97 +132,60 @@ export function PerformanceWidget() {
             </div>
 
             {/* Sparkline chart */}
-            <div className="relative h-24 w-full">
+            <div className="h-32 w-full">
                 {loading || !data ? (
                     <div className="animate-pulse h-full rounded-xl bg-slate-800/70"/>
                 ) : (
-                    <svg
-                        width="100%"
-                        height="100%"
-                        viewBox="0 0 100 40"
-                        preserveAspectRatio="none"
-                        className="overflow-visible"
-                    >
-                        {(() => {
-                            const height = 40;
-                            const width = 100;
-                            const paddingX = 3;
-                            const paddingY = 6;
-
-                            const n = data.days.length;
-                            const xStep = n > 1 ? (width - paddingX * 2) / (n - 1) : 0;
-
-                            // берём реальные max/min по дням
-                            const rawMax = Math.max(...data.days.map((d) => d.pnl));
-                            const rawMin = Math.min(...data.days.map((d) => d.pnl));
-
-                            // чуть “разжимаем” диапазон, чтобы линия не была прижатой к нулю
-                            const paddedMax = rawMax <= 0 ? 1 : rawMax * 1.1;
-                            const paddedMin = rawMin >= 0 ? -1 : rawMin * 1.1;
-                            const range = paddedMax - paddedMin || 1;
-
-                            const innerHeight = height - paddingY * 2;
-
-                            const getY = (v: number) => {
-                                const norm = (v - paddedMin) / range; // 0..1
-                                return height - paddingY - norm * innerHeight;
-                            };
-
-                            // линия “0 PnL”
-                            const zeroNorm = (0 - paddedMin) / range;
-                            const yZero = height - paddingY - zeroNorm * innerHeight;
-
-                            const points = data.days
-                                .map((d, i) => {
-                                    const x = paddingX + i * xStep;
-                                    const y = getY(d.pnl);
-                                    return `${x},${y}`;
-                                })
-                                .join(" ");
-
-                            return (
-                                <>
-                                    {/* baseline 0 PnL */}
-                                    <line
-                                        x1={paddingX}
-                                        x2={width - paddingX}
-                                        y1={yZero}
-                                        y2={yZero}
-                                        stroke="#4b5563"
-                                        strokeWidth={0.35}
-                                        strokeDasharray="2 2"
-                                    />
-
-                                    {/* мягкий glow (толще и прозрачнее) */}
-                                    <motion.polyline
-                                        fill="none"
-                                        stroke="rgba(168, 85, 247, 0.35)"
-                                        strokeWidth={2.6}
-                                        strokeLinecap="round"
-                                        initial={{pathLength: 0, opacity: 0}}
-                                        animate={{pathLength: 1, opacity: 1}}
-                                        transition={{duration: 0.9, ease: "easeOut"}}
-                                        points={points}
-                                    />
-
-                                    {/* основная тонкая линия сверху */}
-                                    <motion.polyline
-                                        fill="none"
-                                        stroke="#a855f7"
-                                        strokeWidth={1.2}
-                                        strokeLinecap="round"
-                                        initial={{pathLength: 0, opacity: 0}}
-                                        animate={{pathLength: 1, opacity: 1}}
-                                        transition={{duration: 0.9, ease: "easeOut"}}
-                                        points={points}
-                                    />
-                                </>
-                            );
-                        })()}
-                    </svg>
+                    <ChartContainer config={chartConfig} className="h-full w-full">
+                        <AreaChart
+                            accessibilityLayer
+                            data={data.days}
+                            margin={{
+                                left: 0,
+                                right: 0,
+                                top: 0,
+                                bottom: 0,
+                            }}
+                        >
+                            <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="#4b5563" />
+                            <XAxis
+                                dataKey="date"
+                                tickLine={false}
+                                axisLine={false}
+                                tickMargin={8}
+                                tickFormatter={(value) => value.slice(0, 5)}
+                                className="text-xs"
+                            />
+                            <YAxis
+                                domain={[min, max]}
+                                tickLine={false}
+                                axisLine={false}
+                                tickMargin={8}
+                                className="text-xs"
+                            />
+                            <ChartTooltip
+                                cursor={false}
+                                content={<ChartTooltipContent indicator="line" />}
+                            />
+                            <Area
+                                dataKey="pnl"
+                                type="monotone"
+                                fill="url(#colorPnl)"
+                                stroke="#a855f7"
+                                strokeWidth={2}
+                                dot={false}
+                                activeDot={{ r: 4, fill: "#a855f7" }}
+                            />
+                            <defs>
+                                <linearGradient id="colorPnl" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="5%" stopColor="#a855f7" stopOpacity={0.8}/>
+                                    <stop offset="95%" stopColor="#a855f7" stopOpacity={0.1}/>
+                                </linearGradient>
+                            </defs>
+                        </AreaChart>
+                    </ChartContainer>
                 )}
             </div>
-
 
             {/* Labels */}
             {!loading && (
