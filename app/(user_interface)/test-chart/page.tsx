@@ -10,6 +10,7 @@ import React, {
   useMemo,
   TouchEvent,
 } from "react"
+import {AnimatePresence, motion} from "framer-motion";
 import {
   MousePointer,
   Pencil,
@@ -26,11 +27,13 @@ import {
   User,
   Hand,
   Maximize2,
-  Minimize2,   // 👈 добавить
+  Minimize2,
+  Sparkles,
+  Cpu,   // 👈 добавить
 } from "lucide-react"
 import { useTickers } from "@/hooks/market-data"
 import { useI18n } from "@/components/i18n-provider"
-import { useBalance, refetchBalance } from "@/hooks/useBalance"
+import { useBalance } from "@/hooks/useBalance"
 import { VirtualizedTickerList } from "@/components/virtualized-ticker-list"
 import { TickerAvatar } from "@/components/ticker-avatar"
 import {
@@ -39,6 +42,8 @@ import {
   type TickerCategory,
 } from "@/data/ticker-meta"
 import { useIsMobile } from "@/hooks/use-mobile"
+import { X } from "lucide-react"
+import { AnimatedNumber } from "@/components/animated-number"
 
 type Candle = {
   time: number
@@ -150,7 +155,49 @@ const formatTimeLabel = (timestampSec: number, timeframe: string) => {
 const TestChart: React.FC = () => {
   const { t } = useI18n()
   const isMobile = useIsMobile()
+  // 🔹 баланс
+  const { balance, refetchBalance } = useBalance()
+  // 🔹 данные о себе, чтобы узнать aiTrading
+  const [me, setMe] = useState<{
+    id: string
+    aiTrading?: boolean | null
+  } | null>(null)
+  const [meLoading, setMeLoading] = useState(true)
+  useEffect(() => {
+    let cancelled = false
 
+    const loadMe = async () => {
+      try {
+        const res = await fetch("/api/auth/me", { cache: "no-store" })
+        if (!res.ok) return
+        const data = await res.json()
+        if (!cancelled) setMe(data.user)
+      } catch (e) {
+        console.error("Failed to load /api/auth/me", e)
+      } finally {
+        if (!cancelled) setMeLoading(false)
+      }
+    }
+
+    loadMe()
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  const aiAvailable = !!me?.aiTrading
+
+  // 🔹 AI-режим
+  const [aiEnabled, setAiEnabled] = useState(false)
+  const [aiAmount, setAiAmount] = useState<string>("50")
+  const [aiAnalyzing, setAiAnalyzing] = useState(false)
+  const [aiAnalyzed, setAiAnalyzed] = useState(false)
+  const [aiSuggested, setAiSuggested] = useState<{
+    symbol: string
+    type: "BUY" | "SELL"
+    price: number
+  } | null>(null)
   const {
     tickers,
     setSelectedTicker: setMarketTicker,
@@ -216,7 +263,7 @@ const TestChart: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("")
   const [openCategory, setOpenCategory] = useState<TickerCategory | null>("forex")
   const [activeTab, setActiveTab] = useState<"all" | "favorites">("all")
-
+  const [favoriteSymbols, setFavoriteSymbols] = useState<Set<string>>(new Set())
   // Drawing persistence
   const [saveStatus, setSaveStatus] = useState<
       "idle" | "saving" | "saved" | "error"
@@ -232,7 +279,31 @@ const TestChart: React.FC = () => {
   const [stopLoss, setStopLoss] = useState("")
   const [isBalanceUpdating, setIsBalanceUpdating] = useState(false)
   const [activeTrades, setActiveTrades] = useState<any[]>([])
-  const { balance } = useBalance()
+  const [isPlacingOrder, setIsPlacingOrder] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  // 🔹 Расчётная стоимость ордера (orderAmount) и маржа (margin)
+  const orderAmount = useMemo(() => {
+    if (!selectedTicker) return 0
+
+    const price =
+        selectedTicker.bid ||
+        selectedTicker.price ||
+        candles[candles.length - 1]?.close ||
+        0
+
+    const vol = Number.parseFloat(volume) || 0
+    if (!price || !vol) return 0
+
+    return price * vol // notional в валюте счёта
+  }, [selectedTicker, candles, volume])
+
+  const margin = useMemo(() => {
+    const amt = orderAmount
+    const lev = Number.parseFloat(leverage) || 0
+    if (!amt || !lev) return 0
+    return amt / lev
+  }, [orderAmount, leverage])
 
   const timeframeSeconds = useMemo(
       () => timeframeMap[timeframe] ?? 60,
@@ -283,7 +354,44 @@ const TestChart: React.FC = () => {
     if (value >= 0.1) return value.toFixed(4)
     return value.toPrecision(4)
   }, [])
+  useEffect(() => {
+    const loadFavorites = async () => {
+      try {
+        const res = await fetch("/api/trades/favorite-tickers")
+        if (!res.ok) return
+        const data: { symbols: string[] } = await res.json()
+        setFavoriteSymbols(new Set(data.symbols))
+      } catch (e) {
+        console.error("Failed to load favorites", e)
+      }
+    }
+    loadFavorites()
+  }, [])
+  const handleToggleFavorite = async (symbol: string) => {
+    setFavoriteSymbols((prev) => {
+      const next = new Set(prev)
+      if (next.has(symbol)) {
+        next.delete(symbol)
+      } else {
+        next.add(symbol)
+      }
+      return next
+    })
 
+    // ⚠️ Здесь используй тот же API, что и в админке
+    try {
+      const res = await fetch("/api/trades/favorite-tickers", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ symbol }),
+      })
+      if (!res.ok) {
+        console.error("Failed to toggle favorite")
+      }
+    } catch (e) {
+      console.error("Failed to toggle favorite", e)
+    }
+  }
   // Active trades
   useEffect(() => {
     const fetchActiveTrades = async () => {
@@ -334,134 +442,173 @@ const TestChart: React.FC = () => {
       }
     }
   }, [isMobileChartFullscreen])
-  const calculateMargin = useCallback(() => {
-    if (!selectedTicker) return "0.00"
-    const price = selectedTicker.bid || selectedTicker.price || 0
-    if (price <= 0) return "0.00"
 
-    const vol = Number.parseFloat(volume) || 0
-    const lev = Number.parseFloat(leverage) || 1
-    if (vol <= 0 || lev <= 0) return "0.00"
+  const placeTrade = useCallback(
+      async (payload: {
+        type: "BUY" | "SELL"
+        ticker: string
+        volume: number
+        leverage: number
+        margin: number
+        openIn: number
+        takeProfit?: number | null
+        stopLoss?: number | null
+        assetType?: string
+        aiEnabled?: boolean
+      }) => {
+        setError(null)
 
-    const margin = (price * vol) / lev
-    return margin.toFixed(2)
-  }, [selectedTicker, volume, leverage])
+        if (!payload.openIn || payload.openIn <= 0) {
+          setError("No valid price to open trade")
+          return null
+        }
 
-  const handlePlaceOrder = useCallback(async () => {
-    if (!selectedTicker) return
+        if (!balance || balance < payload.margin) {
+          // balance + credit will be checked on backend, but FE can show msg too
+          setError("Insufficient balance")
+          return null
+        }
 
-    try {
-      const margin = Number.parseFloat(calculateMargin())
-      if (isNaN(margin) || margin <= 0) {
-        console.error("Invalid margin calculation")
-        return
-      }
-      if (margin > (balance || 0)) {
-        console.error("Insufficient balance")
-        return
-      }
+        setIsPlacingOrder(true)
 
-      const orderData = {
-        type: orderType,
-        ticker: selectedTicker.symbol,
-        volume: Number.parseFloat(volume),
-        leverage: Number.parseInt(leverage),
-        margin,
-        openIn: selectedTicker.bid || selectedTicker.price,
-        takeProfit: takeProfitEnabled ? Number.parseFloat(takeProfit) : null,
-        stopLoss: stopLossEnabled ? Number.parseFloat(stopLoss) : null,
-        assetType: selectedTicker.category === "crypto" ? "Crypto" : "IEX",
-      }
+        const optimistic = {
+          id: "temp-" + Date.now(),
+          status: "OPEN",
+          createdAt: new Date().toISOString(),
+          ...payload,
+        }
 
-      if (
-          !orderData.type ||
-          !orderData.ticker ||
-          !orderData.volume ||
-          !orderData.leverage ||
-          !orderData.margin ||
-          !orderData.openIn ||
-          !orderData.assetType
-      ) {
-        console.error("Missing required order information")
-        return
-      }
-
-      const optimisticTrade: any = {
-        id: `temp-${Date.now()}`,
-        ticker: orderData.ticker,
-        type: orderData.type as "BUY" | "SELL",
-        volume: orderData.volume,
-        margin: orderData.margin,
-        leverage: orderData.leverage,
-        openIn: orderData.openIn,
-        openInA: orderData.openIn,
-        profit: 0,
-        status: "OPEN",
-        takeProfit: takeProfitEnabled ? takeProfit : "",
-        stopLoss: stopLossEnabled ? stopLoss : "",
-        assetType: orderData.assetType,
-        createdAt: new Date().toISOString(),
-      }
-
-      setActiveTrades((prev) => [...prev, optimisticTrade])
-
-      setVolume("0.01")
-      setTakeProfit("")
-      setStopLoss("")
-      setTakeProfitEnabled(false)
-      setStopLossEnabled(false)
-
-      setIsBalanceUpdating(true)
-
-      const response = await fetch("/api/trades", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(orderData),
-      })
-
-      if (response.ok) {
-        const createdTrade = await response.json()
-        setActiveTrades((prev) => [
-          ...prev.filter((t) => t.id !== optimisticTrade.id),
-          createdTrade,
-        ])
+        setActiveTrades((p) => [...p, optimistic])
 
         try {
+          const res = await fetch("/api/trades", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload), // ← числа, не строки
+          })
+
+          const data = await res.json()
+
+          if (!res.ok) throw new Error(data?.error || "Failed to place order")
+
+          // replace optimistic with real trade
+          setActiveTrades((p) =>
+              p.map((t) => (t.id === optimistic.id ? data : t))
+          )
+
           await refetchBalance()
-        } catch (error) {
-          console.error("Error refreshing balance:", error)
+          return data
+        } catch (e: any) {
+          console.error(e)
+          // rollback optimistic
+          setActiveTrades((p) => p.filter((t) => t.id !== optimistic.id))
+          setError(e.message)
+          return null
         } finally {
-          setIsBalanceUpdating(false)
+          setIsPlacingOrder(false)
         }
-      } else {
-        setActiveTrades((prev) =>
-            prev.filter((t) => t.id !== optimisticTrade.id),
-        )
-        setIsBalanceUpdating(false)
+      },
+      [balance, refetchBalance]
+  )
 
-        const errorData = await response.json().catch(() => ({}))
-        console.error(
-            "Failed to place order:",
-            errorData.error || "Unknown error",
-        )
-      }
-    } catch (error) {
-      console.error("Error placing order:", error)
-      setIsBalanceUpdating(false)
+  const handlePlaceOrder = useCallback(async () => {
+    if (!selectedTicker) return setError("No symbol selected")
+
+    const vol = Number(volume)
+    const lev = Number(leverage)
+
+    if (!vol || !lev) return setError("Fill volume and leverage")
+
+    const last = candles[candles.length - 1]
+    const price = last?.close || last?.open
+
+    if (!price) return setError("No price available")
+
+    const payload = {
+      type: orderType,
+      ticker: selectedTicker.symbol,
+      volume: vol,
+      leverage: lev,
+      margin: margin, // from useMemo
+      openIn: price,
+      takeProfit: takeProfitEnabled ? Number(takeProfit) : null,
+      stopLoss: stopLossEnabled ? Number(stopLoss) : null,
+      assetType: selectedTicker.category === "crypto" ? "Crypto" :  selectedTicker.category === "forex" ? "Forex" : "IEX",
+      aiEnabled: false,
     }
-  }, [
-    selectedTicker,
-    orderType,
-    volume,
-    leverage,
-    takeProfit,
-    stopLoss,
-    takeProfitEnabled,
-    stopLossEnabled,
-    balance,
-    calculateMargin,
-  ])
 
+    await placeTrade(payload)
+
+  }, [orderType, selectedTicker, volume, leverage, margin, candles, takeProfitEnabled, stopLossEnabled])
+  // 🔹 запуск "анализа" AI
+  const handleStartAiAnalyze = useCallback(() => {
+    if (!aiAvailable || !aiEnabled || aiAnalyzing) return
+
+    setAiAnalyzing(true)
+    setAiAnalyzed(false)
+    setAiSuggested(null)
+    setError(null)
+
+    // имитация красивого анализа: через ~2.3 сек выдаём результат
+    setTimeout(() => {
+      if (!tickers.length) {
+        setAiAnalyzing(false)
+        setError("Not enough market data for AI analysis yet")
+        return
+      }
+
+      const randomTicker =
+          tickers[Math.floor(Math.random() * tickers.length)]
+      const lastPrice =
+          candles[candles.length - 1]?.close ??
+          candles[candles.length - 1]?.open ??
+          randomTicker.bid ??
+          randomTicker.ask ??
+          randomTicker.lastPrice ??
+          1
+
+      const direction: "BUY" | "SELL" =
+          Math.random() > 0.5 ? "BUY" : "SELL"
+
+      setAiSuggested({
+        symbol: randomTicker.symbol,
+        type: direction,
+        price: lastPrice,
+      })
+      setAiAnalyzing(false)
+      setAiAnalyzed(true)
+    }, 2300)
+  }, [aiAvailable, aiEnabled, aiAnalyzing, tickers, candles])
+
+// 🔹 открыть ордер по результатам AI
+  const handlePlaceAiOrder = useCallback(async () => {
+    if (!aiSuggested) return
+
+    const parsedMargin = Number(aiAmount)
+    if (!parsedMargin) return setError("Enter correct AI amount")
+
+    const price = aiSuggested.price
+    const leverageValue = 25
+
+    let vol = (parsedMargin * leverageValue) / price
+    if (vol < 0.01) vol = 0.01
+    if (vol > 1000) vol = 1000
+
+    await placeTrade({
+      type: aiSuggested.type,
+      ticker: aiSuggested.symbol,
+      volume: vol,
+      leverage: leverageValue,
+      margin: parsedMargin,
+      openIn: price,
+      takeProfit: null,
+      stopLoss: null,
+      assetType: "Crypto",
+      aiEnabled: true,
+    })
+
+    setAiSuggested(null)
+  }, [aiSuggested, aiAmount])
   // --- candles from hook + gap fill ---
   useEffect(() => {
     if (candlesBySymbol && candlesBySymbol.length > 0) {
@@ -581,7 +728,42 @@ const TestChart: React.FC = () => {
       },
       [setMarketTicker, loadDrawingsFor, timeframe, isMobile],
   )
+  const handleWheelNative = useCallback(
+      (e: WheelEvent) => {
+        e.preventDefault()
+        e.stopPropagation()
 
+        // если хотел панорамирование по Shift
+        if (e.shiftKey) {
+          const delta = e.deltaY || e.deltaX
+          setPanOffset((prev) =>
+              Math.max(
+                  0,
+                  Math.min(prev + delta * 0.5, Math.max(0, candles.length - 50)),
+              ),
+          )
+          return
+        }
+
+        // зум
+        if (e.deltaY < 0) {
+          setScale((s) => Math.min(s + 0.1, 3))
+        } else {
+          setScale((s) => Math.max(s - 0.1, 0.5))
+        }
+      },
+      [candles.length],
+  )
+
+  useEffect(() => {
+    const el = containerRef.current
+    if (!el) return
+
+    const listener = (e: WheelEvent) => handleWheelNative(e)
+
+    el.addEventListener("wheel", listener, { passive: false })
+    return () => el.removeEventListener("wheel", listener)
+  }, [handleWheelNative])
   // смена таймфрейма
   const handleTimeframeClick = useCallback(
       async (value: string) => {
@@ -1818,7 +2000,7 @@ const TestChart: React.FC = () => {
 
   // Favorites
   const toggleFavorite = (symbol: string) => {
-    setFavorites((prev) => {
+    setFavoriteSymbols((prev) => {
       const next = new Set(prev)
       if (next.has(symbol)) next.delete(symbol)
       else next.add(symbol)
@@ -1828,19 +2010,23 @@ const TestChart: React.FC = () => {
 
   const filteredTickers = useMemo(() => {
     const term = searchTerm.trim().toLowerCase()
+
+    let base = tickers
+
     if (activeTab === "favorites") {
-      return tickers.filter((ticker) => favorites.has(ticker.symbol))
+      base = tickers.filter((ticker) => favoriteSymbols.has(ticker.symbol))
     }
 
-    if (!term) return tickers
-    return tickers.filter((ticker) => {
+    if (!term) return base
+
+    return base.filter((ticker) => {
       return (
           ticker.symbol.toLowerCase().includes(term) ||
           ticker.showName.toLowerCase().includes(term) ||
           ticker.fullName.toLowerCase().includes(term)
       )
     })
-  }, [tickers, searchTerm, favorites, activeTab])
+  }, [tickers, searchTerm, favoriteSymbols, activeTab])
 
   const tickersByCategory = useMemo(() => {
     const map = orderedCategories.reduce(
@@ -1878,12 +2064,24 @@ const TestChart: React.FC = () => {
       )
     }
 
+    if (activeTab === "favorites") {
+      const hasAnyFavoritesInView = filteredTickers.length > 0
+      if (!hasAnyFavoritesInView) {
+        return (
+            <div className="flex h-24 items-center justify-center text-xs text-slate-500">
+              {t("noFavoriteTickers") || "You have no favorite symbols yet."}
+            </div>
+        )
+      }
+    }
+
     return (
         <div className="space-y-2">
           {orderedCategories.map((categoryKey) => {
             const catTickers = tickersByCategory[categoryKey] || []
             if (!catTickers.length) return null
             const isOpen = openCategory === categoryKey
+
             return (
                 <div
                     key={categoryKey}
@@ -1897,12 +2095,12 @@ const TestChart: React.FC = () => {
                       className="flex w-full items-center justify-between px-3.5 py-2.5"
                   >
                     <div className="flex items-center gap-2">
-                  <span
-                      className={`h-2 w-2 rounded-full bg-gradient-to-r ${categoryAccent[categoryKey]} shadow`}
-                  />
+                <span
+                    className={`h-2 w-2 rounded-full bg-gradient-to-r ${categoryAccent[categoryKey]} shadow`}
+                />
                       <span className="text-xs font-semibold">
-                    {tickerCategoryLabels[categoryKey]}
-                  </span>
+                  {tickerCategoryLabels[categoryKey]}
+                </span>
                     </div>
                     <svg
                         className={`h-4 w-4 text-slate-400 transition-transform ${
@@ -1920,6 +2118,7 @@ const TestChart: React.FC = () => {
                       />
                     </svg>
                   </button>
+
                   {isOpen && (
                       <div className="border-t border-slate-800/80">
                         <VirtualizedTickerList
@@ -1928,6 +2127,8 @@ const TestChart: React.FC = () => {
                             onSelectTicker={handleSelectTicker}
                             formatPriceValue={formatPriceValue}
                             height={Math.min(420, catTickers.length * 64)}
+                            favoriteSymbols={favoriteSymbols}   // 👈 один и тот же Set
+                            onToggleFavorite={toggleFavorite}   // 👈 один и тот же хендлер
                         />
                       </div>
                   )}
@@ -1937,6 +2138,8 @@ const TestChart: React.FC = () => {
         </div>
     )
   }
+
+
 
   // keyboard nav
   useEffect(() => {
@@ -2064,6 +2267,71 @@ const TestChart: React.FC = () => {
 
     return () => cancelAnimationFrame(t)
   }, [isMobileChartFullscreen, loading, isCandlesLoading, candles])
+
+  const handleCloseTrade = useCallback(
+      async (trade: any) => {
+        setError(null)
+
+        // Берём лайв-цену для тикера из массива tickers
+        const tickerData = tickers.find((t) => t.symbol === trade.ticker)
+
+        const livePrice =
+            tickerData?.bid ??
+            tickerData?.ask ??
+            tickerData?.lastPrice ??
+            trade.openIn
+
+        if (!livePrice || !Number.isFinite(livePrice) || livePrice <= 0) {
+          setError("No current price to close order")
+          return
+        }
+
+        // Optimistic: помечаем как CLOSING
+        setActiveTrades((prev) =>
+            prev.map((t) =>
+                t.id === trade.id ? { ...t, status: "CLOSING" } : t
+            )
+        )
+
+        try {
+          const res = await fetch(`/api/trades/${trade.id}/close`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ currentPrice: livePrice }),
+          })
+
+          const data = await res.json()
+
+          if (!res.ok) {
+            throw new Error(data?.error || "Failed to close order")
+          }
+
+          // Обновляем сделку данными с бэкенда (CLOSED, profit, closeIn)
+          setActiveTrades((prev) =>
+              prev.map((t) => (t.id === trade.id ? data : t))
+          )
+
+          await refetchBalance()
+        } catch (e: any) {
+          console.error("close error", e)
+          setError(e?.message || "Failed to close order")
+
+          // откатываем статус назад
+          setActiveTrades((prev) =>
+              prev.map((t) =>
+                  t.id === trade.id && t.status === "CLOSING"
+                      ? { ...t, status: "OPEN" }
+                      : t
+              )
+          )
+        }
+      },
+      [tickers, refetchBalance]
+  )
+  const openTrades = useMemo(
+      () => activeTrades.filter((tr) => tr.status === "OPEN" || tr.status === "CLOSING"),
+      [activeTrades]
+  )
   // ---------------- MOBILE LAYOUT ----------------
   if (isMobile) {
     // красивый текст в шапке селектора индикаторов
@@ -2154,7 +2422,7 @@ const TestChart: React.FC = () => {
                 {/* TICKER HEADER + CONTROLS */}
                 {selectedTicker && (
                     <div className="space-y-3 rounded-2xl border border-slate-800 bg-slate-950/90 px-3 py-3">
-                      {/* 1) Название + цена + аватар (иконка возле цены) */}
+                      {/* 1) Название + цена + аватар */}
                       <div className="flex items-center justify-between gap-3">
                         <div className="min-w-0">
                           <div className="flex items-center gap-2">
@@ -2174,7 +2442,8 @@ const TestChart: React.FC = () => {
                           <div className="text-right">
                             <div className="font-mono text-lg font-semibold leading-none text-white">
                               {candles.length > 0
-                                  ? `$${formatPriceValue(currentPrice) ?? currentPrice.toFixed(5)}`
+                                  ? `$${formatPriceValue(currentPrice) ??
+                                  currentPrice.toFixed(5)}`
                                   : "--"}
                             </div>
                             <div className="mt-1 text-[10px]">
@@ -2208,7 +2477,7 @@ const TestChart: React.FC = () => {
                         </div>
                       </div>
 
-                      {/* 2) TIMEFRAME SELECT + INDICATORS SELECT (в две колонки) */}
+                      {/* 2) TIMEFRAME + INDICATORS + FULLSCREEN BTN */}
                       <div className="mt-1 flex w-full flex-row justify-between gap-2">
                         {/* TIMEFRAME */}
                         <div className="flex w-1/2 flex-col gap-1">
@@ -2233,7 +2502,7 @@ const TestChart: React.FC = () => {
                           </div>
                         </div>
 
-                        {/* INDICATORS SELECT — тот же набор что и раньше, только в дропдауне */}
+                        {/* INDICATORS SELECT */}
                         <div className="flex w-1/2 flex-col gap-1">
                     <span className="text-[10px] text-slate-500">
                       {t("indicators") || "Indicators"}
@@ -2352,23 +2621,23 @@ const TestChart: React.FC = () => {
                             </div>
                           </details>
                         </div>
-                        {/* Кнопка фуллскрина */}
-                        <div className="flex justify-center items-end rounded-sm ">
+
+                        {/* FULLSCREEN BUTTON */}
+                        <div className="flex items-end justify-center rounded-sm">
                           <button
                               type="button"
                               onClick={() => {
                                 setIsFullscreenLoading(true)
                                 setIsMobileChartFullscreen(true)
                               }}
-                              className="flex items-end gap-1 border border-slate-700 rounded-sm  bg-slate-900/80 px-2.5 py-2.5 text-[5px] text-slate-200"
+                              className="flex items-end gap-1 rounded-sm border border-slate-700 bg-slate-900/80 px-2.5 py-2.5 text-[5px] text-slate-200"
                           >
                             <Maximize2 className="h-3 w-3" />
-                            {/*{t("fullscreen") || "Full screen"}*/}
                           </button>
                         </div>
                       </div>
 
-                      {/* 3) ИНСТРУМЕНТЫ — на всю ширину, скролл, только иконки */}
+                      {/* 3) DRAWING TOOLS */}
                       <div className="mt-2 -mx-1 flex gap-1 overflow-x-auto pb-1">
                         {drawingTools.map((tool) => {
                           const Icon = tool.icon
@@ -2404,8 +2673,8 @@ const TestChart: React.FC = () => {
                               <div className="flex items-center space-x-2 text-xs text-slate-400">
                                 <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-purple-500" />
                                 <span>
-                        {t("updatingChart") || "Updating chart data"}...
-                      </span>
+                          {t("updatingChart") || "Updating chart data"}...
+                        </span>
                               </div>
                             </div>
                         )}
@@ -2419,7 +2688,10 @@ const TestChart: React.FC = () => {
                               <div className="text-center text-xs text-slate-400">
                                 <div className="mx-auto mb-3 h-8 w-8 animate-spin rounded-full border-b-2 border-purple-500" />
                                 {symbol
-                                    ? `${t("loadingChartData") || "Loading chart data for"} ${symbol}...`
+                                    ? `${
+                                        t("loadingChartData") ||
+                                        "Loading chart data for"
+                                    } ${symbol}...`
                                     : "Loading candles..."}
                               </div>
                             </div>
@@ -2433,162 +2705,389 @@ const TestChart: React.FC = () => {
                                 onMouseMove={handleMouseMove}
                                 onMouseUp={handleMouseUp}
                                 onMouseLeave={handleMouseUp}
-                                onWheel={handleWheel}
-                                onTouchStart={handleTouchStart}
-                                onTouchMove={handleTouchMove}
-                                onTouchEnd={handleTouchEnd}
+                                onWheel={(e) => {
+                                  e.preventDefault()
+                                  e.stopPropagation()
+                                  handleWheel(e) // если надо – внутри handleWheel используй e.deltaY и т.д.
+                                }}
+                                onTouchStart={(e) => {
+                                  e.preventDefault()
+                                  e.stopPropagation()
+                                  handleTouchStart(e)
+                                }}
+                                onTouchMove={(e) => {
+                                  e.preventDefault()
+                                  e.stopPropagation()
+                                  handleTouchMove(e)
+                                }}
+                                onTouchEnd={(e) => {
+                                  e.preventDefault()
+                                  e.stopPropagation()
+                                  handleTouchEnd(e)
+                                }}
                             />
                         )}
                       </div>
                     </div>
                 )}
 
-                {/* ORDER FORM + ACTIVE TRADES (оставил как в прошлой версии, чтобы не ломать логику) */}
+                {/* ORDER FORM + ACTIVE TRADES */}
                 <div className="space-y-4 pb-2">
-                  {/* ORDER CARD */}
-                  <div className="rounded-2xl border border-slate-800 bg-slate-950/95 px-4 py-3 text-xs shadow-[0_0_30px_rgba(88,28,135,0.35)]">
-                    <div className="mb-3 flex rounded-full bg-slate-900/80 p-1">
-                      <button
-                          onClick={() => setOrderType("BUY")}
-                          className={`flex-1 rounded-full py-2 text-[11px] font-semibold ${
-                              orderType === "BUY"
-                                  ? "bg-emerald-500 text-white"
-                                  : "text-slate-300"
-                          }`}
-                      >
-                        {t("buyUpper")}
-                      </button>
-                      <button
-                          onClick={() => setOrderType("SELL")}
-                          className={`flex-1 rounded-full py-2 text-[11px] font-semibold ${
-                              orderType === "SELL"
-                                  ? "bg-red-500 text-white"
-                                  : "text-slate-300"
-                          }`}
-                      >
-                        {t("sellUpper")}
-                      </button>
-                    </div>
-
-                    <div className="space-y-3">
-                      <div>
-                        <label className="mb-1 block text-[11px] text-slate-300">
-                          {t("volume")}
-                        </label>
-                        <input
-                            type="text"
-                            value={volume}
-                            onChange={(e) => setVolume(e.target.value)}
-                            placeholder="0.01"
-                            className="h-9 w-full rounded-md border border-slate-800 bg-slate-950 px-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="mb-1 block text-[11px] text-slate-300">
-                          {t("leverage")}
-                        </label>
-                        <select
-                            value={leverage}
-                            onChange={(e) => setLeverage(e.target.value)}
-                            className="h-9 w-full rounded-md border border-slate-800 bg-slate-950 px-3 text-xs text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-                        >
-                          <option value="1">1:1</option>
-                          <option value="5">1:5</option>
-                          <option value="10">1:10</option>
-                          <option value="25">1:25</option>
-                          <option value="50">1:50</option>
-                          <option value="100">1:100</option>
-                        </select>
-                      </div>
-
-                      <div className="flex items-center justify-between text-[11px] text-slate-400">
-                        <span>{t("marginRequired")}</span>
-                        <span className="font-mono text-slate-100">
-                      ${calculateMargin()}
-                    </span>
-                      </div>
-
-                      <div className="space-y-2">
-                        {/* TP */}
-                        <div className="flex items-center justify-between">
-                      <span className="text-[11px] text-slate-300">
-                        {t("takeProfit")}
-                      </span>
+                  {/* ORDER CARD (mobile) */}
+                  <motion.div
+                      layout
+                      initial={false}
+                      animate={
+                        aiAvailable && aiEnabled
+                            ? {
+                              borderColor: "rgba(34,211,238,0.8)",
+                              boxShadow:
+                                  "0 0 30px rgba(34,211,238,0.35), 0 0 60px rgba(147,51,234,0.25)",
+                            }
+                            : {
+                              borderColor: "rgba(30,64,175,0.7)",
+                              boxShadow:
+                                  "0 0 18px rgba(88,28,135,0.35), 0 0 30px rgba(15,23,42,0.9)",
+                            }
+                      }
+                      className="space-y-3 rounded-2xl border bg-slate-950/90 p-3"
+                  >
+                    {/* AI toggle, только если у юзера aiTrading = true */}
+                    {aiAvailable && (
+                        <div className="flex items-center justify-between rounded-xl border border-slate-800/80 bg-slate-900/80 px-3 py-2">
+                          <div className="flex items-center gap-2">
+                            <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-tr from-cyan-400/40 via-violet-500/40 to-fuchsia-500/40 text-cyan-200">
+                              <Sparkles className="h-4 w-4" />
+                            </div>
+                            <div className="flex flex-col">
+                        <span className="text-[11px] font-semibold text-slate-50">
+                          AI Trading
+                        </span>
+                              <span className="text-[10px] text-slate-400">
+                          {aiEnabled
+                              ? "Neural engine will pick symbol & direction"
+                              : "Manual trading mode"}
+                        </span>
+                            </div>
+                          </div>
                           <label className="relative inline-flex cursor-pointer items-center">
                             <input
                                 type="checkbox"
-                                checked={takeProfitEnabled}
-                                onChange={() =>
-                                    setTakeProfitEnabled(!takeProfitEnabled)
-                                }
+                                checked={aiEnabled}
+                                onChange={() => {
+                                  setAiEnabled((v) => !v)
+                                  setAiAnalyzed(false)
+                                  setAiSuggested(null)
+                                }}
                                 className="peer sr-only"
                             />
-                            <div className="h-5 w-9 rounded-full bg-slate-700 after:absolute after:left-[2px] after:top-[2px] after:h-4 after:w-4 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all peer-checked:bg-purple-600 peer-checked:after:translate-x-full peer-checked:after:border-white" />
+                            <div className="h-5 w-9 rounded-full bg-slate-700 after:absolute after:left-[2px] after:top[2px] after:h-4 after:w-4 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all peer-checked:bg-cyan-500 peer-checked:after:translate-x-full peer-checked:after:border-white" />
                           </label>
                         </div>
-                        {takeProfitEnabled && (
-                            <input
-                                type="text"
-                                value={takeProfit}
-                                onChange={(e) => setTakeProfit(e.target.value)}
-                                placeholder={t("enterTpPrice")}
-                                className="h-9 w-full rounded-md border border-slate-800 bg-slate-950 px-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                            />
-                        )}
+                    )}
 
-                        {/* SL */}
-                        <div className="flex items-center justify-between">
-                      <span className="text-[11px] text-slate-300">
-                        {t("stopLoss")}
-                      </span>
-                          <label className="relative inline-flex cursor-pointer items-center">
-                            <input
-                                type="checkbox"
-                                checked={stopLossEnabled}
-                                onChange={() =>
-                                    setStopLossEnabled(!stopLossEnabled)
-                                }
-                                className="peer sr-only"
-                            />
-                            <div className="h-5 w-9 rounded-full bg-slate-700 after:absolute after:left-[2px] after:top-[2px] after:h-4 after:w-4 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all peer-checked:bg-purple-600 peer-checked:after:translate-x-full peer-checked:after:border-white" />
-                          </label>
-                        </div>
-                        {stopLossEnabled && (
-                            <input
-                                type="text"
-                                value={stopLoss}
-                                onChange={(e) => setStopLoss(e.target.value)}
-                                placeholder={t("enterSlPrice")}
-                                className="h-9 w-full rounded-md border border-slate-800 bg-slate-950 px-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                            />
-                        )}
-                      </div>
+                    <AnimatePresence mode="wait" initial={false}>
+                      {/* ==== AI MODE ==== */}
+                      {aiAvailable && aiEnabled ? (
+                          <motion.div
+                              key="ai-mode-mobile"
+                              initial={{ opacity: 0, scale: 0.97, y: 8 }}
+                              animate={{ opacity: 1, scale: 1, y: 0 }}
+                              exit={{ opacity: 0, scale: 0.97, y: -8 }}
+                              transition={{ duration: 0.18, ease: "easeOut" }}
+                              className="space-y-3"
+                          >
+                            {/* amount */}
+                            <div className="space-y-1">
+                              <div className="flex items-center justify-between text-[11px] text-slate-300">
+                                <span>AI amount</span>
+                                <span className="text-[10px] text-slate-500">
+                            Used as margin in base currency
+                          </span>
+                              </div>
+                              <input
+                                  type="number"
+                                  min={0}
+                                  step="0.01"
+                                  value={aiAmount}
+                                  onChange={(e) => setAiAmount(e.target.value)}
+                                  className="h-9 w-full rounded-md border border-cyan-500/40 bg-slate-950 px-3 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/60"
+                                  placeholder="$100.00"
+                              />
+                            </div>
 
-                      <button
-                          onClick={handlePlaceOrder}
-                          className="w-full rounded-xl bg-gradient-to-r from-purple-600 via-fuchsia-500 to-sky-500 py-2.5 text-xs font-semibold text-white shadow-[0_0_25px_rgba(129,140,248,0.7)] transition-all hover:brightness-110"
-                      >
-                        {t("placeOrderCta").replace("{type}", orderType)}
-                      </button>
+                            {/* analyze + result */}
+                            <div className="space-y-2">
+                              <button
+                                  type="button"
+                                  onClick={handleStartAiAnalyze}
+                                  disabled={aiAnalyzing}
+                                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-cyan-500 via-violet-500 to-fuchsia-500 py-2.5 text-xs font-semibold text-white shadow-[0_0_25px_rgba(34,211,238,0.55)] transition-all hover:brightness-110 disabled:opacity-60"
+                              >
+                                <Cpu className="h-4 w-4" />
+                                {aiAnalyzing ? "Analyzing market..." : "Start analyze"}
+                              </button>
 
-                      <div className="flex items-center justify-between border-t border-slate-800/70 pt-2 text-[11px] text-slate-400">
-                        <span>{t("balance")}</span>
-                        <span className="flex items-center font-mono text-slate-100">
-                      {isBalanceUpdating ? (
-                          <>
-                            <span className="mr-2 h-3 w-3 animate-spin rounded-full border-b-2 border-purple-500" />
-                            {t("processing")}...
-                          </>
+                              <div className="min-h-[70px] rounded-xl border border-cyan-500/40 bg-gradient-to-br from-cyan-500/10 via-violet-500/5 to-slate-950 px-3 py-2 text-[11px] text-slate-100">
+                                {aiAnalyzing && (
+                                    <div className="space-y-2">
+                                      <motion.div
+                                          initial={{ opacity: 0 }}
+                                          animate={{ opacity: 1 }}
+                                          className="h-1.5 w-full overflow-hidden rounded-full bg-slate-900/80"
+                                      >
+                                        <motion.div
+                                            className="h-full w-1/3 rounded-full bg-gradient-to-r from-cyan-400 via-violet-400 to-fuchsia-400"
+                                            animate={{ x: ["-50%", "150%"] }}
+                                            transition={{
+                                              repeat: Infinity,
+                                              duration: 1.4,
+                                              ease: "easeInOut",
+                                            }}
+                                        />
+                                      </motion.div>
+                                      <motion.p
+                                          initial={{ opacity: 0 }}
+                                          animate={{ opacity: 1 }}
+                                          className="text-[10px] text-cyan-200"
+                                      >
+                                        Scanning volatility clusters, liquidity zones and
+                                        trend strength...
+                                      </motion.p>
+                                    </div>
+                                )}
+
+                                {!aiAnalyzing && aiSuggested && (
+                                    <div className="space-y-2">
+                                      <div className="flex items-center justify-between">
+                                        <div>
+                                          <div className="flex items-center gap-1">
+                                    <span className="text-xs font-semibold">
+                                      {aiSuggested.symbol}
+                                    </span>
+                                            <span
+                                                className={`rounded-full px-1.5 py-0.5 text-[9px] ${
+                                                    aiSuggested.type === "BUY"
+                                                        ? "bg-emerald-500/20 text-emerald-300"
+                                                        : "bg-red-500/20 text-red-300"
+                                                }`}
+                                            >
+                                      {aiSuggested.type}
+                                    </span>
+                                          </div>
+                                          <div className="text-[10px] text-slate-400">
+                                            Entry ≈ {aiSuggested.price.toFixed(5)}
+                                          </div>
+                                        </div>
+                                        <div className="text-[10px] text-cyan-300">
+                                          Ready to place AI order
+                                        </div>
+                                      </div>
+
+                                      {/* для красоты показываем расчёт из aiAmount */}
+                                      <div className="mt-2 rounded-xl border border-slate-800/80 bg-slate-950/90 px-3 py-2 text-xs text-slate-300">
+                                        <div className="mt-1 flex items-center justify-between">
+                                  <span>
+                                    {t("requiredMargin") || "Required margin"}:
+                                  </span>
+                                          <span className="font-semibold text-amber-300">
+                                    {Number.parseFloat(aiAmount || "0").toFixed(2)}
+                                  </span>
+                                        </div>
+                                      </div>
+
+                                      <button
+                                          type="button"
+                                          onClick={handlePlaceAiOrder}
+                                          className="w-full rounded-xl bg-cyan-500/90 py-2 text-xs font-semibold text-slate-950 shadow-[0_0_20px_rgba(34,211,238,0.6)] hover:bg-cyan-400"
+                                      >
+                                        Place AI order
+                                      </button>
+                                    </div>
+                                )}
+
+                                {!aiAnalyzing && !aiSuggested && !aiAnalyzed && (
+                                    <p className="text-[10px] text-slate-400">
+                                      Hit{" "}
+                                      <span className="text-cyan-300">
+                                Start analyze
+                              </span>{" "}
+                                      to let AI choose the best symbol and direction for
+                                      you.
+                                    </p>
+                                )}
+                              </div>
+                            </div>
+                          </motion.div>
                       ) : (
-                          `$${balance?.toFixed(2) ?? "0.00"}`
-                      )}
-                    </span>
-                      </div>
-                    </div>
-                  </div>
+                          /* ==== MANUAL MODE ==== */
+                          <motion.div
+                              key="manual-mode-mobile"
+                              initial={{ opacity: 0, scale: 0.97, y: 8 }}
+                              animate={{ opacity: 1, scale: 1, y: 0 }}
+                              exit={{ opacity: 0, scale: 0.97, y: -8 }}
+                              transition={{ duration: 0.18, ease: "easeOut" }}
+                          >
+                            <div className="rounded-2xl border border-slate-800 bg-slate-950/95 px-4 py-3 text-xs shadow-[0_0_30px_rgba(88,28,135,0.35)]">
+                              <div className="mb-3 flex rounded-full bg-slate-900/80 p-1">
+                                <button
+                                    onClick={() => setOrderType("BUY")}
+                                    className={`flex-1 rounded-full py-2 text-[11px] font-semibold ${
+                                        orderType === "BUY"
+                                            ? "bg-emerald-500 text-white"
+                                            : "text-slate-300"
+                                    }`}
+                                >
+                                  {t("buyUpper")}
+                                </button>
+                                <button
+                                    onClick={() => setOrderType("SELL")}
+                                    className={`flex-1 rounded-full py-2 text-[11px] font-semibold ${
+                                        orderType === "SELL"
+                                            ? "bg-red-500 text-white"
+                                            : "text-slate-300"
+                                    }`}
+                                >
+                                  {t("sellUpper")}
+                                </button>
+                              </div>
 
-                  {/* ACTIVE TRADES */}
+                              <div className="space-y-3">
+                                <div>
+                                  <label className="mb-1 block text-[11px] text-slate-300">
+                                    {t("volume")}
+                                  </label>
+                                  <input
+                                      type="text"
+                                      value={volume}
+                                      onChange={(e) => setVolume(e.target.value)}
+                                      placeholder="0.01"
+                                      className="h-9 w-full rounded-md border border-slate-800 bg-slate-950 px-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                  />
+                                </div>
+
+                                <div>
+                                  <label className="mb-1 block text-[11px] text-slate-300">
+                                    {t("leverage")}
+                                  </label>
+                                  <select
+                                      value={leverage}
+                                      onChange={(e) => setLeverage(e.target.value)}
+                                      className="h-9 w-full rounded-md border border-slate-800 bg-slate-950 px-3 text-xs text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                  >
+                                    <option value="1">1:1</option>
+                                    <option value="5">1:5</option>
+                                    <option value="10">1:10</option>
+                                    <option value="25">1:25</option>
+                                    <option value="50">1:50</option>
+                                    <option value="100">1:100</option>
+                                  </select>
+                                </div>
+
+                                {/* orderAmount + margin */}
+                                <div className="mt-1 rounded-xl border border-slate-800/80 bg-slate-950/90 px-3 py-2 text-[11px] text-slate-300">
+                                  <div className="mt-1 flex items-center justify-between">
+                                    <span>{t("marginRequired")}</span>
+                                    <span className="font-mono text-amber-300">
+                                ${margin.toFixed(2)}
+                              </span>
+                                  </div>
+                                </div>
+
+                                <div className="space-y-2">
+                                  {/* TP */}
+                                  <div className="flex items-center justify-between">
+                              <span className="text-[11px] text-slate-300">
+                                {t("takeProfit")}
+                              </span>
+                                    <label className="relative inline-flex cursor-pointer items-center">
+                                      <input
+                                          type="checkbox"
+                                          checked={takeProfitEnabled}
+                                          onChange={() =>
+                                              setTakeProfitEnabled(!takeProfitEnabled)
+                                          }
+                                          className="peer sr-only"
+                                      />
+                                      <div className="h-5 w-9 rounded-full bg-slate-700 after:absolute after:left-[2px] after:top[2px] after:h-4 after:w-4 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all peer-checked:bg-purple-600 peer-checked:after:translate-x-full peer-checked:after:border-white" />
+                                    </label>
+                                  </div>
+                                  {takeProfitEnabled && (
+                                      <input
+                                          type="text"
+                                          value={takeProfit}
+                                          onChange={(e) =>
+                                              setTakeProfit(e.target.value)
+                                          }
+                                          placeholder={t("enterTpPrice")}
+                                          className="h-9 w-full rounded-md border border-slate-800 bg-slate-950 px-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                      />
+                                  )}
+
+                                  {/* SL */}
+                                  <div className="flex items-center justify-between">
+                              <span className="text-[11px] text-slate-300">
+                                {t("stopLoss")}
+                              </span>
+                                    <label className="relative inline-flex cursor-pointer items-center">
+                                      <input
+                                          type="checkbox"
+                                          checked={stopLossEnabled}
+                                          onChange={() =>
+                                              setStopLossEnabled(!stopLossEnabled)
+                                          }
+                                          className="peer sr-only"
+                                      />
+                                      <div className="h-5 w-9 rounded-full bg-slate-700 after:absolute after:left-[2px] after:top[2px] after:h-4 after:w-4 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all peer-checked:bg-purple-600 peer-checked:after:translate-x-full peer-checked:after:border-white" />
+                                    </label>
+                                  </div>
+                                  {stopLossEnabled && (
+                                      <input
+                                          type="text"
+                                          value={stopLoss}
+                                          onChange={(e) => setStopLoss(e.target.value)}
+                                          placeholder={t("enterSlPrice")}
+                                          className="h-9 w-full rounded-md border border-slate-800 bg-slate-950 px-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                      />
+                                  )}
+                                </div>
+
+                                <button
+                                    onClick={handlePlaceOrder}
+                                    className="w-full rounded-xl bg-gradient-to-r from-purple-600 via-fuchsia-500 to-sky-500 py-2.5 text-xs font-semibold text-white shadow-[0_0_25px_rgba(129,140,248,0.7)] transition-all hover:brightness-110"
+                                >
+                                  {t("placeOrderCta").replace("{type}", orderType)}
+                                </button>
+
+                                <div className="flex items-center justify-between border-t border-slate-800/70 pt-2 text-[11px] text-slate-400">
+                                  <span>{t("balance")}</span>
+                                  <span className="flex items-center font-mono text-slate-100">
+                              {isBalanceUpdating ? (
+                                  <>
+                                    <span className="mr-2 h-3 w-3 animate-spin rounded-full border-b-2 border-purple-500" />
+                                    {t("processing")}...
+                                  </>
+                              ) : (
+                                  `$${balance?.toFixed(2) ?? "0.00"}`
+                              )}
+                            </span>
+                                </div>
+                              </div>
+                            </div>
+                          </motion.div>
+                      )}
+                    </AnimatePresence>
+
+                    {/* общая ошибка (если есть) */}
+                    {error && (
+                        <div className="rounded-lg border border-rose-500/40 bg-rose-950/40 px-3 py-1.5 text-[10px] text-rose-100">
+                          {error}
+                        </div>
+                    )}
+                  </motion.div>
+
+                  {/* ACTIVE TRADES (mobile) */}
+                  {/* ACTIVE TRADES (mobile) */}
                   <div className="rounded-2xl border border-slate-800 bg-slate-950/90 shadow-[0_0_15px_rgba(139,92,246,0.15)]">
                     <div className="flex items-center justify-between border-b border-slate-800/70 px-4 py-3">
                       <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-100">
@@ -2596,26 +3095,31 @@ const TestChart: React.FC = () => {
                         {t("activeTrades")}
                       </h3>
                       <span className="rounded-full bg-purple-900/30 px-2 py-0.5 text-[11px] font-medium text-purple-300">
-                    {activeTrades.length || "0"}
-                  </span>
+      {openTrades.length || "0"}
+    </span>
                     </div>
                     <div className="custom-scrollbar max-h-64 space-y-3 overflow-y-auto px-3 pb-3 pt-2 text-[11px]">
-                      {activeTrades.length > 0 ? (
-                          activeTrades.map((trade) => {
-                            const tickerData = tickers.find(
-                                (d) => d.symbol === trade.ticker,
-                            )
-                            const currentPriceLocal =
-                                tickerData?.bid ?? trade.openIn
-                            const profit =
-                                trade.type === "BUY"
-                                    ? (currentPriceLocal - trade.openIn) *
-                                    trade.volume *
-                                    trade.leverage
-                                    : (trade.openIn - currentPriceLocal) *
-                                    trade.volume *
-                                    trade.leverage
+                      {openTrades.length > 0 ? (
+                          openTrades.map((trade) => {
+                            const tickerData = tickers.find((d) => d.symbol === trade.ticker)
+                            const livePrice =
+                                tickerData?.bid ??
+                                tickerData?.ask ??
+                                tickerData?.lastPrice ??
+                                trade.openIn
+
+                            const isClosed = trade.status === "CLOSED"
+
+                            const profitRaw = isClosed
+                                ? trade.profit ?? 0
+                                : trade.type === "BUY"
+                                    ? (livePrice - trade.openIn) * trade.volume * trade.leverage
+                                    : (trade.openIn - livePrice) * trade.volume * trade.leverage
+
+                            const profit = Number.isFinite(profitRaw) ? profitRaw : 0
                             const isProfit = profit >= 0
+
+                            const absProfit = Math.abs(profit)
 
                             return (
                                 <div
@@ -2625,9 +3129,9 @@ const TestChart: React.FC = () => {
                                   <div className="flex items-start justify-between gap-2">
                                     <div className="min-w-0 flex-1">
                                       <div className="mb-1 flex items-center gap-2">
-                                <span className="truncate text-xs font-semibold text-slate-100">
-                                  {trade.ticker}
-                                </span>
+                  <span className="truncate text-xs font-semibold text-slate-100">
+                    {trade.ticker}
+                  </span>
                                         <span
                                             className={`rounded-full px-1.5 py-0.5 text-[10px] ${
                                                 trade.type === "BUY"
@@ -2635,28 +3139,50 @@ const TestChart: React.FC = () => {
                                                     : "bg-red-500/20 text-red-300"
                                             }`}
                                         >
-                                  {trade.type}
-                                </span>
+                    {trade.type}
+                  </span>
+                                        {trade.status === "CLOSING" && (
+                                            <span className="text-[9px] text-amber-300">
+                      {t("closing") || "Closing..."}
+                    </span>
+                                        )}
                                       </div>
                                       <div className="flex flex-wrap gap-2 text-[10px] text-slate-400">
                                         <span>Vol: {trade.volume}</span>
                                         <span>x{trade.leverage}</span>
+                                        <span>
+                    {t("openPrice") || "Open"}:{" "}
+                                          {trade.openIn.toFixed(5)}
+                  </span>
+                                        {!isClosed && (
+                                            <span>
+                      {t("currentPrice") || "Current"}:{" "}
+                                              {livePrice.toFixed(5)}
+                    </span>
+                                        )}
                                       </div>
                                     </div>
-                                    <div className="text-right">
-                                      <div className="mb-0.5 text-[10px] text-slate-500">
-                                        P/L
-                                      </div>
-                                      <div
+                                    <div className="flex flex-col items-end gap-1">
+                                      <div className="text-[10px] text-slate-500">P/L</div>
+                                      <AnimatedNumber
+                                          value={absProfit}
+                                          prefix={isProfit ? "+$" : "-$"}
+                                          maximumFractionDigits={2}
                                           className={`text-xs font-bold ${
-                                              isProfit
-                                                  ? "text-emerald-400"
-                                                  : "text-red-400"
+                                              isProfit ? "text-emerald-400" : "text-red-400"
                                           }`}
-                                      >
-                                        {isProfit ? "+" : "-"}$
-                                        {Math.abs(profit).toFixed(2)}
-                                      </div>
+                                      />
+                                      {/* Кнопка закрытия */}
+                                      {trade.status === "OPEN" && (
+                                          <button
+                                              type="button"
+                                              onClick={() => handleCloseTrade(trade)}
+                                              className="mt-1 inline-flex items-center rounded-full border border-slate-700 px-2 py-0.5 text-[10px] text-slate-300 hover:bg-slate-800"
+                                          >
+                                            <X className="mr-1 h-3 w-3" />
+                                            {t("close") || "Close"}
+                                          </button>
+                                      )}
                                     </div>
                                   </div>
                                 </div>
@@ -2672,26 +3198,27 @@ const TestChart: React.FC = () => {
                 </div>
               </div>
           )}
+
           {/* FULLSCREEN CHART OVERLAY (mobile) */}
           {isMobileChartFullscreen && (
               <div className="fixed inset-x-0 inset-y-0 top-12 z-40 flex flex-col bg-[#050012]">
                 {isFullscreenLoading ? (
-                    // КРАСИВАЯ ЗАГРУЗКА НА ВЕСЬ ЭКРАН
                     <div className="flex flex-1 flex-col items-center justify-center">
                       <div className="mb-3 h-10 w-10 animate-spin rounded-full border-b-2 border-purple-500" />
                       <div className="text-xs text-slate-400">
-                        {t("loadingFullscreenChart") || "Preparing full screen chart..."}
+                        {t("loadingFullscreenChart") ||
+                            "Preparing full screen chart..."}
                       </div>
                     </div>
                 ) : (
                     <>
-                      {/* Верхняя панель фуллскрина */}
-                      <div className="flex items-center justify-between border-b mt-4 border-slate-800 bg-[#0f1419] px-3 py-2">
+                      {/* top bar */}
+                      <div className="mt-4 flex items-center justify-between border-b border-slate-800 bg-[#0f1419] px-3 py-2">
                         <div className="flex items-center gap-2">
                           <BarChart3 className="h-4 w-4 text-purple-400" />
                           <span className="text-sm font-semibold">
-          {selectedTicker?.showName ?? "--"}
-        </span>
+                      {selectedTicker?.showName ?? "--"}
+                    </span>
                         </div>
                         <button
                             type="button"
@@ -2699,24 +3226,26 @@ const TestChart: React.FC = () => {
                               setIsFullscreenLoading(false)
                               setIsMobileChartFullscreen(false)
                             }}
-                            className="flex items-center gap-1 border border-slate-700 bg-slate-900/80 px-2.5 py-2 rounded-sm text-[10px] text-slate-200"
+                            className="flex items-center gap-1 rounded-sm border border-slate-700 bg-slate-900/80 px-2.5 py-2 text-[10px] text-slate-200"
                         >
                           <Minimize2 className="h-3 w-3" />
-                          {/*{t("exitFullscreen") || "Exit"}*/}
                         </button>
                       </div>
-                      {/* Контролы над графиком */}
-                      <div className="space-y-2 px-3 pt-2 mt-4 pb-1">
+
+                      {/* controls */}
+                      <div className="mt-4 space-y-2 px-3 pb-1 pt-2">
                         <div className="flex w-full flex-row justify-between gap-2">
-                          {/* TIMEFRAME SELECT (тот же, что и выше) */}
+                          {/* timeframe */}
                           <div className="flex w-1/2 flex-col gap-1">
-          <span className="text-[10px] text-slate-500">
-            {t("timeframe") || "Timeframe"}
-          </span>
+                      <span className="text-[10px] text-slate-500">
+                        {t("timeframe") || "Timeframe"}
+                      </span>
                             <div className="relative">
                               <select
                                   value={timeframe}
-                                  onChange={(e) => handleTimeframeClick(e.target.value)}
+                                  onChange={(e) =>
+                                      handleTimeframeClick(e.target.value)
+                                  }
                                   className="h-8 w-full rounded-xl border border-slate-700 bg-slate-900/90 pl-3 pr-7 text-[11px] font-medium text-slate-100 focus:outline-none focus:ring-2 focus:ring-purple-500"
                               >
                                 {timeframes.map((tf) => (
@@ -2726,26 +3255,26 @@ const TestChart: React.FC = () => {
                                 ))}
                               </select>
                               <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-slate-500">
-              ▼
-            </span>
+                          ▼
+                        </span>
                             </div>
                           </div>
 
-                          {/* INDICATORS SELECT (тот же, что и выше) */}
+                          {/* indicators */}
                           <div className="flex w-1/2 flex-col gap-1">
-          <span className="text-[10px] text-slate-500">
-            {t("indicators") || "Indicators"}
-          </span>
+                      <span className="text-[10px] text-slate-500">
+                        {t("indicators") || "Indicators"}
+                      </span>
 
                             <details className="relative">
-                              <summary
-                                  className="flex h-8 cursor-pointer list-none items-center justify-between rounded-xl border border-slate-700 bg-slate-900/90 px-3 text-[11px] font-medium text-slate-100 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                              <summary className="flex h-8 cursor-pointer list-none items-center justify-between rounded-xl border border-slate-700 bg-slate-900/90 px-3 text-[11px] font-medium text-slate-100 focus:outline-none focus:ring-2 focus:ring-purple-500">
                                 <span className="truncate">{indicatorsLabel}</span>
-                                <span className="ml-2 text-[10px] text-slate-500">▼</span>
+                                <span className="ml-2 text-[10px] text-slate-500">
+                            ▼
+                          </span>
                               </summary>
-                              <div
-                                  className="absolute right-0 z-30 mt-1 w-44 rounded-xl border border-slate-800 bg-slate-900/95 p-1 text-[11px] shadow-xl">
-                                {/* SMA */}
+                              <div className="absolute right-0 z-30 mt-1 w-44 rounded-xl border border-slate-800 bg-slate-900/95 p-1 text-[11px] shadow-xl">
+                                {/* same buttons as above */}
                                 <button
                                     type="button"
                                     onClick={() =>
@@ -2761,8 +3290,6 @@ const TestChart: React.FC = () => {
                                       <span className="text-emerald-400">●</span>
                                   )}
                                 </button>
-
-                                {/* EMA */}
                                 <button
                                     type="button"
                                     onClick={() =>
@@ -2778,8 +3305,6 @@ const TestChart: React.FC = () => {
                                       <span className="text-emerald-400">●</span>
                                   )}
                                 </button>
-
-                                {/* BB */}
                                 <button
                                     type="button"
                                     onClick={() =>
@@ -2795,8 +3320,6 @@ const TestChart: React.FC = () => {
                                       <span className="text-emerald-400">●</span>
                                   )}
                                 </button>
-
-                                {/* RSI */}
                                 <button
                                     type="button"
                                     onClick={() =>
@@ -2812,8 +3335,6 @@ const TestChart: React.FC = () => {
                                       <span className="text-emerald-400">●</span>
                                   )}
                                 </button>
-
-                                {/* MACD */}
                                 <button
                                     type="button"
                                     onClick={() =>
@@ -2829,8 +3350,6 @@ const TestChart: React.FC = () => {
                                       <span className="text-emerald-400">●</span>
                                   )}
                                 </button>
-
-                                {/* Volume */}
                                 <button
                                     type="button"
                                     onClick={() =>
@@ -2847,12 +3366,11 @@ const TestChart: React.FC = () => {
                                   )}
                                 </button>
                               </div>
-
                             </details>
                           </div>
                         </div>
 
-                        {/* Инструменты в одну полоску */}
+                        {/* tools */}
                         <div className="-mx-1 flex gap-1 overflow-x-auto pb-1">
                           {drawingTools.map((tool) => {
                             const Icon = tool.icon
@@ -2868,27 +3386,26 @@ const TestChart: React.FC = () => {
                                             : "bg-slate-900 text-slate-200"
                                     }`}
                                 >
-                                  <Icon className="h-3.5 w-3.5"/>
+                                  <Icon className="h-3.5 w-3.5" />
                                 </button>
                             )
                           })}
                         </div>
                       </div>
 
-                      {/* Сам график на всю высоту */}
+                      {/* fullscreen canvas */}
                       <div className="relative flex-1 bg-[#050314]">
                         <div
                             ref={containerRef}
                             className="relative h-full w-full overflow-hidden"
                         >
                           {(loading || isCandlesLoading) && symbol && (
-                              <div
-                                  className="absolute inset-0 z-20 flex items-center justify-center bg-[#050314]/80 backdrop-blur-sm">
+                              <div className="absolute inset-0 z-20 flex items-center justify-center bg-[#050314]/80 backdrop-blur-sm">
                                 <div className="flex items-center space-x-2 text-xs text-slate-400">
-                                  <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-purple-500"/>
+                                  <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-purple-500" />
                                   <span>
-                {t("updatingChart") || "Updating chart data"}...
-              </span>
+                            {t("updatingChart") || "Updating chart data"}...
+                          </span>
                                 </div>
                               </div>
                           )}
@@ -2900,10 +3417,12 @@ const TestChart: React.FC = () => {
                           ) : loading && candles.length === 0 ? (
                               <div className="flex h-full items-center justify-center">
                                 <div className="text-center text-xs text-slate-400">
-                                  <div
-                                      className="mx-auto mb-3 h-8 w-8 animate-spin rounded-full border-b-2 border-purple-500"/>
+                                  <div className="mx-auto mb-3 h-8 w-8 animate-spin rounded-full border-b-2 border-purple-500" />
                                   {symbol
-                                      ? `${t("loadingChartData") || "Loading chart data for"} ${symbol}...`
+                                      ? `${
+                                          t("loadingChartData") ||
+                                          "Loading chart data for"
+                                      } ${symbol}...`
                                       : "Loading candles..."}
                                 </div>
                               </div>
@@ -2917,10 +3436,26 @@ const TestChart: React.FC = () => {
                                   onMouseMove={handleMouseMove}
                                   onMouseUp={handleMouseUp}
                                   onMouseLeave={handleMouseUp}
-                                  onWheel={handleWheel}
-                                  onTouchStart={handleTouchStart}
-                                  onTouchMove={handleTouchMove}
-                                  onTouchEnd={handleTouchEnd}
+                                  onWheel={(e) => {
+                                    e.preventDefault()
+                                    e.stopPropagation()
+                                    handleWheel(e) // если надо – внутри handleWheel используй e.deltaY и т.д.
+                                  }}
+                                  onTouchStart={(e) => {
+                                    e.preventDefault()
+                                    e.stopPropagation()
+                                    handleTouchStart(e)
+                                  }}
+                                  onTouchMove={(e) => {
+                                    e.preventDefault()
+                                    e.stopPropagation()
+                                    handleTouchMove(e)
+                                  }}
+                                  onTouchEnd={(e) => {
+                                    e.preventDefault()
+                                    e.stopPropagation()
+                                    handleTouchEnd(e)
+                                  }}
                               />
                           )}
                         </div>
@@ -2929,6 +3464,7 @@ const TestChart: React.FC = () => {
                 )}
               </div>
           )}
+
           {/* BOTTOM NAV */}
           {!isMobileChartFullscreen && (
               <div className="fixed bottom-0 left-0 right-0 z-20 border-t border-slate-900 bg-slate-950/95 px-1 py-1">
@@ -2938,19 +3474,19 @@ const TestChart: React.FC = () => {
                     <span className="text-[10px]">{t("bottomDashboard")}</span>
                   </button>
                   <button className="flex flex-col items-center p-2 text-slate-400">
-                    <FileText className="h-4 w-4"/>
+                    <FileText className="h-4 w-4" />
                     <span className="text-[10px]">{t("bottomTransactions")}</span>
                   </button>
                   <button className="flex flex-col items-center p-2 text-purple-400">
-                    <BarChart3 className="h-4 w-4"/>
+                    <BarChart3 className="h-4 w-4" />
                     <span className="text-[10px]">{t("bottomTrade")}</span>
                   </button>
                   <button className="flex flex-col items-center p-2 text-slate-400">
-                    <Newspaper className="h-4 w-4"/>
+                    <Newspaper className="h-4 w-4" />
                     <span className="text-[10px]">{t("bottomNews")}</span>
                   </button>
                   <button className="flex flex-col items-center p-2 text-slate-400">
-                    <User className="h-4 w-4"/>
+                    <User className="h-4 w-4" />
                     <span className="text-[10px]">{t("bottomProfile")}</span>
                   </button>
                 </div>
@@ -2959,11 +3495,16 @@ const TestChart: React.FC = () => {
         </div>
     )
   }
+  // ---------------- MOBILE LAYOUT ----------------
+
+
+
 
 
   // ---------------- DESKTOP LAYOUT ----------------
+// ---------------- DESKTOP LAYOUT ----------------
   return (
-      <div className="flex h-[calc(100vh-65px)] overflow-y-hidden flex-col bg-[#050012] text-white">
+      <div className="flex h-[calc(100vh-65px)] flex-col overflow-y-hidden bg-[#050012] text-white">
         {/* HEADER */}
         <div className="flex items-center justify-between border-b border-slate-800 bg-[#0f1419] px-4 py-2">
           <div className="flex items-center gap-3">
@@ -2985,8 +3526,8 @@ const TestChart: React.FC = () => {
                 </h1>
                 {selectedTicker && (
                     <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-xs font-medium text-emerald-300">
-                  LIVE
-                </span>
+                LIVE
+              </span>
                 )}
               </div>
               <div className="text-xs text-slate-400">
@@ -3037,7 +3578,6 @@ const TestChart: React.FC = () => {
           </div>
         </div>
 
-
         {/* MAIN */}
         <div className="flex flex-1 border-b border-slate-800 bg-[#050314]">
           {/* LEFT: tickers */}
@@ -3087,7 +3627,7 @@ const TestChart: React.FC = () => {
                   placeholder={t("searchTickers")}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full rounded-lg border border-slate-800 bg-slate-900 pl-8 pr-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  className="w-full rounded-lg border border-slate-800 bg-slate-900 px-3 py-2 pl-8 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
               />
             </div>
 
@@ -3099,25 +3639,23 @@ const TestChart: React.FC = () => {
           {/* CENTER: chart */}
           <div className="flex flex-1">
             <div className="flex flex-1 flex-col">
-              {/* CHART AREA WITH OVERLAYS */}
               <div className="flex-1 bg-[#050314]">
                 <div
                     ref={containerRef}
                     className="relative h-full w-full overflow-hidden"
                 >
-                  {/* Loading overlay */}
                   {(loading || isCandlesLoading) && symbol && (
                       <div className="absolute inset-0 z-30 flex items-center justify-center bg-[#050314]/80 backdrop-blur-sm">
                         <div className="flex items-center space-x-2 text-xs text-slate-400">
-                          <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-purple-500"></div>
+                          <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-purple-500" />
                           <span>
-                        {t("updatingChart") || "Updating chart data"}...
-                      </span>
+                      {t("updatingChart") || "Updating chart data"}...
+                    </span>
                         </div>
                       </div>
                   )}
 
-                  {/* LEFT VERTICAL TOOLBAR (TradingView style) */}
+                  {/* LEFT TOOLBAR */}
                   <div className="pointer-events-none absolute left-3 top-1/2 z-20 hidden -translate-y-1/2 flex-col gap-2 md:flex">
                     {drawingTools.map((tool) => {
                       const Icon = tool.icon
@@ -3139,14 +3677,14 @@ const TestChart: React.FC = () => {
                     })}
                   </div>
 
-                  {/* TOP LEFT: indicators */}
+                  {/* INDICATORS CHIP */}
                   <div className="pointer-events-none absolute left-14 top-3 z-20">
                     <div className="pointer-events-auto rounded-full border border-slate-700/70 bg-slate-900/90 px-3 py-1 shadow-lg">
                       {indicatorControls}
                     </div>
                   </div>
 
-                  {/* TOP RIGHT: save / clear */}
+                  {/* SAVE / CLEAR */}
                   <div className="pointer-events-none absolute right-3 top-3 z-20 flex gap-2">
                     <button
                         className="pointer-events-auto flex items-center gap-1 rounded-md bg-blue-900/40 px-2 py-1 text-[11px] text-blue-300 hover:bg-blue-900/60"
@@ -3155,7 +3693,7 @@ const TestChart: React.FC = () => {
                     >
                       {saveStatus === "saving" ? (
                           <>
-                            <div className="h-3 w-3 animate-spin rounded-full border-b-2 border-blue-300"></div>
+                            <div className="h-3 w-3 animate-spin rounded-full border-b-2 border-blue-300" />
                             Saving...
                           </>
                       ) : saveStatus === "saved" ? (
@@ -3247,172 +3785,378 @@ const TestChart: React.FC = () => {
                         <div className="text-center text-xs text-slate-400">
                           <div className="mx-auto mb-3 h-8 w-8 animate-spin rounded-full border-b-2 border-purple-500" />
                           {symbol
-                              ? `${t("loadingChartData") || "Loading chart data for"} ${symbol}...`
+                              ? `${
+                                  t("loadingChartData") || "Loading chart data for"
+                              } ${symbol}...`
                               : "Loading candles..."}
                         </div>
                       </div>
                   ) : (
-                      <canvas
-                          ref={canvasRef}
-                          className={`h-full w-full ${
-                              drawMode === "pan" ? "cursor-grab" : "cursor-crosshair"
-                          }`}
-                          onMouseDown={handleMouseDown}
-                          onMouseMove={handleMouseMove}
-                          onMouseUp={handleMouseUp}
-                          onMouseLeave={handleMouseUp}
-                          onWheel={handleWheel}
-                          onTouchStart={handleTouchStart}
-                          onTouchMove={handleTouchMove}
-                          onTouchEnd={handleTouchEnd}
-                      />
+                      <div
+                          ref={containerRef}
+                          className="relative h-full w-full overflow-hidden rounded-2xl sm:h-full touch-none"
+                          style={{touchAction: "none"}} // чтобы тач не скроллил страницу
+                      >
+                        <canvas
+                            ref={canvasRef}
+                            className={`h-full w-full touch-none ${
+                                drawMode === "pan" ? "cursor-grab" : "cursor-crosshair"
+                            }`}
+                            onMouseDown={handleMouseDown}
+                            onMouseMove={handleMouseMove}
+                            onMouseUp={handleMouseUp}
+                            onMouseLeave={handleMouseUp}
+                            // onWheel УБРАТЬ
+                            onTouchStart={handleTouchStart}
+                            onTouchMove={handleTouchMove}
+                            onTouchEnd={handleTouchEnd}
+                        />
+                      </div>
                   )}
                 </div>
               </div>
             </div>
 
-            {/* RIGHT: trading panel */}
-            <div className="w-80 border-l border-slate-800 bg-slate-950/90 p-4">
+            {/* RIGHT: trading panel (desktop) */}
+            <motion.div
+                layout
+                initial={false}
+                animate={
+                  aiAvailable && aiEnabled
+                      ? {
+                        borderColor: "rgba(34,211,238,0.8)",
+                        boxShadow:
+                            "0 0 40px rgba(34,211,238,0.35), 0 0 80px rgba(147,51,234,0.25)",
+                      }
+                      : {
+                        borderColor: "rgba(30,64,175,0.8)",
+                        boxShadow:
+                            "0 0 35px rgba(88,28,135,0.35), 0 0 60px rgba(15,23,42,1)",
+                      }
+                }
+                className="w-80 border-l border-slate-800 bg-slate-950/90 p-4"
+            >
               <div className="rounded-2xl border border-slate-800 bg-slate-950/95 shadow-[0_0_40px_rgba(88,28,135,0.35)]">
                 <div className="space-y-4 px-5 py-4 text-xs">
-                  <div className="flex rounded-full bg-slate-900/80 p-1">
-                    <button
-                        onClick={() => setOrderType("BUY")}
-                        className={`flex-1 rounded-full py-2 text-[11px] font-semibold ${
-                            orderType === "BUY"
-                                ? "bg-emerald-500 text-white"
-                                : "text-slate-300"
-                        }`}
-                    >
-                      {t("buyUpper")}
-                    </button>
-                    <button
-                        onClick={() => setOrderType("SELL")}
-                        className={`flex-1 rounded-full py-2 text-[11px] font-semibold ${
-                            orderType === "SELL"
-                                ? "bg-red-500 text-white"
-                                : "text-slate-300"
-                        }`}
-                    >
-                      {t("sellUpper")}
-                    </button>
-                  </div>
+                  {/* AI toggle */}
+                  {aiAvailable && (
+                      <div className="flex items-center justify-between rounded-xl border border-slate-800/80 bg-slate-900/80 px-3 py-2">
+                        <div className="flex items-center gap-2">
+                          <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-tr from-cyan-400/40 via-violet-500/40 to-fuchsia-500/40 text-cyan-200">
+                            <Sparkles className="h-4 w-4" />
+                          </div>
+                          <div className="flex flex-col">
+                      <span className="text-[11px] font-semibold text-slate-50">
+                        AI Trading
+                      </span>
+                            <span className="text-[10px] text-slate-400">
+                        {aiEnabled
+                            ? "Neural engine mode is enabled"
+                            : "Manual trading mode"}
+                      </span>
+                          </div>
+                        </div>
+                        <label className="relative inline-flex cursor-pointer items-center">
+                          <input
+                              type="checkbox"
+                              checked={aiEnabled}
+                              onChange={() => {
+                                setAiEnabled((v) => !v)
+                                setAiAnalyzed(false)
+                                setAiSuggested(null)
+                              }}
+                              className="peer sr-only"
+                          />
+                          <div className="h-5 w-9 rounded-full bg-slate-700 after:absolute after:left-[2px] after:top-[2px] after:h-4 after:w-4 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all peer-checked:bg-cyan-500 peer-checked:after:translate-x-full peer-checked:after:border-white" />
+                        </label>
+                      </div>
+                  )}
 
-                  <div>
-                    <label className="mb-1 block text-[11px] text-slate-300">
-                      {t("volume")}
-                    </label>
-                    <input
-                        type="text"
-                        value={volume}
-                        onChange={(e) => setVolume(e.target.value)}
-                        placeholder="0.01"
-                        className="h-9 w-full rounded-md border border-slate-800 bg-slate-950 px-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                    />
-                  </div>
+                  <AnimatePresence mode="wait" initial={false}>
+                    {/* AI MODE DESKTOP */}
+                    {aiAvailable && aiEnabled ? (
+                        <motion.div
+                            key="ai-mode-desktop"
+                            initial={{ opacity: 0, y: 10, scale: 0.97 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: -10, scale: 0.97 }}
+                            transition={{ duration: 0.2, ease: "easeOut" }}
+                            className="space-y-4 pt-2"
+                        >
+                          <div>
+                            <label className="mb-1 block text-[11px] text-slate-300">
+                              AI amount
+                            </label>
+                            <input
+                                type="number"
+                                min={0}
+                                step="0.01"
+                                value={aiAmount}
+                                onChange={(e) => setAiAmount(e.target.value)}
+                                className="h-9 w-full rounded-md border border-cyan-500/40 bg-slate-950 px-3 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/60"
+                                placeholder="$100.00"
+                            />
+                            <div className="mt-1 text-[10px] text-slate-500">
+                              Used as margin in your base currency.
+                            </div>
+                          </div>
 
-                  <div>
-                    <label className="mb-1 block text-[11px] text-slate-300">
-                      {t("leverage")}
-                    </label>
-                    <select
-                        value={leverage}
-                        onChange={(e) => setLeverage(e.target.value)}
-                        className="h-9 w-full rounded-md border border-slate-800 bg-slate-950 px-3 text-xs text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-                    >
-                      <option value="1">1:1</option>
-                      <option value="5">1:5</option>
-                      <option value="10">1:10</option>
-                      <option value="25">1:25</option>
-                      <option value="50">1:50</option>
-                      <option value="100">1:100</option>
-                    </select>
-                  </div>
+                          <button
+                              type="button"
+                              onClick={handleStartAiAnalyze}
+                              disabled={aiAnalyzing}
+                              className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-cyan-500 via-violet-500 to-fuchsia-500 py-2.5 text-xs font-semibold text-white shadow-[0_0_25px_rgba(34,211,238,0.55)] transition-all hover:brightness-110 disabled:opacity-60"
+                          >
+                            <Cpu className="h-4 w-4" />
+                            {aiAnalyzing ? "Analyzing market..." : "Start analyze"}
+                          </button>
 
-                  <div className="flex items-center justify-between text-[11px] text-slate-400">
-                    <span>{t("marginRequired")}</span>
-                    <span className="font-mono text-slate-100">
-                    ${calculateMargin()}
-                  </span>
-                  </div>
+                          <div className="min-h-[90px] rounded-xl border border-cyan-500/40 bg-gradient-to-br from-cyan-500/10 via-violet-500/5 to-slate-950 px-3 py-2 text-[11px] text-slate-100">
+                            {aiAnalyzing && (
+                                <div className="space-y-2">
+                                  <motion.div
+                                      initial={{ opacity: 0 }}
+                                      animate={{ opacity: 1 }}
+                                      className="h-1.5 w-full overflow-hidden rounded-full bg-slate-900/80"
+                                  >
+                                    <motion.div
+                                        className="h-full w-1/3 rounded-full bg-gradient-to-r from-cyan-400 via-violet-400 to-fuchsia-400"
+                                        animate={{ x: ["-50%", "150%"] }}
+                                        transition={{
+                                          repeat: Infinity,
+                                          duration: 1.4,
+                                          ease: "easeInOut",
+                                        }}
+                                    />
+                                  </motion.div>
+                                  <motion.p
+                                      initial={{ opacity: 0 }}
+                                      animate={{ opacity: 1 }}
+                                      className="text-[10px] text-cyan-200"
+                                  >
+                                    Mapping liquidity, volatility regimes and trend
+                                    structures...
+                                  </motion.p>
+                                </div>
+                            )}
 
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                    <span className="text-[11px] text-slate-300">
-                      {t("takeProfit")}
-                    </span>
-                      <label className="relative inline-flex cursor-pointer items-center">
-                        <input
-                            type="checkbox"
-                            checked={takeProfitEnabled}
-                            onChange={() =>
-                                setTakeProfitEnabled(!takeProfitEnabled)
-                            }
-                            className="peer sr-only"
-                        />
-                        <div className="h-5 w-9 rounded-full bg-slate-700 after:absolute after:left-[2px] after:top-[2px] after:h-4 after:w-4 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all peer-checked:bg-purple-600 peer-checked:after:translate-x-full peer-checked:after:border-white" />
-                      </label>
-                    </div>
-                    {takeProfitEnabled && (
-                        <input
-                            type="text"
-                            value={takeProfit}
-                            onChange={(e) => setTakeProfit(e.target.value)}
-                            placeholder={t("enterTpPrice")}
-                            className="h-9 w-full rounded-md border border-slate-800 bg-slate-950 px-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                        />
-                    )}
+                            {!aiAnalyzing && aiSuggested && (
+                                <div className="space-y-2">
+                                  <div className="flex items-center justify-between">
+                                    <div>
+                                      <div className="flex items-center gap-1">
+                                <span className="text-xs font-semibold">
+                                  {aiSuggested.symbol}
+                                </span>
+                                        <span
+                                            className={`rounded-full px-1.5 py-0.5 text-[9px] ${
+                                                aiSuggested.type === "BUY"
+                                                    ? "bg-emerald-500/20 text-emerald-300"
+                                                    : "bg-red-500/20 text-red-300"
+                                            }`}
+                                        >
+                                  {aiSuggested.type}
+                                </span>
+                                      </div>
+                                      <div className="text-[10px] text-slate-300">
+                                        Entry ≈ {aiSuggested.price.toFixed(5)}
+                                      </div>
+                                    </div>
+                                    <div className="text-[10px] text-cyan-300">
+                                      Signal ready
+                                    </div>
+                                  </div>
 
-                    <div className="flex items-center justify-between">
-                    <span className="text-[11px] text-slate-300">
-                      {t("stopLoss")}
-                    </span>
-                      <label className="relative inline-flex cursor-pointer items-center">
-                        <input
-                            type="checkbox"
-                            checked={stopLossEnabled}
-                            onChange={() =>
-                                setStopLossEnabled(!stopLossEnabled)
-                            }
-                            className="peer sr-only"
-                        />
-                        <div className="h-5 w-9 rounded-full bg-slate-700 after:absolute after:left-[2px] after:top-[2px] after:h-4 after:w-4 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all peer-checked:bg-purple-600 peer-checked:after:translate-x-full peer-checked:after:border-white" />
-                      </label>
-                    </div>
-                    {stopLossEnabled && (
-                        <input
-                            type="text"
-                            value={stopLoss}
-                            onChange={(e) => setStopLoss(e.target.value)}
-                            placeholder={t("enterSlPrice")}
-                            className="h-9 w-full rounded-md border border-slate-800 bg-slate-950 px-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                        />
-                    )}
-                  </div>
+                                  <div className="mt-2 rounded-xl border border-slate-800/80 bg-slate-950/90 px-3 py-2 text-xs text-slate-300">
+                                    <div className="mt-1 flex items-center justify-between">
+                              <span>
+                                {t("requiredMargin") || "Required margin"}:
+                              </span>
+                                      <span className="font-mono text-amber-300">
+                                {Number.parseFloat(aiAmount || "0").toFixed(2)}
+                              </span>
+                                    </div>
+                                  </div>
 
-                  <button
-                      onClick={handlePlaceOrder}
-                      className="w-full rounded-xl bg-gradient-to-r from-purple-600 via-fuchsia-500 to-sky-500 py-2.5 text-xs font-semibold text-white shadow-[0_0_25px_rgba(129,140,248,0.7)] hover:brightness-110 transition-all"
-                  >
-                    {t("placeOrderCta").replace("{type}", orderType)}
-                  </button>
+                                  <button
+                                      type="button"
+                                      onClick={handlePlaceAiOrder}
+                                      className="w-full rounded-xl bg-cyan-500/90 py-2 text-xs font-semibold text-slate-950 shadow-[0_0_20px_rgba(34,211,238,0.6)] hover:bg-cyan-400"
+                                  >
+                                    Place AI order
+                                  </button>
+                                </div>
+                            )}
 
-                  <div className="flex items-center justify-between border-t border-slate-800/70 pt-2 text-[11px] text-slate-400">
-                    <span>{t("balance")}</span>
-                    <span className="flex items-center font-mono text-slate-100">
-                    {isBalanceUpdating ? (
-                        <>
-                          <span className="mr-2 h-3 w-3 animate-spin rounded-full border-b-2 border-purple-500"></span>
-                          {t("processing")}...
-                        </>
+                            {!aiAnalyzing && !aiSuggested && !aiAnalyzed && (
+                                <p className="text-[10px] text-slate-300">
+                                  Launch AI scan to let the engine select a symbol, side
+                                  and entry zone based on current market structure.
+                                </p>
+                            )}
+                          </div>
+                        </motion.div>
                     ) : (
-                        `$${balance?.toFixed(2) ?? "0.00"}`
+                        /* MANUAL MODE DESKTOP */
+                        <motion.div
+                            key="manual-mode-desktop"
+                            initial={{ opacity: 0, y: 10, scale: 0.97 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: -10, scale: 0.97 }}
+                            transition={{ duration: 0.2, ease: "easeOut" }}
+                            className="space-y-4 pt-2"
+                        >
+                          <div className="flex rounded-full bg-slate-900/80 p-1">
+                            <button
+                                onClick={() => setOrderType("BUY")}
+                                className={`flex-1 rounded-full py-2 text-[11px] font-semibold ${
+                                    orderType === "BUY"
+                                        ? "bg-emerald-500 text-white"
+                                        : "text-slate-300"
+                                }`}
+                            >
+                              {t("buyUpper")}
+                            </button>
+                            <button
+                                onClick={() => setOrderType("SELL")}
+                                className={`flex-1 rounded-full py-2 text-[11px] font-semibold ${
+                                    orderType === "SELL"
+                                        ? "bg-red-500 text-white"
+                                        : "text-slate-300"
+                                }`}
+                            >
+                              {t("sellUpper")}
+                            </button>
+                          </div>
+
+                          <div>
+                            <label className="mb-1 block text-[11px] text-slate-300">
+                              {t("volume")}
+                            </label>
+                            <input
+                                type="text"
+                                value={volume}
+                                onChange={(e) => setVolume(e.target.value)}
+                                placeholder="0.01"
+                                className="h-9 w-full rounded-md border border-slate-800 bg-slate-950 px-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="mb-1 block text-[11px] text-slate-300">
+                              {t("leverage")}
+                            </label>
+                            <select
+                                value={leverage}
+                                onChange={(e) => setLeverage(e.target.value)}
+                                className="h-9 w-full rounded-md border border-slate-800 bg-slate-950 px-3 text-xs text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            >
+                              <option value="1">1:1</option>
+                              <option value="5">1:5</option>
+                              <option value="10">1:10</option>
+                              <option value="25">1:25</option>
+                              <option value="50">1:50</option>
+                              <option value="100">1:100</option>
+                            </select>
+                          </div>
+
+                          {/* orderAmount + margin */}
+                          <div className="rounded-xl border border-slate-800/80 bg-slate-950/90 px-3 py-2 text-[11px] text-slate-300">
+                            <div className="mt-1 flex items-center justify-between">
+                              <span>{t("marginRequired")}</span>
+                              <span className="font-mono text-amber-300">
+                          ${margin.toFixed(2)}
+                        </span>
+                            </div>
+                          </div>
+
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between">
+                        <span className="text-[11px] text-slate-300">
+                          {t("takeProfit")}
+                        </span>
+                              <label className="relative inline-flex cursor-pointer items-center">
+                                <input
+                                    type="checkbox"
+                                    checked={takeProfitEnabled}
+                                    onChange={() =>
+                                        setTakeProfitEnabled(!takeProfitEnabled)
+                                    }
+                                    className="peer sr-only"
+                                />
+                                <div className="h-5 w-9 rounded-full bg-slate-700 after:absolute after:left-[2px] after:top-[2px] after:h-4 after:w-4 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all peer-checked:bg-purple-600 peer-checked:after:translate-x-full peer-checked:after:border-white" />
+                              </label>
+                            </div>
+                            {takeProfitEnabled && (
+                                <input
+                                    type="text"
+                                    value={takeProfit}
+                                    onChange={(e) => setTakeProfit(e.target.value)}
+                                    placeholder={t("enterTpPrice")}
+                                    className="h-9 w-full rounded-md border border-slate-800 bg-slate-950 px-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                />
+                            )}
+
+                            <div className="flex items-center justify-between">
+                        <span className="text-[11px] text-slate-300">
+                          {t("stopLoss")}
+                        </span>
+                              <label className="relative inline-flex cursor-pointer items-center">
+                                <input
+                                    type="checkbox"
+                                    checked={stopLossEnabled}
+                                    onChange={() =>
+                                        setStopLossEnabled(!stopLossEnabled)
+                                    }
+                                    className="peer sr-only"
+                                />
+                                <div className="h-5 w-9 rounded-full bg-slate-700 after:absolute after:left-[2px] after:top-[2px] after:h-4 after:w-4 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all peer-checked:bg-purple-600 peer-checked:after:translate-x-full peer-checked:after:border-white" />
+                              </label>
+                            </div>
+                            {stopLossEnabled && (
+                                <input
+                                    type="text"
+                                    value={stopLoss}
+                                    onChange={(e) => setStopLoss(e.target.value)}
+                                    placeholder={t("enterSlPrice")}
+                                    className="h-9 w-full rounded-md border border-slate-800 bg-slate-950 px-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                />
+                            )}
+                          </div>
+
+                          <button
+                              onClick={handlePlaceOrder}
+                              className="w-full rounded-xl bg-gradient-to-r from-purple-600 via-fuchsia-500 to-sky-500 py-2.5 text-xs font-semibold text-white shadow-[0_0_25px_rgba(129,140,248,0.7)] transition-all hover:brightness-110"
+                          >
+                            {t("placeOrderCta").replace("{type}", orderType)}
+                          </button>
+
+                          <div className="flex items-center justify-between border-t border-slate-800/70 pt-2 text-[11px] text-slate-400">
+                            <span>{t("balance")}</span>
+                            <span className="flex items-center font-mono text-slate-100">
+                        {isBalanceUpdating ? (
+                            <>
+                              <span className="mr-2 h-3 w-3 animate-spin rounded-full border-b-2 border-purple-500" />
+                              {t("processing")}...
+                            </>
+                        ) : (
+                            `$${balance?.toFixed(2) ?? "0.00"}`
+                        )}
+                      </span>
+                          </div>
+                        </motion.div>
                     )}
-                  </span>
-                  </div>
+                  </AnimatePresence>
+
+                  {error && (
+                      <div className="mt-2 rounded-lg border border-rose-500/40 bg-rose-950/40 px-3 py-1.5 text-[10px] text-rose-100">
+                        {error}
+                      </div>
+                  )}
                 </div>
 
-                {/* ACTIVE TRADES DESKTOP */}
+                {/* ACTIVE TRADES (desktop) */}
+                {/* ACTIVE TRADES (desktop) */}
                 <div className="mt-4 rounded-2xl border border-slate-800 bg-slate-950/90 shadow-[0_0_15px_rgba(139,92,246,0.15)]">
                   <div className="flex items-center justify-between border-b border-slate-800/70 px-4 py-3">
                     <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-100">
@@ -3420,26 +4164,32 @@ const TestChart: React.FC = () => {
                       {t("activeTrades")}
                     </h3>
                     <span className="rounded-full bg-purple-900/30 px-2 py-0.5 text-[11px] font-medium text-purple-300">
-                    {activeTrades.length || "0"}
-                  </span>
+      {openTrades.length || "0"}
+    </span>
                   </div>
                   <div className="custom-scrollbar max-h-64 space-y-3 overflow-y-auto px-3 pb-3 pt-2 text-[11px]">
-                    {activeTrades.length > 0 ? (
-                        activeTrades.map((trade) => {
+                    {openTrades.length > 0 ? (
+                        openTrades.map((trade) => {
                           const tickerData = tickers.find(
-                              (d) => d.symbol === trade.ticker,
+                              (d) => d.symbol === trade.ticker
                           )
-                          const currentPrice =
-                              tickerData?.bid ?? trade.openIn
-                          const profit =
-                              trade.type === "BUY"
-                                  ? (currentPrice - trade.openIn) *
-                                  trade.volume *
-                                  trade.leverage
-                                  : (trade.openIn - currentPrice) *
-                                  trade.volume *
-                                  trade.leverage
+                          const livePrice =
+                              tickerData?.bid ??
+                              tickerData?.ask ??
+                              tickerData?.lastPrice ??
+                              trade.openIn
+
+                          const isClosed = trade.status === "CLOSED"
+
+                          const profitRaw = isClosed
+                              ? trade.profit ?? 0
+                              : trade.type === "BUY"
+                                  ? (livePrice - trade.openIn) * trade.volume * trade.leverage
+                                  : (trade.openIn - livePrice) * trade.volume * trade.leverage
+
+                          const profit = Number.isFinite(profitRaw) ? profitRaw : 0
                           const isProfit = profit >= 0
+                          const absProfit = Math.abs(profit)
 
                           return (
                               <div
@@ -3449,9 +4199,9 @@ const TestChart: React.FC = () => {
                                 <div className="flex items-start justify-between gap-2">
                                   <div className="min-w-0 flex-1">
                                     <div className="mb-1 flex items-center gap-2">
-                                <span className="truncate text-xs font-semibold text-slate-100">
-                                  {trade.ticker}
-                                </span>
+                  <span className="truncate text-xs font-semibold text-slate-100">
+                    {trade.ticker}
+                  </span>
                                       <span
                                           className={`rounded-full px-1.5 py-0.5 text-[10px] ${
                                               trade.type === "BUY"
@@ -3459,28 +4209,49 @@ const TestChart: React.FC = () => {
                                                   : "bg-red-500/20 text-red-300"
                                           }`}
                                       >
-                                  {trade.type}
-                                </span>
+                    {trade.type}
+                  </span>
+                                      {trade.status === "CLOSING" && (
+                                          <span className="text-[9px] text-amber-300">
+                      {t("closing") || "Closing..."}
+                    </span>
+                                      )}
                                     </div>
                                     <div className="flex flex-wrap gap-2 text-[10px] text-slate-400">
                                       <span>Vol: {trade.volume}</span>
                                       <span>x{trade.leverage}</span>
+                                      <span>
+                    {t("openPrice") || "Open"}:{" "}
+                                        {trade.openIn.toFixed(5)}
+                  </span>
+                                      {!isClosed && (
+                                          <span>
+                      {t("currentPrice") || "Current"}:{" "}
+                                            {livePrice.toFixed(5)}
+                    </span>
+                                      )}
                                     </div>
                                   </div>
-                                  <div className="text-right">
-                                    <div className="mb-0.5 text-[10px] text-slate-500">
-                                      P/L
-                                    </div>
-                                    <div
+                                  <div className="flex flex-col items-end gap-1">
+                                    <div className="text-[10px] text-slate-500">P/L</div>
+                                    <AnimatedNumber
+                                        value={absProfit}
+                                        prefix={isProfit ? "+$" : "-$"}
+                                        maximumFractionDigits={2}
                                         className={`text-xs font-bold ${
-                                            isProfit
-                                                ? "text-emerald-400"
-                                                : "text-red-400"
+                                            isProfit ? "text-emerald-400" : "text-red-400"
                                         }`}
-                                    >
-                                      {isProfit ? "+" : "-"}$
-                                      {Math.abs(profit).toFixed(2)}
-                                    </div>
+                                    />
+                                    {trade.status === "OPEN" && (
+                                        <button
+                                            type="button"
+                                            onClick={() => handleCloseTrade(trade)}
+                                            className="mt-1 inline-flex items-center rounded-full border border-slate-700 px-2 py-0.5 text-[10px] text-slate-300 hover:bg-slate-800"
+                                        >
+                                          <X className="mr-1 h-3 w-3" />
+                                          {t("close") || "Close"}
+                                        </button>
+                                    )}
                                   </div>
                                 </div>
                               </div>
@@ -3494,11 +4265,12 @@ const TestChart: React.FC = () => {
                   </div>
                 </div>
               </div>
-            </div>
+            </motion.div>
           </div>
         </div>
       </div>
   )
+
 }
 
 export default TestChart

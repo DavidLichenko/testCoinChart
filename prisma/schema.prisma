@@ -7,6 +7,127 @@ generator client {
   provider = "prisma-client-js"
 }
 
+// -------------------- ENUMS --------------------
+
+enum OrderStatus {
+  PENDING
+  SUCCESSFUL
+  CANCELLED
+}
+
+enum TradeTransactionType {
+  BUY
+  SELL
+}
+
+enum OrderType {
+  DEPOSIT
+  WITHDRAW
+}
+
+enum TradeTransactionStatus {
+  OPEN
+  CLOSE
+}
+
+enum UserRole {
+  USER
+  OWNER
+  CR_MANAGMENT
+  WORKER
+  TEAMLEAD
+}
+
+enum UserMessage {
+  USER
+  SUPPORT
+}
+
+enum AssetType {
+  IEX
+  Crypto
+  Forex
+  Metal
+}
+
+enum AssetType2 {
+  FIAT
+  CRYPTO
+  METAL
+  COMMODITY
+}
+
+enum UserStatus {
+  WRONGNUMBER
+  WRONGINFO
+  CALLBACK
+  LOWPOTENTIONAL
+  HIGHPOTENTIONAL
+  NOTINTERESTED
+  DEPOSIT
+  TRASH
+  DROP
+  NEW
+  RESIGN
+  COMPLETED
+}
+
+// Базовая фиатная валюта пользователя (для отображения баланса)
+enum FiatCurrency {
+  USD
+  EUR
+}
+
+// Типы транзакций кошелька
+enum WalletTransactionType {
+  DEPOSIT // пополнение
+  WITHDRAW // вывод
+  INTERNAL_TRANSFER // перевод между пользователями
+  EXCHANGE // обмен одного актива на другой
+  STAKE_LOCK // ушло в стейкинг
+  STAKE_UNLOCK // вернулось из стейкинга
+  STAKE_REWARD // награда за стейкинг
+}
+
+// Статусы транзакций кошелька
+enum WalletTransactionStatus {
+  PENDING
+  COMPLETED
+  FAILED
+}
+
+// Статус позиции стейкинга
+enum StakingStatus {
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+enum PayoutAddressType {
+  DEPOSIT // адрес только для депозитов
+  WITHDRAW // адрес только для выводов
+  BOTH // общий адрес и для депозитов, и для выводов
+}
+
+// Статус реферальной связи
+enum ReferralStatus {
+  PENDING
+  QUALIFIED
+  REWARDED
+  CANCELLED
+}
+
+// Типы уведомлений
+enum NotificationType {
+  SYSTEM
+  TRADE
+  ORDER
+  WALLET
+  REFERRAL
+  CHAT
+  VERIFICATION
+}
+
 model User {
   id                  String               @id @default(cuid())
   name                String?
@@ -38,6 +159,27 @@ model User {
   Authenticator       Authenticator[]
   PasswordResetToken  PasswordResetToken[]
   chartDrawings       ChartDrawing[]
+
+  // Новые поля/связи:
+  aiTrading    Boolean      @default(false)
+  mobileNumber String?
+  baseCurrency FiatCurrency @default(EUR) // базовая валюта отображения (USD/EUR)
+
+  favoriteTickers         FavoriteTicker[]
+  favoriteClientsAsAgent  FavoriteClient[] @relation("AgentFavorites")
+  favoriteClientsAsClient FavoriteClient[] @relation("ClientFavorites")
+
+  walletBalances         WalletBalance[]
+  walletTransactions     WalletTransaction[] @relation("UserWalletTransactions")
+  walletTransactionsFrom WalletTransaction[] @relation("WalletTransactionFromUser")
+  walletTransactionsTo   WalletTransaction[] @relation("WalletTransactionToUser")
+
+  stakingPositions StakingPosition[]
+  notifications    Notification[]
+
+  referralsSent     Referral[] @relation("ReferralsSent")
+  referralsReceived Referral[] @relation("ReferralsReceived")
+  referralCode      String?
 }
 
 model ChartDrawing {
@@ -52,6 +194,28 @@ model ChartDrawing {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, symbol, timeframe])
+}
+
+model PayoutAddress {
+  id         String @id @default(cuid())
+  settingsId Int
+
+  assetSymbol String? // "BTC", "ETH", "USDT", "EUR" и т.д. (можешь связать с CryptoAsset, если хочешь)
+  network     String // "TRC20", "ERC20", "BEP20", "BTC", "SEPA" и т.п.
+  address     String // сам адрес/реквизиты
+  label       String? // для удобства: "Основной USDT TRC20", "Реквизиты EUR SEPA"
+  type        PayoutAddressType @default(WITHDRAW)
+  isActive    Boolean           @default(true)
+  isDefault   Boolean           @default(false)
+  minAmount   Float? // минимальная сумма для этого адреса (если нужно)
+  maxAmount   Float? // максимальная сумма (если нужно)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  settings Settings @relation(fields: [settingsId], references: [id], onDelete: Cascade)
+
+  @@index([settingsId])
+  @@index([assetSymbol, network, type])
 }
 
 model Orders {
@@ -139,7 +303,9 @@ model Message {
 model Balances {
   userId String @id
   usd    Float  @default(0)
-  User   User   @relation(fields: [userId], references: [id])
+  eur    Float  @default(0) // новое поле для евро-баланса
+
+  User User @relation(fields: [userId], references: [id])
 }
 
 model Verification {
@@ -167,15 +333,48 @@ model DepositAddress {
   updatedAt DateTime @updatedAt
 }
 
-model Settings {
-  id          Int      @id @default(autoincrement())
-  siteName    String   @default("AragonTrade")
-  btcAddress  String?
-  ethAddress  String?
-  usdtAddress String?
-  usdtNetwork String   @default("TRC20")
+model Asset {
+  symbol     String     @id // "BTC", "ETH", "USDT"
+  name       String
+  decimals   Int        @default(8)
+  type       AssetType2
+  isEnabled  Boolean    @default(true)
+  isStakable Boolean    @default(false) // ← ВАЖНО: только stakable-активы доступны для стейкинга
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+
+  walletBalances     WalletBalance[]
+  walletTransactions WalletTransaction[]
+  stakingPositions   StakingPosition[]
+  stakingPlans       StakingPlan[]
+}
+
+model StakingPlan {
+  id          String   @id @default(cuid())
+  name        String
+  assetSymbol String
+  duration    Int
+  apr         Float
+  minAmount   Float    @default(0)
+  isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  asset            Asset             @relation(fields: [assetSymbol], references: [symbol])
+  stakingPositions StakingPosition[] // ← ОБЯЗАТЕЛЬНО ДОБАВИЛИ
+}
+
+model Settings {
+  id              Int             @id @default(autoincrement())
+  siteName        String          @default("AragonTrade")
+  btcAddress      String?
+  ethAddress      String?
+  usdtAddress     String?
+  usdtNetwork     String          @default("TRC20")
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  // НОВОЕ: гибкие адреса для депозитов/выводов
+  payoutAddresses PayoutAddress[]
 }
 
 model Comments {
@@ -214,61 +413,146 @@ model Trade_Transaction {
   endAt      DateTime?
   assetType  AssetType              @default(IEX)
   isPaid     Boolean                @default(false)
-  User       User                   @relation(fields: [userId], references: [id])
+  aiEnabled  Boolean                @default(false)
+
+  User User @relation(fields: [userId], references: [id])
 }
 
-enum OrderStatus {
-  PENDING
-  SUCCESSFUL
-  CANCELLED
+// -------------------- НОВЫЕ МОДЕЛИ --------------------
+
+// Избранные тикеры пользователя (для трейд-страницы)
+model FavoriteTicker {
+  id        String   @id @default(cuid())
+  userId    String
+  symbol    String // "BTCUSD", "AAPL.NAS", "EURUSD" и т.п.
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, symbol])
+  @@index([userId])
 }
 
-enum TradeTransactionType {
-  BUY
-  SELL
+// Избранные клиенты для агентов (клиенты "в работе")
+model FavoriteClient {
+  id        String   @id @default(cuid())
+  agentId   String
+  clientId  String
+  createdAt DateTime @default(now())
+
+  agent  User @relation("AgentFavorites", fields: [agentId], references: [id], onDelete: Cascade)
+  client User @relation("ClientFavorites", fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@unique([agentId, clientId])
+  @@index([agentId])
+  @@index([clientId])
 }
 
-enum OrderType {
-  DEPOSIT
-  WITHDRAW
+// Балансы кошелька на пользователя и актив
+model WalletBalance {
+  id          String @id @default(cuid())
+  userId      String
+  assetSymbol String
+
+  ownBalance  Float @default(0)
+  creditLimit Float @default(0)
+  creditUsed  Float @default(0)
+  locked      Float @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  asset Asset @relation(fields: [assetSymbol], references: [symbol])
+
+  @@unique([userId, assetSymbol])
+  @@index([userId])
+  @@index([assetSymbol])
 }
 
-enum TradeTransactionStatus {
-  OPEN
-  CLOSE
+model FxRate {
+  symbol       String   @id // "USD", "BTC", "ETH"
+  toBase       Float // курс к базе сайта
+  baseCurrency String   @default("EUR")
+  updatedAt    DateTime @updatedAt
 }
 
-enum UserRole {
-  USER
-  OWNER
-  CR_MANAGMENT
-  WORKER
-  TEAMLEAD
+model WalletTransaction {
+  id             String                  @id @default(cuid())
+  userId         String // "владелец" транзакции, кто видит её у себя в истории
+  assetSymbol    String
+  type           WalletTransactionType
+  status         WalletTransactionStatus @default(PENDING)
+  amount         Float // >0
+  fromUserId     String? // для INTERNAL_TRANSFER
+  toUserId       String? // для INTERNAL_TRANSFER
+  relatedOrderId String? // связь с Orders.id при необходимости
+  txHash         String? // on-chain hash
+  metadata       Json?
+  createdAt      DateTime                @default(now())
+
+  user     User  @relation("UserWalletTransactions", fields: [userId], references: [id], onDelete: Cascade)
+  asset    Asset @relation(fields: [assetSymbol], references: [symbol])
+  fromUser User? @relation("WalletTransactionFromUser", fields: [fromUserId], references: [id])
+  toUser   User? @relation("WalletTransactionToUser", fields: [toUserId], references: [id])
+
+  @@index([userId, createdAt])
+  @@index([fromUserId])
+  @@index([toUserId])
 }
 
-enum UserMessage {
-  USER
-  SUPPORT
+// Стейкинг позиции
+model StakingPosition {
+  id           String        @id @default(cuid())
+  userId       String
+  assetSymbol  String
+  amount       Float
+  planId       String
+  rewardRate   Float
+  startedAt    DateTime      @default(now())
+  endsAt       DateTime?
+  status       StakingStatus @default(ACTIVE)
+  lastRewardAt DateTime?
+
+  user  User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  asset Asset       @relation(fields: [assetSymbol], references: [symbol])
+  plan  StakingPlan @relation(fields: [planId], references: [id]) // связь уже двусторонняя
+
+  @@index([userId, status])
 }
 
-enum AssetType {
-  IEX
-  Crypto
-  Forex
-  Metal
+// Реферальная система
+model Referral {
+  id             String         @id @default(cuid())
+  referrerId     String // кто пригласил
+  referredUserId String // кого пригласили
+  code           String? // реф-код или ссылка
+  rewardAmount   Float          @default(0)
+  rewardCurrency String         @default("USD")
+  status         ReferralStatus @default(PENDING)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  referrer     User @relation("ReferralsSent", fields: [referrerId], references: [id])
+  referredUser User @relation("ReferralsReceived", fields: [referredUserId], references: [id])
+
+  @@unique([referredUserId]) // один реферер на пользователя
+  @@index([referrerId])
 }
 
-enum UserStatus {
-  WRONGNUMBER
-  WRONGINFO
-  CALLBACK
-  LOWPOTENTIONAL
-  HIGHPOTENTIONAL
-  NOTINTERESTED
-  DEPOSIT
-  TRASH
-  DROP
-  NEW
-  RESIGN
-  COMPLETED
+// Уведомления пользователю
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  type      NotificationType
+  title     String
+  body      String
+  isRead    Boolean          @default(false)
+  metadata  Json?
+  createdAt DateTime         @default(now())
+  readAt    DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead, createdAt])
 }

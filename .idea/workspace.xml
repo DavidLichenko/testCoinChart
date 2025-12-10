@@ -4,25 +4,165 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="fd28fafe-204c-4ae6-8105-3dd8baaf979d" name="Changes" comment="master2upd">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    <list default="true" id="a5dc0c8f-54be-44b7-8b95-2b2d63043a50" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/app/(marketing)/ai-trading/page.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/(marketing)/faq/page.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/(user_interface)/admin/chat/page.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/(user_interface)/admin/layout.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/(user_interface)/admin/orders/page.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/(user_interface)/admin/settings/page.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/(user_interface)/admin/transactions/page.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/(user_interface)/admin/users/page.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/(user_interface)/admin/verification/page.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/(user_interface)/admin/wallets/page.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/(user_interface)/profile/layout.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/(user_interface)/wallet/components/WalletAddAsset.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/(user_interface)/wallet/components/WalletAssetCard.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/(user_interface)/wallet/components/WalletAssetList.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/(user_interface)/wallet/components/WalletAssets.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/(user_interface)/wallet/components/WalletHistory.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/(user_interface)/wallet/components/WalletMarketStrip.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/(user_interface)/wallet/components/WalletPromos.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/(user_interface)/wallet/components/WalletQuickActions.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/(user_interface)/wallet/components/WalletSidebar.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/(user_interface)/wallet/components/WalletSummary.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/(user_interface)/wallet/components/modals/AddAssetModal.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/(user_interface)/wallet/components/modals/DepositModal.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/(user_interface)/wallet/components/modals/ExchangeModal.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/(user_interface)/wallet/components/modals/StakeModal.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/(user_interface)/wallet/components/modals/TransferModal.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/(user_interface)/wallet/components/modals/WithdrawModal.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/(user_interface)/wallet/config/cryptoList.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/(user_interface)/wallet/hooks/fetcher.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/(user_interface)/wallet/hooks/useBinancePrices.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/(user_interface)/wallet/hooks/useStaking.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/(user_interface)/wallet/hooks/useWallet.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/(user_interface)/wallet/hooks/useWalletModals.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/(user_interface)/wallet/layout.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/(user_interface)/wallet/page.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/(user_interface)/wallet/staking/page.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/api/admin/wallets/adjust/route.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/api/admin/wallets/assets/route.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/api/admin/wallets/route.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/api/staking/close/route.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/api/staking/open/route.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/api/staking/plans/route.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/api/staking/positions/route.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/api/trades/favorite-tickers/route.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/api/user/favorite-tickers/route.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/api/wallet/add-asset/route.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/api/wallet/assets/route.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/api/wallet/available-assets/route.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/api/wallet/buy/route.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/api/wallet/deposit-addresses/route.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/api/wallet/deposit/route.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/api/wallet/exchange/route.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/api/wallet/stake/route.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/api/wallet/staking-plans/route.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/api/wallet/summary/route.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/api/wallet/transactions/route.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/api/wallet/transfer/route.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/api/wallet/withdraw/route.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/chart-example/chart_example/.gitignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/chart-example/chart_example/README.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/chart-example/chart_example/app/favicon.ico" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/chart-example/chart_example/app/globals.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/chart-example/chart_example/app/layout.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/chart-example/chart_example/app/page.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/chart-example/chart_example/eslint.config.mjs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/chart-example/chart_example/next-env.d.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/chart-example/chart_example/next.config.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/chart-example/chart_example/package-lock.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/chart-example/chart_example/package.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/chart-example/chart_example/postcss.config.mjs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/chart-example/chart_example/public/file.svg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/chart-example/chart_example/public/globe.svg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/chart-example/chart_example/public/next.svg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/chart-example/chart_example/public/vercel.svg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/chart-example/chart_example/public/window.svg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/chart-example/chart_example/tsconfig.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/components/admin/wallets-management.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/components/animated-number.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/components/balance-card.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/components/home-page.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/hooks/fetcher.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/lib/b2.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/lib/balance-broadcast.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/lib/support-chat.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/lib/user-balance.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/lib/wallet-summary.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/prisma/seed.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/(user_interface)/admin/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(user_interface)/admin/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/(user_interface)/admin/users/[userId]/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(user_interface)/admin/users/[userId]/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/(user_interface)/layout.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/(user_interface)/profile/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(user_interface)/profile/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/(user_interface)/test-chart/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(user_interface)/test-chart/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/admin/team/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(user_interface)/admin/team/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/api/admin/balance/bulk-update/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/app/api/admin/balance/bulk-update/route.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/api/admin/opentrade/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/app/api/admin/opentrade/route.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/api/admin/orders/[orderId]/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/app/api/admin/orders/[orderId]/route.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/api/admin/orders/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/app/api/admin/orders/route.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/api/admin/team/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/app/api/admin/team/route.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/api/admin/trades/[tradeId]/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/app/api/admin/trades/[tradeId]/route.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/api/admin/users/[userId]/balance/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/app/api/admin/users/[userId]/balance/route.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/api/admin/users/[userId]/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/app/api/admin/users/[userId]/route.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/api/admin/users/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/app/api/admin/users/route.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/api/auth/me/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/app/api/auth/me/route.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/api/auth/register/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/app/api/auth/register/route.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/api/orders/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/app/api/orders/route.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/api/trades/[id]/close/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/app/api/trades/[id]/close/route.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/api/trades/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/app/api/trades/route.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/api/user/balance/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/app/api/user/balance/route.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/api/user/update-balance/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/app/api/user/update-balance/route.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/globals.css" beforeDir="false" afterPath="$PROJECT_DIR$/app/globals.css" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/layout.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components.json" beforeDir="false" afterPath="$PROJECT_DIR$/components.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/admin/chat-management.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/admin/chat-management.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/admin/dashboard-stats.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/admin/dashboard-stats.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/admin/open-trade_modal.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/admin/open-trade_modal.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/admin/orders-management.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/admin/orders-management.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/admin/team-management.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/admin/team-management.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/components/admin/transactions-management.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/admin/transactions-management.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/admin/users-management.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/admin/users-management.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/admin/verification-management.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/admin/verification-management.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/auth-provider.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/auth-provider.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/auth/register-form.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/auth/register-form.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/components/chat/chat-button.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/chat/chat-button.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/components/dashboard-page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/dashboard-page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/header.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/header.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/components/i18n-provider.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/i18n-provider.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/profile-page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/profile-page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/layout/desktop-header.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/layout/desktop-header.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/link_box.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/link_box.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/nav-item.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/nav-item.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/components/trade-page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/trade-page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/transactions-page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/transactions-page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/ui/toast.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/ui/toast.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/virtualized-ticker-list.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/virtualized-ticker-list.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/ticker-meta.ts" beforeDir="false" afterPath="$PROJECT_DIR$/data/ticker-meta.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/hooks/useBalance.ts" beforeDir="false" afterPath="$PROJECT_DIR$/hooks/useBalance.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/prisma/schema.prisma" beforeDir="false" afterPath="$PROJECT_DIR$/prisma/schema.prisma" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/icons/crypto_icons/DOG.png" beforeDir="false" afterPath="$PROJECT_DIR$/public/icons/crypto_icons/DOGE.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tailwind.config.ts" beforeDir="false" afterPath="$PROJECT_DIR$/tailwind.config.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="TypeScript JSX File" />
+      </list>
+    </option>
+  </component>
   <component name="Git.Settings">
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
-        <entry key="$PROJECT_DIR$" value="master" />
+        <entry key="$PROJECT_DIR$" value="master2" />
       </map>
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -40,9 +180,10 @@
   }
 }</component>
   <component name="ProjectColorInfo">{
-  &quot;associatedIndex&quot;: 3
+  &quot;customColor&quot;: &quot;&quot;,
+  &quot;associatedIndex&quot;: 0
 }</component>
-  <component name="ProjectId" id="31vcHKtt3rHSv0Xdr4sCgbmchAv" />
+  <component name="ProjectId" id="36Uckg8248eMtq02Vo6lhdqyH9x" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
@@ -50,15 +191,14 @@
   <component name="PropertiesComponent">{
   &quot;keyToString&quot;: {
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;master2&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;master3&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
     &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
     &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;project.propVCSSupport.DirectoryMappings&quot;,
-    &quot;ts.external.directory.path&quot;: &quot;D:\\sites\\aragon-trade\\node_modules\\typescript\\lib&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+    &quot;settings.editor.selected.configurable&quot;: &quot;configurable.group.build&quot;,
+    &quot;ts.external.directory.path&quot;: &quot;D:\\sites\\aragon-trade\\node_modules\\typescript\\lib&quot;
   }
 }</component>
   <component name="SharedIndexes">
@@ -71,28 +211,21 @@
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
-      <changelist id="fd28fafe-204c-4ae6-8105-3dd8baaf979d" name="Changes" comment="" />
-      <created>1756407897977</created>
+      <changelist id="a5dc0c8f-54be-44b7-8b95-2b2d63043a50" name="Changes" comment="" />
+      <created>1765064735246</created>
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
-      <updated>1756407897977</updated>
-      <workItem from="1756407899016" duration="5264000" />
-      <workItem from="1756640957729" duration="42000" />
-      <workItem from="1756696560385" duration="868000" />
-      <workItem from="1756729451311" duration="1265000" />
-      <workItem from="1756810341630" duration="820000" />
-      <workItem from="1757101317762" duration="2000" />
-      <workItem from="1758390509018" duration="1223000" />
+      <updated>1765064735246</updated>
+      <workItem from="1765064737111" duration="1177000" />
+      <workItem from="1765119765849" duration="80000" />
+      <workItem from="1765120234229" duration="43000" />
+      <workItem from="1765162324568" duration="5579000" />
+      <workItem from="1765210403248" duration="60809000" />
+      <workItem from="1765332456719" duration="16283000" />
+      <workItem from="1765390592016" duration="12042000" />
+      <workItem from="1765405867148" duration="1000" />
+      <workItem from="1765405884932" duration="1071000" />
     </task>
-    <task id="LOCAL-00001" summary="master2upd">
-      <option name="closed" value="true" />
-      <created>1756696680113</created>
-      <option name="number" value="00001" />
-      <option name="presentableId" value="LOCAL-00001" />
-      <option name="project" value="LOCAL" />
-      <updated>1756696680113</updated>
-    </task>
-    <option name="localTasksCounter" value="2" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -108,9 +241,5 @@
         </entry>
       </map>
     </option>
-  </component>
-  <component name="VcsManagerConfiguration">
-    <MESSAGE value="master2upd" />
-    <option name="LAST_COMMIT_MESSAGE" value="master2upd" />
   </component>
 </project>

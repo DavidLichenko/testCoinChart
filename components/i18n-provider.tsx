@@ -1,28 +1,109 @@
 "use client"
 
-import React, { createContext, useContext, useEffect, useMemo, useState } from "react"
-import Cookies from "js-cookie"
+import React, {createContext, useContext, useEffect, useState} from "react"
 
-type Messages = Record<string, string>
+
+export type Messages = {
+  [key: string]: string | Messages
+}
 
 const en: Messages = {
   // Profile
-  profile: "Profile",
-  verification: "Verification",
-  withdraw: "Withdraw",
-  history: "History",
+  // Hero Section
   institutionalTag: "Institutional trading platform",
   trustedByTraders: "Trusted by active traders worldwide",
-  stepCreateAccount: "Create your account in minutes",
-  stepFundAccount: "Fund your balance with your preferred method",
-  stepStartTrading: "Start trading with real-time analytics",
+  heroTag: "Multi-asset trading platform",
+  heroTitle: "Trade, manage and grow your capital",
+  heroSubtitle: "One terminal for trading, wallet management and personal support. Built for active traders.",
+  heroSlideTradeDesc: "Access forex, crypto, indices and US stocks from a single fast interface.",
+  heroSlideWalletDesc: "Hold funds in your base currency, move them to trading or staking in one tap.",
+  heroSlideManagerDesc: "Get help with funding, withdrawals and strategy questions when you need it.",
+  heroCtaOpenAccount: "Open free account",
+  heroCtaSignIn: "Sign in",
+  heroCtaGoToMarket: "Go to trading",
+  heroCtaGoToDashboard: "Go to dashboard",
+  heroStatActiveClients: "Active clients",
+  heroStatExecutionSpeed: "Avg. execution speed",
+  heroStatCountries: "Countries",
+  dailyVolume: "Daily Volume",
+
+  // Features
+  advancedTrading: "Advanced Trading",
+  advancedTradingDesc: "Professional trading tools with real-time charts and analytics",
+  heroSlideTradeTitle: "Trade with structure, not emotion.",
+  heroSlideTradeSubtitle: "Institutional-grade tools, real-time risk limits, and clean execution in one platform.",
+  heroSlideTradeBullet1: "Position size and risk per trade calculated for you.",
+  heroSlideTradeBullet2: "Live P&L, margin, and exposure in a single view.",
+  heroSlideTradeBullet3: "Work with major forex pairs, crypto, and US stocks.",
+
+  heroSlideWalletTitle: "One wallet for all your balances.",
+  heroSlideWalletSubtitle: "See trading balance, funds in work, and free capital in seconds.",
+  heroSlideWalletBullet1: "Clear split between available, in-trade, and locked funds.",
+  heroSlideWalletBullet2: "Instant internal transfers between trading and wallet balances.",
+  heroSlideWalletBullet3: "Support for EUR and USD base currencies.",
+
+  heroSlideManagerTitle: "A trading manager by your side.",
+  heroSlideManagerSubtitle: "AI tools and live support keep you within your plan, not your mood.",
+  heroSlideManagerBullet1: "Personal limits and daily loss controls for your account.",
+  heroSlideManagerBullet2: "Smart alerts when your behavior drifts from your rules.",
+  heroSlideManagerBullet3: "Priority access to our support team.",
+
+  // How It Works
   howItWorksTitle: "How AragonTrade works",
-  howItWorksSubtitle: "A simple path from registration to execution",
+  howItWorksSubtitle: "A simple path from registration to first trade.",
+  stepCreateAccount: "Create your account in a few minutes.",
+  stepCreateAccountDesc: "Sign up in seconds with our streamlined registration process",
+  stepFundAccount: "Fund your balance with a convenient payment method.",
+  stepFundAccountDesc: "Choose from multiple payment methods to deposit funds instantly",
+  stepStartTrading: "Start trading with real-time analytics.",
+  stepStartTradingDesc: "Access global markets and execute trades with confidence",
+
+  // Education
   educationBlockTitle: "Built for learning and long–term success",
   educationBlockDesc: "Whether you're a beginner or an active trader, AragonTrade gives you structure, tools, and guidance",
   educationItemAcademy: "Structured education and trading basics",
   educationItemIdeas: "Idea flows and strategy breakdowns",
   educationItemSupport: "1:1 support from our team",
+
+  // Why Choose
+  whyChoose: "Why traders choose",
+  aragonTrade: "AragonTrade",
+  experienceFutureDescription: "Modern trading infrastructure, instant balance sync and clear risk tools in one platform.",
+
+  // CTA
+  readyToStart: "Ready to Start Your",
+  tradingJourney: "Trading Journey",
+  joinThousandsSuccessful: "Join thousands of successful traders and start building your financial future today.",
+  createFreeAccount: "Create Free Account",
+
+  // Navigation
+  trading: "Trading",
+  market: "Market",
+  product: "Product",
+  company: "Company",
+  about: "About",
+  support: "Support",
+  contactUs: "Contact Us",
+  allRightsReserved: "All rights reserved",
+  privacy: "Privacy",
+  termsOfService: "Terms of Service",
+
+  // Additional translations for UI components
+  enterpriseSecurity: "Enterprise Security",
+  enterpriseSecurityDesc: "Bank-level encryption and multi-layer security protocols protect your assets",
+  lightningFast: "Lightning Fast",
+  lightningFastDesc: "Execute trades in milliseconds with our optimized infrastructure",
+  trustedCompanies: "Trusted Companies",
+  stepCreateAccountTitle: "Create Account",
+  stepFundAccountTitle: "Fund Account",
+  stepStartTradingTitle: "Start Trading",
+  educationItemAcademyDesc: "Learn from basics to advanced strategies with structured courses",
+  educationItemIdeasDesc: "Get real-time insights and professional market analysis",
+  educationItemSupportDesc: "Advanced tools to protect your investments and minimize losses",
+  profile: "Profile",
+  verification: "Verification",
+  withdraw: "Withdraw",
+  history: "History",
   globalCoverageTitle: "Global market access",
   globalCoverageDesc: "Trade major forex pairs, crypto, and US stocks from a single dashboard",
   accountDetails: "Account Details",
@@ -30,7 +111,7 @@ const en: Messages = {
   updateProfile: "Update Profile",
   identityVerification: "Identity Verification",
   uploadGovId:
-    "Upload a government-issued ID to verify your account. Your current status is:",
+      "Upload a government-issued ID to verify your account. Your current status is:",
   frontId: "Front of ID",
   backId: "Back of ID",
   clickToUpload: "Click to upload",
@@ -58,6 +139,300 @@ const en: Messages = {
   language: "Language",
   english: "English",
   spanish: "Español",
+  helpCenter: "Help Center",
+  faq: "FAQ",
+  manageYourPreferences: "Manage your preferences",
+  profileSettings: "Profile Settings",
+  notificationSettings: "Notification Settings",
+  securitySettings: "Security Settings",
+  pushNotifications: "Push Notifications",
+  receivePushNotifications: "Receive push notifications",
+  emailNotifications: "Email Notifications",
+  receiveEmailNotifications: "Receive email notifications",
+  soundNotifications: "Sound Notifications",
+  playSoundForNotifications: "Play sound for notifications",
+  twoFactorAuthentication: "Two-Factor Authentication",
+  enableTwoFactorAuth: "Enable two-factor authentication",
+  darkMode: "Dark Mode",
+  enableDarkMode: "Enable dark mode",
+  languagePreferences: "Language Preferences",
+  saveSettings: "Save Settings",
+  couldNotLoadTransactionHistory: "Could not load transaction history",
+  makeDeposit: "Make Deposit",
+  requestWithdrawal: "Request Withdrawal",
+  viewTrades: "View Trades",
+  manageAssets: "Manage Assets",
+  addFunds: "Add Funds",
+  withdrawFunds: "Withdraw Funds",
+  accessTradingPlatform: "Access trading platform",
+  completeVerificationToUnlock: "Complete verification to unlock",
+  inviteFriendsEarnRewards: "Invite friends and earn rewards",
+  accountSettings: "Account Settings",
+  friendsReferred: "Friends Referred",
+  earnedFromReferrals: "Earned From Referrals",
+  qualifiedReferrals: "Qualified Referrals",
+  pendingBonus: "Pending Bonus",
+  bonusEligibility: "Bonus Eligibility",
+  bonusEligibilityDescription: "$50 bonus for each friend who makes a deposit of $500 or more",
+  eligible: "Eligible",
+  notEligible: "Not Eligible",
+  noReferralsYet: "No Referrals Yet",
+  shareYourLinkToStartEarning: "Share your link to start earning",
+  howItWorks: "How It Works",
+  shareYourLink: "Share Your Link",
+  shareYourLinkDesc: "Send your referral link to friends",
+  friendRegisters: "Friend Registers",
+  friendRegistersDesc: "They sign up using your link",
+  youEarnRewards: "You Earn Rewards",
+  earn10Immediate: "Earn $10 immediately",
+  earn50Bonus: "Plus $50 bonus when they deposit $500+",
+  viewYourTransactionHistory: "View your transaction history",
+  reference: "Reference",
+  tryAdjustingFilters: "Try adjusting your filters",
+  completeIdentityVerification: "Complete identity verification",
+  uploadFrontId: "Upload front of ID",
+  uploadBackId: "Upload back of ID",
+  enterYourAddress: "Enter your address",
+  enterYourCity: "Enter your city",
+  enterPostalCode: "Enter postal code",
+  submitting: "Submitting...",
+  submitForVerification: "Submit for Verification",
+  verificationApproved: "Verification Approved",
+  congratulationsYourIdentityHasBeenVerified: "Congratulations! Your identity has been verified",
+  unnamed: "Unnamed",
+  bonusPerQualified: "Per Qualified Referral",
+  perReferral: "Per Referral",
+  commissionOnTrades: "Commission on Trades",
+  maxEarningsPerReferral: "Max Earnings Per Referral",
+  yourReferralLink: "Your Referral Link",
+  copyLink: "Copy Link",
+  share: "Share",
+  openWallet: "Open Wallet",
+  verifyAccount: "Verify Account",
+  startTrading: "Start Trading",
+  shareLink: "Share Link",
+  quickActions: "Quick Actions",
+  welcomeBack: "Welcome Back",
+  dashboardSubtitle: "Overview of your account and activity",
+  referrals: "Referrals",
+  recentActivity: "Recent Activity",
+  noRecentActivity: "No recent activity",
+  //Header
+  header:{
+    deposit: "Deposit",
+    dashboard:"Dashboard",
+    history:"History",
+    referrals:"Referrals",
+    transactions:"Transactions",
+    settings:"Settings",
+    verification:"Verification",
+    totalEquity: "Total Equity",
+    wallet:"Wallet",
+    news:"News",
+    withdrawalBalance: "Withdrawal Balance",
+    walletBalance: "Wallet Balance",
+    tradingMargin: "Trading Margin",
+    creditBalance: "Credit Balance",
+    navigation: "Navigation",
+    market:"Market",
+    myAccount: "My account",
+    profile: "Profile",
+    withdraw: "Withdraw",
+    logout: "Log out",
+    balance:"Balance",
+    goToWallet: "Go to Wallet",
+    goToTrade: "Go to Trade"
+  },
+  //Wallet
+  wallet: {
+    staking: {
+      title: "Staking",
+      subtitle: "Earn passive rewards by locking your crypto.",
+
+      loading: "Loading…",
+
+      sidebar: {
+        assetsTitle: "Stakable assets",
+        noStakableAssets: "No assets available for staking yet.",
+        ownBalance: "Balance",
+        staked: "Staked",
+        summaryTitle: "Staking summary",
+        totalStaked: "Total staked",
+        positionsCount: "Active positions",
+        walletBalance: "Wallet balance",
+      },
+
+      plans: {
+        title: "Available staking plans",
+        subtitleForAsset: "Plans for {{asset}}",
+        subtitleGeneric: "Choose an asset on the left to see its staking plans.",
+        noPlansGlobal: "No staking plans are configured yet.",
+        noPlansForAsset: "No staking plans for this asset. Try another asset.",
+        badge: "Fixed",
+        minAmount: "Min amount",
+        cta: "Stake this plan",
+      },
+
+      positions: {
+        title: "My staking positions",
+        subtitle: "Track your locked positions and rewards.",
+        empty: "You don’t have any staking positions yet.",
+        planLabel: "Plan",
+        startedAt: "Started",
+        endsAt: "Ends",
+        closeCta: "Close & claim",
+      },
+
+      errors: {
+        generic: "Something went wrong. Please try again.",
+        STAKING_PLANS_ERROR: "Could not load staking plans.",
+        STAKING_POSITIONS_ERROR: "Could not load your staking positions.",
+        STAKING_OPEN_ERROR: "Could not open staking position.",
+        STAKING_CLOSE_ERROR: "Could not close staking position.",
+        INSUFFICIENT_BALANCE: "Insufficient balance for staking.",
+        AMOUNT_BELOW_MIN: "Amount is below the minimum for this plan.",
+        INVALID_PLAN: "Selected staking plan is not available.",
+        ASSET_NOT_STAKABLE: "This asset is not available for staking.",
+        NOT_FOUND: "Staking position not found.",
+        ALREADY_CLOSED: "This staking position is already closed.",
+      },
+    },
+    market: {
+      title: "Market overview",
+      live: "Live prices"
+    },
+    page: {
+      title: "Wallet",
+      subtitle: "Manage your crypto balance, credit and staking in one place."
+    },
+    promos: {
+      stakingBadge: "Staking",
+      stakingTitle: "Earn up to 12% APR on your crypto",
+      stakingText: "Lock assets in flexible plans and receive rewards automatically.",
+      referralBadge: "Referral program",
+      referralTitle: "Invite friends and get bonuses",
+      referralText: "Share your link and receive rewards from their activity."
+    },
+    summary: {
+      totalBalance: "Total Balance",
+      ownFunds: "Own Funds",
+      creditUsed: "Credit Used",
+      creditLimit: "Credit Limit",
+      availableToTrade: "Available to Trade",
+      // если понадобится
+      baseCurrency: "Base currency"
+    },
+    actions: {
+      quickActions: "Quick actions",
+      addAsset: "Add asset",
+      deposit: "Deposit",
+      withdraw: "Withdraw",
+      transfer: "Transfer",
+      exchange: "Exchange",
+      stake: "Stake"
+    },
+    sidebar: {
+      totalLabel: "Total balance",
+      deposit: "Deposit",
+      withdraw: "Withdraw",
+      navigation: "Navigation",
+      navWallet: "Wallet",
+      navStaking: "Staking",
+      stakingHint: "You can choose a crypto asset on the staking page if you already own it.",
+      tradingBalance: "Trading balance",
+      creditBalance: "Credit balance",
+      cryptoBalance: "Crypto balance"
+    },
+    assets: {
+      title: "Your assets",
+      empty: "You don't have any assets yet.",
+      searchPlaceholder: "Search assets...",
+      columnAsset: "Asset",
+      columnPrice: "Price",
+      columnChange: "24h change",
+      columnBalance: "Balance",
+      columnActions: "Actions",
+      actionBuy: "Buy",
+      actionToMain: "To main balance",
+      actionTransferUser: "Transfer to user"
+    },
+    history: {
+      title: "Transaction history",
+      date: "Date",
+      type: "Type",
+      asset: "Asset",
+      amount: "Amount",
+      status: "Status",
+      loading: "Loading...",
+      empty: "No transactions yet."
+    },
+    modals: {
+      deposit: {
+        title: "Deposit crypto",
+        description: "Send funds to one of the addresses below and register your deposit.",
+        asset: "Asset",
+        depositAddresses: "Deposit addresses",
+        amount: "Amount",
+        txHash: "Transaction hash (optional)",
+        submit: "Submit deposit",
+        txHint: "Optional: you can provide the on-chain transaction hash for faster verification.",
+        submitting: "Processing...",
+        noAddresses: "No deposit addresses configured for this asset yet."
+      },
+      withdraw: {
+        title: "Withdraw crypto",
+        description: "Request a withdrawal to your external wallet.",
+        asset: "Asset",
+        amount: "Amount",
+        address: "Destination address",
+        submit: "Request withdrawal"
+      },
+      transfer: {
+        title: "Transfer to user",
+        description: "Send funds to another user by email.",
+        email: "Recipient email",
+        asset: "Asset",
+        amount: "Amount",
+        submit: "Send transfer"
+      },
+      exchange: {
+        title: "Exchange assets",
+        description: "Swap one crypto asset for another at market price.",
+        from: "From asset",
+        to: "To asset",
+        amount: "Amount",
+        submit: "Confirm exchange"
+      },
+      stake: {
+        title: "Stake your assets",
+        description: "Lock your crypto to earn rewards over time.",
+        asset: "Asset",
+        available: "Available",
+        plan: "Staking plan",
+        noPlans: "No staking plans for this asset.",
+        amount: "Amount to stake",
+        submit: "Start staking"
+      },
+      addAsset: {
+        title: "Add new asset",
+        description: "Select a crypto asset to add it to your wallet.",
+        loading: "Loading assets...",
+        empty: "No more assets available.",
+        stakable: "Staking available",
+        adding: "Adding...",
+        add: "Add"
+      }
+    }
+  },
+  balanceShortDescription: "Trading account overview",
+  availableToTrade: "Available to trade",
+  availableToWithdraw: "Available to withdraw",
+  inTrade: "In trade",
+  fundsInWork: "Funds in work",
+  pendingWithdrawals: "Pending withdrawals",
+  creditUsed: "Credit used",
+  creditLimit: "Credit limit",
+  creditAvailable: "Credit available",
   // Dashboard
   loadingDashboard: "Loading dashboard...",
   totalBalance: "Total Balance",
@@ -75,19 +450,16 @@ const en: Messages = {
   notVerified: "Not Verified",
   memberSince: "Member Since",
   accountCreation: "Account creation",
-  recentActivity: "Recent Activity",
   recentOrders: "Recent Orders",
   noRecentOrders: "No recent orders",
   activePositions: "Active Positions",
   noActiveTrades: "No active trades",
-  quickActions: "Quick Actions",
-  startTrading: "Start Trading",
   viewTransactions: "View Transactions",
   passwordUpdated: "Password updated",
   completeVerification: "Complete Verification",
-  withdrawFunds: "Withdraw Funds",
   // Transactions
   loadingTransactions: "Loading transactions...",
+  couldNotLoadTransactions: "Could not load transactions",
   closedTradesTab: "Closed Trades",
   depositsWithdrawalsTab: "Deposits & Withdrawals",
   totalTrades: "Total Trades",
@@ -108,10 +480,15 @@ const en: Messages = {
   successful: "Successful",
   pending: "Pending",
   cancelled: "Cancelled",
+  failed: "Failed",
   depositWithdrawalHistory: "Deposit & Withdrawal History",
   amount: "Amount",
   date: "Date",
   noTransactionsFound: "No transactions found",
+  transactions: "Transactions",
+  type: "Type",
+  description: "Description",
+  trade: "Trade",
   // Trade
   searchTickers: "Search tickers...",
   selectCategory: "Select category...",
@@ -128,7 +505,7 @@ const en: Messages = {
   marketMoversTitle:"Market movers",
   selectTickerToStart: "Select a Ticker to Start Trading",
   choosePairToView:
-    "Choose from the available trading pairs above to view real-time charts and place orders.",
+      "Choose from the available trading pairs above to view real-time charts and place orders.",
   placeOrder: "Place Order",
   buyUpper: "BUY",
   sellUpper: "SELL",
@@ -163,9 +540,8 @@ const en: Messages = {
   loadingProfile:"Loading Profile",
   // Navigation
   dashboard: "Dashboard",
-  transactions: "Transactions",
-  market: "Market",
   news: "News",
+  select:"Select",
   admin: "Admin",
   // Deposit Modal
   selectDepositMethod: "Select a deposit method",
@@ -177,11 +553,11 @@ const en: Messages = {
   depositViaBank: "Deposit via bank wire",
   depositWithCard: "Deposit with Card",
   cardPaymentsNotAvailable:
-    "Card payments are currently not available. Please select another method.",
+      "Card payments are currently not available. Please select another method.",
   proceedToPayment: "Proceed to Payment",
   bankTransferDetails: "Bank Transfer Details",
   bankTransferInfo:
-    "Please use the following details to make a bank transfer. Ensure you include the reference number.",
+      "Please use the following details to make a bank transfer. Ensure you include the reference number.",
   accountHolder: "Account Holder",
   swiftBic: "SWIFT/BIC",
   referenceNumber: "Reference Number",
@@ -195,7 +571,7 @@ const en: Messages = {
   onlySendToAddress: "Only send {network} to this address.",
   important: "Important:",
   onlySendViaNetwork:
-    "Only send {token} via the {network} network. Sending assets via other networks may result in the loss of your funds.",
+      "Only send {token} via the {network} network. Sending assets via other networks may result in the loss of your funds.",
   averageDeliveryTime: "Average delivery time: 1-20 minutes.",
   copied: "Copied!",
   addressCopied: "Address copied to clipboard.",
@@ -205,10 +581,8 @@ const en: Messages = {
   // News
   marketNews: "Market News",
   stayUpToDate:
-    "Stay up-to-date with the latest headlines across the financial world.",
+      "Stay up-to-date with the latest headlines across the financial world.",
   general: "General",
-  forex: "Forex",
-  crypto: "Crypto",
   mergers: "Mergers",
   noNewsFound: "No news articles found for this category.",
   readFullStory: "Read full story",
@@ -261,23 +635,15 @@ const en: Messages = {
   positionSize: "Position Size",
   entryPrice: "Entry Price",
   exitPrice: "Exit Price",
-  currentPrice: "Current Price",
   profitLoss: "Profit/Loss",
   unrealizedPnL: "Unrealized P&L",
   realizedPnL: "Realized P&L",
   // Account
-  accountSettings: "Account Settings",
-  securitySettings: "Security Settings",
   preferences: "Preferences",
   notifications: "Notifications",
   // Support
-  support: "Support",
   help: "Help",
-  contactUs: "Contact Us",
-  faq: "FAQ",
   // Footer
-  termsOfService: "Terms of Service",
-  privacyPolicy: "Privacy Policy",
   cookies: "Cookies",
   // Mobile
   menu: "Menu",
@@ -372,12 +738,9 @@ const en: Messages = {
   // Verification
   verificationStatus: "Verification Status",
   verificationPending: "Verification Pending",
-  verificationApproved: "Verification Approved",
   verificationRejected: "Verification Rejected",
-  verificationRequired: "Verification Required",
   // KYC
   kyc: "KYC",
-  identityVerification: "Identity Verification",
   addressVerification: "Address Verification",
   documentVerification: "Document Verification",
   // Security
@@ -397,7 +760,6 @@ const en: Messages = {
   // Settings
   languageSettings: "Language Settings",
   themeSettings: "Theme Settings",
-  notificationSettings: "Notification Settings",
   privacySettings: "Privacy Settings",
   resetPasswordTitle:"Reset your password",
   resetPasswordSubtitle:"Enter a new secure password for your account",
@@ -407,7 +769,6 @@ const en: Messages = {
   invalidToken:"Invalid or expired reset link",
   backToHome:"Back to homepage",
   // Help
-  helpCenter: "Help Center",
   knowledgeBase: "Knowledge Base",
   tutorials: "Tutorials",
   videoGuides: "Video Guides",
@@ -418,7 +779,6 @@ const en: Messages = {
   telegram: "Telegram",
   // Legal
   terms: "Terms",
-  privacy: "Privacy",
   disclaimer: "Disclaimer",
   // Contact
   phone: "Phone",
@@ -427,9 +787,7 @@ const en: Messages = {
   liveChat: "Live Chat",
   supportTicket: "Support Ticket",
   // Auth
-  welcomeBack: "Welcome Back",
   signInToAccount: "Sign in to your AragonTrade account",
-  enterEmail: "Enter your email",
   password: "Password",
   enterPassword: "Enter your password",
   signingIn: "Signing in...",
@@ -455,71 +813,38 @@ const en: Messages = {
   tradeSmarter: "Trade Smarter,",
   notHarder: "Not Harder",
   joinThousandsDescription:
-    "Join thousands of traders using our advanced platform to maximize profits with AI-powered insights, real-time analytics, and professional-grade tools.",
+      "Join thousands of traders using our advanced platform to maximize profits with AI-powered insights, real-time analytics, and professional-grade tools.",
   startTradingNow: "Start Trading Now",
   watchDemo: "Watch Demo",
   activeTraders: "Active Traders",
-  dailyVolume: "Daily Volume",
   successRate: "Success Rate",
   countries: "Countries",
   liveTradingStats: "Live Trading Stats",
   realTimeMarketData: "Real-time market data",
   joinLiveTrading: "Join Live Trading",
-  whyChoose: "Why Choose",
-  aragonTrade: "AragonTrade",
-  experienceFutureDescription:
-    "Experience the future of trading with our cutting-edge platform designed for both beginners and professionals.",
-  advancedTrading: "Advanced Trading",
-  advancedTradingDesc:
-    "Professional trading tools with real-time charts and analytics",
   securePlatform: "Secure Platform",
   securePlatformDesc: "Bank-level security with multi-factor authentication",
-  lightningFast: "Lightning Fast",
-  lightningFastDesc:
-    "Execute trades in milliseconds with our optimized infrastructure",
   marketAnalysis: "Market Analysis",
   marketAnalysisDesc: "AI-powered insights and market predictions",
   expertSupport: "Expert Support",
   expertSupportDesc: "24/7 customer support from trading professionals",
   premiumFeatures: "Premium Features",
   premiumFeaturesDesc: "Access to exclusive trading strategies and signals",
-  readyToStart: "Ready to Start Your",
   createAccountTitle:"Create your account",
   createAccountSubtitle:"Start trading on AragonTrade in just a few minutes",
-  tradingJourney: "Trading Journey?",
-  joinThousandsSuccessful:
-    "Join thousands of successful traders and start building your financial future today.",
-  createFreeAccount: "Create Free Account",
-  allRightsReserved: "© 2024 AragonTrade. All rights reserved.",
   termsOfConditions: "Terms of Conditions",
-  privacyPolicy: "Privacy Policy",
   // Trading Panel
-  selectTickerToStart: "Select a ticker to start trading",
   longPosition: "Long Position",
   shortPosition: "Short Position",
   currentPrice: "Current Price",
-  dashboardSubtitle:"Track your performance, monitor open positions and stay in sync with the market in one place",
-  volume: "Volume",
   estMargin: "Est. margin",
-  insufficientBalance:
-    "Insufficient balance. Required: ${required}, Available: ${available}",
-  leverage: "Leverage",
-  advancedOptions: "Advanced Options",
   transactionsTitle:"Transactions & History",
   transactionsSubtitle:"View your closed trades, deposits and withdrawals in one place",
   withdrawal:"withdrawal",
-  takeProfit: "Take Profit",
   enterTpPrice: "Take profit price",
-  stopLoss: "Stop Loss",
   enterSlPrice: "Stop loss price",
-  placeOrder: "Place {type} Order",
-  depositFunds: "Deposit Funds",
-  method: "Method",
-  crypto: "Crypto",
   card: "Card",
   bank: "Bank",
-  selectToken: "Select Token",
-  selectNetwork: "Select Network",
   cryptoAddress: "Address",
   copyAddress: "Copy Address",
   processingBankInfo: "Processing your bank info...",
@@ -527,21 +852,146 @@ const en: Messages = {
   loginToBank: "Login to {bankName}",
   authorize: "Authorize",
   cardNumber: "Card Number",
-  expiry: "MM/YY",
-  cvv: "CVV",
-  amount: "Amount",
-  deposit: "Deposit",
-  requiredField: "This field is required",
-  copied: "Deposit address copied",
-  processing: "Processing",
-  done: "Done",
-  processingInfo: "Your card deposit is being processed.",
   bankProcessingInfo:
-    "The information is being processed, please wait for confirmation.",
+      "The information is being processed, please wait for confirmation",
+
+  // HERO slider – TRADE
+  heroSlideTradeTag: "Trading",
+  // HERO slider – WALLET
+  heroSlideWalletTag: "Wallet",
+
+  // HERO slider – MANAGER / SUPPORT
+  heroSlideManagerTag: "Manager",
+  // hero mini card
+  heroMiniCardTitle: "Live risk overview",
+  heroMiniCardSubtitle: "Positions, margin, and PnL in one glance.",
+  heroMiniCardTag: "Real-time",
+
+  heroStatAiTitle: "AI assistant",
+  heroStatAiValue: "Scans your risk and behavior in the background.",
+  heroStatRiskTitle: "Risk controls",
+  heroStatRiskValue: "Soft limits that protect you from impulse decisions.",
+  heroStatSupportTitle: "Support",
+  heroStatSupportValue: "Personal help when you need it, not 2 days later.",
+
+  // CTA texts
+  ctaStartTrading: "Start trading",
+  ctaGoToPlatform: "Go to platform",
+  ctaGoToDashboard: "Open dashboard",
+  ctaSignIn: "Sign in",
+  ctaSignUp: "Create account",
+
+  heroWelcomeBack: "Welcome back, ",
+
+  // AI section
+  aiSectionTitle: "AI-driven trading, human-level control",
+  aiSectionSubtitle:
+      "Let automation handle routine checks while you stay focused on decisions and execution.",
+
+  aiCardRiskTitle: "Risk assistant",
+  aiCardRiskDesc:
+      "Monitors drawdown, exposure, and leverage in real time and warns you before it hurts.",
+  aiCardIdeasTitle: "Idea & signal layer",
+  aiCardIdeasDesc:
+      "Smart scanners and watchlists help you find opportunities that match your style.",
+  aiCardJournalTitle: "Wallet & journal in sync",
+  aiCardJournalDesc:
+      "Every deposit, trade, and withdrawal stays tied to your performance history.",
+
 };
 
 const es: Messages = {
   // Profile
+  institutionalTag: "Plataforma de trading institucional",
+  trustedByTraders: "Confiado por traders activos en todo el mundo",
+  heroTag: "Plataforma de trading multi-activo",
+  heroTitle: "Comercia, gestiona y haz crecer tu capital",
+  heroSubtitle: "Una terminal para trading, gestión de billetera y soporte personal. Construida para traders activos.",
+  heroSlideTradeDesc: "Accede a forex, crypto, índices y acciones estadounidenses desde una única interfaz rápida.",
+  heroSlideWalletDesc: "Mantén fondos en tu moneda base, muévelos a trading o staking con un toque.",
+  heroSlideManagerDesc: "Obtén ayuda con financiación, retiros y preguntas de estrategia cuando la necesites.",
+  heroCtaOpenAccount: "Abrir cuenta gratuita",
+  heroCtaSignIn: "Iniciar sesión",
+  heroCtaGoToMarket: "Ir a trading",
+  heroCtaGoToDashboard: "Ir al panel",
+  heroStatActiveClients: "Clientes activos",
+  heroStatExecutionSpeed: "Velocidad promedio de ejecución",
+  heroStatCountries: "Países",
+  dailyVolume: "Volumen Diario",
+
+  // Features
+  advancedTrading: "Trading Avanzado",
+  advancedTradingDesc: "Herramientas de trading profesionales con gráficos y análisis en tiempo real",
+  heroSlideTradeTitle: "Comercia con estructura, no con emoción.",
+  heroSlideTradeSubtitle: "Herramientas de grado institucional, límites de riesgo en tiempo real y ejecución limpia en una plataforma.",
+  heroSlideTradeBullet1: "Tamaño de posición y riesgo por operación calculados para ti.",
+  heroSlideTradeBullet2: "P&L en vivo, margen y exposición en una sola vista.",
+  heroSlideTradeBullet3: "Trabaja con principales pares forex, crypto y acciones estadounidenses.",
+
+  heroSlideWalletTitle: "Una billetera para todos tus saldos.",
+  heroSlideWalletSubtitle: "Ve el saldo de trading, fondos en trabajo y capital libre en segundos.",
+  heroSlideWalletBullet1: "División clara entre disponible, en trading y fondos bloqueados.",
+  heroSlideWalletBullet2: "Transferencias internas instantáneas entre saldos de trading y billetera.",
+  heroSlideWalletBullet3: "Soporte para monedas base EUR y USD.",
+
+  heroSlideManagerTitle: "Un gestor de trading a tu lado.",
+  heroSlideManagerSubtitle: "Las herramientas de IA y el soporte en vivo te mantienen dentro de tu plan, no de tu estado de ánimo.",
+  heroSlideManagerBullet1: "Límites personales y controles de pérdida diaria para tu cuenta.",
+  heroSlideManagerBullet2: "Alertas inteligentes cuando tu comportamiento se desvía de tus reglas.",
+  heroSlideManagerBullet3: "Acceso prioritario a nuestro equipo de soporte.",
+
+  // How It Works
+  howItWorksTitle: "Cómo funciona AragonTrade",
+  howItWorksSubtitle: "Un camino simple desde el registro hasta la primera operación.",
+  stepCreateAccount: "Crea tu cuenta en pocos minutos.",
+  stepCreateAccountDesc: "Regístrate en segundos con nuestro proceso de registro optimizado",
+  stepFundAccount: "Financia tu saldo con un método de pago conveniente.",
+  stepFundAccountDesc: "Elige entre múltiples métodos de pago para depositar fondos instantáneamente",
+  stepStartTrading: "Comienza a operar con análisis en tiempo real.",
+  stepStartTradingDesc: "Accede a mercados globales y ejecuta operaciones con confianza",
+
+  // Education
+  educationBlockTitle: "Construido para el aprendizaje y éxito a largo plazo",
+  educationBlockDesc: "Ya seas principiante o trader activo, AragonTrade te da estructura, herramientas y guía",
+  educationItemAcademy: "Educación estructurada y conceptos básicos de trading",
+  educationItemIdeas: "Flujos de ideas y desgloses de estrategias",
+  educationItemSupport: "Soporte 1:1 de nuestro equipo",
+
+  // Why Choose
+  whyChoose: "Por qué los traders eligen",
+  aragonTrade: "AragonTrade",
+  experienceFutureDescription: "Infraestructura de trading moderna, sincronización instantánea de saldo y herramientas de riesgo claras en una plataforma.",
+
+  // CTA
+  readyToStart: "Listo para Comenzar tu",
+  tradingJourney: "Viaje de Trading",
+  joinThousandsSuccessful: "Únete a miles de traders exitosos y comienza a construir tu futuro financiero hoy.",
+  createFreeAccount: "Crear Cuenta Gratuita",
+
+  // Navigation
+  trading: "Trading",
+  market: "Mercado",
+  product: "Producto",
+  company: "Empresa",
+  about: "Acerca de",
+  support: "Soporte",
+  contactUs: "Contáctanos",
+  allRightsReserved: "Todos los derechos reservados",
+  privacy: "Privacidad",
+  termsOfService: "Términos de Servicio",
+
+  // Additional translations for UI components
+  enterpriseSecurity: "Seguridad Empresarial",
+  enterpriseSecurityDesc: "Cifrado de nivel bancario y protocolos de seguridad multicapa protegen tus activos",
+  lightningFast: "Ultrarrápido",
+  lightningFastDesc: "Ejecuta operaciones en milisegundos con nuestra infraestructura optimizada",
+  trustedCompanies: "Empresas Confiables",
+  stepCreateAccountTitle: "Crear Cuenta",
+  stepFundAccountTitle: "Financiar Cuenta",
+  stepStartTradingTitle: "Comenzar a Operar",
+  educationItemAcademyDesc: "Aprende desde conceptos básicos hasta estrategias avanzadas con cursos estructurados",
+  educationItemIdeasDesc: "Obtén insights en tiempo real y análisis profesional del mercado",
+  educationItemSupportDesc: "Herramientas avanzadas para proteger tus inversiones y minimizar pérdidas",
   profile: "Perfil",
   verification: "Verificación",
   withdraw: "Retiro",
@@ -551,7 +1001,7 @@ const es: Messages = {
   updateProfile: "Actualizar Perfil",
   identityVerification: "Verificación de Identidad",
   uploadGovId:
-    "Sube una identificación oficial para verificar tu cuenta. Tu estado actual es:",
+      "Sube una identificación oficial para verificar tu cuenta. Tu estado actual es:",
   frontId: "Anverso de ID",
   backId: "Reverso de ID",
   clickToUpload: "Haz clic para subir",
@@ -562,6 +1012,7 @@ const es: Messages = {
   verified: "Verificado",
   availableForWithdrawal: "Disponible para retiro:",
   amountUsd: "Monto (USD)",
+  select:"Seleccione",
   method: "Método",
   crypto: "Cripto",
   bankTransfer: "Transferencia Bancaria",
@@ -579,27 +1030,267 @@ const es: Messages = {
   currentPassword: "Contraseña Actual",
   newPassword: "Nueva Contraseña",
   savePassword: "Guardar Contraseña",
+  // HERO – TRADE
+  heroSlideTradeTag: "Trading",
+  // HERO – WALLET
+  heroSlideWalletTag: "Wallet",
+
+  // HERO – MANAGER
+  heroSlideManagerTag: "Manager",
+  heroMiniCardTitle: "Resumen de riesgo en vivo",
+  heroMiniCardSubtitle:
+      "Posiciones, margen y PnL en un solo vistazo.",
+  heroMiniCardTag: "Tiempo real",
+
+  heroStatAiTitle: "Asistente de IA",
+  heroStatAiValue:
+      "Analiza tu riesgo y comportamiento en segundo plano.",
+  heroStatRiskTitle: "Controles de riesgo",
+  heroStatRiskValue:
+      "Límites suaves que te protegen de decisiones impulsivas.",
+  heroStatSupportTitle: "Soporte",
+  heroStatSupportValue:
+      "Ayuda personal cuando la necesitas, no días después.",
+
+  ctaStartTrading: "Empezar a operar",
+  ctaGoToPlatform: "Ir a la plataforma",
+  ctaGoToDashboard: "Abrir panel",
+  ctaSignIn: "Iniciar sesión",
+  ctaSignUp: "Crear cuenta",
+
+  heroWelcomeBack: "Bienvenido de nuevo, ",
+
+  aiSectionTitle: "Trading impulsado por IA, control humano",
+  aiSectionSubtitle:
+      "Deja que la automatización controle lo rutinario mientras tú decides y ejecutas.",
+
+  aiCardRiskTitle: "Asistente de riesgo",
+  aiCardRiskDesc:
+      "Supervisa drawdown, exposición y apalancamiento en tiempo real y te avisa antes de que duela.",
+  aiCardIdeasTitle: "Capa de ideas y señales",
+  aiCardIdeasDesc:
+      "Escáneres inteligentes y listas de seguimiento para encontrar oportunidades que encajen contigo.",
+  aiCardJournalTitle: "Wallet y diario conectados",
+  aiCardJournalDesc:
+      "Cada depósito, operación y retiro queda ligado a tu historial de rendimiento.",
   language: "Idioma",
   backToHome: "Volver a la página de inicio",
   english: "Inglés",
   spanish: "Español",
+  //Wallet
+  balance: "Saldo",
+  balanceShortDescription: "Resumen de la cuenta de trading",
+  totalBalance: "Saldo total (equidad)",
+  availableToTrade: "Disponible para operar",
+  availableToWithdraw: "Disponible para retirar",
+  inTrade: "En operaciones",
+  fundsInWork: "Fondos en trabajo",
+  pendingWithdrawals: "Retiros pendientes",
+  creditUsed: "Crédito utilizado",
+  creditLimit: "Límite de crédito",
+  creditAvailable: "Crédito disponible",
+  header:{
+    dashboard: "Tablero",
+    history: "Historial",
+    referrals: "Referencias",
+    transactions: "Transacciones",
+    settings: "Configuración",
+    verification: "Verificación",
+    deposit: "Depositar",
+    news:"Noticias",
+    totalEquity: "Capital total",
+    market: "Mercado",
+    withdrawalBalance: "Saldo de retiro",
+    walletBalance: "Saldo de la cartera",
+    tradingMargin: "Margen de trading",
+    creditBalance: "Saldo de crédito",
+    navigation: "Navegación",
+    myAccount: "Mi cuenta",
+    profile: "Perfil",
+    withdraw: "Retirar",
+    logout: "Cerrar sesión",
+    balance:"Saldo",
+    goToWallet: "Ir a la Cartera",
+    goToTrade: "Ir a Trade"
+  },
+  wallet:{
+    market: {
+      title: "Resumen del mercado",
+      live: "Precios en vivo"
+    },
+    page:{
+      title: "Wallet",
+      subtitle: "Administra tu saldo cripto, crédito y staking en un solo lugar."
+    },
+    sidebar: {
+      totalLabel: "Capital Total",
+      deposit: "Depositar",
+      withdraw: "Retirar",
+      navigation: "Navegación",
+      navWallet: "Wallet",
+      navStaking: "Staking",
+      stakingHint: "Puedes elegir un activo cripto en la página de staking si ya lo tienes comprado.",
+      tradingBalance: "Saldo de trading",
+      creditBalance: "Saldo de crédito",
+      cryptoBalance: "Saldo de cripto"
+    },
+    promos: {
+      stakingBadge: "Staking",
+      stakingTitle: "Gana hasta 12% APR con tu cripto",
+      stakingText: "Bloquea activos en planes flexibles y recibe recompensas automáticamente.",
+      referralBadge: "Programa de referidos",
+      referralTitle: "Invita amigos y gana bonos",
+      referralText: "Comparte tu enlace y recibe recompensas de su actividad."
+    },
+    summary: {
+      totalBalance: "Capital Total",
+      ownFunds: "Fondos propios",
+      creditUsed: "Crédito usado",
+      creditLimit: "Límite de crédito",
+      availableToTrade: "Disponible para operar",
+      baseCurrency: "Moneda"
+    },
+    actions: {
+      quickActions: "Acciones rápidas",
+      addAsset: "Agregar activo",
+      deposit: "Depositar",
+      withdraw: "Retirar",
+      transfer: "Transferir",
+      exchange: "Intercambiar",
+      stake: "Staking"
+    },
+    assets: {
+      title: "Tus activos",
+      empty: "Todavía no tienes activos.",
+      searchPlaceholder: "Buscar activos...",
+      columnAsset: "Activo",
+      columnPrice: "Precio",
+      columnChange: "Cambio 24h",
+      columnBalance: "Saldo",
+      columnActions: "Acciones",
+      actionBuy: "Comprar",
+      actionToMain: "Al saldo principal",
+      actionTransferUser: "Transferir a usuario"
+    },
+    history: {
+      title: "Historial de transacciones",
+      date: "Fecha",
+      type: "Tipo",
+      asset: "Activo",
+      amount: "Cantidad",
+      status: "Estado",
+      loading: "Cargando...",
+      empty: "Aún no hay transacciones."
+    },
+    staking: {
+      title: "Staking",
+      subtitle: "Gana recompensas pasivas bloqueando tu cripto",
+      loading: "Cargando...",
+      sidebar: {
+        assetsTitle: "Activos apuntalables",
+        noStakableAssets: "Aún no hay activos disponibles para estacar",
+        ownBalance: "Saldo",
+        staked: "Apostado",
+        summaryTitle: "Resumen de apuestas",
+        totalStaked: "Total apostado",
+        positionsCount: "Posiciones activas",
+        walletBalance: "Saldo de la cartera",
+      },
+      plans: {
+        title: "Planes de apuestas disponibles",
+        subtitleForAsset: "Planes para {{asset}}",
+        subtitleGeneric: "Elija un activo de la izquierda para ver sus planes de apuestas",
+        noPlansGlobal: "Aún no hay planes de apuestas configurados",
+        noPlansForAsset: "No hay planes de apuestas para este activo. Pruebe con otro activo",
+        badge: "Fijo",
+        minAmount: "Min amount",
+        cta: "Stake this plan",
+      },
+      positions: {
+        title: "Mis posiciones de estaca",
+        subtitle: "Sigue tus posiciones bloqueadas y tus recompensas",
+        empty: "Aún no tienes ninguna posición en juego",
+        planLabel: "Plan",
+        startedAt: "Comenzó",
+        endsAt: "Termina",
+        closeCta: "Cerrar y reclamar",
+      },
+      errors: {
+        generic: "Algo ha ido mal. Por favor, inténtelo de nuevo.",
+        STAKING_PLANS_ERROR: "No se han podido cargar los planes de apuestas.",
+        STAKING_POSITIONS_ERROR: "No se han podido cargar sus posiciones de apuestas.",
+        STAKING_OPEN_ERROR: "No se ha podido abrir una posición de apuesta.",
+        STAKING_CLOSE_ERROR: "No se ha podido cerrar una posición de apuesta.",
+        INSUFFICIENT_BALANCE: "Saldo insuficiente para la apuesta. ",
+        AMOUNT_BELOW_MIN: "Importe por debajo del mínimo para este plan",
+        INVALID_PLAN: "El plan de apuesta seleccionado no está disponible",
+        ASSET_NOT_STAKABLE: "Este activo no está disponible para la apuesta",
+        NOT_FOUND: "Posición de apuesta no encontrada",
+        ALREADY_CLOSED: "Esta posición de apuesta ya está cerrada",
+      },
+    },
+    modals: {
+      deposit: {
+        title: "Depositar cripto",
+        description: "Envía fondos a una de las direcciones abajo y registra tu depósito.",
+        asset: "Activo",
+        depositAddresses: "Direcciones de depósito",
+        amount: "Cantidad",
+        txHash: "Hash de transacción (opcional)",
+        submit: "Registrar depósito",
+        txHint: "Opcional: puedes indicar el hash on-chain para una verificación más rápida.",
+        submitting: "Procesando...",
+        noAddresses: "Todavía no hay direcciones de depósito configuradas para este activo."
+      },
+      withdraw: {
+        title: "Retirar cripto",
+        description: "Solicita un retiro a tu billetera externa.",
+        asset: "Activo",
+        amount: "Cantidad",
+        address: "Dirección de destino",
+        submit: "Solicitar retiro"
+      },
+      transfer: {
+        title: "Transferir a usuario",
+        description: "Envía fondos a otro usuario por correo electrónico.",
+        email: "Correo del destinatario",
+        asset: "Activo",
+        amount: "Cantidad",
+        submit: "Enviar transferencia"
+      },
+      exchange: {
+        title: "Intercambiar activos",
+        description: "Cambia un activo cripto por otro al precio de mercado.",
+        from: "Desde",
+        to: "Hacia",
+        amount: "Cantidad",
+        submit: "Confirmar intercambio"
+      },
+      stake: {
+        title: "Haz staking de tus activos",
+        description: "Bloquea tu cripto para ganar recompensas con el tiempo.",
+        asset: "Activo",
+        available: "Disponible",
+        plan: "Plan de staking",
+        noPlans: "No hay planes de staking para este activo.",
+        amount: "Cantidad a bloquear",
+        submit: "Empezar staking"
+      },
+      addAsset: {
+        title: "Agregar nuevo activo",
+        description: "Selecciona un activo cripto para añadirlo a tu billetera.",
+        loading: "Cargando activos...",
+        empty: "No hay más activos disponibles.",
+        stakable: "Staking disponible",
+        adding: "Agregando...",
+        add: "Agregar"
+      }
+    }
+  },
   // Dashboard
   loadingDashboard: "Cargando tablero...",
-  institutionalTag:  "Plataforma de negociación institucional",
-  trustedByTraders: "En la que confían operadores activos de todo el mundo",
-  stepCreateAccount: "Cree su cuenta en cuestión de minutos",
-  stepFundAccount: "Deposite fondos en su cuenta con el método que prefiera",
-  stepStartTrading: "Comience a operar con análisis en tiempo real",
-  howItWorksTitle: "Cómo funciona AragonTrade",
-  howItWorksSubtitle: "Un camino sencillo desde el registro hasta la ejecución",
-  educationBlockTitle: "Construido para el aprendizaje y el éxito a largo plazo",
-  educationBlockDesc: "Tanto si es un principiante como un operador activo, AragonTrade le ofrece estructura, herramientas y orientación",
-  educationItemAcademy: "Educación estructurada y conceptos básicos de trading",
-  educationItemIdeas: "Flujos de ideas y desgloses de estrategias",
-  educationItemSupport: "Apoyo 1:1 de nuestro equipo",
   globalCoverageTitle: "Acceso al mercado global",
   globalCoverageDesc: "Opere con los principales pares de divisas, criptomonedas y acciones estadounidenses desde un único panel",
-  totalBalance: "Balance Total",
   withdrawalStatusAvailable: "Disponible para retiro",
   withdrawalStatusRestricted: "Retiro restringido",
   totalPnL: "Pérdidas y Ganancias Totales",
@@ -626,6 +1317,7 @@ const es: Messages = {
   withdrawFunds: "Retirar Fondos",
   // Transactions
   loadingTransactions: "Cargando transacciones...",
+  couldNotLoadTransactions: "No se pudieron cargar las transacciones",
   closedTradesTab: "Operaciones Cerradas",
   depositsWithdrawalsTab: "Depósitos y Retiros",
   totalTrades: "Operaciones Totales",
@@ -647,10 +1339,15 @@ const es: Messages = {
   successful: "Exitoso",
   pending: "Pendiente",
   cancelled: "Cancelado",
+  failed: "Fallido",
   depositWithdrawalHistory: "Historial de Depósitos y Retiros",
   amount: "Monto",
   date: "Fecha",
   noTransactionsFound: "No se encontraron transacciones",
+  transactions: "Transacciones",
+  type: "Tipo",
+  description: "Descripción",
+  trade: "Operación",
   // Trade
   searchTickers: "Buscar símbolos...",
   selectCategory: "Selecciona categoría...",
@@ -666,7 +1363,7 @@ const es: Messages = {
   preparingChart: "Preparando gráfico de {symbol}",
   selectTickerToStart: "Selecciona un símbolo para comenzar a operar",
   choosePairToView:
-    "Elige entre los pares disponibles para ver gráficos en tiempo real y realizar órdenes.",
+      "Elige entre los pares disponibles para ver gráficos en tiempo real y realizar órdenes.",
   placeOrder: "Realizar Orden",
   buyUpper: "COMPRA",
   sellUpper: "VENTA",
@@ -679,7 +1376,6 @@ const es: Messages = {
   stopLoss: "Stop Loss",
   enterSl: "Ingresa precio de SL",
   placeOrderCta: "Realizar orden de {type}",
-  balance: "Balance:",
   selectTicker: "Selecciona un símbolo para comenzar a operar",
   activeTradesCount: "Operaciones Activas ({count})",
   close: "Cerrar",
@@ -700,8 +1396,6 @@ const es: Messages = {
   totalEquity: "Capital Total",
   // Navigation
   dashboard: "Tablero",
-  transactions: "Transacciones",
-  market: "Mercado",
   news: "Noticias",
   admin: "Administrador",
   // Deposit Modal
@@ -714,12 +1408,12 @@ const es: Messages = {
   depositViaBank: "Depositar vía transferencia bancaria",
   depositWithCard: "Depositar con Tarjeta",
   cardPaymentsNotAvailable:
-    "Los pagos con tarjeta no están disponibles actualmente. Por favor, selecciona otro método.",
+      "Los pagos con tarjeta no están disponibles actualmente. Por favor, selecciona otro método.",
   proceedToPayment: "Proceder al Pago",
   bankTransferDetails: "Detalles de Transferencia Bancaria",
   loadingProfile: "Perfil de carga",
   bankTransferInfo:
-    "Usa los siguientes detalles para hacer una transferencia bancaria. Asegúrate de incluir el número de referencia.",
+      "Usa los siguientes detalles para hacer una transferencia bancaria. Asegúrate de incluir el número de referencia.",
   accountHolder: "Titular de la Cuenta",
   swiftBic: "SWIFT/BIC",
   referenceNumber: "Número de Referencia",
@@ -733,7 +1427,7 @@ const es: Messages = {
   onlySendToAddress: "Solo envía {network} a esta dirección.",
   important: "Importante:",
   onlySendViaNetwork:
-    "Solo envía {token} a través de la red {network}. Enviar activos a través de otras redes puede resultar en la pérdida de tus fondos.",
+      "Solo envía {token} a través de la red {network}. Enviar activos a través de otras redes puede resultar en la pérdida de tus fondos.",
   averageDeliveryTime: "Tiempo promedio de entrega: 1-20 minutos.",
   copied: "¡Copiado!",
   addressCopied: "Dirección copiada al portapapeles.",
@@ -744,10 +1438,8 @@ const es: Messages = {
   // News
   marketNews: "Noticias del Mercado",
   stayUpToDate:
-    "Mantente al día con los últimos titulares del mundo financiero.",
+      "Mantente al día con los últimos titulares del mundo financiero.",
   general: "General",
-  forex: "Forex",
-  crypto: "Cripto",
   mergers: "Fusiones",
   noNewsFound: "No se encontraron artículos de noticias para esta categoría.",
   readFullStory: "Leer historia completa",
@@ -798,7 +1490,6 @@ const es: Messages = {
   positionSize: "Tamaño de Posición",
   entryPrice: "Precio de Entrada",
   exitPrice: "Precio de Salida",
-  currentPrice: "Precio Actual",
   profitLoss: "Pérdidas y Ganancias",
   unrealizedPnL: "P&L No Realizado",
   realizedPnL: "P&L Realizado",
@@ -807,15 +1498,7 @@ const es: Messages = {
   securitySettings: "Configuración de Seguridad",
   preferences: "Preferencias",
   notifications: "Notificaciones",
-  // Support
-  support: "Soporte",
-  help: "Ayuda",
-  forgotPassword:"¿Ha olvidado su contraseña?",
-  rememberMe:"Acuérdate de mí",
-  contactUs: "Contáctanos",
-  faq: "Preguntas Frecuentes",
-  // Footer
-  termsOfService: "Términos de Servicio",
+
   privacyPolicy: "Política de Privacidad",
   cookies: "Cookies",
   // Mobile
@@ -877,33 +1560,6 @@ const es: Messages = {
   today: "Hoy",
   yesterday: "Ayer",
   thisWeek: "Esta Semana",
-  thisMonth: "Este Mes",
-  lastMonth: "Mes Pasado",
-  // Currency
-  currency: "Moneda",
-  exchangeRate: "Tipo de Cambio",
-  // Market Data
-  marketCap: "Capitalización de Mercado",
-  change: "Cambio",
-  changePercent: "Cambio %",
-  high: "Alto",
-  low: "Bajo",
-  open: "Apertura",
-  // Order Types
-  marketOrder: "Orden de Mercado",
-  limitOrder: "Orden Límite",
-  stopOrder: "Orden Stop",
-  stopLimitOrder: "Orden Stop Límite",
-  // Order Status
-  orderStatus: "Estado de Orden",
-  orderType: "Tipo de Orden",
-  orderSide: "Lado de Orden",
-  resetPasswordTitle: "Restablece tu contraseña",
-  resetPasswordSubtitle: "Introduce una nueva contraseña segura para tu cuenta",
-  passwordChangedSuccess: "La contraseña ha cambiado correctamente. Ya puede iniciar sesión",
-  saving: "Guardando...",
-  enterNewPassword: "Introduzca la nueva contraseña",
-  invalidToken: "Enlace de restablecimiento no válido o caducado",
   forgotPasswordTitle: "¿Has olvidado tu contraseña?",
   forgotPasswordSubtitle: "Introduce tu correo electrónico y te enviaremos un enlace para restablecer la contraseña",
   email: "Correo electrónico",
@@ -926,10 +1582,8 @@ const es: Messages = {
   verificationPending: "Verificación Pendiente",
   verificationApproved: "Verificación Aprobada",
   verificationRejected: "Verificación Rechazada",
-  verificationRequired: "Verificación Requerida",
   // KYC
   kyc: "KYC",
-  identityVerification: "Verificación de Identidad",
   addressVerification: "Verificación de Dirección",
   documentVerification: "Verificación de Documentos",
   // Security
@@ -963,16 +1617,14 @@ const es: Messages = {
   telegram: "Telegram",
   // Legal
   terms: "Términos",
-  privacy: "Privacidad",
   disclaimer: "Descargo de Responsabilidad",
   // Contact
   phone: "Teléfono",
   liveChat: "Chat en Vivo",
   supportTicket: "Ticket de Soporte",
   // Auth
-  welcomeBack: "Bienvenido de Vuelta",
   signInToAccount: "Inicia sesión en tu cuenta AragonTrade",
-  enterEmail: "Ingresa tu correo electrónico",
+  password: "Password",
   enterPassword: "Ingresa tu contraseña",
   signingIn: "Iniciando sesión...",
   signIn: "Iniciar Sesión",
@@ -997,41 +1649,24 @@ const es: Messages = {
   tradeSmarter: "Opera Más Inteligentemente,",
   notHarder: "No Más Difícil",
   joinThousandsDescription:
-    "Únete a miles de operadores que usan nuestra plataforma avanzada para maximizar ganancias con insights impulsados por IA, análisis en tiempo real y herramientas de nivel profesional.",
+      "Únete a miles de operadores que usan nuestra plataforma avanzada para maximizar ganancias con insights impulsados por IA, análisis en tiempo real y herramientas de nivel profesional.",
   startTradingNow: "Comenzar a Operar Ahora",
   watchDemo: "Ver Demo",
   activeTraders: "Operadores Activos",
-  dailyVolume: "Volumen Diario",
   successRate: "Tasa de Éxito",
   countries: "Países",
   liveTradingStats: "Estadísticas de Trading en Vivo",
   realTimeMarketData: "Datos de mercado en tiempo real",
   joinLiveTrading: "Unirse al Trading en Vivo",
-  whyChoose: "¿Por Qué Elegir",
-  aragonTrade: "AragonTrade",
-  experienceFutureDescription:
-    "Experimenta el futuro del trading con nuestra plataforma de vanguardia diseñada tanto para principiantes como para profesionales.",
-  advancedTrading: "Trading Avanzado",
-  advancedTradingDesc:
-    "Herramientas de trading profesionales con gráficos y análisis en tiempo real",
   securePlatform: "Plataforma Segura",
   securePlatformDesc:
-    "Seguridad de nivel bancario con autenticación de múltiples factores",
-  lightningFast: "Velocidad Relámpago",
-  lightningFastDesc:
-    "Ejecuta operaciones en milisegundos con nuestra infraestructura optimizada",
+      "Seguridad de nivel bancario con autenticación de múltiples factores",
   marketAnalysis: "Análisis de Mercado",
   marketAnalysisDesc: "Insights impulsados por IA y predicciones de mercado",
   expertSupport: "Soporte Experto",
   expertSupportDesc: "Soporte al cliente 24/7 de profesionales del trading",
   premiumFeatures: "Características Premium",
   premiumFeaturesDesc: "Acceso a estrategias de trading exclusivas y señales",
-  readyToStart: "¿Listo para Comenzar Tu",
-  tradingJourney: "Viaje de Trading?",
-  joinThousandsSuccessful:
-    "Únete a miles de operadores exitosos y comienza a construir tu futuro financiero hoy.",
-  createFreeAccount: "Crear Cuenta Gratuita",
-  allRightsReserved: "© 2024 AragonTrade. Todos los derechos reservados.",
   termsOfConditions: "Términos y Condiciones",
   // Trading Panel
   longPosition: "Posición Larga",
@@ -1050,63 +1685,124 @@ const es: Messages = {
   cardNumber: "Número de Tarjeta",
   expiry: "MM/AA",
   cvv: "CVV",
-  deposit: "Depositar",
   requiredField: "Este campo es obligatorio",
   processing: "Procesando",
   done: "Hecho",
   processingInfo: "Tu depósito con tarjeta se está procesando.",
   bankProcessingInfo:
-    "La información está siendo procesada, espera la confirmación.",
+      "La información está siendo procesada, espera la confirmación",
 };
 
 const messagesByLang: Record<string, Messages> = { en, es }
 
 type I18nContextValue = {
-	lang: string
-	setLang: (lang: string) => void
-	t: (key: keyof typeof en) => string
+  lang: "en" | "es"
+  setLang: (lang: "en" | "es") => void
+  t: (key: string) => string
 }
 
 const I18nContext = createContext<I18nContextValue | undefined>(undefined)
 
-const LANGUAGE_COOKIE_KEY = "aragon-trade-language"
+const LANGUAGE_STORAGE_KEY = "aragon-trade-language"
 
-export function I18nProvider({ children }: { children: React.ReactNode }) {
-	const [lang, setLangState] = useState<string>("es")
+// helper para вложенных ключей "wallet.withdraw.title"
+function getNestedKey(obj: any, key: string): string | undefined {
+  const parts = key.split(".")
 
-	useEffect(() => {
-		// Load language from cookie on mount
-		const savedLang = Cookies.get(LANGUAGE_COOKIE_KEY)
-		if (savedLang && (savedLang === "en" || savedLang === "es")) {
-			setLangState(savedLang)
-		}
-	}, [])
+  let current: any = obj
+  for (const part of parts) {
+    if (current && typeof current === "object" && part in current) {
+      current = current[part]
+    } else {
+      return undefined
+    }
+  }
 
-	const setLang = (newLang: string) => {
-		setLangState(newLang)
-		// Save to cookie with 1 year expiry
-		Cookies.set(LANGUAGE_COOKIE_KEY, newLang, { expires: 365 })
-	}
-
-	const t = useMemo(() => {
-		const messages = messagesByLang[lang] || en
-		return (key: keyof typeof en) => messages[key] || key
-	}, [lang])
-
-	return (
-		<I18nContext.Provider value={{ lang, setLang, t }}>{children}</I18nContext.Provider>
-	)
+  return typeof current === "string" ? current : undefined
 }
 
-export function useI18n() {
-	const ctx = useContext(I18nContext)
-	if (!ctx) {
-		const fallback = messagesByLang["es"]
-		return {
-			lang: "en",
-			setLang: () => {},
-			t: (key: keyof typeof fallback) => fallback[key] || String(key),
-		}
-	}
-	return ctx
+// Функция для начального языка (читаем из localStorage, если есть)
+function getInitialLang(): "en" | "es" {
+  if (typeof window === "undefined") {
+    return "es"
+  }
+  try {
+    const saved = window.localStorage.getItem(LANGUAGE_STORAGE_KEY)
+    if (saved === "en" || saved === "es") return saved
+  } catch {
+    // localStorage может быть недоступен
+  }
+  return "es"
+}
+
+export function I18nProvider({ children }: { children: React.ReactNode }) {
+  const [langState, setLangState] = useState<"en" | "es">(getInitialLang)
+
+  // При смене языка — сохраняем в localStorage
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(LANGUAGE_STORAGE_KEY, langState)
+    } catch {
+      // игнорируем ошибки
+    }
+  }, [langState])
+
+  const messages = messagesByLang[langState] || messagesByLang["es"]
+
+  // наша обёртка над setLangState — совпадает с типом в контексте
+  const setLang = (newLang: "en" | "es") => {
+    setLangState(newLang)
+  }
+
+  const t = (key: string): string => {
+    // 1) nested: "wallet.withdraw.title"
+    const nested = getNestedKey(messages, key)
+    if (nested !== undefined) return nested
+
+    // 2) плоский ключ: "walletWithdrawModalTitle"
+    const flat = (messages as any)[key]
+    if (typeof flat === "string") return flat
+
+    // 3) fallback
+    return key
+  }
+
+  return (
+      <I18nContext.Provider value={{ lang: langState, setLang, t }}>
+        {children}
+      </I18nContext.Provider>
+  )
+}
+
+export function useI18n(namespace?: string) {
+  const ctx = useContext(I18nContext)
+
+  // helper, который "оборачивает" t, добавляя namespace при наличии
+  const wrapWithNamespace = (baseT: (key: string) => string) => {
+    if (!namespace) return baseT
+    return (key: string) => baseT(`${namespace}.${key}`)
+  }
+
+  if (!ctx) {
+    const fallback = messagesByLang["es"]
+
+    const baseT = (key: string): string => {
+      const nested = getNestedKey(fallback, key)
+      if (nested !== undefined) return nested
+      const flat = (fallback as any)[key]
+      if (typeof flat === "string") return flat
+      return key
+    }
+
+    return {
+      lang: "es" as const,
+      setLang: (_lang: "en" | "es") => {},
+      t: wrapWithNamespace(baseT)
+    }
+  }
+
+  return {
+    ...ctx,
+    t: wrapWithNamespace(ctx.t)
+  }
 }

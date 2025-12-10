@@ -41,20 +41,20 @@ export default function DashboardStats() {
   const [stats, setStats] = useState<DashboardStats | null>(null)
   const [loading, setLoading] = useState(true)
   const [accessDenied, setAccessDenied] = useState(false)
-  
+
   // Add access control check
   useEffect(() => {
     if (!hasAdminAccess(user)) {
       setAccessDenied(true)
     }
   }, [user])
-  
+
   // If access is denied, show an error message
   if (accessDenied) {
     return (
-      <div className="rounded-2xl border border-rose-500/30 bg-rose-950/40 px-4 py-3 text-center text-sm text-rose-100">
-        Access denied. You don't have permission to view this page.
-      </div>
+        <div className="rounded-2xl border border-destructive/40 bg-destructive/10 px-4 py-3 text-center text-sm text-destructive-foreground">
+          Access denied. You don&apos;t have permission to view this page.
+        </div>
     )
   }
 
@@ -82,12 +82,12 @@ export default function DashboardStats() {
           {[...Array(4)].map((_, i) => (
               <Card
                   key={i}
-                  className="bg-slate-950/80 border-slate-900/80 shadow-[0_0_0_1px_rgba(148,27,255,0.2)]"
+                  className="bg-card border-border shadow-sm"
               >
                 <CardContent className="p-4 sm:p-5">
                   <div className="animate-pulse space-y-2">
-                    <div className="h-3 w-2/3 rounded-full bg-slate-800/80" />
-                    <div className="h-6 w-1/2 rounded-full bg-slate-800/80" />
+                    <div className="h-3 w-2/3 rounded-full bg-muted" />
+                    <div className="h-6 w-1/2 rounded-full bg-muted" />
                   </div>
                 </CardContent>
               </Card>
@@ -98,7 +98,7 @@ export default function DashboardStats() {
 
   if (!stats) {
     return (
-        <div className="rounded-2xl border border-rose-500/30 bg-rose-950/40 px-4 py-3 text-center text-sm text-rose-100">
+        <div className="rounded-2xl border border-destructive/40 bg-destructive/10 px-4 py-3 text-center text-sm text-destructive-foreground">
           Failed to load dashboard stats
         </div>
     )
@@ -143,22 +143,22 @@ export default function DashboardStats() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.25 }}
           >
-            <Card className="bg-slate-950/80 border-slate-900/80 shadow-[0_0_40px_rgba(15,23,42,0.8)]">
+            <Card className="bg-card border-border shadow-[0_18px_40px_rgba(15,23,42,0.35)]">
               <CardHeader className="flex flex-row items-center justify-between gap-2 p-4 pb-3 sm:p-5 sm:pb-3">
-                <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
-                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-purple-500/15 text-purple-300">
+                <CardTitle className="flex items-center gap-2 text-base sm:text-lg text-foreground">
+                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-primary">
                   <Users className="h-4 w-4" />
                 </span>
                   <span>Recent Users</span>
                 </CardTitle>
-                <Badge className="rounded-full bg-slate-900/80 text-[11px] text-slate-200">
+                <Badge className="rounded-full bg-muted text-[11px] text-muted-foreground border border-border/60">
                   {stats.totalUsers.toLocaleString()} total
                 </Badge>
               </CardHeader>
               <CardContent className="p-4 pt-0 sm:p-5 sm:pt-1">
                 <div className="space-y-2.5 sm:space-y-3">
                   {stats.recentUsers.length === 0 && (
-                      <p className="py-4 text-center text-xs text-slate-500">
+                      <p className="py-4 text-center text-xs text-muted-foreground">
                         No users yet.
                       </p>
                   )}
@@ -166,24 +166,24 @@ export default function DashboardStats() {
                   {stats.recentUsers.map((user) => (
                       <div
                           key={user.id}
-                          className="flex items-center justify-between rounded-xl bg-slate-900/80 px-3 py-2.5 text-xs sm:text-sm"
+                          className="flex items-center justify-between rounded-xl bg-muted/60 px-3 py-2.5 text-xs sm:text-sm"
                       >
                         <div className="min-w-0 flex-1">
-                          <p className="truncate font-medium text-slate-100">
+                          <p className="truncate font-medium text-foreground">
                             {user.name || user.email}
                           </p>
-                          <p className="truncate text-[11px] text-slate-400">
+                          <p className="truncate text-[11px] text-muted-foreground">
                             {user.email}
                           </p>
                         </div>
                         <div className="ml-3 flex flex-col items-end gap-1 text-[11px] sm:text-xs">
                           <Badge
                               variant="outline"
-                              className="rounded-full border-slate-700 bg-slate-900/80 px-2 py-0.5 text-[10px] uppercase tracking-wide text-slate-200"
+                              className="rounded-full border-border bg-background px-2 py-0.5 text-[10px] uppercase tracking-wide text-foreground"
                           >
                             {user.role}
                           </Badge>
-                          <span className="text-slate-400">
+                          <span className="text-muted-foreground">
                         {new Date(user.createdAt).toLocaleDateString()}
                       </span>
                         </div>
@@ -200,22 +200,22 @@ export default function DashboardStats() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.25, delay: 0.05 }}
           >
-            <Card className="bg-slate-950/80 border-slate-900/80 shadow-[0_0_40px_rgba(15,23,42,0.8)]">
+            <Card className="bg-card border-border shadow-[0_18px_40px_rgba(15,23,42,0.35)]">
               <CardHeader className="flex flex-row items-center justify-between gap-2 p-4 pb-3 sm:p-5 sm:pb-3">
-                <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
-                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-indigo-500/15 text-indigo-300">
+                <CardTitle className="flex items-center gap-2 text-base sm:text-lg text-foreground">
+                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-primary">
                   <TrendingUp className="h-4 w-4" />
                 </span>
                   <span>Recent Trades</span>
                 </CardTitle>
-                <Badge className="rounded-full bg-slate-900/80 text-[11px] text-slate-200">
+                <Badge className="rounded-full bg-muted text-[11px] text-muted-foreground border border-border/60">
                   {stats.totalTrades.toLocaleString()} total
                 </Badge>
               </CardHeader>
               <CardContent className="p-4 pt-0 sm:p-5 sm:pt-1">
                 <div className="space-y-2.5 sm:space-y-3">
                   {stats.recentTrades.length === 0 && (
-                      <p className="py-4 text-center text-xs text-slate-500">
+                      <p className="py-4 text-center text-xs text-muted-foreground">
                         No trades yet.
                       </p>
                   )}
@@ -223,18 +223,19 @@ export default function DashboardStats() {
                   {stats.recentTrades.map((trade) => {
                     const profit = trade.profit || 0
                     const positive = profit >= 0
-                    const userLabel = trade.User?.name || trade.User?.email || "Unknown user"
+                    const userLabel =
+                        trade.User?.name || trade.User?.email || "Unknown user"
 
                     return (
                         <div
                             key={trade.id}
-                            className="flex items-center justify-between rounded-xl bg-slate-900/80 px-3 py-2.5 text-xs sm:text-sm"
+                            className="flex items-center justify-between rounded-xl bg-muted/60 px-3 py-2.5 text-xs sm:text-sm"
                         >
                           <div className="min-w-0 flex-1">
-                            <p className="font-semibold text-slate-100">
+                            <p className="font-semibold text-foreground">
                               {trade.ticker}
                             </p>
-                            <p className="text-[11px] text-slate-400">
+                            <p className="text-[11px] text-muted-foreground">
                               {trade.type} • {userLabel}
                               {trade.User?.email ? ` (${trade.User.email})` : ""}
                             </p>
@@ -242,13 +243,13 @@ export default function DashboardStats() {
                           <div className="ml-3 flex flex-col items-end gap-1 text-[11px] sm:text-xs">
                         <span
                             className={`font-semibold ${
-                                positive ? "text-emerald-300" : "text-rose-300"
+                                positive ? "text-emerald-400" : "text-rose-400"
                             }`}
                         >
                           {positive ? "+" : "-"}$
                           {Math.abs(profit).toFixed(2)}
                         </span>
-                            <span className="text-slate-400">
+                            <span className="text-muted-foreground">
                           {new Date(trade.createdAt).toLocaleDateString()}
                         </span>
                           </div>
@@ -282,13 +283,13 @@ function StatCard({
                   }: StatCardProps) {
   const accentColor =
       accent === "warning"
-          ? "from-amber-500/30 via-amber-400/10 to-transparent"
-          : "from-purple-500/30 via-indigo-500/10 to-transparent"
+          ? "from-amber-500/25 via-amber-500/5 to-transparent"
+          : "from-primary/25 via-primary/5 to-transparent"
 
   const iconBg =
       accent === "warning"
-          ? "bg-amber-500/15 text-amber-300"
-          : "bg-purple-500/15 text-purple-300"
+          ? "bg-amber-500/15 text-amber-500"
+          : "bg-primary/10 text-primary"
 
   return (
       <motion.div
@@ -296,12 +297,12 @@ function StatCard({
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.25 }}
       >
-        <Card className="relative overflow-hidden rounded-2xl border border-slate-900/90 bg-slate-950/90 shadow-[0_18px_45px_rgba(15,23,42,0.8)]">
+        <Card className="relative overflow-hidden rounded-2xl border border-border bg-card shadow-[0_18px_45px_rgba(15,23,42,0.35)]">
           <div
               className={`pointer-events-none absolute inset-x-0 top-0 h-16 bg-gradient-to-b ${accentColor} opacity-80`}
           />
           <CardHeader className="relative flex flex-row items-center justify-between space-y-0 p-4 pb-2 sm:p-5 sm:pb-2">
-            <CardTitle className="text-xs font-medium text-slate-300 sm:text-sm">
+            <CardTitle className="text-xs font-medium text-muted-foreground sm:text-sm">
               {title}
             </CardTitle>
             <div
@@ -311,10 +312,12 @@ function StatCard({
             </div>
           </CardHeader>
           <CardContent className="relative p-4 pt-0 sm:p-5 sm:pt-0">
-            <div className="text-xl font-bold text-slate-50 sm:text-2xl">
+            <div className="text-xl font-bold text-foreground sm:text-2xl">
               {value}
             </div>
-            <p className="mt-1 text-[11px] text-slate-400 sm:text-xs">{sub}</p>
+            <p className="mt-1 text-[11px] text-muted-foreground sm:text-xs">
+              {sub}
+            </p>
           </CardContent>
         </Card>
       </motion.div>

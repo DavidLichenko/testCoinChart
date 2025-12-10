@@ -112,7 +112,7 @@ interface ChartTicker {
 
 export default function TradePage() {
   const { logout, user } = useAuth()
-  const { balance, setLiveProfit } = useBalance()
+  const { balance, setLiveProfit, details } = useBalance()
   const { t } = useI18n()
   const isMobile = useIsMobile()
 
@@ -1063,10 +1063,15 @@ export default function TradePage() {
                                       isProfit ? "text-emerald-400" : "text-red-400"
                                   }`}
                               >
-                                {isProfit ? "+" : ""}${
+                                {isProfit ? "+" : ""}{details?.baseCurrency || "USD"}{
                                   Math.abs(profit).toFixed(2)
                                 }
                               </div>
+                              {details?.baseCurrency === "EUR" && details?.approxUsd && (
+                                <div className="text-[10px] text-slate-500 mt-0.5">
+                                  ≈ USD{Math.abs(profit).toFixed(2)}
+                                </div>
+                              )}
                             </div>
                             <Button
                                 size="sm"
@@ -1086,13 +1091,13 @@ export default function TradePage() {
                           <div className="flex flex-col">
                             <span className="text-slate-500 mb-1">Entry</span>
                             <span className="font-mono text-slate-200">
-                              ${trade.openIn.toFixed(4)}
+                              {details?.baseCurrency || "USD"}{trade.openIn.toFixed(4)}
                             </span>
                           </div>
                           <div className="flex flex-col items-center">
                             <span className="text-slate-500 mb-1">Current</span>
                             <span className="font-mono text-slate-200">
-                              ${currentPrice.toFixed(4)}
+                              {details?.baseCurrency || "USD"}{currentPrice.toFixed(4)}
                             </span>
                           </div>
                           <div className="flex flex-col items-end">
@@ -1100,7 +1105,7 @@ export default function TradePage() {
                             <div className="flex gap-1">
                               {trade.takeProfit ? (
                                   <span className="font-mono text-emerald-400 text-[10px]">
-                                    TP: ${Number(trade.takeProfit).toFixed(4)}
+                                    TP: {details?.baseCurrency || "USD"}{Number(trade.takeProfit).toFixed(4)}
                                   </span>
                               ) : (
                                   <span className="text-slate-600 text-[10px]">No TP</span>
@@ -1109,7 +1114,7 @@ export default function TradePage() {
                             <div className="flex gap-1">
                               {trade.stopLoss ? (
                                   <span className="font-mono text-red-400 text-[10px]">
-                                    SL: ${Number(trade.stopLoss).toFixed(4)}
+                                    SL: {details?.baseCurrency || "USD"}{Number(trade.stopLoss).toFixed(4)}
                                   </span>
                               ) : (
                                   <span className="text-slate-600 text-[10px]">No SL</span>
@@ -1334,7 +1339,7 @@ export default function TradePage() {
                       compact ? "text-2xl" : "text-3xl"
                   }`}
               >
-                {selectedPrice ? `$${selectedPrice}` : "—"}
+                {selectedPrice ? `${details?.baseCurrency || "USD"}${selectedPrice}` : "—"}
               </div>
             </div>
           </div>

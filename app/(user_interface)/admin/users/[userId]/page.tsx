@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useCallback, useMemo } from "react"
 import { useRouter, useParams } from "next/navigation"
 import {
     ArrowLeft,
@@ -13,6 +13,17 @@ import {
     Calendar,
     TrendingUp,
     CreditCard,
+    MessageCircle,
+    Star,
+    UserCheck,
+    User,
+    Settings,
+    Edit3,
+    Send,
+    Image as ImageIcon,
+    Heart,
+    HeartOff,
+    Search,
 } from "lucide-react"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -30,6 +41,17 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { toast } from "@/components/toast"
+import { UserTradeItem } from "@/components/admin/user-trade-item";
+import { WalletBalanceItem } from "@/components/admin/wallet-balance-item";
+import { UserOrderItem } from "@/components/admin/user-order-item";
+import { WalletManagement } from "@/components/admin/wallet-management";
+import { MarginCostDisplay } from "@/components/admin/margin-cost-display";
+
+// Add these imports for the virtualized ticker list
+import { useTickers, type MarketTicker } from "@/hooks/market-data"
+import { TickerAvatar } from "@/components/ticker-avatar"
+import { VirtualizedTickerList } from "@/components/virtualized-ticker-list"
 
 interface AdminUser {
     id: string
@@ -43,6 +65,34 @@ interface AdminUser {
     blocked: boolean
     createdAt: string
     updatedAt: string
+    assignedTo: string | null
+    isFavorite?: boolean
+    baseCurrency: "USD" | "EUR"
+}
+
+interface WalletSummary {
+    baseCurrency: "USD" | "EUR";
+    tradingBalance: number;
+    tradingInTrade: number;
+    walletTotal: number;
+    stakingTotal: number;
+    creditLimit: number;
+    creditUsed: number;
+    availableForWithdraw: number;
+    availableForTrade: number;
+}
+
+interface WalletBalance {
+    id: string;
+    assetSymbol: string;
+    ownBalance: number;
+    creditLimit: number;
+    creditUsed: number;
+    locked: number;
+    asset: {
+        name: string;
+        type: string;
+    };
 }
 
 interface UserTrade {
@@ -56,6 +106,7 @@ interface UserTrade {
     profit: number | null
     status: string
     createdAt: string
+    margin: number
 }
 
 interface UserOrder {
@@ -64,6 +115,23 @@ interface UserOrder {
     status: string
     amount: number
     createdAt: string
+}
+
+interface Message {
+    id: string
+    content: string
+    imageUrl?: string
+    isSupportMessage: boolean
+    isRead: boolean
+    createdAt: string
+    userId: string
+}
+
+interface TeamMember {
+    id: string
+    name: string | null
+    email: string
+    role: string
 }
 
 // New interfaces for creating/editing transactions
@@ -111,12 +179,20 @@ export default function AdminUserPage() {
     const [trades, setTrades] = useState<UserTrade[]>([])
     const [orders, setOrders] = useState<UserOrder[]>([])
     const [loadingRelations, setLoadingRelations] = useState(true)
+    
+    // Wallet states
+    const [walletSummary, setWalletSummary] = useState<WalletSummary | null>(null)
+    const [walletBalances, setWalletBalances] = useState<WalletBalance[]>([])
+    const [loadingWallet, setLoadingWallet] = useState(true)
 
     // State for dialogs
     const [isTradeDialogOpen, setIsTradeDialogOpen] = useState(false)
     const [isOrderDialogOpen, setIsOrderDialogOpen] = useState(false)
     const [isEditTradeDialogOpen, setIsEditTradeDialogOpen] = useState(false)
     const [isEditOrderDialogOpen, setIsEditOrderDialogOpen] = useState(false)
+    const [isChatDialogOpen, setIsChatDialogOpen] = useState(false)
+    const [isCommentsDialogOpen, setIsCommentsDialogOpen] = useState(false)
+    const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false)
     
     // State for new transactions
     const [newTrade, setNewTrade] = useState<NewTrade>({
@@ -152,6 +228,47 @@ export default function AdminUserPage() {
         amount: 0
     })
 
+    // Chat states
+    const [messages, setMessages] = useState<Message[]>([])
+    const [newMessage, setNewMessage] = useState("")
+    const [uploading, setUploading] = useState(false)
+    const [isTyping, setIsTyping] = useState(false)
+
+    // Comments states
+    const [comments, setComments] = useState("")
+    const [loadingComments, setLoadingComments] = useState(false)
+    const [savingComments, setSavingComments] = useState(false)
+
+    // Assignment states
+    const [teamMembers, setTeamMembers] = useState<TeamMember[]>([])
+    const [selectedWorker, setSelectedWorker] = useState<string>("")
+    const [isFavorite, setIsFavorite] = useState(false)
+
+    // Ticker selection states
+    const [searchTerm, setSearchTerm] = useState("")
+    const { tickers } = useTickers()
+    const [selectedTickerSymbol, setSelectedTickerSymbol] = useState<string>(newTrade.ticker)
+    
+    // Filtered tickers based on search term
+    const filteredTickers = useMemo(() => {
+        if (!searchTerm.trim()) return tickers;
+        const term = searchTerm.toLowerCase();
+        return tickers.filter(ticker => 
+            ticker.symbol.toLowerCase().includes(term) ||
+            ticker.showName.toLowerCase().includes(term) ||
+            ticker.fullName.toLowerCase().includes(term)
+        );
+    }, [tickers, searchTerm]);
+    
+    // Helper function to format price values
+    const formatPriceValue = useCallback((value?: number | null) => {
+        if (value == null || Number.isNaN(value)) return null
+        if (value >= 1000) return value.toFixed(2)
+        if (value >= 1) return value.toFixed(3)
+        if (value >= 0.1) return value.toFixed(4)
+        return value.toPrecision(4)
+    }, [])
+    
     // локальные стейты для редактирования
     const [name, setName] = useState("")
     const [role, setRole] = useState("USER")
@@ -166,6 +283,7 @@ export default function AdminUserPage() {
         const fetchAll = async () => {
             setLoading(true)
             setLoadingRelations(true)
+            setLoadingWallet(true)
             try {
                 // 1) сам юзер
                 const userRes = await fetch(`/api/admin/users/${userId}`)
@@ -178,7 +296,12 @@ export default function AdminUserPage() {
                     setBlocked(data.blocked)
                     setIsVerif(data.isVerif)
                     setCanWithdraw(data.can_withdraw)
-                    setBalance((data.TotalBalance ?? 0).toString())
+                    // Removed balance update as we're using the new wallet system
+                    
+                    // Check if user is favorited
+                    if (data.isFavorite !== undefined) {
+                        setIsFavorite(data.isFavorite)
+                    }
                 }
 
                 // 2) сделки юзера
@@ -194,11 +317,35 @@ export default function AdminUserPage() {
                     const o = await ordersRes.json()
                     setOrders(o)
                 }
+
+                // 4) Load comments
+                const commentsRes = await fetch(`/api/admin/users/${userId}/comments`)
+                if (commentsRes.ok) {
+                    const data = await commentsRes.json()
+                    setComments(data.comments || "")
+                }
+
+                // 5) Load team members
+                const teamRes = await fetch("/api/admin/team")
+                if (teamRes.ok) {
+                    const data = await teamRes.json()
+                    setTeamMembers(data.users.filter((u: TeamMember) => 
+                        u.role === "TEAMLEAD" || u.role === "WORKER" || u.role === "CR_MANAGMENT"))
+                }
+                
+                // 6) Load wallet data
+                const walletRes = await fetch(`/api/admin/users/${userId}/wallet`)
+                if (walletRes.ok) {
+                    const walletData = await walletRes.json()
+                    setWalletSummary(walletData.walletSummary)
+                    setWalletBalances(walletData.walletBalances)
+                }
             } catch (e) {
                 console.error("Error loading admin user page", e)
             } finally {
                 setLoading(false)
                 setLoadingRelations(false)
+                setLoadingWallet(false)
             }
         }
 
@@ -209,7 +356,6 @@ export default function AdminUserPage() {
         if (!user) return
         setSaving(true)
         try {
-            const newBalance = parseFloat(balance) || 0
             const res = await fetch(`/api/admin/users/${user.id}`, {
                 method: "PATCH",
                 headers: { "Content-Type": "application/json" },
@@ -220,16 +366,25 @@ export default function AdminUserPage() {
                     blocked,
                     isVerif,
                     can_withdraw: canWithdraw,
-                    TotalBalance: newBalance,
+                    // Removed TotalBalance update as we're using the new wallet system
                 }),
             })
 
             if (res.ok) {
                 const updated = await res.json()
                 setUser(updated)
+                toast({
+                    title: "Success",
+                    description: "User updated successfully",
+                })
             }
         } catch (e) {
             console.error("Error updating user:", e)
+            toast({
+                title: "Error",
+                description: "Failed to update user",
+                variant: "destructive",
+            })
         } finally {
             setSaving(false)
         }
@@ -255,10 +410,21 @@ export default function AdminUserPage() {
                     const t = await tradesRes.json()
                     setTrades(t)
                 }
+                // Refresh wallet data as margin might have changed
+                await refreshWalletData()
                 setIsTradeDialogOpen(false)
+                toast({
+                    title: "Success",
+                    description: "Trade created successfully",
+                })
             }
         } catch (e) {
             console.error("Error creating trade:", e)
+            toast({
+                title: "Error",
+                description: "Failed to create trade",
+                variant: "destructive",
+            })
         }
     }
 
@@ -282,10 +448,21 @@ export default function AdminUserPage() {
                     const o = await ordersRes.json()
                     setOrders(o)
                 }
+                // Refresh wallet data as balance might have changed
+                await refreshWalletData()
                 setIsOrderDialogOpen(false)
+                toast({
+                    title: "Success",
+                    description: "Order created successfully",
+                })
             }
         } catch (e) {
             console.error("Error creating order:", e)
+            toast({
+                title: "Error",
+                description: "Failed to create order",
+                variant: "destructive",
+            })
         }
     }
 
@@ -304,10 +481,21 @@ export default function AdminUserPage() {
                     const t = await tradesRes.json()
                     setTrades(t)
                 }
+                // Refresh wallet data as margin/profit might have changed
+                await refreshWalletData()
                 setIsEditTradeDialogOpen(false)
+                toast({
+                    title: "Success",
+                    description: "Trade updated successfully",
+                })
             }
         } catch (e) {
             console.error("Error updating trade:", e)
+            toast({
+                title: "Error",
+                description: "Failed to update trade",
+                variant: "destructive",
+            })
         }
     }
 
@@ -326,10 +514,21 @@ export default function AdminUserPage() {
                     const o = await ordersRes.json()
                     setOrders(o)
                 }
+                // Refresh wallet data as balance might have changed
+                await refreshWalletData()
                 setIsEditOrderDialogOpen(false)
+                toast({
+                    title: "Success",
+                    description: "Order updated successfully",
+                })
             }
         } catch (e) {
             console.error("Error updating order:", e)
+            toast({
+                title: "Error",
+                description: "Failed to update order",
+                variant: "destructive",
+            })
         }
     }
 
@@ -352,6 +551,167 @@ export default function AdminUserPage() {
             amount: order.amount
         })
         setIsEditOrderDialogOpen(true)
+    }
+    
+    // Refresh wallet data
+    const refreshWalletData = async () => {
+        if (!userId) return
+        setLoadingWallet(true)
+        try {
+            const walletRes = await fetch(`/api/admin/users/${userId}/wallet`)
+            if (walletRes.ok) {
+                const walletData = await walletRes.json()
+                setWalletSummary(walletData.walletSummary)
+                setWalletBalances(walletData.walletBalances)
+            }
+        } catch (e) {
+            console.error("Error refreshing wallet data", e)
+        } finally {
+            setLoadingWallet(false)
+        }
+    }
+
+    // Chat functions
+    const handleOpenChat = async () => {
+        setIsChatDialogOpen(true)
+        try {
+            const res = await fetch(`/api/admin/chat/messages/${userId}`)
+            if (res.ok) {
+                const data = await res.json()
+                setMessages(data)
+            }
+        } catch (e) {
+            console.error("Error loading messages:", e)
+        }
+    }
+
+    const handleSendMessage = async () => {
+        if (!newMessage.trim()) return
+
+        try {
+            const res = await fetch("/api/admin/chat/messages", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    content: newMessage,
+                    userId: userId,
+                }),
+            })
+
+            if (res.ok) {
+                const savedMessage = await res.json()
+                setMessages(prev => [...prev, savedMessage])
+                setNewMessage("")
+            }
+        } catch (e) {
+            console.error("Error sending message:", e)
+        }
+    }
+
+    // Comments functions
+    const handleOpenComments = async () => {
+        setIsCommentsDialogOpen(true)
+        setLoadingComments(true)
+        try {
+            const res = await fetch(`/api/admin/users/${userId}/comments`)
+            if (res.ok) {
+                const data = await res.json()
+                setComments(data.comments || "")
+            }
+        } catch (e) {
+            console.error("Error loading comments:", e)
+        } finally {
+            setLoadingComments(false)
+        }
+    }
+
+    const handleSaveComments = async () => {
+        setSavingComments(true)
+        try {
+            const res = await fetch(`/api/admin/users/${userId}/comments`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ comments }),
+            })
+
+            if (res.ok) {
+                setIsCommentsDialogOpen(false)
+                toast({
+                    title: "Success",
+                    description: "Comments saved successfully",
+                })
+            }
+        } catch (e) {
+            console.error("Error saving comments:", e)
+            toast({
+                title: "Error",
+                description: "Failed to save comments",
+                variant: "destructive",
+            })
+        } finally {
+            setSavingComments(false)
+        }
+    }
+
+    // Assignment functions
+    const handleToggleFavorite = async () => {
+        if (!user) return
+        
+        try {
+            // Toggle favorite by calling the new API
+            const res = await fetch(`/api/admin/users/${user.id}/favorite`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    favorite: !isFavorite
+                }),
+            })
+
+            if (res.ok) {
+                setIsFavorite(!isFavorite)
+                toast({
+                    title: "Success",
+                    description: !isFavorite ? "Added to favorites" : "Removed from favorites",
+                })
+            }
+        } catch (e) {
+            console.error("Error toggling favorite:", e)
+            toast({
+                title: "Error",
+                description: "Failed to update favorite status",
+                variant: "destructive",
+            })
+        }
+    }
+
+    const handleAssignUser = async () => {
+        if (!user || !selectedWorker) return
+        
+        try {
+            const res = await fetch("/api/admin/team/assign", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    userId: user.id,
+                    assignToId: selectedWorker,
+                }),
+            })
+
+            if (res.ok) {
+                setIsAssignDialogOpen(false)
+                toast({
+                    title: "Success",
+                    description: "User assigned successfully",
+                })
+            }
+        } catch (e) {
+            console.error("Error assigning user:", e)
+            toast({
+                title: "Error",
+                description: "Failed to assign user",
+                variant: "destructive",
+            })
+        }
     }
 
     if (loading && !user) {
@@ -379,135 +739,138 @@ export default function AdminUserPage() {
     return (
         <div className="min-h-screen bg-gray-950 px-2 py-4 text-slate-100 sm:px-6">
             <div className="mx-auto max-w-6xl space-y-5 sm:space-y-6">
-                {/* Верхушка / хлебные крошки */}
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                    <div className="flex items-center gap-3">
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => router.push("/admin")}
-                            className="h-8 rounded-full border border-slate-800 bg-slate-900/80 px-3 text-xs text-slate-300 hover:bg-slate-800"
-                        >
-                            <ArrowLeft className="mr-1 h-3.5 w-3.5" />
-                            Back to admin
-                        </Button>
-                        <div>
-                            <h1 className="flex items-center gap-2 text-xl font-bold sm:text-2xl">
-                <span className="flex h-9 w-9 items-center justify-center rounded-2xl bg-purple-500/20 text-purple-200">
-                  <Users className="h-4 w-4" />
-                </span>
-                                <span>
-                  {user.name || "No Name"}{" "}
-                                    <span className="ml-1 text-sm text-slate-400">
-                    ({user.email})
-                  </span>
-                </span>
-                            </h1>
-                            <p className="mt-1 text-xs text-slate-400 sm:text-sm">
-                                User ID: <span className="font-mono text-slate-300">{user.id}</span>
-                            </p>
+                {/* Header Section */}
+                <div className="bg-slate-900/80 rounded-2xl p-4 sm:p-6">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                        <div className="flex items-center gap-3">
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => router.push("/admin")}
+                                className="h-8 rounded-full border border-slate-800 bg-slate-900/80 px-3 text-xs text-slate-300 hover:bg-slate-800"
+                            >
+                                <ArrowLeft className="mr-1 h-3.5 w-3.5" />
+                                Back
+                            </Button>
+                            <div>
+                                <h1 className="flex items-center gap-2 text-xl font-bold">
+                                    <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-purple-500/20 text-purple-200">
+                                        <Users className="h-4 w-4" />
+                                    </span>
+                                    <span className="truncate max-w-xs">
+                                        {user.name || "No Name"}
+                                    </span>
+                                </h1>
+                                <p className="text-xs text-slate-400 mt-1">
+                                    {user.email} • ID: {user.id}
+                                </p>
+                            </div>
                         </div>
-                    </div>
 
-                    <div className="flex flex-wrap items-center gap-2 justify-start sm:justify-end">
-                        <Badge
-                            variant="outline"
-                            className="rounded-full border-slate-700 bg-slate-900/80 px-3 text-[11px] uppercase tracking-wide"
-                        >
-                            {user.role}
-                        </Badge>
-                        <Badge
-                            variant={user.blocked ? "destructive" : user.isVerif ? "default" : "secondary"}
-                            className="rounded-full px-3 text-[11px]"
-                        >
-                            {user.blocked ? "Blocked" : user.isVerif ? "Verified" : "Unverified"}
-                        </Badge>
-                        <Badge
-                            variant="outline"
-                            className="rounded-full border-emerald-500/40 bg-emerald-500/10 px-3 text-[11px] text-emerald-200"
-                        >
-                            Balance: ${user.TotalBalance?.toFixed(2) ?? "0.00"}
-                        </Badge>
+                        <div className="flex flex-wrap items-center gap-2">
+                            <Badge
+                                variant="outline"
+                                className="rounded-full border-slate-700 bg-slate-900/80 px-3 text-[11px] uppercase tracking-wide"
+                            >
+                                {user.role}
+                            </Badge>
+                            <Badge
+                                variant={user.blocked ? "destructive" : user.isVerif ? "default" : "secondary"}
+                                className="rounded-full px-3 text-[11px]"
+                            >
+                                {user.blocked ? "Blocked" : user.isVerif ? "Verified" : "Unverified"}
+                            </Badge>
+                            {walletSummary && (
+                                <Badge
+                                    variant="outline"
+                                    className="rounded-full border-emerald-500/40 bg-emerald-500/10 px-3 text-[11px] text-emerald-200"
+                                >
+                                    Wallet: {walletSummary.tradingBalance.toFixed(2)} {walletSummary.baseCurrency}
+                                </Badge>
+                            )}
+                        </div>
                     </div>
                 </div>
 
-                <div className="grid gap-4 md:grid-cols-[1.05fr_1.6fr] lg:gap-6">
-                    {/* Левая колонка — профиль и настройки */}
-                    <div className="space-y-4 sm:space-y-5">
-                        {/* Основная информация */}
-                        <Card className="rounded-2xl border-slate-900 bg-slate-950/80 shadow-[0_18px_45px_rgba(15,23,42,0.7)]">
+                {/* Main Content - Simplified Grid Layout */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+                    {/* Left Column - User Profile and Wallet */}
+                    <div className="lg:col-span-1 space-y-5">
+                        {/* User Profile Card */}
+                        <Card className="rounded-2xl border-slate-900 bg-slate-950/80">
                             <CardHeader className="pb-3">
                                 <CardTitle className="flex items-center gap-2 text-base font-semibold">
-                  <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-purple-500/20 text-purple-200">
-                    <Users className="h-4 w-4" />
-                  </span>
-                                    Account details
+                                    <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-purple-500/20 text-purple-200">
+                                        <Users className="h-4 w-4" />
+                                    </span>
+                                    User Profile
                                 </CardTitle>
                             </CardHeader>
-                            <CardContent className="space-y-3 text-sm">
-                                <div className="space-y-1.5">
-                                    <label className="text-xs text-slate-400">Name</label>
-                                    <Input
-                                        value={name}
-                                        onChange={(e) => setName(e.target.value)}
-                                        className="h-9 rounded-xl border-slate-800 bg-slate-900 text-sm"
-                                    />
-                                </div>
+                            <CardContent className="space-y-4">
+                                <div className="space-y-3">
+                                    <div>
+                                        <label className="text-xs text-slate-400">Full Name</label>
+                                        <Input
+                                            value={name}
+                                            onChange={(e) => setName(e.target.value)}
+                                            className="h-9 rounded-xl border-slate-800 bg-slate-900 text-sm mt-1"
+                                        />
+                                    </div>
 
-                                <div className="space-y-1.5">
-                                    <label className="text-xs text-slate-400">Email</label>
-                                    <div className="flex items-center gap-2 rounded-xl border border-slate-800 bg-slate-900 px-3 py-2 text-xs text-slate-300">
-                                        <Mail className="h-3.5 w-3.5 text-slate-500" />
-                                        <span className="truncate">{user.email}</span>
+                                    <div>
+                                        <label className="text-xs text-slate-400">Email</label>
+                                        <div className="flex items-center gap-2 rounded-xl border border-slate-800 bg-slate-900 px-3 py-2 text-xs text-slate-300 mt-1">
+                                            <Mail className="h-3.5 w-3.5 text-slate-500" />
+                                            <span className="truncate">{user.email}</span>
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <div>
+                                            <label className="text-xs text-slate-400">Role</label>
+                                            <Select
+                                                value={role}
+                                                onValueChange={setRole}
+                                            >
+                                                <SelectTrigger className="h-9 rounded-xl border-slate-800 bg-slate-900 text-sm mt-1">
+                                                    <SelectValue />
+                                                </SelectTrigger>
+                                                <SelectContent className="border-slate-800 bg-slate-900 text-sm">
+                                                    <SelectItem value="USER">User</SelectItem>
+                                                    <SelectItem value="OWNER">Owner</SelectItem>
+                                                    <SelectItem value="CR_MANAGMENT">CR Management</SelectItem>
+                                                    <SelectItem value="TEAMLEAD">Team Lead</SelectItem>
+                                                    <SelectItem value="WORKER">Worker</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+
+                                        <div>
+                                            <label className="text-xs text-slate-400">Status</label>
+                                            <Select value={status} onValueChange={setStatus}>
+                                                <SelectTrigger className="h-9 rounded-xl border-slate-800 bg-slate-900 text-sm mt-1">
+                                                    <SelectValue />
+                                                </SelectTrigger>
+                                                <SelectContent className="max-h-[280px] border-slate-800 bg-slate-900 text-sm">
+                                                    <SelectItem value="NEW">New</SelectItem>
+                                                    <SelectItem value="WRONGNUMBER">Wrong Number</SelectItem>
+                                                    <SelectItem value="WRONGINFO">Wrong Info</SelectItem>
+                                                    <SelectItem value="CALLBACK">Call Back</SelectItem>
+                                                    <SelectItem value="LOWPOTENTIONAL">Low potential</SelectItem>
+                                                    <SelectItem value="HIGHPOTENTIONAL">High potential</SelectItem>
+                                                    <SelectItem value="NOTINTERESTED">Not interested</SelectItem>
+                                                    <SelectItem value="DEPOSIT">Deposit</SelectItem>
+                                                    <SelectItem value="TRASH">Trash</SelectItem>
+                                                    <SelectItem value="DROP">Drop</SelectItem>
+                                                    <SelectItem value="RESIGN">Resign</SelectItem>
+                                                    <SelectItem value="COMPLETED">Completed</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
                                     </div>
                                 </div>
 
-                                <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
-                                    <div className="space-y-1.5">
-                                        <label className="text-xs text-slate-400">Role</label>
-                                        <Select
-                                            value={role}
-                                            onValueChange={setRole}
-                                            disabled={false /* можно оставить проверку на OWNER */}
-                                        >
-                                            <SelectTrigger className="h-9 rounded-xl border-slate-800 bg-slate-900 text-sm">
-                                                <SelectValue />
-                                            </SelectTrigger>
-                                            <SelectContent className="border-slate-800 bg-slate-900 text-sm">
-                                                <SelectItem value="USER">User</SelectItem>
-                                                <SelectItem value="OWNER">Owner</SelectItem>
-                                                <SelectItem value="CR_MANAGMENT">CR Management</SelectItem>
-                                                <SelectItem value="TEAMLEAD">Team Lead</SelectItem>
-                                                <SelectItem value="WORKER">Worker</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-
-                                    <div className="space-y-1.5">
-                                        <label className="text-xs text-slate-400">Status</label>
-                                        <Select value={status} onValueChange={setStatus}>
-                                            <SelectTrigger className="h-9 rounded-xl border-slate-800 bg-slate-900 text-sm">
-                                                <SelectValue />
-                                            </SelectTrigger>
-                                            <SelectContent className="max-h-[280px] border-slate-800 bg-slate-900 text-sm">
-                                                <SelectItem value="NEW">New</SelectItem>
-                                                <SelectItem value="WRONGNUMBER">Wrong Number</SelectItem>
-                                                <SelectItem value="WRONGINFO">Wrong Info</SelectItem>
-                                                <SelectItem value="CALLBACK">Call Back</SelectItem>
-                                                <SelectItem value="LOWPOTENTIONAL">Low potential</SelectItem>
-                                                <SelectItem value="HIGHPOTENTIONAL">High potential</SelectItem>
-                                                <SelectItem value="NOTINTERESTED">Not interested</SelectItem>
-                                                <SelectItem value="DEPOSIT">Deposit</SelectItem>
-                                                <SelectItem value="TRASH">Trash</SelectItem>
-                                                <SelectItem value="DROP">Drop</SelectItem>
-                                                <SelectItem value="RESIGN">Resign</SelectItem>
-                                                <SelectItem value="COMPLETED">Completed</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                </div>
-
-                                <div className="flex flex-wrap gap-3 rounded-2xl bg-slate-900/60 p-3">
+                                <div className="flex flex-wrap gap-3 pt-2">
                                     <div className="flex items-center space-x-2">
                                         <Checkbox
                                             checked={blocked}
@@ -549,77 +912,236 @@ export default function AdminUserPage() {
                                     </div>
                                 </div>
 
-                                <div className="flex justify-between border-t border-slate-900 pt-3 text-xs text-slate-400">
-                                    <div className="flex items-center gap-1.5">
-                                        <Calendar className="h-3.5 w-3.5" />
-                                        <span>
-                      Created:{" "}
-                                            {new Date(user.createdAt).toLocaleDateString()}
-                    </span>
-                                    </div>
-                                    <div className="hidden items-center gap-1.5 sm:flex">
-                                        <Calendar className="h-3.5 w-3.5" />
-                                        <span>
-                      Updated:{" "}
-                                            {new Date(user.updatedAt).toLocaleDateString()}
-                    </span>
-                                    </div>
-                                </div>
-
-                                <div className="pt-2">
-                                    <Button
-                                        onClick={handleSave}
-                                        disabled={saving}
-                                        className="w-full rounded-xl bg-purple-600 text-sm font-medium hover:bg-purple-700"
-                                    >
-                                        {saving ? "Saving..." : "Save changes"}
-                                    </Button>
-                                </div>
+                                <Button
+                                    onClick={handleSave}
+                                    disabled={saving}
+                                    className="w-full rounded-xl bg-purple-600 text-sm font-medium hover:bg-purple-700"
+                                >
+                                    {saving ? "Saving..." : "Save Profile"}
+                                </Button>
                             </CardContent>
                         </Card>
 
-                        {/* Баланс */}
+                        {/* Wallet Management Card */}
                         <Card className="rounded-2xl border-slate-900 bg-slate-950/80">
                             <CardHeader className="pb-3">
-                                <CardTitle className="flex items-center gap-2 text-sm font-semibold">
-                  <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-emerald-500/15 text-emerald-300">
-                    <DollarSign className="h-4 w-4" />
-                  </span>
-                                    Balance & Permissions
+                                <CardTitle className="flex items-center gap-2 text-base font-semibold">
+                                    <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-emerald-500/15 text-emerald-300">
+                                        <DollarSign className="h-4 w-4" />
+                                    </span>
+                                    Wallet Management
                                 </CardTitle>
                             </CardHeader>
-                            <CardContent className="space-y-3 text-sm">
-                                <div className="space-y-1.5">
-                                    <label className="text-xs text-slate-400">Total Balance</label>
-                                    <div className="flex items-center gap-2">
-                                        <Input
-                                            type="number"
-                                            value={balance}
-                                            onChange={(e) => setBalance(e.target.value)}
-                                            className="h-9 flex-1 rounded-xl border-slate-800 bg-slate-900 text-sm"
-                                        />
-                                        <span className="rounded-xl bg-slate-900 px-3 py-1 text-xs text-slate-400">
-                      USD
-                    </span>
+                            <CardContent>
+                                {loadingWallet ? (
+                                    <div className="flex items-center justify-center py-6">
+                                        <div className="h-5 w-5 animate-spin rounded-full border-2 border-emerald-500 border-t-transparent"></div>
                                     </div>
-                                </div>
-                                <p className="text-xs text-slate-500">
-                                    Все изменения по балансу здесь применяются мгновенно через
-                                    <span className="font-mono"> /api/admin/users/[id]</span>
-                                </p>
+                                ) : walletSummary && walletBalances ? (
+                                    <WalletManagement 
+                                        userId={userId} 
+                                        walletBalances={walletBalances} 
+                                        onRefresh={refreshWalletData} 
+                                    />
+                                ) : (
+                                    <div className="py-4 text-center text-slate-400 text-sm">
+                                        Failed to load wallet data
+                                    </div>
+                                )}
                             </CardContent>
                         </Card>
                     </div>
 
-                    {/* Правая колонка — Trades / Deposits / Withdrawals */}
-                    <div className="space-y-4 sm:space-y-5">
-                        {/* Trades */}
+                    {/* Middle Column - Wallet Overview and Actions */}
+                    <div className="lg:col-span-1 space-y-5">
+                        {/* Wallet Overview Card */}
+                        <Card className="rounded-2xl border-slate-900 bg-slate-950/80">
+                            <CardHeader className="pb-3">
+                                <CardTitle className="flex items-center gap-2 text-base font-semibold">
+                                    <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-blue-500/15 text-blue-300">
+                                        <CreditCard className="h-4 w-4" />
+                                    </span>
+                                    Wallet Overview
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                {loadingWallet ? (
+                                    <div className="flex items-center justify-center py-6">
+                                        <div className="h-5 w-5 animate-spin rounded-full border-2 border-blue-500 border-t-transparent"></div>
+                                    </div>
+                                ) : walletSummary ? (
+                                    <>
+                                        <div className="grid grid-cols-2 gap-3">
+                                            <div className="rounded-xl bg-slate-900/60 p-3">
+                                                <div className="text-xs text-slate-400">Trading Balance</div>
+                                                <div className="mt-1 text-lg font-semibold">
+                                                    {walletSummary.tradingBalance.toFixed(2)} {walletSummary.baseCurrency}
+                                                </div>
+                                            </div>
+                                            <div className="rounded-xl bg-slate-900/60 p-3">
+                                                <div className="text-xs text-slate-400">Available to Trade</div>
+                                                <div className="mt-1 text-lg font-semibold">
+                                                    {walletSummary.availableForTrade.toFixed(2)} {walletSummary.baseCurrency}
+                                                </div>
+                                            </div>
+                                            <div className="rounded-xl bg-slate-900/60 p-3">
+                                                <div className="text-xs text-slate-400">In Trades</div>
+                                                <div className="mt-1 text-lg font-semibold text-amber-400">
+                                                    {walletSummary.tradingInTrade.toFixed(2)} {walletSummary.baseCurrency}
+                                                </div>
+                                            </div>
+                                            <div className="rounded-xl bg-slate-900/60 p-3">
+                                                <div className="text-xs text-slate-400">Available to Withdraw</div>
+                                                <div className="mt-1 text-lg font-semibold text-blue-400">
+                                                    {walletSummary.availableForWithdraw.toFixed(2)} {walletSummary.baseCurrency}
+                                                </div>
+                                            </div>
+                                        </div>
+                                            
+                                        <div className="rounded-xl bg-slate-900/60 p-3">
+                                            <div className="flex items-center justify-between">
+                                                <div className="text-sm font-medium">Credit Utilization</div>
+                                                <div className="text-xs text-slate-400">
+                                                    {walletSummary.creditUsed.toFixed(2)} / {walletSummary.creditLimit.toFixed(2)}
+                                                </div>
+                                            </div>
+                                            <div className="mt-2 w-full bg-slate-800 rounded-full h-2">
+                                                <div 
+                                                    className="bg-purple-500 h-2 rounded-full" 
+                                                    style={{ width: `${walletSummary.creditLimit > 0 ? (walletSummary.creditUsed / walletSummary.creditLimit) * 100 : 0}%` }}
+                                                ></div>
+                                            </div>
+                                        </div>
+                                    </>
+                                ) : (
+                                    <div className="py-4 text-center text-slate-400 text-sm">
+                                        Failed to load wallet data
+                                    </div>
+                                )}
+                            </CardContent>
+                        </Card>
+
+                        {/* Wallet Assets Card */}
+                        <Card className="rounded-2xl border-slate-900 bg-slate-950/80">
+                            <CardHeader className="pb-3">
+                                <CardTitle className="flex items-center gap-2 text-base font-semibold">
+                                    <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-amber-500/15 text-amber-300">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                            <circle cx="9" cy="21" r="1"></circle>
+                                            <circle cx="20" cy="21" r="1"></circle>
+                                            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                                        </svg>
+                                    </span>
+                                    Wallet Assets
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                {loadingWallet ? (
+                                    <div className="flex items-center justify-center py-6">
+                                        <div className="h-5 w-5 animate-spin rounded-full border-2 border-amber-500 border-t-transparent"></div>
+                                    </div>
+                                ) : walletBalances && walletBalances.length > 0 ? (
+                                    <div className="space-y-2 max-h-60 overflow-y-auto">
+                                        {walletBalances.map((balance) => (
+                                            <WalletBalanceItem key={balance.id} balance={balance} />
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="py-4 text-center text-slate-400 text-sm">
+                                        No wallet assets found
+                                    </div>
+                                )}
+                            </CardContent>
+                        </Card>
+
+                        {/* Quick Actions Card */}
+                        <Card className="rounded-2xl border-slate-900 bg-slate-950/80">
+                            <CardHeader className="pb-3">
+                                <CardTitle className="flex items-center gap-2 text-base font-semibold">
+                                    <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-green-500/15 text-green-300">
+                                        <Settings className="h-4 w-4" />
+                                    </span>
+                                    Quick Actions
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-3">
+                                <div className="grid grid-cols-2 gap-2">
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={handleOpenChat}
+                                        className="h-9 rounded-xl border-slate-800 bg-slate-900 text-xs hover:bg-slate-800"
+                                    >
+                                        <MessageCircle className="mr-1.5 h-3.5 w-3.5" />
+                                        Chat
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={handleOpenComments}
+                                        className="h-9 rounded-xl border-slate-800 bg-slate-900 text-xs hover:bg-slate-800"
+                                    >
+                                        <Edit3 className="mr-1.5 h-3.5 w-3.5" />
+                                        Comments
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={handleToggleFavorite}
+                                        className="h-9 rounded-xl border-slate-800 bg-slate-900 text-xs hover:bg-slate-800"
+                                    >
+                                        {isFavorite ? (
+                                            <>
+                                                <HeartOff className="mr-1.5 h-3.5 w-3.5" />
+                                                Unfavorite
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Heart className="mr-1.5 h-3.5 w-3.5" />
+                                                Favorite
+                                            </>
+                                        )}
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => setIsAssignDialogOpen(true)}
+                                        className="h-9 rounded-xl border-slate-800 bg-slate-900 text-xs hover:bg-slate-800"
+                                    >
+                                        <UserCheck className="mr-1.5 h-3.5 w-3.5" />
+                                        Assign
+                                    </Button>
+                                </div>
+                                    
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={refreshWalletData}
+                                    disabled={loadingWallet}
+                                    className="w-full h-9 rounded-xl border-slate-800 bg-slate-900 text-xs hover:bg-slate-800"
+                                >
+                                    {loadingWallet ? (
+                                        <div className="flex items-center">
+                                            <div className="h-3 w-3 animate-spin rounded-full border-2 border-emerald-500 border-t-transparent mr-2"></div>
+                                            Refreshing...
+                                        </div>
+                                    ) : (
+                                        "Refresh Wallet Data"
+                                    )}
+                                </Button>
+                            </CardContent>
+                        </Card>
+                    </div>
+
+                    {/* Right Column - Trades and Orders */}
+                    <div className="lg:col-span-1 space-y-5">
+                        {/* Trades Card */}
                         <Card className="rounded-2xl border-slate-900 bg-slate-950/80">
                             <CardHeader className="flex items-center justify-between pb-3">
                                 <CardTitle className="flex items-center gap-2 text-base font-semibold">
-                            <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-sky-500/20 text-sky-200">
-                                <TrendingUp className="h-4 w-4" />
-                            </span>
+                                    <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-sky-500/20 text-sky-200">
+                                        <TrendingUp className="h-4 w-4" />
+                                    </span>
                                     Trades
                                 </CardTitle>
                                 <div className="flex items-center gap-2">
@@ -629,290 +1151,44 @@ export default function AdminUserPage() {
                                     >
                                         {trades.length} total
                                     </Badge>
-                                    <Dialog open={isTradeDialogOpen} onOpenChange={setIsTradeDialogOpen}>
-                                        <DialogTrigger asChild>
-                                            <Button 
-                                                size="sm" 
-                                                className="h-7 rounded-full bg-purple-600 px-2.5 text-xs hover:bg-purple-700"
-                                                onClick={() => setIsTradeDialogOpen(true)}
-                                            >
-                                                New Trade
-                                            </Button>
-                                        </DialogTrigger>
-                                        <DialogContent className="rounded-2xl border-slate-800 bg-slate-900 text-slate-100 sm:max-w-md">
-                                            <DialogHeader>
-                                                <DialogTitle className="text-lg font-semibold">Create New Trade</DialogTitle>
-                                            </DialogHeader>
-                                            <div className="space-y-4">
-                                                <div className="grid grid-cols-2 gap-3">
-                                                    <div className="space-y-2">
-                                                        <Label className="text-xs text-slate-400">Type</Label>
-                                                        <Select
-                                                            value={newTrade.type}
-                                                            onValueChange={(v) => setNewTrade({...newTrade, type: v as "BUY" | "SELL"})}
-                                                        >
-                                                            <SelectTrigger className="h-9 rounded-xl border-slate-800 bg-slate-900 text-sm">
-                                                                <SelectValue />
-                                                            </SelectTrigger>
-                                                            <SelectContent className="border-slate-800 bg-slate-900 text-sm">
-                                                                <SelectItem value="BUY">Buy</SelectItem>
-                                                                <SelectItem value="SELL">Sell</SelectItem>
-                                                            </SelectContent>
-                                                        </Select>
-                                                    </div>
-                                                    <div className="space-y-2">
-                                                        <Label className="text-xs text-slate-400">Asset Type</Label>
-                                                        <Select
-                                                            value={newTrade.assetType}
-                                                            onValueChange={(v) => setNewTrade({...newTrade, assetType: v})}
-                                                        >
-                                                            <SelectTrigger className="h-9 rounded-xl border-slate-800 bg-slate-900 text-sm">
-                                                                <SelectValue />
-                                                            </SelectTrigger>
-                                                            <SelectContent className="border-slate-800 bg-slate-900 text-sm">
-                                                                <SelectItem value="CRYPTO">Crypto</SelectItem>
-                                                                <SelectItem value="STOCK">Stock</SelectItem>
-                                                                <SelectItem value="FOREX">Forex</SelectItem>
-                                                            </SelectContent>
-                                                        </Select>
-                                                    </div>
-                                                </div>
-                                                
-                                                <div className="space-y-2">
-                                                    <Label className="text-xs text-slate-400">Ticker</Label>
-                                                    <Input
-                                                        value={newTrade.ticker}
-                                                        onChange={(e) => setNewTrade({...newTrade, ticker: e.target.value})}
-                                                        className="h-9 rounded-xl border-slate-800 bg-slate-900 text-sm"
-                                                    />
-                                                </div>
-                                                
-                                                <div className="grid grid-cols-2 gap-3">
-                                                    <div className="space-y-2">
-                                                        <Label className="text-xs text-slate-400">Volume</Label>
-                                                        <Input
-                                                            type="number"
-                                                            value={newTrade.volume}
-                                                            onChange={(e) => setNewTrade({...newTrade, volume: parseFloat(e.target.value) || 0})}
-                                                            className="h-9 rounded-xl border-slate-800 bg-slate-900 text-sm"
-                                                        />
-                                                    </div>
-                                                    <div className="space-y-2">
-                                                        <Label className="text-xs text-slate-400">Leverage</Label>
-                                                        <Input
-                                                            type="number"
-                                                            value={newTrade.leverage}
-                                                            onChange={(e) => setNewTrade({...newTrade, leverage: parseInt(e.target.value) || 1})}
-                                                            className="h-9 rounded-xl border-slate-800 bg-slate-900 text-sm"
-                                                        />
-                                                    </div>
-                                                </div>
-                                                
-                                                <div className="grid grid-cols-2 gap-3">
-                                                    <div className="space-y-2">
-                                                        <Label className="text-xs text-slate-400">Margin</Label>
-                                                        <Input
-                                                            type="number"
-                                                            value={newTrade.margin}
-                                                            onChange={(e) => setNewTrade({...newTrade, margin: parseFloat(e.target.value) || 0})}
-                                                            className="h-9 rounded-xl border-slate-800 bg-slate-900 text-sm"
-                                                        />
-                                                    </div>
-                                                    <div className="space-y-2">
-                                                        <Label className="text-xs text-slate-400">Open Price</Label>
-                                                        <Input
-                                                            type="number"
-                                                            value={newTrade.openIn}
-                                                            onChange={(e) => setNewTrade({...newTrade, openIn: parseFloat(e.target.value) || 0})}
-                                                            className="h-9 rounded-xl border-slate-800 bg-slate-900 text-sm"
-                                                        />
-                                                    </div>
-                                                </div>
-                                                
-                                                <div className="grid grid-cols-2 gap-3">
-                                                    <div className="space-y-2">
-                                                        <Label className="text-xs text-slate-400">Take Profit (Optional)</Label>
-                                                        <Input
-                                                            type="number"
-                                                            value={newTrade.takeProfit || ''}
-                                                            onChange={(e) => setNewTrade({...newTrade, takeProfit: e.target.value ? parseFloat(e.target.value) : null})}
-                                                            className="h-9 rounded-xl border-slate-800 bg-slate-900 text-sm"
-                                                        />
-                                                    </div>
-                                                    <div className="space-y-2">
-                                                        <Label className="text-xs text-slate-400">Stop Loss (Optional)</Label>
-                                                        <Input
-                                                            type="number"
-                                                            value={newTrade.stopLoss || ''}
-                                                            onChange={(e) => setNewTrade({...newTrade, stopLoss: e.target.value ? parseFloat(e.target.value) : null})}
-                                                            className="h-9 rounded-xl border-slate-800 bg-slate-900 text-sm"
-                                                        />
-                                                    </div>
-                                                </div>
-                                                
-                                                <Button 
-                                                    onClick={handleCreateTrade}
-                                                    className="w-full rounded-xl bg-purple-600 text-sm font-medium hover:bg-purple-700"
-                                                >
-                                                    Create Trade
-                                                </Button>
-                                            </div>
-                                        </DialogContent>
-                                    </Dialog>
+                                    <Button 
+                                        size="sm" 
+                                        className="h-7 rounded-full bg-purple-600 px-2.5 text-xs hover:bg-purple-700"
+                                        onClick={() => setIsTradeDialogOpen(true)}
+                                    >
+                                        New Trade
+                                    </Button>
                                 </div>
                             </CardHeader>
-                            <CardContent className="space-y-2 text-xs sm:text-sm max-h-[300px] h-full overflow-y-auto">
-                                {loadingRelations && (
+                            <CardContent className="space-y-2 max-h-[300px] overflow-y-auto">
+                                {loadingRelations ? (
                                     <div className="rounded-xl bg-slate-900/80 px-4 py-6 text-center text-slate-400">
                                         Loading trades...
                                     </div>
-                                )}
-
-                                {!loadingRelations && trades.length === 0 && (
+                                ) : trades.length === 0 ? (
                                     <div className="rounded-xl bg-slate-900/80 px-4 py-6 text-center text-slate-400">
                                         This user has no trades yet.
                                     </div>
+                                ) : (
+                                    trades.map((t) => (
+                                        <UserTradeItem 
+                                            key={t.id} 
+                                            trade={t} 
+                                            onEdit={openEditTradeDialog} 
+                                        />
+                                    ))
                                 )}
-
-                                {!loadingRelations &&
-                                    trades.map((t) => {
-                                        const isProfit = (t.profit ?? 0) >= 0
-                                        return (
-                                            <div
-                                                key={t.id}
-                                                className="flex items-center justify-between rounded-xl bg-slate-900/80 px-3 py-2.5"
-                                            >
-                                                <div className="min-w-0 flex-1">
-                                                    <div className="flex items-center gap-2">
-                                                        <span className="font-mono text-xs font-semibold text-slate-100 sm:text-sm">
-                                                            {t.ticker}
-                                                        </span>
-                                                        <Badge
-                                                            className={`rounded-full px-2 text-[10px] ${
-                                                                t.type === "BUY"
-                                                                    ? "bg-emerald-500/15 text-emerald-300"
-                                                                    : "bg-rose-500/15 text-rose-300"
-                                                            }`}
-                                                        >
-                                                            {t.type}
-                                                        </Badge>
-                                                        <Badge
-                                                            variant="outline"
-                                                            className="rounded-full border-slate-700 bg-slate-950/80 px-2 text-[10px] text-slate-300"
-                                                        >
-                                                            {t.status}
-                                                        </Badge>
-                                                    </div>
-                                                    <div className="mt-0.5 text-[11px] text-slate-400">
-                                                        Volume {t.volume}, {t.leverage}x •{" "}
-                                                        {new Date(t.createdAt).toLocaleString()}
-                                                    </div>
-                                                </div>
-                                                <div className="ml-3 flex items-center gap-2">
-                                                    <div className="text-right">
-                                                        <div
-                                                            className={`text-xs font-semibold ${
-                                                                isProfit ? "text-emerald-400" : "text-rose-400"
-                                                            }`}
-                                                        >
-                                                            {(isProfit ? "+" : "")}$
-                                                            {(t.profit ?? 0).toFixed(2)}
-                                                        </div>
-                                                        <div className="text-[11px] text-slate-400">
-                                                            Open: {t.openIn.toFixed(5)}
-                                                        </div>
-                                                    </div>
-                                                    <Button 
-                                                        size="sm" 
-                                                        variant="ghost"
-                                                        className="h-7 w-7 p-0 text-slate-400 hover:bg-slate-800 hover:text-slate-200"
-                                                        onClick={() => openEditTradeDialog(t)}
-                                                    >
-                                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                                            <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
-                                                        </svg>
-                                                    </Button>
-                                                </div>
-                                            </div>
-                                        )
-                                    })}
-
                             </CardContent>
                         </Card>
 
-                        {/* Edit Trade Dialog */}
-                        <Dialog open={isEditTradeDialogOpen} onOpenChange={setIsEditTradeDialogOpen}>
-                            <DialogContent className="rounded-2xl border-slate-800 bg-slate-900 text-slate-100 sm:max-w-md">
-                                <DialogHeader>
-                                    <DialogTitle className="text-lg font-semibold">Edit Trade</DialogTitle>
-                                </DialogHeader>
-                                <div className="space-y-4">
-                                    <div className="grid grid-cols-2 gap-3">
-                                        <div className="space-y-2">
-                                            <Label className="text-xs text-slate-400">Status</Label>
-                                            <Select
-                                                value={editTrade.status}
-                                                onValueChange={(v) => setEditTrade({...editTrade, status: v})}
-                                            >
-                                                <SelectTrigger className="h-9 rounded-xl border-slate-800 bg-slate-900 text-sm">
-                                                    <SelectValue />
-                                                </SelectTrigger>
-                                                <SelectContent className="border-slate-800 bg-slate-900 text-sm">
-                                                    <SelectItem value="OPEN">Open</SelectItem>
-                                                    <SelectItem value="CLOSE">Close</SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label className="text-xs text-slate-400">Profit</Label>
-                                            <Input
-                                                type="number"
-                                                value={editTrade.profit || ''}
-                                                onChange={(e) => setEditTrade({...editTrade, profit: e.target.value ? parseFloat(e.target.value) : null})}
-                                                className="h-9 rounded-xl border-slate-800 bg-slate-900 text-sm"
-                                            />
-                                        </div>
-                                    </div>
-                                    
-                                    <div className="grid grid-cols-2 gap-3">
-                                        <div className="space-y-2">
-                                            <Label className="text-xs text-slate-400">Open Price</Label>
-                                            <Input
-                                                type="number"
-                                                value={editTrade.openIn}
-                                                onChange={(e) => setEditTrade({...editTrade, openIn: parseFloat(e.target.value) || 0})}
-                                                className="h-9 rounded-xl border-slate-800 bg-slate-900 text-sm"
-                                            />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label className="text-xs text-slate-400">Close Price</Label>
-                                            <Input
-                                                type="number"
-                                                value={editTrade.closeIn || ''}
-                                                onChange={(e) => setEditTrade({...editTrade, closeIn: e.target.value ? parseFloat(e.target.value) : null})}
-                                                className="h-9 rounded-xl border-slate-800 bg-slate-900 text-sm"
-                                            />
-                                        </div>
-                                    </div>
-                                    
-                                    <Button 
-                                        onClick={handleEditTrade}
-                                        className="w-full rounded-xl bg-purple-600 text-sm font-medium hover:bg-purple-700"
-                                    >
-                                        Update Trade
-                                    </Button>
-                                </div>
-                            </DialogContent>
-                        </Dialog>
-
-                        {/* Deposits / Withdrawals */}
+                        {/* Orders Card */}
                         <Card className="rounded-2xl border-slate-900 bg-slate-950/80">
                             <CardHeader className="flex items-center justify-between pb-3">
                                 <CardTitle className="flex items-center gap-2 text-base font-semibold">
-                            <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-amber-500/20 text-amber-200">
-                                <CreditCard className="h-4 w-4" />
-                            </span>
-                                    Deposits & Withdrawals
+                                    <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-amber-500/20 text-amber-200">
+                                        <CreditCard className="h-4 w-4" />
+                                    </span>
+                                    Orders
                                 </CardTitle>
                                 <div className="flex items-center gap-2">
                                     <Badge
@@ -921,190 +1197,444 @@ export default function AdminUserPage() {
                                     >
                                         {orders.length} records
                                     </Badge>
-                                    <Dialog open={isOrderDialogOpen} onOpenChange={setIsOrderDialogOpen}>
-                                        <DialogTrigger asChild>
-                                            <Button 
-                                                size="sm" 
-                                                className="h-7 rounded-full bg-amber-600 px-2.5 text-xs hover:bg-amber-700"
-                                                onClick={() => setIsOrderDialogOpen(true)}
-                                            >
-                                                New Order
-                                            </Button>
-                                        </DialogTrigger>
-                                        <DialogContent className="rounded-2xl border-slate-800 bg-slate-900 text-slate-100 sm:max-w-md">
-                                            <DialogHeader>
-                                                <DialogTitle className="text-lg font-semibold">Create New Order</DialogTitle>
-                                            </DialogHeader>
-                                            <div className="space-y-4">
-                                                <div className="grid grid-cols-2 gap-3">
-                                                    <div className="space-y-2">
-                                                        <Label className="text-xs text-slate-400">Type</Label>
-                                                        <Select
-                                                            value={newOrder.type}
-                                                            onValueChange={(v) => setNewOrder({...newOrder, type: v as "DEPOSIT" | "WITHDRAW"})}
-                                                        >
-                                                            <SelectTrigger className="h-9 rounded-xl border-slate-800 bg-slate-900 text-sm">
-                                                                <SelectValue />
-                                                            </SelectTrigger>
-                                                            <SelectContent className="border-slate-800 bg-slate-900 text-sm">
-                                                                <SelectItem value="DEPOSIT">Deposit</SelectItem>
-                                                                <SelectItem value="WITHDRAW">Withdraw</SelectItem>
-                                                            </SelectContent>
-                                                        </Select>
-                                                    </div>
-                                                    <div className="space-y-2">
-                                                        <Label className="text-xs text-slate-400">Status</Label>
-                                                        <Select
-                                                            value={newOrder.status}
-                                                            onValueChange={(v) => setNewOrder({...newOrder, status: v})}
-                                                        >
-                                                            <SelectTrigger className="h-9 rounded-xl border-slate-800 bg-slate-900 text-sm">
-                                                                <SelectValue />
-                                                            </SelectTrigger>
-                                                            <SelectContent className="border-slate-800 bg-slate-900 text-sm">
-                                                                <SelectItem value="PENDING">Pending</SelectItem>
-                                                                <SelectItem value="PROCESSING">Processing</SelectItem>
-                                                                <SelectItem value="SUCCESSFUL">Successful</SelectItem>
-                                                                <SelectItem value="FAILED">Failed</SelectItem>
-                                                                <SelectItem value="CANCELLED">Cancelled</SelectItem>
-                                                            </SelectContent>
-                                                        </Select>
-                                                    </div>
-                                                </div>
-                                                
-                                                <div className="space-y-2">
-                                                    <Label className="text-xs text-slate-400">Amount (USD)</Label>
-                                                    <Input
-                                                        type="number"
-                                                        value={newOrder.amount}
-                                                        onChange={(e) => setNewOrder({...newOrder, amount: parseFloat(e.target.value) || 0})}
-                                                        className="h-9 rounded-xl border-slate-800 bg-slate-900 text-sm"
-                                                    />
-                                                </div>
-                                                
-                                                <Button 
-                                                    onClick={handleCreateOrder}
-                                                    className="w-full rounded-xl bg-amber-600 text-sm font-medium hover:bg-amber-700"
-                                                >
-                                                    Create Order
-                                                </Button>
-                                            </div>
-                                        </DialogContent>
-                                    </Dialog>
+                                    <Button 
+                                        size="sm" 
+                                        className="h-7 rounded-full bg-amber-600 px-2.5 text-xs hover:bg-amber-700"
+                                        onClick={() => setIsOrderDialogOpen(true)}
+                                    >
+                                        New Order
+                                    </Button>
                                 </div>
                             </CardHeader>
-                            <CardContent className="space-y-2 text-xs sm:text-sm max-h-[300px] h-full overflow-y-auto">
-                                {loadingRelations && (
+                            <CardContent className="space-y-2 max-h-[300px] overflow-y-auto">
+                                {loadingRelations ? (
                                     <div className="rounded-xl bg-slate-900/80 px-4 py-6 text-center text-slate-400">
                                         Loading orders...
                                     </div>
-                                )}
-
-                                {!loadingRelations && orders.length === 0 && (
+                                ) : orders.length === 0 ? (
                                     <div className="rounded-xl bg-slate-900/80 px-4 py-6 text-center text-slate-400">
                                         No deposits or withdrawals yet.
                                     </div>
-                                )}
-
-                                {!loadingRelations &&
+                                ) : (
                                     orders.map((o) => (
-                                        <div
-                                            key={o.id}
-                                            className="flex items-center justify-between rounded-xl bg-slate-900/80 px-3 py-2.5"
-                                        >
-                                            <div className="min-w-0 flex-1">
-                                                <div className="flex items-center gap-2">
-                                                    <Badge
-                                                        className={`rounded-full px-2 text-[10px] ${
-                                                            o.type === "DEPOSIT"
-                                                                ? "bg-emerald-500/15 text-emerald-300"
-                                                                : "bg-sky-500/15 text-sky-300"
-                                                        }`}
-                                                    >
-                                                        {o.type}
-                                                    </Badge>
-                                                    <Badge
-                                                        variant="outline"
-                                                        className="rounded-full border-slate-700 bg-slate-950/80 px-2 text-[10px] text-slate-300"
-                                                    >
-                                                        {o.status}
-                                                    </Badge>
-                                                </div>
-                                                <div className="mt-0.5 text-[11px] text-slate-400">
-                                                    {new Date(o.createdAt).toLocaleString()}
-                                                </div>
-                                            </div>
-                                            <div className="ml-3 flex items-center gap-2">
-                                                <div className="text-right">
-                                                    <div className="text-xs font-semibold text-slate-100">
-                                                        ${o.amount.toFixed(2)}
-                                                    </div>
-                                                </div>
-                                                <Button 
-                                                    size="sm" 
-                                                    variant="ghost"
-                                                    className="h-7 w-7 p-0 text-slate-400 hover:bg-slate-800 hover:text-slate-200"
-                                                    onClick={() => openEditOrderDialog(o)}
-                                                >
-                                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                                        <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
-                                                    </svg>
-                                                </Button>
-                                            </div>
-                                        </div>
-                                    ))}
-
+                                        <UserOrderItem 
+                                            key={o.id} 
+                                            order={o} 
+                                            onEdit={openEditOrderDialog} 
+                                        />
+                                    ))
+                                )}
                             </CardContent>
                         </Card>
-
-                        {/* Edit Order Dialog */}
-                        <Dialog open={isEditOrderDialogOpen} onOpenChange={setIsEditOrderDialogOpen}>
-                            <DialogContent className="rounded-2xl border-slate-800 bg-slate-900 text-slate-100 sm:max-w-md">
-                                <DialogHeader>
-                                    <DialogTitle className="text-lg font-semibold">Edit Order</DialogTitle>
-                                </DialogHeader>
-                                <div className="space-y-4">
-                                    <div className="space-y-2">
-                                        <Label className="text-xs text-slate-400">Status</Label>
-                                        <Select
-                                            value={editOrder.status}
-                                            onValueChange={(v) => setEditOrder({...editOrder, status: v})}
-                                        >
-                                            <SelectTrigger className="h-9 rounded-xl border-slate-800 bg-slate-900 text-sm">
-                                                <SelectValue />
-                                            </SelectTrigger>
-                                            <SelectContent className="border-slate-800 bg-slate-900 text-sm">
-                                                <SelectItem value="PENDING">Pending</SelectItem>
-                                                <SelectItem value="PROCESSING">Processing</SelectItem>
-                                                <SelectItem value="SUCCESSFUL">Successful</SelectItem>
-                                                <SelectItem value="FAILED">Failed</SelectItem>
-                                                <SelectItem value="CANCELLED">Cancelled</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                    
-                                    <div className="space-y-2">
-                                        <Label className="text-xs text-slate-400">Amount (USD)</Label>
-                                        <Input
-                                            type="number"
-                                            value={editOrder.amount}
-                                            onChange={(e) => setEditOrder({...editOrder, amount: parseFloat(e.target.value) || 0})}
-                                            className="h-9 rounded-xl border-slate-800 bg-slate-900 text-sm"
-                                        />
-                                    </div>
-                                    
-                                    <Button 
-                                        onClick={handleEditOrder}
-                                        className="w-full rounded-xl bg-amber-600 text-sm font-medium hover:bg-amber-700"
-                                    >
-                                        Update Order
-                                    </Button>
-                                </div>
-                            </DialogContent>
-                        </Dialog>
                     </div>
                 </div>
             </div>
+
+            {/* Chat Dialog */}
+            <Dialog open={isChatDialogOpen} onOpenChange={setIsChatDialogOpen}>
+                <DialogContent className="max-h-[80vh] w-[95vw] max-w-2xl overflow-hidden rounded-2xl border-slate-800 bg-slate-950/95">
+                    <DialogHeader>
+                        <DialogTitle className="text-lg font-semibold">Chat with {user.name || user.email}</DialogTitle>
+                    </DialogHeader>
+                    <div className="flex h-[500px] flex-col">
+                        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                            {messages.map((message) => (
+                                <div
+                                    key={message.id}
+                                    className={`flex ${message.isSupportMessage ? "justify-end" : "justify-start"}`}
+                                >
+                                    <div
+                                        className={`max-w-xs rounded-2xl px-4 py-2 text-sm ${
+                                            message.isSupportMessage
+                                                ? "bg-purple-600 text-white"
+                                                : "bg-slate-800 text-slate-100"
+                                        }`}
+                                    >
+                                        {message.content}
+                                        {message.imageUrl && (
+                                            <img
+                                                src={message.imageUrl}
+                                                alt="Attachment"
+                                                className="mt-2 max-w-full rounded-lg"
+                                            />
+                                        )}
+                                        <div className="mt-1 text-xs opacity-70">
+                                            {new Date(message.createdAt).toLocaleTimeString([], {
+                                                hour: "2-digit",
+                                                minute: "2-digit",
+                                            })}
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                        <div className="border-t border-slate-800 p-4">
+                            <div className="flex gap-2">
+                                <Input
+                                    value={newMessage}
+                                    onChange={(e) => setNewMessage(e.target.value)}
+                                    placeholder="Type your message..."
+                                    className="flex-1 rounded-xl border-slate-800 bg-slate-900"
+                                    onKeyDown={(e) => {
+                                        if (e.key === "Enter" && !e.shiftKey) {
+                                            e.preventDefault()
+                                            handleSendMessage()
+                                        }
+                                    }}
+                                />
+                                <Button
+                                    onClick={handleSendMessage}
+                                    disabled={!newMessage.trim()}
+                                    className="rounded-xl bg-purple-600 hover:bg-purple-700"
+                                >
+                                    <Send className="h-4 w-4" />
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
+
+            {/* Comments Dialog */}
+            <Dialog open={isCommentsDialogOpen} onOpenChange={setIsCommentsDialogOpen}>
+                <DialogContent className="max-h-[80vh] w-[95vw] max-w-2xl overflow-hidden rounded-2xl border-slate-800 bg-slate-950/95">
+                    <DialogHeader>
+                        <DialogTitle className="text-lg font-semibold">Comments for {user.name || user.email}</DialogTitle>
+                    </DialogHeader>
+                    <div className="flex h-[500px] flex-col">
+                        <Textarea
+                            value={comments}
+                            onChange={(e) => setComments(e.target.value)}
+                            placeholder="Add your comments here..."
+                            className="flex-1 rounded-xl border-slate-800 bg-slate-900 p-4"
+                        />
+                        <div className="mt-4 flex justify-end gap-2">
+                            <Button
+                                variant="outline"
+                                onClick={() => setIsCommentsDialogOpen(false)}
+                                className="rounded-xl border-slate-800 bg-slate-900"
+                            >
+                                Cancel
+                            </Button>
+                            <Button
+                                onClick={handleSaveComments}
+                                disabled={savingComments}
+                                className="rounded-xl bg-purple-600 hover:bg-purple-700"
+                            >
+                                {savingComments ? "Saving..." : "Save Comments"}
+                            </Button>
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
+
+            {/* Assign Dialog */}
+            <Dialog open={isAssignDialogOpen} onOpenChange={setIsAssignDialogOpen}>
+                <DialogContent className="w-[95vw] max-w-md rounded-2xl border-slate-800 bg-slate-950/95">
+                    <DialogHeader>
+                        <DialogTitle className="text-lg font-semibold">Assign User</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                        <div>
+                            <Label className="text-xs text-slate-400">Assign to Worker/Team Lead</Label>
+                            <Select
+                                value={selectedWorker}
+                                onValueChange={setSelectedWorker}
+                            >
+                                <SelectTrigger className="mt-1 h-9 rounded-xl border-slate-800 bg-slate-900 text-sm">
+                                    <SelectValue placeholder="Select worker or team lead" />
+                                </SelectTrigger>
+                                <SelectContent className="border-slate-800 bg-slate-900 text-sm">
+                                    {teamMembers.map((member) => (
+                                        <SelectItem key={member.id} value={member.id}>
+                                            {member.name || member.email} ({member.role})
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div className="flex justify-end gap-2">
+                            <Button
+                                variant="outline"
+                                onClick={() => setIsAssignDialogOpen(false)}
+                                className="rounded-xl border-slate-800 bg-slate-900"
+                            >
+                                Cancel
+                            </Button>
+                            <Button
+                                onClick={handleAssignUser}
+                                className="rounded-xl bg-purple-600 hover:bg-purple-700"
+                            >
+                                Assign User
+                            </Button>
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
+
+            {/* Trade Dialog */}
+            <Dialog open={isTradeDialogOpen} onOpenChange={setIsTradeDialogOpen}>
+                <DialogContent className="rounded-2xl border-slate-800 bg-slate-900 text-slate-100 sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle className="text-lg font-semibold">Create New Trade</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                        <div className="grid grid-cols-2 gap-3">
+                            <div className="space-y-2">
+                                <Label className="text-xs text-slate-400">Type</Label>
+                                <Select
+                                    value={newTrade.type}
+                                    onValueChange={(v) => setNewTrade({...newTrade, type: v as "BUY" | "SELL"})}
+                                >
+                                    <SelectTrigger className="h-9 rounded-xl border-slate-800 bg-slate-900 text-sm">
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent className="border-slate-800 bg-slate-900 text-sm">
+                                        <SelectItem value="BUY">Buy</SelectItem>
+                                        <SelectItem value="SELL">Sell</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div className="space-y-2">
+                                <Label className="text-xs text-slate-400">Asset Type</Label>
+                                <Select
+                                    value={newTrade.assetType}
+                                    onValueChange={(v) => setNewTrade({...newTrade, assetType: v})}
+                                >
+                                    <SelectTrigger className="h-9 rounded-xl border-slate-800 bg-slate-900 text-sm">
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent className="border-slate-800 bg-slate-900 text-sm">
+                                        <SelectItem value="CRYPTO">Crypto</SelectItem>
+                                        <SelectItem value="STOCK">Stock</SelectItem>
+                                        <SelectItem value="FOREX">Forex</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </div>
+                        
+                        <div className="space-y-2">
+                            <Label className="text-xs text-slate-400">Ticker</Label>
+                            <div className="space-y-2">
+                                {/* Search Input */}
+                                <div className="relative">
+                                    <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+                                    <Input
+                                        placeholder="Search tickers..."
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                        className="h-9 rounded-xl border-slate-800 bg-slate-900 pl-8 text-sm"
+                                    />
+                                </div>
+                                
+                                {/* Ticker List */}
+                                <div className="max-h-60 overflow-y-auto rounded-xl border border-slate-800 bg-slate-900">
+                                    {tickers.length > 0 ? (
+                                        <VirtualizedTickerList
+                                            tickers={filteredTickers}
+                                            selectedSymbol={selectedTickerSymbol}
+                                            onSelectTicker={(ticker) => {
+                                                setSelectedTickerSymbol(ticker.symbol);
+                                                setNewTrade({
+                                                    ...newTrade,
+                                                    ticker: ticker.symbol
+                                                });
+                                                setSearchTerm("");
+                                            }}
+                                            formatPriceValue={formatPriceValue}
+                                            height={240}
+                                        />
+                                    ) : (
+                                        <div className="p-4 text-center text-sm text-slate-500">
+                                            No tickers available
+                                        </div>
+                                    )}
+                                </div>
+                                
+                                {/* Selected Ticker Display */}
+                                {selectedTickerSymbol && (
+                                    <div className="rounded-xl bg-slate-800/50 p-3">
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-2">
+                                                {(() => {
+                                                    const ticker = tickers.find(t => t.symbol === selectedTickerSymbol);
+                                                    return ticker ? (
+                                                        <TickerAvatar
+                                                            symbol={ticker.symbol}
+                                                            category={ticker.category}
+                                                            baseCurrency={ticker.baseCurrency}
+                                                            quoteCurrency={ticker.quoteCurrency}
+                                                            size={24}
+                                                            icon={ticker.icon}
+                                                        />
+                                                    ) : null;
+                                                })()}
+                                                <span className="font-medium text-slate-200">
+                                                    {selectedTickerSymbol}
+                                                </span>
+                                            </div>
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() => {
+                                                    setSelectedTickerSymbol("");
+                                                    setNewTrade({
+                                                        ...newTrade,
+                                                        ticker: ""
+                                                    });
+                                                }}
+                                                className="h-6 w-6 p-0 text-slate-500 hover:text-slate-300"
+                                            >
+                                                ×
+                                            </Button>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-3">
+                            <div className="space-y-2">
+                                <Label className="text-xs text-slate-400">Volume</Label>
+                                <Input
+                                    type="number"
+                                    value={newTrade.volume}
+                                    onChange={(e) => setNewTrade({...newTrade, volume: parseFloat(e.target.value) || 0})}
+                                    className="h-9 rounded-xl border-slate-800 bg-slate-900 text-sm"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label className="text-xs text-slate-400">Leverage</Label>
+                                <Input
+                                    type="number"
+                                    value={newTrade.leverage}
+                                    onChange={(e) => setNewTrade({...newTrade, leverage: parseInt(e.target.value) || 1})}
+                                    className="h-9 rounded-xl border-slate-800 bg-slate-900 text-sm"
+                                />
+                            </div>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-3">
+                            <div className="space-y-2">
+                                <Label className="text-xs text-slate-400">Margin</Label>
+                                <Input
+                                    type="number"
+                                    value={newTrade.margin}
+                                    onChange={(e) => setNewTrade({...newTrade, margin: parseFloat(e.target.value) || 0})}
+                                    className="h-9 rounded-xl border-slate-800 bg-slate-900 text-sm"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label className="text-xs text-slate-400">Open Price</Label>
+                                <Input
+                                    type="number"
+                                    value={newTrade.openIn}
+                                    onChange={(e) => setNewTrade({...newTrade, openIn: parseFloat(e.target.value) || 0})}
+                                    className="h-9 rounded-xl border-slate-800 bg-slate-900 text-sm"
+                                />
+                            </div>
+                        </div>
+                        
+                        <MarginCostDisplay 
+                            ticker={newTrade.ticker}
+                            volume={newTrade.volume}
+                            leverage={newTrade.leverage}
+                            openPrice={newTrade.openIn}
+                        />
+                        
+                        <div className="grid grid-cols-2 gap-3">
+                            <div className="space-y-2">
+                                <Label className="text-xs text-slate-400">Take Profit (Optional)</Label>
+                                <Input
+                                    type="number"
+                                    value={newTrade.takeProfit || ''}
+                                    onChange={(e) => setNewTrade({...newTrade, takeProfit: e.target.value ? parseFloat(e.target.value) : null})}
+                                    className="h-9 rounded-xl border-slate-800 bg-slate-900 text-sm"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label className="text-xs text-slate-400">Stop Loss (Optional)</Label>
+                                <Input
+                                    type="number"
+                                    value={newTrade.stopLoss || ''}
+                                    onChange={(e) => setNewTrade({...newTrade, stopLoss: e.target.value ? parseFloat(e.target.value) : null})}
+                                    className="h-9 rounded-xl border-slate-800 bg-slate-900 text-sm"
+                                />
+                            </div>
+                        </div>
+                        
+                        <Button 
+                            onClick={handleCreateTrade}
+                            className="w-full rounded-xl bg-purple-600 text-sm font-medium hover:bg-purple-700"
+                        >
+                            Create Trade
+                        </Button>
+                    </div>
+                </DialogContent>
+            </Dialog>
+            
+            {/* Order Dialog */}
+            <Dialog open={isOrderDialogOpen} onOpenChange={setIsOrderDialogOpen}>
+                <DialogContent className="rounded-2xl border-slate-800 bg-slate-900 text-slate-100 sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle className="text-lg font-semibold">Create New Order</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                        <div className="grid grid-cols-2 gap-3">
+                            <div className="space-y-2">
+                                <Label className="text-xs text-slate-400">Type</Label>
+                                <Select
+                                    value={newOrder.type}
+                                    onValueChange={(v) => setNewOrder({...newOrder, type: v as "DEPOSIT" | "WITHDRAW"})}
+                                >
+                                    <SelectTrigger className="h-9 rounded-xl border-slate-800 bg-slate-900 text-sm">
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent className="border-slate-800 bg-slate-900 text-sm">
+                                        <SelectItem value="DEPOSIT">Deposit</SelectItem>
+                                        <SelectItem value="WITHDRAW">Withdraw</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div className="space-y-2">
+                                <Label className="text-xs text-slate-400">Status</Label>
+                                <Select
+                                    value={newOrder.status}
+                                    onValueChange={(v) => setNewOrder({...newOrder, status: v})}
+                                >
+                                    <SelectTrigger className="h-9 rounded-xl border-slate-800 bg-slate-900 text-sm">
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent className="border-slate-800 bg-slate-900 text-sm">
+                                        <SelectItem value="PENDING">Pending</SelectItem>
+                                        <SelectItem value="PROCESSING">Processing</SelectItem>
+                                        <SelectItem value="SUCCESSFUL">Successful</SelectItem>
+                                        <SelectItem value="FAILED">Failed</SelectItem>
+                                        <SelectItem value="CANCELLED">Cancelled</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </div>
+                        
+                        <div className="space-y-2">
+                            <Label className="text-xs text-slate-400">Amount (USD)</Label>
+                            <Input
+                                type="number"
+                                value={newOrder.amount}
+                                onChange={(e) => setNewOrder({...newOrder, amount: parseFloat(e.target.value) || 0})}
+                                className="h-9 rounded-xl border-slate-800 bg-slate-900 text-sm"
+                            />
+                        </div>
+                        
+                        <Button 
+                            onClick={handleCreateOrder}
+                            className="w-full rounded-xl bg-amber-600 text-sm font-medium hover:bg-amber-700"
+                        >
+                            Create Order
+                        </Button>
+                    </div>
+                </DialogContent>
+            </Dialog>
         </div>
     )
 }

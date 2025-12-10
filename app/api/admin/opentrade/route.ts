@@ -1,12 +1,34 @@
+// app/api/admin/trades/route.ts (или твой opentrade файл)
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-    const { userId, type, ticker, volume, leverage, margin, openIn, takeProfit, stopLoss, assetType } = body
+    const {
+      userId,
+      type,
+      ticker,
+      volume,
+      leverage,
+      margin,
+      openIn,
+      takeProfit,
+      stopLoss,
+      assetType,
+      aiEnabled,        // 👈 добавили
+    } = body
 
-    if (!userId || !type || !ticker || !volume || !leverage || !margin || !openIn || !assetType) {
+    if (
+        !userId ||
+        !type ||
+        !ticker ||
+        !volume ||
+        !leverage ||
+        !margin ||
+        !openIn ||
+        !assetType
+    ) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
     }
 
@@ -16,6 +38,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "User not found" }, { status: 404 })
     }
 
+    // ⚠️ если ты уже ушёл от TotalBalance — тут потом тоже перепишем под walletBalance
     if ((user.TotalBalance || 0) < margin) {
       return NextResponse.json({ error: "Insufficient balance" }, { status: 400 })
     }
@@ -35,6 +58,7 @@ export async function POST(request: Request) {
         assetType,
         profit: 0,
         status: "OPEN",
+        aiEnabled: Boolean(aiEnabled),  // 👈 вот тут
       },
     })
 

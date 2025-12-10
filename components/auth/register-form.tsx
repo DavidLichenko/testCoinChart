@@ -1,20 +1,14 @@
 "use client";
 
-import React, { useState } from "react";
-import { motion } from "framer-motion";
-import {
-  Eye,
-  EyeOff,
-  Mail,
-  Lock,
-  User,
-  ArrowRight,
-  BarChart3,
-} from "lucide-react";
+import React, {useState} from "react";
+import {motion} from "framer-motion";
+import {ArrowRight, Eye, EyeOff, Lock, Mail, User,} from "lucide-react";
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { useI18n } from "@/components/i18n-provider";
+import {Button} from "@/components/ui/button";
+import {Input} from "@/components/ui/input";
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue,} from "@/components/ui/select";
+import {useI18n} from "@/components/i18n-provider";
+import {PiCoinBold} from "react-icons/pi";
 
 interface RegisterFormProps {
   onSuccess?: () => void;
@@ -36,6 +30,8 @@ export function RegisterForm({
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+  const [baseCurrency, setBaseCurrency] = useState<"EUR" | "USD">("EUR");
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -54,7 +50,12 @@ export function RegisterForm({
       const res = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password }),
+        body: JSON.stringify({
+          name,
+          email,
+          password,
+          baseCurrency, // 👈 отправляем выбранную валюту
+        }),
       });
 
       const data = await res.json();
@@ -82,19 +83,21 @@ export function RegisterForm({
       >
         {/* FORM CARD */}
         <motion.div
-            initial={{opacity: 0, scale: 0.96}}
-            animate={{opacity: 1, scale: 1}}
-            transition={{duration: 0.35, ease: "easeOut"}}
+            initial={{ opacity: 0, scale: 0.96 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.35, ease: "easeOut" }}
             className="w-full max-w-md rounded-2xl border border-slate-800 bg-slate-900/90 px-6 py-8 shadow-2xl backdrop-blur-xl"
         >
           {/* Branding */}
           <div className="mb-4 flex items-center gap-2">
             <div className="flex h-12 w-12 items-center justify-center">
-              <img src={'/logo.png'} className="h-14 w-14 text-white"/>
+              <img src={"/logo.png"} className="h-14 w-14 text-white" />
             </div>
             <span className="text-xs font-semibold tracking-[0.18em] text-slate-300">
-                  ARAGON<br/>TRADE
-                </span>
+            ARAGON
+            <br />
+            TRADE
+          </span>
           </div>
 
           {/* Header */}
@@ -110,8 +113,8 @@ export function RegisterForm({
             {/* Error message */}
             {error && (
                 <motion.div
-                    initial={{opacity: 0, y: -6}}
-                    animate={{opacity: 1, y: 0}}
+                    initial={{ opacity: 0, y: -6 }}
+                    animate={{ opacity: 1, y: 0 }}
                     className="rounded-lg border border-red-500/40 bg-red-900/10 px-3 py-2.5 text-sm text-red-400"
                 >
                   {error}
@@ -124,7 +127,7 @@ export function RegisterForm({
                 {t("fullName")}
               </label>
               <div className="relative">
-                <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"/>
+                <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                 <Input
                     id="name"
                     type="text"
@@ -143,7 +146,7 @@ export function RegisterForm({
                 {t("email")}
               </label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"/>
+                <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                 <Input
                     id="email"
                     type="email"
@@ -162,7 +165,7 @@ export function RegisterForm({
                 {t("password")}
               </label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"/>
+                <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                 <Input
                     id="password"
                     type={showPassword ? "text" : "password"}
@@ -179,18 +182,21 @@ export function RegisterForm({
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-2 top-1/2 -translate-y-1/2 p-0 text-slate-400 hover:text-white"
                 >
-                  {showPassword ? <EyeOff size={16}/> : <Eye size={16}/>}
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </Button>
               </div>
             </div>
 
             {/* Confirm password */}
             <div className="space-y-2">
-              <label className="text-sm text-slate-200" htmlFor="confirmPassword">
+              <label
+                  className="text-sm text-slate-200"
+                  htmlFor="confirmPassword"
+              >
                 {t("confirmPassword")}
               </label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"/>
+                <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                 <Input
                     id="confirmPassword"
                     type={showConfirmPassword ? "text" : "password"}
@@ -208,11 +214,39 @@ export function RegisterForm({
                     className="absolute right-2 top-1/2 -translate-y-1/2 p-0 text-slate-400 hover:text-white"
                 >
                   {showConfirmPassword ? (
-                      <EyeOff size={16}/>
+                      <EyeOff size={16} />
                   ) : (
-                      <Eye size={16}/>
+                      <Eye size={16} />
                   )}
                 </Button>
+              </div>
+            </div>
+
+            {/* Base currency select */}
+            <div className="space-y-2">
+              <label className="text-sm text-slate-200">
+                {t("currency")}
+              </label>
+              <div className="relative">
+                <PiCoinBold className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <Select
+                    value={baseCurrency}
+                    onValueChange={(val) =>
+                        setBaseCurrency(val as "EUR" | "USD")
+                    }
+                >
+                  <SelectTrigger className="h-10 rounded-xl border-slate-700 bg-slate-950/70 pl-10 text-sm text-white focus:border-purple-500 focus:ring-purple-500">
+                    <SelectValue placeholder={t("selectBaseCurrency")} />
+                  </SelectTrigger>
+                  <SelectContent className="border-slate-700 bg-slate-900 text-sm text-white">
+                    <SelectItem value="EUR">
+                      EUR
+                    </SelectItem>
+                    <SelectItem value="USD">
+                      USD
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
@@ -224,13 +258,13 @@ export function RegisterForm({
             >
               {loading ? (
                   <>
-                    <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-white"/>
+                    <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-white" />
                     {t("registering")}
                   </>
               ) : (
                   <>
                     {t("register")}
-                    <ArrowRight className="h-4 w-4"/>
+                    <ArrowRight className="h-4 w-4" />
                   </>
               )}
             </Button>

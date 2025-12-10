@@ -65,7 +65,7 @@ export async function GET(request: NextRequest) {
     
     // Calculate team statistics
     const teamLeads = users.filter(user => user.role === "TEAMLEAD");
-    const workers = users.filter(user => user.role === "USER");
+    const workers = users.filter(user => user.role === "WORKER");
     const clients = users.filter(user => user.role === "USER");
     
     // For TEAMLEAD users, only show their assigned users

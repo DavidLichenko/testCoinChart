@@ -234,6 +234,18 @@ const tickerOverrides: Record<string, TickerOverride> = {
     showName: "Apple",
     icon: "/icons/ticker_icons/aapl.png",
   },
+  "XAUAUD": {
+    showName:"XAUAUD",
+    icon:"/icons/other_icons/gold-big.svg",
+  },
+  "XAUEUR": {
+    showName:"XAUEUR",
+    icon:"/icons/other_icons/gold-big.svg",
+  },
+  "USOIL": {
+    showName:"USOIL",
+    icon:"/icons/other_icons/crude-oil.svg",
+  }
   // "BTCUSD": {
   //   showName: "Bitcoin",
   //   icon: "/icons/crypto_icons/btc.png",

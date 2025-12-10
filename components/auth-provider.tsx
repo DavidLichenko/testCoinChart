@@ -1,12 +1,11 @@
 "use client"
 
 import type React from "react"
-import { createContext, useContext, useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
+import {createContext, useContext, useEffect, useState} from "react"
+import {usePathname, useRouter} from "next/navigation"
 import WelcomePage from "@/components/auth/welcome-page"
-import { usePathname } from 'next/navigation'
 import Header from "@/components/header";
-import MobileFooter from "@/components/mobile-footer";
+import ChatButton from "./chat/chat-button"
 
 interface User {
   id: string
@@ -112,7 +111,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         <WelcomePage
             onAuthSuccess={() => {
               checkAuth()
-              router.push("/dashboard")
+              router.push("/")
             }}
         />
     )
@@ -120,12 +119,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   return (
       <AuthContext.Provider value={{ user, loading, logout, refreshUser }}>
-        <Header />
-        {children}
-        {pathname !== `/test-chart` && (
-            <MobileFooter />
-        )}
+        {/* Каркас авторизованной части сайта */}
+        <div className="min-h-screen overflow-hidden flex flex-col bg-background text-white">
+          {/* Хедер всегда сверху, фиксированной высоты по своему контенту */}
+          <Header />
 
+          {/* Основной контент (в т.ч. /wallet и /wallet/staking) растягивается на остаток */}
+          <main className="flex-1 flex flex-col !bg-app-bgPage h-full">
+            {children}
+          </main>
+
+          <ChatButton />
+        </div>
       </AuthContext.Provider>
   )
 }

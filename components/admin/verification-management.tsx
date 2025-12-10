@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { motion } from "framer-motion"
 import {
   ShieldCheck,
@@ -56,10 +56,13 @@ interface Verification {
   }
 }
 
+type StatusFilter = "all" | "pending" | "approved" | "rejected"
+
+const VERIFICATIONS_PER_PAGE = 8
+
 /**
  * Преобразуем Cloudinary URL к виду с авто-конвертацией:
  * .../upload/... → .../upload/f_auto,q_auto/...
- * Тогда HEIC / HEIF / WebP и т.д. всегда показываются как нормальный JPEG/WebP.
  */
 const toCloudinaryPreviewUrl = (url: string | null | undefined) => {
   if (!url) return ""
@@ -69,34 +72,43 @@ const toCloudinaryPreviewUrl = (url: string | null | undefined) => {
   return url
 }
 
+const statusBadgeClasses = (status: Verification["status"]) => {
+  switch (status) {
+    case "APPROVED":
+      return "border-emerald-500/40 bg-emerald-500/10 text-emerald-300"
+    case "REJECTED":
+      return "border-rose-500/40 bg-rose-500/10 text-rose-300"
+    case "PENDING":
+    default:
+      return "border-amber-500/40 bg-amber-500/10 text-amber-200"
+  }
+}
+
 export default function VerificationManagement() {
   const { user } = useAuth()
+
   const [verifications, setVerifications] = useState<Verification[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
-  const [statusFilter, setStatusFilter] = useState("all")
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all")
   const [imageToView, setImageToView] = useState<string | null>(null)
   const [accessDenied, setAccessDenied] = useState(false)
 
-  // Add access control check
+  const [currentPage, setCurrentPage] = useState(1)
+
+  // --- access control ---
   useEffect(() => {
     if (!hasAdminAccess(user)) {
       setAccessDenied(true)
     }
   }, [user])
 
-  // If access is denied, show an error message
-  if (accessDenied) {
-    return (
-        <div className="rounded-2xl border border-rose-500/30 bg-rose-950/40 px-4 py-3 text-center text-sm text-rose-100">
-          Access denied. You don't have permission to view this page.
-        </div>
-    )
-  }
-
+  // --- fetch data ---
   useEffect(() => {
+    if (accessDenied) return
     fetchVerifications()
-  }, [])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [accessDenied])
 
   const fetchVerifications = async () => {
     setLoading(true)
@@ -117,7 +129,7 @@ export default function VerificationManagement() {
 
   const handleUpdateStatus = async (
       id: string,
-      status: "APPROVED" | "REJECTED"
+      status: "APPROVED" | "REJECTED",
   ) => {
     try {
       const response = await fetch(`/api/admin/verifications/${id}`, {
@@ -134,72 +146,101 @@ export default function VerificationManagement() {
         toast.error(errorData.error || "Update failed")
       }
     } catch (error) {
+      console.error(error)
       toast.error("Unexpected error")
     }
   }
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "APPROVED":
-        return "bg-emerald-500/20 text-emerald-300 border-emerald-500/30"
-      case "REJECTED":
-        return "bg-rose-500/20 text-rose-300 border-rose-500/30"
-      default:
-        return "bg-amber-500/20 text-amber-300 border-amber-500/30"
-    }
+  const filtered = useMemo(() => {
+    return verifications.filter((v) => {
+      const search = searchTerm.toLowerCase()
+      const matchSearch =
+          v.user.email.toLowerCase().includes(search) ||
+          (v.user.name || "").toLowerCase().includes(search)
+
+      const matchStatus =
+          statusFilter === "all" ||
+          v.status.toLowerCase() === statusFilter
+
+      return matchSearch && matchStatus
+    })
+  }, [verifications, searchTerm, statusFilter])
+
+  const totalPages =
+      filtered.length === 0
+          ? 1
+          : Math.ceil(filtered.length / VERIFICATIONS_PER_PAGE)
+
+  const currentItems = useMemo(
+      () =>
+          filtered.slice(
+              (currentPage - 1) * VERIFICATIONS_PER_PAGE,
+              currentPage * VERIFICATIONS_PER_PAGE,
+          ),
+      [filtered, currentPage],
+  )
+
+  const handlePageChange = (page: number) => {
+    if (page < 1 || page > totalPages) return
+    setCurrentPage(page)
   }
 
-  const filtered = verifications.filter((v) => {
-    const search = searchTerm.toLowerCase()
-    const matchSearch =
-        v.user.email.toLowerCase().includes(search) ||
-        (v.user.name || "").toLowerCase().includes(search)
+  // сбрасываем страницу при смене фильтров
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [searchTerm, statusFilter])
 
-    const matchStatus =
-        statusFilter === "all" || v.status.toLowerCase() === statusFilter
-
-    return matchSearch && matchStatus
-  })
+  // --- early return after всех хуков ---
+  if (accessDenied) {
+    return (
+        <div className="rounded-2xl border border-rose-500/30 bg-rose-950/40 px-4 py-3 text-center text-sm text-rose-100">
+          Access denied. You don&apos;t have permission to view this page.
+        </div>
+    )
+  }
 
   return (
       <div className="space-y-6 px-2 sm:px-0">
         {/* HEADER */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
           <div>
-            <h2 className="flex items-center gap-2 text-xl sm:text-2xl font-bold text-slate-50">
-            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-500/20 text-blue-300">
+            <h2 className="flex items-center gap-2 text-xl font-bold text-zinc-50 sm:text-2xl">
+            <span className="flex h-8 w-8 items-center justify-center rounded-xl border border-zinc-700 bg-zinc-900 text-blue-300">
               <ShieldCheck className="h-5 w-5" />
             </span>
               Verification Management
             </h2>
-            <p className="text-sm text-slate-400">
+            <p className="mt-1 text-xs text-zinc-400 sm:text-sm">
               Review, approve or reject user identity verification.
             </p>
           </div>
 
-          <Badge className="rounded-full bg-slate-900/70 text-slate-300 text-xs px-4 py-2">
-            {filtered.length} of {verifications.length}
+          <Badge className="rounded-full bg-zinc-900/80 px-4 py-1.5 text-xs text-zinc-200">
+            {filtered.length} of {verifications.length} requests
           </Badge>
         </div>
 
         {/* FILTERS */}
-        <Card className="bg-slate-950/80 border-slate-900/80">
-          <CardContent className="p-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
+        <Card className="rounded-2xl border-zinc-800/80 bg-zinc-950/80 shadow-[0_18px_45px_rgba(0,0,0,0.7)]">
+          <CardContent className="flex flex-col gap-3 p-3 sm:flex-row sm:items-center sm:gap-4 sm:p-4">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
               <Input
                   placeholder="Search by email or name..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 bg-slate-900 border-slate-800 text-slate-100"
+                  className="h-10 rounded-xl border-zinc-800 bg-zinc-900 pl-9 text-sm text-zinc-100 placeholder:text-zinc-500"
               />
             </div>
 
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-full sm:w-40 bg-slate-900 border-slate-800 text-slate-100">
-                <SelectValue />
+            <Select
+                value={statusFilter}
+                onValueChange={(v) => setStatusFilter(v as StatusFilter)}
+            >
+              <SelectTrigger className="h-10 w-full rounded-xl border-zinc-800 bg-zinc-900 text-sm text-zinc-100 sm:w-40">
+                <SelectValue placeholder="Status" />
               </SelectTrigger>
-              <SelectContent className="bg-slate-950 border-slate-800 text-slate-100">
+              <SelectContent className="border-zinc-800 bg-zinc-950 text-sm text-zinc-100">
                 <SelectItem value="all">All</SelectItem>
                 <SelectItem value="pending">Pending</SelectItem>
                 <SelectItem value="approved">Approved</SelectItem>
@@ -211,60 +252,76 @@ export default function VerificationManagement() {
 
         {/* LOADING */}
         {loading && (
-            <div className="text-center py-10 text-slate-400">Loading...</div>
+            <div className="py-10 text-center text-sm text-zinc-400">
+              Loading verifications...
+            </div>
         )}
 
         {/* EMPTY */}
         {!loading && filtered.length === 0 && (
-            <Card className="bg-slate-950/70 border-slate-900/70">
+            <Card className="rounded-2xl border-zinc-800/80 bg-zinc-950/80">
               <CardContent className="py-10 text-center">
-                <FileImage className="mx-auto mb-3 w-10 h-10 text-slate-600" />
-                <p className="text-slate-400">No verifications found.</p>
+                <FileImage className="mx-auto mb-3 h-10 w-10 text-zinc-600" />
+                <p className="text-sm text-zinc-400">No verifications found.</p>
               </CardContent>
             </Card>
         )}
 
-        {/* VERIFICATION LIST */}
+        {/* LIST */}
         <div className="space-y-4">
-          {filtered.map((v) => (
+          {currentItems.map((v) => (
               <motion.div
                   key={v.id}
                   initial={{ opacity: 0, y: 6 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.2 }}
+                  transition={{ duration: 0.18 }}
               >
-                <Card className="rounded-2xl bg-slate-950/90 border-slate-900 shadow-[0_18px_45px_rgba(10,15,25,0.7)]">
-                  <CardContent className="p-4 space-y-4">
+                <Card className="rounded-3xl border-zinc-800 bg-zinc-950/90 shadow-[0_18px_45px_rgba(0,0,0,0.8)]">
+                  <CardContent className="space-y-4 p-4 sm:p-5">
                     {/* TOP ROW */}
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                       <div className="flex items-center gap-4">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-900/80">
-                          <User2 className="h-6 w-6 text-slate-400" />
+                        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-zinc-900/90">
+                          <User2 className="h-6 w-6 text-zinc-400" />
                         </div>
-
-                        <div>
-                          <p className="font-semibold text-slate-100">
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-semibold text-zinc-100 sm:text-base">
                             {v.user.name || "No name"}
                           </p>
-                          <p className="text-xs text-slate-400">{v.user.email}</p>
+                          <p className="truncate text-xs text-zinc-400 sm:text-[13px]">
+                            {v.user.email}
+                          </p>
+                          <p className="mt-1 text-[11px] text-zinc-500">
+                            Submitted:{" "}
+                            {new Date(v.createdAt).toLocaleString()}
+                          </p>
                         </div>
                       </div>
 
-                      <div className="flex gap-2">
+                      <div className="flex items-center gap-2 sm:flex-col sm:items-end">
                         <Badge
-                            className={`border ${getStatusColor(
-                                v.status
-                            )} text-xs px-3 py-1`}
+                            variant="outline"
+                            className={`rounded-full border px-3 py-1 text-[11px] uppercase tracking-wide ${statusBadgeClasses(
+                                v.status,
+                            )}`}
                         >
                           {v.status}
                         </Badge>
+                        {v.user.isVerified && (
+                            <span className="flex items-center gap-1 text-[11px] text-emerald-300">
+                        <CheckCircle className="h-3 w-3" />
+                        Account verified
+                      </span>
+                        )}
                       </div>
                     </div>
 
                     {/* ADDRESS */}
                     {(v.address || v.city || v.postalCode) && (
-                        <div className="rounded-xl bg-slate-900/60 p-3 text-sm text-slate-300 space-y-1">
-                          <p className="font-medium text-slate-200 mb-1">Address:</p>
+                        <div className="space-y-1 rounded-2xl bg-zinc-900/80 p-3 text-xs text-zinc-200 sm:text-sm">
+                          <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-zinc-400">
+                            Address
+                          </p>
                           {v.address && <p>{v.address}</p>}
                           {v.city && <p>{v.city}</p>}
                           {v.postalCode && <p>{v.postalCode}</p>}
@@ -272,20 +329,21 @@ export default function VerificationManagement() {
                     )}
 
                     {/* DOCUMENT BUTTONS + HOVER PREVIEW */}
-                    <div className="flex flex-wrap gap-3">
+                    <div className="flex flex-wrap items-center gap-3">
                       {/* FRONT ID */}
                       <HoverCard openDelay={150} closeDelay={100}>
                         <HoverCardTrigger asChild>
                           <Button
                               variant="outline"
-                              className="rounded-xl text-xs sm:text-sm"
+                              className="rounded-xl border-zinc-700 bg-zinc-900 text-xs text-zinc-100 hover:bg-zinc-800 sm:text-sm"
                               onClick={() => setImageToView(v.frontIdUrl)}
                           >
-                            <Eye className="w-4 h-4 mr-1" /> View Front ID
+                            <Eye className="mr-1 h-4 w-4" />
+                            Front ID
                           </Button>
                         </HoverCardTrigger>
                         {v.frontIdUrl && (
-                            <HoverCardContent className="w-auto max-w-xs bg-slate-950 border-slate-800 p-2">
+                            <HoverCardContent className="w-auto max-w-xs border-zinc-800 bg-zinc-950 p-2">
                               <img
                                   src={toCloudinaryPreviewUrl(v.frontIdUrl)}
                                   alt="Front ID preview"
@@ -300,14 +358,15 @@ export default function VerificationManagement() {
                         <HoverCardTrigger asChild>
                           <Button
                               variant="outline"
-                              className="rounded-xl text-xs sm:text-sm"
+                              className="rounded-xl border-zinc-700 bg-zinc-900 text-xs text-zinc-100 hover:bg-zinc-800 sm:text-sm"
                               onClick={() => setImageToView(v.backIdUrl)}
                           >
-                            <Eye className="w-4 h-4 mr-1" /> View Back ID
+                            <Eye className="mr-1 h-4 w-4" />
+                            Back ID
                           </Button>
                         </HoverCardTrigger>
                         {v.backIdUrl && (
-                            <HoverCardContent className="w-auto max-w-xs bg-slate-950 border-slate-800 p-2">
+                            <HoverCardContent className="w-auto max-w-xs border-zinc-800 bg-zinc-950 p-2">
                               <img
                                   src={toCloudinaryPreviewUrl(v.backIdUrl)}
                                   alt="Back ID preview"
@@ -319,22 +378,24 @@ export default function VerificationManagement() {
                     </div>
 
                     {/* ACTIONS */}
-                    <div className="flex flex-col sm:flex-row sm:justify-end gap-3">
+                    <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
                       <Button
                           disabled={v.status === "APPROVED"}
                           onClick={() => handleUpdateStatus(v.id, "APPROVED")}
-                          className="rounded-xl bg-emerald-600 hover:bg-emerald-700 flex items-center justify-center gap-2"
+                          className="flex-1 rounded-xl bg-emerald-600 text-xs font-medium hover:bg-emerald-700 sm:flex-none sm:px-4 sm:text-sm"
                       >
-                        <CheckCircle className="h-4 w-4" /> Approve
+                        <CheckCircle className="mr-2 h-4 w-4" />
+                        Approve
                       </Button>
 
                       <Button
                           variant="destructive"
                           disabled={v.status === "REJECTED"}
                           onClick={() => handleUpdateStatus(v.id, "REJECTED")}
-                          className="rounded-xl flex items-center gap-2"
+                          className="flex-1 rounded-xl text-xs font-medium sm:flex-none sm:px-4 sm:text-sm"
                       >
-                        <XCircle className="h-4 w-4" /> Reject
+                        <XCircle className="mr-2 h-4 w-4" />
+                        Reject
                       </Button>
                     </div>
                   </CardContent>
@@ -343,16 +404,62 @@ export default function VerificationManagement() {
           ))}
         </div>
 
+        {/* PAGINATION */}
+        {filtered.length > VERIFICATIONS_PER_PAGE && (
+            <div className="mt-3 flex flex-wrap items-center justify-center gap-1 sm:mt-4 sm:gap-2">
+              <Button
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className="h-8 rounded-xl px-3 text-xs sm:h-9 sm:px-4 sm:text-sm"
+                  variant="outline"
+              >
+                Prev
+              </Button>
+
+              {Array.from({ length: totalPages }, (_, i) => i + 1)
+                  .filter(
+                      (p) =>
+                          p === 1 ||
+                          p === totalPages ||
+                          (p >= currentPage - 2 && p <= currentPage + 2),
+                  )
+                  .map((p, idx, arr) => (
+                      <span key={p}>
+                {idx > 0 && arr[idx - 1] !== p - 1 && (
+                    <span className="px-1 text-xs text-zinc-500">…</span>
+                )}
+                        <Button
+                            variant={p === currentPage ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => handlePageChange(p)}
+                            className="h-8 w-8 rounded-xl text-xs sm:h-9 sm:w-9 sm:text-sm"
+                        >
+                  {p}
+                </Button>
+              </span>
+                  ))}
+
+              <Button
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className="h-8 rounded-xl px-3 text-xs sm:h-9 sm:px-4 sm:text-sm"
+                  variant="outline"
+              >
+                Next
+              </Button>
+            </div>
+        )}
+
         {/* IMAGE VIEWER (по клику) */}
         <Dialog open={!!imageToView} onOpenChange={() => setImageToView(null)}>
-          <DialogContent className="max-w-3xl bg-slate-950 border-slate-800 max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-h-[90vh] max-w-3xl overflow-y-auto border-zinc-800 bg-zinc-950">
             <DialogHeader>
-              <DialogTitle className="text-slate-100">Document</DialogTitle>
+              <DialogTitle className="text-zinc-100">Document</DialogTitle>
             </DialogHeader>
             {imageToView && (
                 <img
                     src={toCloudinaryPreviewUrl(imageToView)}
-                    className="rounded-xl w-full h-auto"
+                    className="h-auto w-full rounded-xl"
                     alt="Verification document"
                 />
             )}

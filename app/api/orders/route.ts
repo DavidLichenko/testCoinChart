@@ -46,26 +46,6 @@ export async function POST(request: Request) {
         withdrawMethod,
       },
     })
-    //
-    // // If it's a deposit, automatically approve and add to balance (in real app, this would be manual)
-    // if (type === "DEPOSIT") {
-    //   await prisma.orders.update({
-    //     where: { id: order.id },
-    //     data: {
-    //       status: "PENDING",
-    //       amount: Number.parseFloat(amount),
-    //     },
-    //   })
-    //
-    //   await prisma.user.update({
-    //     where: { id: userId },
-    //     data: {
-    //       TotalBalance: {
-    //         increment: Number.parseFloat(amount),
-    //       },
-    //     },
-    //   })
-    // }
 
     return NextResponse.json(order)
   } catch (error) {

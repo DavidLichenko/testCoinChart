@@ -1,11 +1,13 @@
+// app/api/admin/users/[userId]/balance/route.ts
 import { NextRequest, NextResponse } from "next/server"
-import { prisma } from "@/lib/prisma"
 import { getCurrentUser } from "@/lib/auth"
+import { prisma } from "@/lib/prisma"
 import { hasAdminAccess } from "@/lib/admin-access"
+import { getUserBalanceData } from "@/lib/user-balance"
 
 export async function GET(
     req: NextRequest,
-    { params }: { params: { userId: string } }
+    { params }: { params: { userId: string } },
 ) {
     try {
         const currentUser = await getCurrentUser()
@@ -13,7 +15,6 @@ export async function GET(
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
         }
 
-        // Check if user is admin using standardized function
         const admin = await prisma.user.findUnique({
             where: { id: currentUser.id },
             select: { role: true },
@@ -25,24 +26,28 @@ export async function GET(
 
         const { userId } = params
 
-        const [user, balances] = await Promise.all([
-            prisma.user.findUnique({
-                where: { id: userId },
-                select: { id: true, TotalBalance: true },
-            }),
-            prisma.balances.findUnique({
-                where: { userId },
-                select: { usd: true },
-            }),
-        ])
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+            select: { id: true },
+        })
 
         if (!user) {
             return NextResponse.json({ error: "User not found" }, { status: 404 })
         }
 
-        return NextResponse.json({ user, balances })
+        const data = await getUserBalanceData(userId)
+
+        return NextResponse.json({
+            userId,
+            balance: data.balance,
+            liveProfit: data.liveProfit,
+            details: data.details,
+        })
     } catch (error) {
         console.error("Error fetching user balance:", error)
-        return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+        return NextResponse.json(
+            { error: "Internal server error" },
+            { status: 500 },
+        )
     }
 }

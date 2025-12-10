@@ -1,11 +1,14 @@
 // app/layout.tsx
-import type { Metadata } from "next";
+import type {Metadata} from "next";
 import "./globals.css";
-import { ThemeProvider } from "@/components/theme-provider";
-import { I18nProvider } from "@/components/i18n-provider";
-import { cn } from "@/lib/utils";
+import {ThemeProvider} from "@/components/theme-provider";
+import {I18nProvider} from "@/components/i18n-provider";
+import {Poppins} from "next/font/google"
+import {cn} from "@/lib/utils";
 import localFont from "next/font/local";
-import { Toaster } from "react-hot-toast";
+import {Toaster} from "react-hot-toast";
+import {Footer} from "@/components/footer";
+import { AuthProvider } from "@/components/auth-provider";
 
 const geistSans = localFont({
     src: "./../public/fonts/Geist[wght].woff2",
@@ -13,7 +16,11 @@ const geistSans = localFont({
     weight: "100 900",
     display: "swap",
 });
-
+const poppins = Poppins({
+    subsets:['latin'],
+    display: "swap",
+    weight:['100', '200', '300', '400', '500', '600', '700', '800', '900']
+})
 const geistMono = localFont({
     src: "./../public/fonts/GeistMono[wght].woff2",
     variable: "--font-geist-mono",
@@ -40,20 +47,27 @@ export default function RootLayout({
         <html lang="es" suppressHydrationWarning>
         <body
             className={cn(
-                "min-h-screen bg-background font-sans antialiased pb-16 md:pb-0",
-                geistSans.variable,
-                geistMono.variable
+                "",
+                poppins.className,
+                "h-full"
+                // geistSans.variable,
+                // geistMono.variable
             )}
         >
+        <AuthProvider>
         <ThemeProvider
             attribute="class"
             defaultTheme={"dark"}
             enableSystem={false}
             forcedTheme={'dark'}
-            disableTransitionOnChange
         >
             <I18nProvider>
-                {children}
+                <div className="flex flex-col min-h-screen">
+                    <main className="flex-grow">
+                        {children}
+                    </main>
+                    <Footer />
+                </div>
                 <Toaster
                     position="bottom-right"
                     toastOptions={{
@@ -62,6 +76,7 @@ export default function RootLayout({
                 />
             </I18nProvider>
         </ThemeProvider>
+        </AuthProvider>
         </body>
         </html>
     );

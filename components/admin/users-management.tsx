@@ -1,7 +1,16 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { useState, useEffect, useMemo } from "react"
+import { useRouter } from "next/navigation"
+import { useAuth } from "@/components/auth-provider"
+import { hasAdminAccess } from "@/lib/admin-access"
+
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
@@ -21,21 +30,20 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { Checkbox } from "@/components/ui/checkbox"
+
 import {
-  Users,
+  Users as UsersIcon,
   Search,
-  Edit,
+  Edit2,
   Shield,
   DollarSign,
   Ban,
-  CheckCircle,
+  CheckCircle2,
   X,
   Save,
   ArrowRight,
+  Loader2,
 } from "lucide-react"
-import { useAuth } from "@/components/auth-provider"
-import { useRouter } from "next/navigation"
-import { hasAdminAccess, hasOwnerOrCRManagementAccess } from "@/lib/admin-access"
 
 interface User {
   id: string
@@ -51,64 +59,107 @@ interface User {
   updatedAt: string
 }
 
-const USERS_PER_PAGE = 15
+const USERS_PER_PAGE = 10
+
+const STATUS_LABELS: Record<string, string> = {
+  NEW: "New",
+  WRONGNUMBER: "Wrong number",
+  WRONGINFO: "Wrong info",
+  CALLBACK: "Call back",
+  LOWPOTENTIONAL: "Low potential",
+  HIGHPOTENTIONAL: "High potential",
+  NOTINTERESTED: "Not interested",
+  DEPOSIT: "Deposit",
+  TRASH: "Trash",
+  DROP: "Drop",
+  RESIGN: "Resign",
+  COMPLETED: "Completed",
+}
+
+const statusColor = (status: string) => {
+  switch (status) {
+    case "DEPOSIT":
+    case "COMPLETED":
+      return "bg-emerald-500/10 text-emerald-500 border-emerald-500/40"
+    case "HIGHPOTENTIONAL":
+      return "bg-sky-500/10 text-sky-500 border-sky-500/40"
+    case "LOWPOTENTIONAL":
+      return "bg-amber-500/10 text-amber-500 border-amber-500/40"
+    case "TRASH":
+    case "DROP":
+    case "RESIGN":
+      return "bg-rose-500/10 text-rose-500 border-rose-500/40"
+    default:
+      return "bg-muted text-muted-foreground border-border/60"
+  }
+}
+
+const dateFormatter = new Intl.DateTimeFormat("en-GB", {
+  year: "numeric",
+  month: "short",
+  day: "2-digit",
+  hour: "2-digit",
+  minute: "2-digit",
+})
 
 export default function UsersManagement() {
-  const { user } = useAuth()
-  // Add access control check
+  const { user: currentUser } = useAuth()
+  const router = useRouter()
+
   const [accessDenied, setAccessDenied] = useState(false)
-  
-  useEffect(() => {
-    if (!hasAdminAccess(user)) {
-      setAccessDenied(true)
-    }
-  }, [user])
-  
-  // If access is denied, show an error message
-  if (accessDenied) {
-    return (
-      <div className="rounded-2xl border border-rose-500/30 bg-rose-950/40 px-4 py-3 text-center text-sm text-rose-100">
-        Access denied. You don't have permission to view this page.
-      </div>
-    )
-  }
-  
   const [users, setUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(true)
-  const router = useRouter()
+  const [error, setError] = useState<string | null>(null)
+
   const [searchTerm, setSearchTerm] = useState("")
   const [roleFilter, setRoleFilter] = useState("all")
   const [statusFilter, setStatusFilter] = useState("all")
 
-  const [selectedUser, setSelectedUser] = useState<User | null>(null)
-  const [editDialogOpen, setEditDialogOpen] = useState(false)
-
-  const [editingBalance, setEditingBalance] = useState<string | null>(null)
-  const [balanceEditValue, setBalanceEditValue] = useState("")
-
-  const [bulkBalanceDialog, setBulkBalanceDialog] = useState(false)
-  const [bulkBalanceAmount, setBulkBalanceAmount] = useState("")
-  const [bulkBalanceOperation, setBulkBalanceOperation] =
-      useState<"add" | "subtract" | "set">("add")
-
-  const [selectedUsers, setSelectedUsers] = useState<string[]>([])
-  const [selectAll, setSelectAll] = useState(false)
-
   const [currentPage, setCurrentPage] = useState(1)
 
+  const [editingBalanceUserId, setEditingBalanceUserId] = useState<string | null>(null)
+  const [balanceEditValue, setBalanceEditValue] = useState("")
+
+  const [editDialogUser, setEditDialogUser] = useState<User | null>(null)
+  const [editDialogOpen, setEditDialogOpen] = useState(false)
+
+  const [bulkDialogOpen, setBulkDialogOpen] = useState(false)
+  const [bulkAmount, setBulkAmount] = useState("")
+  const [bulkOperation, setBulkOperation] = useState<"add" | "subtract" | "set">("add")
+  const [selectedUsers, setSelectedUsers] = useState<string[]>([])
+  const [selectAllFiltered, setSelectAllFiltered] = useState(false)
+
+  const [savingInlineBalance, setSavingInlineBalance] = useState(false)
+  const [savingBulk, setSavingBulk] = useState(false)
+  const [savingDialogUser, setSavingDialogUser] = useState(false)
+
+  // --- access guard ---
   useEffect(() => {
+    if (!currentUser) return
+    if (!hasAdminAccess(currentUser)) {
+      setAccessDenied(true)
+    }
+  }, [currentUser])
+
+  useEffect(() => {
+    if (accessDenied) return
     fetchUsers()
-  }, [])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [accessDenied])
 
   const fetchUsers = async () => {
     try {
-      const response = await fetch("/api/admin/users")
-      if (response.ok) {
-        const data = await response.json()
-        setUsers(data)
+      setLoading(true)
+      setError(null)
+      const res = await fetch("/api/admin/users", { cache: "no-store" })
+      if (!res.ok) {
+        throw new Error("Failed to load users")
       }
-    } catch (error) {
-      console.error("Error fetching users:", error)
+      const data: User[] = await res.json()
+      setUsers(data)
+    } catch (e: any) {
+      console.error("Error fetching users:", e)
+      setError(e?.message || "Failed to load users")
     } finally {
       setLoading(false)
     }
@@ -116,113 +167,51 @@ export default function UsersManagement() {
 
   const handleUpdateUser = async (userId: string, updates: Partial<User>) => {
     try {
-      const response = await fetch(`/api/admin/users/${userId}`, {
+      const res = await fetch(`/api/admin/users/${userId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(updates),
       })
+      if (!res.ok) throw new Error("Failed to update user")
 
-      if (response.ok) {
-        fetchUsers()
-        setEditDialogOpen(false)
-        setSelectedUser(null)
-      }
-    } catch (error) {
-      console.error("Error updating user:", error)
-    }
-  }
-
-  const handleBlockUser = async (userId: string, blocked: boolean) => {
-    await handleUpdateUser(userId, { blocked })
-  }
-
-  const handleVerifyUser = async (userId: string, isVerif: boolean) => {
-    await handleUpdateUser(userId, { isVerif })
-  }
-
-  const handleUpdateBalance = async (userId: string, balance: number) => {
-    await handleUpdateUser(userId, { TotalBalance: balance })
-  }
-
-  const startBalanceEdit = (userId: string, currentBalance: number) => {
-    setEditingBalance(userId)
-    setBalanceEditValue(currentBalance.toString())
-  }
-
-  const saveBalanceEdit = async (userId: string) => {
-    const newBalance = parseFloat(balanceEditValue)
-    if (!isNaN(newBalance) && newBalance >= 0) {
-      await handleUpdateBalance(userId, newBalance)
-    }
-    setEditingBalance(null)
-    setBalanceEditValue("")
-  }
-
-  const cancelBalanceEdit = () => {
-    setEditingBalance(null)
-    setBalanceEditValue("")
-  }
-
-  // фильтрация — ВСЕ пользователи (до пагинации)
-  const filteredUsers = users.filter((u) => {
-    const q = searchTerm.toLowerCase()
-    const matchesSearch =
-        u.email.toLowerCase().includes(q) ||
-        (u.name && u.name.toLowerCase().includes(q))
-    const matchesRole = roleFilter === "all" || u.role === roleFilter
-    const matchesStatus = statusFilter === "all" || u.status === statusFilter
-    return matchesSearch && matchesRole && matchesStatus
-  })
-
-  // пагинация только когда нет поискового запроса
-  const isSearching = searchTerm.trim().length > 0
-  const totalPages = Math.max(
-      1,
-      Math.ceil(filteredUsers.length / USERS_PER_PAGE),
-  )
-
-  const visibleUsers = isSearching
-      ? filteredUsers
-      : filteredUsers.slice(
-          (currentPage - 1) * USERS_PER_PAGE,
-          currentPage * USERS_PER_PAGE,
+      const updated = await res.json()
+      setUsers(prev =>
+          prev.map(u => (u.id === userId ? { ...u, ...updated } : u)),
       )
-
-  const handlePageChange = (page: number) => {
-    if (page < 1 || page > totalPages) return
-    setCurrentPage(page)
-  }
-
-  const handleSelectAll = (checked: boolean) => {
-    setSelectAll(!!checked)
-    if (checked) {
-      // выбираем всех отфильтрованных (не только текущую страницу)
-      setSelectedUsers(filteredUsers.map((u) => u.id))
-    } else {
-      setSelectedUsers([])
+    } catch (e) {
+      console.error("Error updating user:", e)
+      await fetchUsers()
     }
   }
 
-  const handleSelectUser = (userId: string, checked: boolean) => {
-    if (checked) {
-      setSelectedUsers((prev) => [...prev, userId])
-    } else {
-      setSelectedUsers((prev) => prev.filter((id) => id !== userId))
+  const handleInlineBalanceSave = async (userId: string) => {
+    const val = parseFloat(balanceEditValue)
+    if (isNaN(val) || val < 0) {
+      setEditingBalanceUserId(null)
+      setBalanceEditValue("")
+      return
+    }
+    try {
+      setSavingInlineBalance(true)
+      await handleUpdateUser(userId, { TotalBalance: val })
+    } finally {
+      setSavingInlineBalance(false)
+      setEditingBalanceUserId(null)
+      setBalanceEditValue("")
     }
   }
 
   const handleBulkBalanceUpdate = async () => {
-    const amount = parseFloat(bulkBalanceAmount)
+    const amount = parseFloat(bulkAmount)
     if (isNaN(amount) || selectedUsers.length === 0) return
 
     const updates = selectedUsers
-        .map((userId) => {
-          const u = users.find((x) => x.id === userId)
+        .map(id => {
+          const u = users.find(x => x.id === id)
           if (!u) return null
 
           let newBalance = u.TotalBalance || 0
-
-          switch (bulkBalanceOperation) {
+          switch (bulkOperation) {
             case "add":
               newBalance += amount
               break
@@ -233,592 +222,917 @@ export default function UsersManagement() {
               newBalance = amount
               break
           }
-
-          return { userId, newBalance }
+          return { userId: id, newBalance }
         })
         .filter(Boolean)
 
     try {
-      const response = await fetch("/api/admin/balance/bulk-update", {
+      setSavingBulk(true)
+      const res = await fetch("/api/admin/balance/bulk-update", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ updates }),
       })
-
-      if (response.ok) {
-        fetchUsers()
-        setBulkBalanceDialog(false)
-        setBulkBalanceAmount("")
-        setSelectedUsers([])
-        setSelectAll(false)
-      }
-    } catch (error) {
-      console.error("Error updating bulk balances:", error)
+      if (!res.ok) throw new Error("Bulk update failed")
+      await fetchUsers()
+      setBulkDialogOpen(false)
+      setBulkAmount("")
+      setSelectedUsers([])
+      setSelectAllFiltered(false)
+    } catch (e) {
+      console.error("Error in bulk balance:", e)
+    } finally {
+      setSavingBulk(false)
     }
   }
 
-  // сброс страницы при изменении фильтров / поиска
-  const onSearchChange = (value: string) => {
-    setSearchTerm(value)
+  const handleEditDialogSave = async () => {
+    if (!editDialogUser) return
+    try {
+      setSavingDialogUser(true)
+      await handleUpdateUser(editDialogUser.id, {
+        name: editDialogUser.name,
+        role: editDialogUser.role,
+        status: editDialogUser.status,
+        blocked: editDialogUser.blocked,
+        can_withdraw: editDialogUser.can_withdraw,
+        isVerif: editDialogUser.isVerif,
+      })
+      setEditDialogOpen(false)
+      setEditDialogUser(null)
+    } finally {
+      setSavingDialogUser(false)
+    }
+  }
+
+  const handleSelectAllFiltered = (checked: boolean) => {
+    setSelectAllFiltered(checked)
+    if (checked) {
+      setSelectedUsers(filteredUsers.map(u => u.id))
+    } else {
+      setSelectedUsers([])
+    }
+  }
+
+  const handleSelectUser = (userId: string, checked: boolean) => {
+    setSelectedUsers(prev =>
+        checked ? [...prev, userId] : prev.filter(id => id !== userId),
+    )
+  }
+
+  const onSearchChange = (val: string) => {
+    setSearchTerm(val)
     setCurrentPage(1)
   }
 
-  const onRoleFilterChange = (value: string) => {
-    setRoleFilter(value)
+  const onRoleFilterChange = (val: string) => {
+    setRoleFilter(val)
     setCurrentPage(1)
   }
 
-  const onStatusFilterChange = (value: string) => {
-    setStatusFilter(value)
+  const onStatusFilterChange = (val: string) => {
+    setStatusFilter(val)
     setCurrentPage(1)
+  }
+
+  // ---------- DERIVED DATA ----------
+
+  const filteredUsers = useMemo(() => {
+    const q = searchTerm.trim().toLowerCase()
+    return users.filter(u => {
+      const matchesSearch =
+          !q ||
+          u.email.toLowerCase().includes(q) ||
+          (u.name && u.name.toLowerCase().includes(q)) ||
+          u.id.toLowerCase().includes(q)
+      const matchesRole = roleFilter === "all" || u.role === roleFilter
+      const matchesStatus = statusFilter === "all" || u.status === statusFilter
+      return matchesSearch && matchesRole && matchesStatus
+    })
+  }, [users, searchTerm, roleFilter, statusFilter])
+
+  const isSearching = searchTerm.trim().length > 0
+  const totalPages = Math.max(
+      1,
+      Math.ceil(filteredUsers.length / USERS_PER_PAGE),
+  )
+
+  const visibleUsers = useMemo(() => {
+    if (isSearching) return filteredUsers
+    const start = (currentPage - 1) * USERS_PER_PAGE
+    return filteredUsers.slice(start, start + USERS_PER_PAGE)
+  }, [filteredUsers, isSearching, currentPage])
+
+  const handlePageChange = (page: number) => {
+    if (page < 1 || page > totalPages) return
+    setCurrentPage(page)
+  }
+
+  // ---------- RENDER ----------
+
+  if (accessDenied) {
+    return (
+        <div className="rounded-2xl border border-destructive/40 bg-destructive/10 px-4 py-3 text-center text-sm text-destructive-foreground">
+          Access denied. You don&apos;t have permission to view this page.
+        </div>
+    )
   }
 
   if (loading) {
     return (
-        <div className="space-y-4 sm:space-y-6 px-2 sm:px-0">
-          <div className="animate-pulse space-y-3">
-            <div className="h-6 w-1/4 rounded-full bg-slate-800/80" />
-            <div className="space-y-2">
-              {[...Array(5)].map((_, i) => (
+        <div className="space-y-4 px-1 sm:px-0">
+          <div className="flex items-center gap-2 text-sm text-foreground">
+          <span className="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-primary/10 text-primary">
+            <UsersIcon className="h-4 w-4" />
+          </span>
+            <span className="font-semibold">Users Management</span>
+          </div>
+          <Card className="rounded-2xl border border-border bg-card shadow-md">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 px-4 py-3">
+              <div className="space-y-1">
+                <CardTitle className="text-sm font-medium text-foreground">
+                  Loading users…
+                </CardTitle>
+                <p className="text-xs text-muted-foreground">
+                  Lightweight list view for quick scanning and actions.
+                </p>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-2 px-4 pb-4">
+              {[...Array(8)].map((_, i) => (
                   <div
                       key={i}
-                      className="h-16 rounded-2xl bg-slate-900/80"
-                  ></div>
+                      className="h-9 animate-pulse rounded-lg bg-muted"
+                  />
               ))}
-            </div>
-          </div>
+            </CardContent>
+          </Card>
         </div>
     )
   }
 
   return (
-      <div className="space-y-4 sm:space-y-6 px-2 sm:px-0">
+      <div className="space-y-4 px-1 sm:px-0">
         {/* Header */}
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h2 className="flex items-center gap-2 text-xl font-bold sm:text-2xl">
-            <span className="flex h-8 w-8 items-center justify-center rounded-2xl bg-purple-500/20 text-purple-200">
-              <Users className="h-4 w-4" />
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+            <span className="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-primary/10 text-primary">
+              <UsersIcon className="h-4 w-4" />
             </span>
-              <span>Users Management</span>
-            </h2>
-            <p className="mt-1 text-sm text-slate-400 sm:text-base">
-              Manage user accounts, roles, balances and permissions
+              <h2 className="text-lg font-semibold sm:text-xl text-foreground">
+                Users Management
+              </h2>
+            </div>
+            <p className="text-xs text-muted-foreground sm:text-sm">
+              Lightweight list for quick scanning and admin actions.
             </p>
           </div>
 
-          <div className="flex flex-col gap-2 sm:flex-row">
-            <Dialog open={bulkBalanceDialog} onOpenChange={setBulkBalanceDialog}>
+          <div className="flex flex-wrap items-center gap-2">
+            {/* BULK BALANCE DIALOG */}
+            <Dialog open={bulkDialogOpen} onOpenChange={setBulkDialogOpen}>
               <DialogTrigger asChild>
-                <Button className="flex items-center gap-2 rounded-xl border border-purple-500/40 bg-slate-950/80 text-sm hover:bg-purple-600/80">
-                  <DollarSign className="h-4 w-4" />
-                  Bulk Balance
+                <Button className="h-8 rounded-lg border border-primary/40 bg-background px-3 text-xs font-medium text-foreground hover:bg-primary hover:text-primary-foreground">
+                  <DollarSign className="mr-1.5 h-3.5 w-3.5" />
+                  Bulk balance
                 </Button>
               </DialogTrigger>
-              <DialogContent className="w-[90vw] max-w-2xl max-h-[80vh] overflow-y-auto border-slate-800 bg-slate-950/95">
-                <DialogHeader className="flex flex-row items-center justify-between">
-                  <DialogTitle className="text-lg font-semibold">
-                    Bulk Balance Update
-                  </DialogTitle>
+              <DialogContent className="w-[92vw] max-w-2xl border border-border bg-card">
+                <DialogHeader className="flex flex-row items-start justify-between gap-2">
+                  <div>
+                    <DialogTitle className="text-sm font-semibold text-foreground">
+                      Bulk balance update
+                    </DialogTitle>
+                    <p className="mt-1 text-[11px] text-muted-foreground">
+                      Apply the same balance operation to a group of users at once.
+                    </p>
+                  </div>
                   <DialogClose asChild>
-                    <button className="rounded-full p-1 text-slate-400 hover:bg-slate-800 hover:text-slate-100">
+                    <button className="rounded-full p-1 text-muted-foreground hover:bg-muted hover:text-foreground">
                       <X className="h-4 w-4" />
                     </button>
                   </DialogClose>
                 </DialogHeader>
 
-                <div className="space-y-4">
-                  <div className="flex flex-col gap-3 sm:flex-row">
-                    <Select
-                        value={bulkBalanceOperation}
-                        onValueChange={(v: "add" | "subtract" | "set") =>
-                            setBulkBalanceOperation(v)
-                        }
-                    >
-                      <SelectTrigger className="bg-slate-900 border-slate-700 text-sm">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent className="border-slate-700 bg-slate-900 text-sm">
-                        <SelectItem value="add">Add Amount</SelectItem>
-                        <SelectItem value="subtract">Subtract Amount</SelectItem>
-                        <SelectItem value="set">Set Amount</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <Input
-                        type="number"
-                        placeholder="Amount"
-                        value={bulkBalanceAmount}
-                        onChange={(e) => setBulkBalanceAmount(e.target.value)}
-                        className="bg-slate-900 border-slate-700 text-sm"
-                    />
+                <div className="space-y-5 text-xs text-foreground">
+                  {/* Operation & amount */}
+                  <div className="rounded-xl border border-border bg-background/60 p-3 space-y-3">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                      <div className="flex-1 sm:flex-none sm:w-44">
+                        <label className="mb-1 block text-[11px] font-medium text-foreground">
+                          Operation
+                        </label>
+                        <Select
+                            value={bulkOperation}
+                            onValueChange={(v: "add" | "subtract" | "set") =>
+                                setBulkOperation(v)
+                            }
+                        >
+                          <SelectTrigger className="h-8 w-full rounded-lg border border-input bg-background text-xs">
+                            <SelectValue placeholder="Operation" />
+                          </SelectTrigger>
+                          <SelectContent className="border-border bg-card text-xs">
+                            <SelectItem value="add">Add amount</SelectItem>
+                            <SelectItem value="subtract">Subtract amount</SelectItem>
+                            <SelectItem value="set">Set exact amount</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="flex-1">
+                        <label className="mb-1 block text-[11px] font-medium text-foreground">
+                          Amount (USD)
+                        </label>
+                        <Input
+                            type="number"
+                            placeholder="0.00"
+                            value={bulkAmount}
+                            onChange={e => setBulkAmount(e.target.value)}
+                            className="h-8 w-full rounded-lg border border-input bg-background text-xs"
+                        />
+                      </div>
+
+                      <div className="hidden sm:flex flex-col items-end gap-1 text-[11px] text-muted-foreground">
+                      <span>
+                        Selected users:{" "}
+                        <span className="font-semibold text-foreground">
+                          {selectedUsers.length}
+                        </span>
+                      </span>
+                        <span>
+                        Filtered total:{" "}
+                          <span className="font-semibold text-foreground">
+                          {filteredUsers.length}
+                        </span>
+                      </span>
+                      </div>
+                    </div>
                   </div>
 
-                  <div className="border-t border-slate-800 pt-4">
-                    <div className="mb-2 flex items-center justify-between">
-                      <h4 className="text-sm font-medium">
-                        Select Users ({selectedUsers.length} selected)
-                      </h4>
-                      <div className="flex items-center gap-2 text-xs text-slate-400">
+                  {/* Users list */}
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-[11px]">
+                    <span className="font-medium text-foreground">
+                      Affected users
+                    </span>
+                      <div className="flex items-center gap-1.5 text-muted-foreground">
                         <Checkbox
-                            checked={selectAll}
-                            onCheckedChange={(v) => handleSelectAll(!!v)}
+                            checked={selectAllFiltered}
+                            onCheckedChange={v =>
+                                handleSelectAllFiltered(!!v)
+                            }
                         />
                         <span>Select all filtered</span>
                       </div>
                     </div>
 
-                    <div className="max-h-60 space-y-2 overflow-y-auto">
-                      {filteredUsers.map((u) => (
+                    <div className="max-h-60 space-y-1.5 overflow-y-auto rounded-lg border border-border bg-background/60 p-2">
+                      {filteredUsers.map(u => (
                           <div
                               key={u.id}
-                              className="flex items-center gap-3 rounded-xl bg-slate-900/80 px-3 py-2"
+                              className="flex items-center gap-3 rounded-md bg-card px-2.5 py-1.5"
                           >
                             <Checkbox
                                 checked={selectedUsers.includes(u.id)}
-                                onCheckedChange={(v) =>
+                                onCheckedChange={v =>
                                     handleSelectUser(u.id, !!v)
                                 }
                             />
-                            <div className="flex-1">
-                              <div className="text-sm font-medium text-slate-100">
-                                {u.name || "No Name"}
+                            <div className="flex-1 min-w-0">
+                              <div className="truncate text-xs font-medium text-foreground">
+                                {u.name || "No name"}
                               </div>
-                              <div className="text-xs text-slate-400">
+                              <div className="truncate text-[11px] text-muted-foreground">
                                 {u.email}
                               </div>
                             </div>
-                            <div className="text-sm text-slate-200">
+                            <div className="text-xs font-semibold text-foreground">
                               ${u.TotalBalance?.toFixed(2) || "0.00"}
                             </div>
                           </div>
                       ))}
+                      {filteredUsers.length === 0 && (
+                          <div className="py-4 text-center text-[11px] text-muted-foreground">
+                            No users with current filters.
+                          </div>
+                      )}
                     </div>
                   </div>
 
-                  <Button
-                      onClick={handleBulkBalanceUpdate}
-                      disabled={selectedUsers.length === 0 || !bulkBalanceAmount}
-                      className="w-full rounded-xl bg-purple-600 text-sm font-medium hover:bg-purple-700"
-                  >
-                    Update Selected Users ({selectedUsers.length})
-                  </Button>
+                  {/* Footer actions */}
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="text-[11px] text-muted-foreground">
+                      Operation:{" "}
+                      <span className="font-medium text-foreground">
+                      {bulkOperation.toUpperCase()}
+                    </span>{" "}
+                      · Selected:{" "}
+                      <span className="font-medium text-foreground">
+                      {selectedUsers.length}
+                    </span>
+                    </div>
+                    <div className="flex gap-2 justify-end">
+                      <DialogClose asChild>
+                        <Button
+                            variant="outline"
+                            className="h-8 rounded-lg border border-border bg-background px-3 text-[11px]"
+                        >
+                          Cancel
+                        </Button>
+                      </DialogClose>
+                      <Button
+                          onClick={handleBulkBalanceUpdate}
+                          disabled={
+                              savingBulk ||
+                              !bulkAmount ||
+                              selectedUsers.length === 0
+                          }
+                          className="h-8 rounded-lg bg-primary px-4 text-[11px] font-semibold text-primary-foreground hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        {savingBulk && (
+                            <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                        )}
+                        Apply to {selectedUsers.length} user
+                        {selectedUsers.length !== 1 ? "s" : ""}
+                      </Button>
+                    </div>
+                  </div>
                 </div>
               </DialogContent>
             </Dialog>
 
-            <Badge
-                variant="outline"
-                className="flex items-center justify-center rounded-full border-slate-700 bg-slate-900/80 px-3 text-xs text-slate-200 sm:text-sm"
-            >
-              {users.length} Total Users
+            <Badge className="h-8 rounded-full border border-border bg-background px-3 text-[11px] font-normal text-muted-foreground">
+              {filteredUsers.length} shown · {users.length} total
             </Badge>
           </div>
         </div>
 
         {/* Filters */}
-        <Card className="rounded-2xl border-slate-900 bg-slate-950/80 shadow-[0_18px_45px_rgba(15,23,42,0.7)]">
-          <CardContent className="flex flex-col gap-3 p-3 sm:flex-row sm:gap-4 sm:p-4">
+        <Card className="rounded-2xl border border-border bg-card shadow-sm">
+          <CardContent className="flex flex-col gap-2 p-3 sm:flex-row sm:items-center sm:gap-3 sm:p-4">
             <div className="relative flex-1">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
-                  placeholder="Search users (name / email)..."
+                  placeholder="Search users (name / email / id)…"
                   value={searchTerm}
-                  onChange={(e) => onSearchChange(e.target.value)}
-                  className="h-9 rounded-xl border-slate-800 bg-slate-900 pl-9 text-sm"
+                  onChange={e => onSearchChange(e.target.value)}
+                  className="h-9 w-full rounded-xl border border-input bg-background pl-9 text-xs sm:text-sm"
               />
             </div>
 
-            <Select value={roleFilter} onValueChange={onRoleFilterChange}>
-              <SelectTrigger className="h-9 w-full rounded-xl border-slate-800 bg-slate-900 text-sm sm:w-40">
-                <SelectValue placeholder="Filter by role" />
-              </SelectTrigger>
-              <SelectContent className="border-slate-700 bg-slate-900 text-sm">
-                <SelectItem value="all">All Roles</SelectItem>
-                <SelectItem value="USER">User</SelectItem>
-                <SelectItem value="OWNER">Owner</SelectItem>
-                <SelectItem value="CR_MANAGMENT">CR Management</SelectItem>
-                <SelectItem value="TEAMLEAD">Team Lead</SelectItem>
-                <SelectItem value="WORKER">Worker</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="flex gap-2">
+              <Select value={roleFilter} onValueChange={onRoleFilterChange}>
+                <SelectTrigger className="h-9 w-[120px] rounded-xl border border-input bg-background text-xs sm:w-36 sm:text-sm">
+                  <SelectValue placeholder="Role" />
+                </SelectTrigger>
+                <SelectContent className="border-border bg-card text-xs sm:text-sm">
+                  <SelectItem value="all">All roles</SelectItem>
+                  <SelectItem value="USER">User</SelectItem>
+                  <SelectItem value="OWNER">Owner</SelectItem>
+                  <SelectItem value="CR_MANAGMENT">CR management</SelectItem>
+                  <SelectItem value="TEAMLEAD">Team lead</SelectItem>
+                  <SelectItem value="WORKER">Worker</SelectItem>
+                </SelectContent>
+              </Select>
 
-            <Select value={statusFilter} onValueChange={onStatusFilterChange}>
-              <SelectTrigger className="h-9 w-full rounded-xl border-slate-800 bg-slate-900 text-sm sm:w-40">
-                <SelectValue placeholder="Filter by status" />
-              </SelectTrigger>
-              <SelectContent className="max-h-[300px] border-slate-700 bg-slate-900 text-sm">
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="NEW">New</SelectItem>
-                <SelectItem value="WRONGNUMBER">Wrong Number</SelectItem>
-                <SelectItem value="WRONGINFO">Wrong Info</SelectItem>
-                <SelectItem value="CALLBACK">Call Back</SelectItem>
-                <SelectItem value="LOWPOTENTIONAL">Low potential</SelectItem>
-                <SelectItem value="HIGHPOTENTIONAL">High potential</SelectItem>
-                <SelectItem value="NOTINTERESTED">Not interested</SelectItem>
-                <SelectItem value="DEPOSIT">Deposit</SelectItem>
-                <SelectItem value="TRASH">Trash</SelectItem>
-                <SelectItem value="DROP">Drop</SelectItem>
-                <SelectItem value="RESIGN">Resign</SelectItem>
-                <SelectItem value="COMPLETED">Completed</SelectItem>
-              </SelectContent>
-            </Select>
+              <Select value={statusFilter} onValueChange={onStatusFilterChange}>
+                <SelectTrigger className="h-9 w-[120px] rounded-xl border border-input bg-background text-xs sm:w-40 sm:text-sm">
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent className="max-h-72 border-border bg-card text-xs sm:text-sm">
+                  <SelectItem value="all">All status</SelectItem>
+                  {Object.keys(STATUS_LABELS).map(s => (
+                      <SelectItem key={s} value={s}>
+                        {STATUS_LABELS[s]}
+                      </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </CardContent>
         </Card>
 
-        {/* Users List */}
-        <Card className="rounded-2xl border-slate-900 bg-slate-950/80 shadow-[0_18px_45px_rgba(15,23,42,0.7)]">
-          <CardHeader className="p-4 pb-2 sm:p-5 sm:pb-3">
-            <CardTitle className="text-base font-semibold text-slate-100 sm:text-lg">
+        {/* Table */}
+        <Card className="rounded-2xl border border-border bg-card shadow-md">
+          <CardHeader className="px-4 py-3">
+            <CardTitle className="text-sm font-semibold text-foreground">
               Users ({filteredUsers.length})
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-2 p-3 sm:space-y-3 sm:p-5">
-            {visibleUsers.length === 0 && (
-                <div className="rounded-xl border border-slate-800 bg-slate-900/80 px-4 py-6 text-center text-sm text-slate-400">
-                  No users found with current filters.
-                </div>
-            )}
-
-            {visibleUsers.map((userItem) => (
-                <div
-                    key={userItem.id}
-                    className="flex flex-col gap-3 rounded-2xl bg-slate-900/80 p-3 sm:flex-row sm:items-center sm:justify-between sm:p-4"
-                >
-                  <div className="min-w-0 flex-1">
-                    <div className="text-xs font-medium text-slate-100 sm:text-sm">
-                      {userItem.name || "No Name"}
-                    </div>
-                    <div className="truncate text-xs text-slate-400">
-                      {userItem.email}
-                    </div>
-                    <div className="mt-1 flex flex-wrap items-center gap-2">
-                      <Badge
-                          variant="outline"
-                          className="rounded-full border-slate-700 bg-slate-950/80 px-2 text-[11px] uppercase tracking-wide text-slate-200"
+          <CardContent className="px-0 pb-3">
+            <div className="overflow-x-auto">
+              <table className="min-w-[900px] w-full text-[11px] text-foreground">
+                <thead>
+                <tr className="border-y border-border bg-muted/20 text-[10px] uppercase tracking-wide text-muted-foreground">
+                  <th className="w-8 px-4 py-2 text-left">
+                    <Checkbox
+                        checked={
+                            filteredUsers.length > 0 &&
+                            selectedUsers.length === filteredUsers.length
+                        }
+                        onCheckedChange={v =>
+                            handleSelectAllFiltered(!!v)
+                        }
+                    />
+                  </th>
+                  <th className="px-2 py-2 text-left">User</th>
+                  <th className="px-2 py-2 text-left">Role</th>
+                  <th className="px-2 py-2 text-left">Status</th>
+                  <th className="px-2 py-2 text-right">Balance</th>
+                  <th className="px-2 py-2 text-center">Flags</th>
+                  <th className="px-2 py-2 text-right">Last activity</th>
+                  <th className="px-3 py-2 text-right">Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                {visibleUsers.length === 0 && (
+                    <tr>
+                      <td
+                          colSpan={8}
+                          className="px-4 py-6 text-center text-xs text-muted-foreground"
                       >
-                        {userItem.role}
-                      </Badge>
-                      <Badge
-                          variant={
-                            userItem.blocked
-                                ? "destructive"
-                                : userItem.isVerif
-                                    ? "default"
-                                    : "secondary"
-                          }
-                          className="rounded-full px-2 text-[11px]"
-                      >
-                        {userItem.blocked
-                            ? "Blocked"
-                            : userItem.isVerif
-                                ? "Verified"
-                                : "Unverified"}
-                      </Badge>
-                    </div>
-                  </div>
+                        No users with current filters.
+                      </td>
+                    </tr>
+                )}
 
-                  <div className="flex items-center justify-between gap-3 sm:justify-end sm:gap-4">
-                    {/* Balance */}
-                    <div className="flex items-center gap-2">
-                      <DollarSign className="h-4 w-4 flex-shrink-0 text-emerald-400" />
-                      {editingBalance === userItem.id ? (
-                          <div className="flex items-center gap-1">
-                            <Input
-                                type="number"
-                                value={balanceEditValue}
-                                onChange={(e) => setBalanceEditValue(e.target.value)}
-                                className="h-8 w-24 bg-slate-800 text-xs sm:w-20 sm:text-sm"
-                            />
-                            <Button
-                                size="sm"
-                                onClick={() => saveBalanceEdit(userItem.id)}
-                                className="h-8 w-8 p-0"
-                            >
-                              <Save className="h-3 w-3" />
-                            </Button>
-                            <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={cancelBalanceEdit}
-                                className="h-8 w-8 p-0"
-                            >
-                              <X className="h-3 w-3" />
-                            </Button>
+                {visibleUsers.map(u => {
+                  const isSelected = selectedUsers.includes(u.id)
+                  return (
+                      <tr
+                          key={u.id}
+                          className={`border-b border-border/40 bg-background  hover:bg-muted/70 transition-colors ${
+                              isSelected ? "ring-1 ring-primary/40" : ""
+                          }`}
+                      >
+                        {/* checkbox */}
+                        <td className="px-4 py-2 align-middle">
+                          <Checkbox
+                              checked={isSelected}
+                              onCheckedChange={v =>
+                                  handleSelectUser(u.id, !!v)
+                              }
+                          />
+                        </td>
+
+                        {/* user info */}
+                        <td className="px-2 py-5 align-middle">
+                          <div className="max-w-xs">
+                            <div className="truncate text-xs font-semibold text-foreground">
+                              {u.name || "No name"}
+                            </div>
+                            <div className="truncate text-[11px] text-muted-foreground">
+                              {u.email}
+                            </div>
+                            <div className="mt-0.5 text-[10px] text-muted-foreground/80">
+                              ID: {u.id}
+                            </div>
                           </div>
-                      ) : (
-                          <div className="flex items-center gap-1">
-                      <span className="text-xs font-semibold text-slate-100 sm:text-sm">
-                        ${userItem.TotalBalance?.toFixed(2) || "0.00"}
-                      </span>
-                            <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={() =>
-                                    startBalanceEdit(
-                                        userItem.id,
-                                        userItem.TotalBalance || 0,
-                                    )
-                                }
-                                className="h-6 w-6 p-0 text-slate-300 hover:text-white"
-                            >
-                              <Edit className="h-3 w-3" />
-                            </Button>
-                          </div>
-                      )}
-                    </div>
+                        </td>
 
-                    {/* Actions */}
-                    <div className="flex items-center gap-1">
-                      <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => router.push(`/admin/users/${userItem.id}`)}
-                          className="h-8 w-8 rounded-xl p-0 text-slate-300 hover:text-white"
-                          title="Open user page"
-                      >
-                        <ArrowRight className="h-3 w-3" />
-                      </Button>
+                        {/* role */}
+                        <td className="px-2 py-2 align-middle">
+                          <Badge className="rounded-full border border-border bg-background px-2 text-[10px] uppercase tracking-wide text-foreground">
+                            {u.role}
+                          </Badge>
+                        </td>
 
-                      <Button
-                          size="sm"
-                          variant={userItem.blocked ? "default" : "outline"}
-                          onClick={() =>
-                              handleBlockUser(userItem.id, !userItem.blocked)
-                          }
-                          className="h-8 rounded-xl"
-                      >
-                        {userItem.blocked ? (
-                            <CheckCircle className="h-3 w-3" />
-                        ) : (
-                            <Ban className="h-3 w-3" />
-                        )}
-                      </Button>
-                      <Button
-                          size="sm"
-                          variant={userItem.isVerif ? "default" : "outline"}
-                          onClick={() =>
-                              handleVerifyUser(userItem.id, !userItem.isVerif)
-                          }
-                          className="h-8 rounded-xl"
-                      >
-                        <Shield className="h-3 w-3" />
-                      </Button>
-
-                      <Dialog
-                          open={editDialogOpen && selectedUser?.id === userItem.id}
-                          onOpenChange={(open) => {
-                            setEditDialogOpen(open)
-                            if (!open) setSelectedUser(null)
-                          }}
-                      >
-                        <DialogTrigger asChild>
-                          <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => setSelectedUser(userItem)}
-                              className="h-8 rounded-xl"
+                        {/* status */}
+                        <td className="px-2 py-2 align-middle">
+                          <Badge
+                              className={`rounded-full border px-2 text-[10px] ${statusColor(
+                                  u.status,
+                              )}`}
                           >
-                            <Edit className="h-3 w-3" />
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent className="w-[95vw] max-w-md max-h-[90vh] overflow-y-auto border-slate-800 bg-slate-950/95">
-                          <DialogHeader>
-                            <DialogTitle className="text-lg font-semibold">
-                              Edit User
-                            </DialogTitle>
-                          </DialogHeader>
-                          {selectedUser && (
-                              <div className="space-y-4 text-sm">
-                                <div>
-                                  <label className="text-xs font-medium text-slate-300">
-                                    Name
-                                  </label>
-                                  <Input
-                                      defaultValue={selectedUser.name || ""}
-                                      onChange={(e) =>
-                                          setSelectedUser({
-                                            ...selectedUser,
-                                            name: e.target.value,
-                                          })
-                                      }
-                                      className="mt-1 h-9 rounded-xl border-slate-800 bg-slate-900 text-sm"
-                                  />
-                                </div>
+                            {STATUS_LABELS[u.status] || u.status}
+                          </Badge>
+                        </td>
 
-                                <div>
-                                  <label className="text-xs font-medium text-slate-300">
-                                    Role
-                                  </label>
-                                  <Select
-                                      value={selectedUser.role}
-                                      onValueChange={(value) =>
-                                          setSelectedUser({
-                                            ...selectedUser,
-                                            role: value,
-                                          })
-                                      }
-                                      disabled={!user || user.role !== "OWNER"}
-                                  >
-                                    <SelectTrigger className="mt-1 h-9 rounded-xl border-slate-800 bg-slate-900 text-sm">
-                                      <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent className="border-slate-800 bg-slate-900 text-sm">
-                                      <SelectItem value="USER">User</SelectItem>
-                                      <SelectItem value="OWNER">Owner</SelectItem>
-                                      <SelectItem value="CR_MANAGMENT">
-                                        CR Management
-                                      </SelectItem>
-                                      <SelectItem value="TEAMLEAD">
-                                        Team Lead
-                                      </SelectItem>
-                                      <SelectItem value="WORKER">Worker</SelectItem>
-                                    </SelectContent>
-                                  </Select>
-                                </div>
-
-                                <div>
-                                  <label className="text-xs font-medium text-slate-300">
-                                    Status
-                                  </label>
-                                  <Select
-                                      value={selectedUser.status}
-                                      onValueChange={(value) =>
-                                          setSelectedUser({
-                                            ...selectedUser,
-                                            status: value,
-                                          })
-                                      }
-                                  >
-                                    <SelectTrigger className="mt-1 h-9 rounded-xl border-slate-800 bg-slate-900 text-sm">
-                                      <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent className="max-h-[300px] border-slate-800 bg-slate-900 text-sm">
-                                      <SelectItem value="NEW">New</SelectItem>
-                                      <SelectItem value="WRONGNUMBER">
-                                        Wrong Number
-                                      </SelectItem>
-                                      <SelectItem value="WRONGINFO">
-                                        Wrong Info
-                                      </SelectItem>
-                                      <SelectItem value="CALLBACK">
-                                        Call Back
-                                      </SelectItem>
-                                      <SelectItem value="LOWPOTENTIONAL">
-                                        Low potential
-                                      </SelectItem>
-                                      <SelectItem value="HIGHPOTENTIONAL">
-                                        High potential
-                                      </SelectItem>
-                                      <SelectItem value="NOTINTERESTED">
-                                        Not interested
-                                      </SelectItem>
-                                      <SelectItem value="DEPOSIT">
-                                        Deposit
-                                      </SelectItem>
-                                      <SelectItem value="TRASH">Trash</SelectItem>
-                                      <SelectItem value="DROP">Drop</SelectItem>
-                                      <SelectItem value="RESIGN">Resign</SelectItem>
-                                      <SelectItem value="COMPLETED">
-                                        Completed
-                                      </SelectItem>
-                                    </SelectContent>
-                                  </Select>
-                                </div>
-
-                                <div className="flex items-center space-x-2">
-                                  <Checkbox
-                                      id="blocked"
-                                      checked={selectedUser.blocked}
-                                      onCheckedChange={(checked) =>
-                                          setSelectedUser({
-                                            ...selectedUser,
-                                            blocked: !!checked,
-                                          })
-                                      }
-                                  />
-                                  <label
-                                      htmlFor="blocked"
-                                      className="text-xs font-medium text-slate-300"
-                                  >
-                                    Block User
-                                  </label>
-                                </div>
-
-                                <Button
-                                    onClick={() =>
-                                        handleUpdateUser(selectedUser.id, {
-                                          name: selectedUser.name,
-                                          role: selectedUser.role,
-                                          status: selectedUser.status,
-                                          blocked: selectedUser.blocked,
-                                          isVerif: selectedUser.isVerif,
-                                          can_withdraw: selectedUser.can_withdraw,
-                                        })
+                        {/* balance (inline edit) */}
+                        <td className="px-2 py-2 text-right align-middle">
+                          {editingBalanceUserId === u.id ? (
+                              <div className="flex items-center justify-end gap-1">
+                                <Input
+                                    type="number"
+                                    value={balanceEditValue}
+                                    onChange={e =>
+                                        setBalanceEditValue(e.target.value)
                                     }
-                                    className="mt-2 w-full rounded-xl bg-purple-600 text-sm font-medium hover:bg-purple-700"
+                                    className="h-7 w-24 rounded-md border border-input bg-background text-right text-[11px]"
+                                />
+                                <Button
+                                    size="icon"
+                                    className="h-7 w-7 rounded-md bg-emerald-500 text-white hover:bg-emerald-600"
+                                    onClick={() =>
+                                        handleInlineBalanceSave(u.id)
+                                    }
+                                    disabled={savingInlineBalance}
                                 >
-                                  Save Changes
+                                  {savingInlineBalance ? (
+                                      <Loader2 className="h-3 w-3 animate-spin" />
+                                  ) : (
+                                      <Save className="h-3 w-3" />
+                                  )}
+                                </Button>
+                                <Button
+                                    size="icon"
+                                    variant="outline"
+                                    className="h-7 w-7 rounded-md border-border bg-background"
+                                    onClick={() => {
+                                      setEditingBalanceUserId(null)
+                                      setBalanceEditValue("")
+                                    }}
+                                >
+                                  <X className="h-3 w-3" />
+                                </Button>
+                              </div>
+                          ) : (
+                              <div className="flex items-center justify-end gap-1">
+                            <span className="text-xs font-semibold text-foreground">
+                              ${u.TotalBalance?.toFixed(2) || "0.00"}
+                            </span>
+                                <Button
+                                    size="icon"
+                                    variant="ghost"
+                                    className="h-7 w-7 rounded-md text-muted-foreground hover:text-foreground"
+                                    onClick={() => {
+                                      setEditingBalanceUserId(u.id)
+                                      setBalanceEditValue(
+                                          (u.TotalBalance || 0).toString(),
+                                      )
+                                    }}
+                                >
+                                  <Edit2 className="h-3 w-3" />
                                 </Button>
                               </div>
                           )}
-                        </DialogContent>
-                      </Dialog>
-                    </div>
-                  </div>
+                        </td>
+
+                        {/* flags */}
+                        <td className="px-2 py-2 text-center align-middle">
+                          <div className="flex items-center justify-center gap-1.5">
+                          <span
+                              className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] ${
+                                  u.isVerif
+                                      ? "bg-emerald-500/10 text-emerald-500"
+                                      : "bg-muted text-muted-foreground"
+                              }`}
+                          >
+                            <Shield className="h-3 w-3" />
+                            {u.isVerif ? "KYC" : "No KYC"}
+                          </span>
+                            {u.blocked && (
+                                <span className="inline-flex items-center gap-1 rounded-full bg-rose-500/10 px-2 py-0.5 text-[10px] text-rose-500">
+                              <Ban className="h-3 w-3" />
+                              Blocked
+                            </span>
+                            )}
+                          </div>
+                        </td>
+
+                        {/* last activity */}
+                        <td className="px-2 py-2 text-right align-middle text-[10px] text-muted-foreground">
+                          {u.updatedAt
+                              ? dateFormatter.format(new Date(u.updatedAt))
+                              : "—"}
+                        </td>
+
+                        {/* actions + EDIT USER DIALOG */}
+                        <td className="px-3 py-2 text-right align-middle">
+                          <div className="flex items-center justify-end gap-1.5">
+                            <Button
+                                size="icon"
+                                variant="ghost"
+                                className="h-7 w-7 rounded-md text-muted-foreground hover:text-foreground"
+                                title="Open user page"
+                                onClick={() =>
+                                    router.push(`/admin/users/${u.id}`)
+                                }
+                            >
+                              <ArrowRight className="h-3 w-3" />
+                            </Button>
+
+                            <Button
+                                size="icon"
+                                variant={u.blocked ? "default" : "outline"}
+                                className={`h-7 w-7 rounded-md ${
+                                    u.blocked
+                                        ? "bg-emerald-500 text-white hover:bg-emerald-600"
+                                        : "border-border bg-background text-foreground hover:bg-muted"
+                                }`}
+                                title={u.blocked ? "Unblock" : "Block"}
+                                onClick={() =>
+                                    handleUpdateUser(u.id, { blocked: !u.blocked })
+                                }
+                            >
+                              {u.blocked ? (
+                                  <CheckCircle2 className="h-3 w-3" />
+                              ) : (
+                                  <Ban className="h-3 w-3" />
+                              )}
+                            </Button>
+
+                            <Button
+                                size="icon"
+                                variant={u.isVerif ? "default" : "outline"}
+                                className={`h-7 w-7 rounded-md ${
+                                    u.isVerif
+                                        ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                                        : "border-border bg-background text-foreground hover:bg-muted"
+                                }`}
+                                title={u.isVerif ? "Unverify" : "Mark verified"}
+                                onClick={() =>
+                                    handleUpdateUser(u.id, {
+                                      isVerif: !u.isVerif,
+                                    })
+                                }
+                            >
+                              <Shield className="h-3 w-3" />
+                            </Button>
+
+                            {/* EDIT USER DIALOG */}
+                            <Dialog
+                                open={editDialogOpen && editDialogUser?.id === u.id}
+                                onOpenChange={open => {
+                                  setEditDialogOpen(open)
+                                  if (!open) setEditDialogUser(null)
+                                }}
+                            >
+                              <DialogTrigger asChild>
+                                <Button
+                                    size="icon"
+                                    variant="outline"
+                                    className="h-7 w-7 rounded-md border-border bg-background text-foreground hover:bg-muted"
+                                    onClick={() => setEditDialogUser(u)}
+                                    title="Edit details"
+                                >
+                                  <Edit2 className="h-3 w-3" />
+                                </Button>
+                              </DialogTrigger>
+                              <DialogContent className="w-[92vw] max-w-md border border-border bg-card">
+                                <DialogHeader className="flex flex-row items-start justify-between gap-2">
+                                  <div>
+                                    <DialogTitle className="text-sm font-semibold text-foreground">
+                                      Edit user
+                                    </DialogTitle>
+                                    {editDialogUser && (
+                                        <p className="mt-1 text-[11px] text-muted-foreground truncate">
+                                          {editDialogUser.email}
+                                        </p>
+                                    )}
+                                  </div>
+                                  <DialogClose asChild>
+                                    <button className="rounded-full p-1 text-muted-foreground hover:bg-muted hover:text-foreground">
+                                      <X className="h-4 w-4" />
+                                    </button>
+                                  </DialogClose>
+                                </DialogHeader>
+
+                                {editDialogUser && (
+                                    <div className="space-y-4 text-xs text-foreground">
+                                      {/* Basic info */}
+                                      <div className="space-y-2 rounded-xl border border-border bg-background/60 p-3">
+                                        <p className="text-[11px] font-semibold text-foreground">
+                                          Basic info
+                                        </p>
+                                        <div className="space-y-2">
+                                          <div>
+                                            <label className="text-[11px] font-medium text-foreground">
+                                              Name
+                                            </label>
+                                            <Input
+                                                value={editDialogUser.name || ""}
+                                                onChange={e =>
+                                                    setEditDialogUser({
+                                                      ...editDialogUser,
+                                                      name: e.target.value,
+                                                    })
+                                                }
+                                                className="mt-1 h-8 rounded-lg border border-input bg-background text-xs"
+                                            />
+                                          </div>
+                                          <div>
+                                            <label className="text-[11px] font-medium text-foreground">
+                                              Email
+                                            </label>
+                                            <Input
+                                                value={editDialogUser.email}
+                                                disabled
+                                                className="mt-1 h-8 rounded-lg border border-input bg-muted text-xs text-muted-foreground"
+                                            />
+                                          </div>
+                                        </div>
+                                      </div>
+
+                                      {/* Access & status */}
+                                      <div className="space-y-2 rounded-xl border border-border bg-background/60 p-3">
+                                        <p className="text-[11px] font-semibold text-foreground">
+                                          Access & status
+                                        </p>
+                                        <div className="flex flex-col gap-3 sm:flex-row">
+                                          <div className="flex-1">
+                                            <label className="text-[11px] font-medium text-foreground">
+                                              Role
+                                            </label>
+                                            <Select
+                                                value={editDialogUser.role}
+                                                onValueChange={val =>
+                                                    setEditDialogUser({
+                                                      ...editDialogUser,
+                                                      role: val,
+                                                    })
+                                                }
+                                            >
+                                              <SelectTrigger className="mt-1 h-8 w-full rounded-lg border border-input bg-background text-xs">
+                                                <SelectValue />
+                                              </SelectTrigger>
+                                              <SelectContent className="border-border bg-card text-xs">
+                                                <SelectItem value="USER">
+                                                  User
+                                                </SelectItem>
+                                                <SelectItem value="OWNER">
+                                                  Owner
+                                                </SelectItem>
+                                                <SelectItem value="CR_MANAGMENT">
+                                                  CR management
+                                                </SelectItem>
+                                                <SelectItem value="TEAMLEAD">
+                                                  Team lead
+                                                </SelectItem>
+                                                <SelectItem value="WORKER">
+                                                  Worker
+                                                </SelectItem>
+                                              </SelectContent>
+                                            </Select>
+                                          </div>
+
+                                          <div className="flex-1">
+                                            <label className="text-[11px] font-medium text-foreground">
+                                              Status
+                                            </label>
+                                            <Select
+                                                value={editDialogUser.status}
+                                                onValueChange={val =>
+                                                    setEditDialogUser({
+                                                      ...editDialogUser,
+                                                      status: val,
+                                                    })
+                                                }
+                                            >
+                                              <SelectTrigger className="mt-1 h-8 w-full rounded-lg border border-input bg-background text-xs">
+                                                <SelectValue />
+                                              </SelectTrigger>
+                                              <SelectContent className="max-h-72 border-border bg-card text-xs">
+                                                {Object.keys(STATUS_LABELS).map(s => (
+                                                    <SelectItem key={s} value={s}>
+                                                      {STATUS_LABELS[s]}
+                                                    </SelectItem>
+                                                ))}
+                                              </SelectContent>
+                                            </Select>
+                                          </div>
+                                        </div>
+                                      </div>
+
+                                      {/* Flags */}
+                                      <div className="space-y-2 rounded-xl border border-border bg-background/60 p-3">
+                                        <p className="text-[11px] font-semibold text-foreground">
+                                          Flags
+                                        </p>
+                                        <div className="flex flex-wrap gap-3">
+                                          <label className="inline-flex items-center gap-1.5 text-[11px] text-foreground">
+                                            <Checkbox
+                                                checked={editDialogUser.isVerif}
+                                                onCheckedChange={v =>
+                                                    setEditDialogUser({
+                                                      ...editDialogUser,
+                                                      isVerif: !!v,
+                                                    })
+                                                }
+                                            />
+                                            <span>Verified (KYC)</span>
+                                          </label>
+                                          <label className="inline-flex items-center gap-1.5 text-[11px] text-foreground">
+                                            <Checkbox
+                                                checked={editDialogUser.blocked}
+                                                onCheckedChange={v =>
+                                                    setEditDialogUser({
+                                                      ...editDialogUser,
+                                                      blocked: !!v,
+                                                    })
+                                                }
+                                            />
+                                            <span>Blocked</span>
+                                          </label>
+                                          <label className="inline-flex items-center gap-1.5 text-[11px] text-foreground">
+                                            <Checkbox
+                                                checked={editDialogUser.can_withdraw}
+                                                onCheckedChange={v =>
+                                                    setEditDialogUser({
+                                                      ...editDialogUser,
+                                                      can_withdraw: !!v,
+                                                    })
+                                                }
+                                            />
+                                            <span>Can withdraw</span>
+                                          </label>
+                                        </div>
+                                      </div>
+
+                                      {/* Footer actions */}
+                                      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                                        <div className="text-[11px] text-muted-foreground">
+                                          Created:{" "}
+                                          {dateFormatter.format(
+                                              new Date(editDialogUser.createdAt),
+                                          )}
+                                        </div>
+                                        <div className="flex gap-2 justify-end">
+                                          <DialogClose asChild>
+                                            <Button
+                                                variant="outline"
+                                                className="h-8 rounded-lg border border-border bg-background px-3 text-[11px]"
+                                            >
+                                              Cancel
+                                            </Button>
+                                          </DialogClose>
+                                          <Button
+                                              className="h-8 rounded-lg bg-primary px-4 text-[11px] font-semibold text-primary-foreground hover:bg-primary/90"
+                                              onClick={handleEditDialogSave}
+                                              disabled={savingDialogUser}
+                                          >
+                                            {savingDialogUser && (
+                                                <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                                            )}
+                                            Save changes
+                                          </Button>
+                                        </div>
+                                      </div>
+                                    </div>
+                                )}
+                              </DialogContent>
+                            </Dialog>
+                          </div>
+                        </td>
+                      </tr>
+                  )
+                })}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Pagination */}
+            {!isSearching && totalPages > 1 && (
+                <div className="mt-3 flex items-center justify-center gap-1.5 text-[11px]">
+                  <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-7 rounded-lg border-border bg-background px-2 text-[11px]"
+                      onClick={() => handlePageChange(currentPage - 1)}
+                      disabled={currentPage === 1}
+                  >
+                    Prev
+                  </Button>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1)
+                      .filter(
+                          p =>
+                              p === 1 ||
+                              p === totalPages ||
+                              (p >= currentPage - 1 && p <= currentPage + 1),
+                      )
+                      .map((p, idx, arr) => (
+                          <span key={p}>
+                    {idx > 0 && arr[idx - 1] !== p - 1 && (
+                        <span className="px-0.5 text-muted-foreground">…</span>
+                    )}
+                            <Button
+                                size="icon"
+                                variant={p === currentPage ? "default" : "outline"}
+                                className={`h-7 w-7 rounded-lg text-[11px] ${
+                                    p === currentPage
+                                        ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                                        : "border-border bg-background text-foreground hover:bg-muted"
+                                }`}
+                                onClick={() => handlePageChange(p)}
+                            >
+                      {p}
+                    </Button>
+                  </span>
+                      ))}
+                  <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-7 rounded-lg border-border bg-background px-2 text-[11px]"
+                      onClick={() => handlePageChange(currentPage + 1)}
+                      disabled={currentPage === totalPages}
+                  >
+                    Next
+                  </Button>
                 </div>
-            ))}
+            )}
           </CardContent>
         </Card>
-
-        {/* Pagination – только если нет поиска */}
-        {!isSearching && totalPages > 1 && (
-            <div className="mt-2 flex flex-wrap items-center justify-center gap-1 sm:gap-2">
-              <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handlePageChange(currentPage - 1)}
-                  disabled={currentPage === 1}
-                  className="h-8 rounded-xl border-slate-800 bg-slate-950/80 text-xs"
-              >
-                Prev
-              </Button>
-              {Array.from({ length: totalPages }, (_, i) => i + 1)
-                  .filter(
-                      (p) =>
-                          p === 1 ||
-                          p === totalPages ||
-                          (p >= currentPage - 2 && p <= currentPage + 2),
-                  )
-                  .map((p, idx, arr) => (
-                      <span key={p}>
-                {idx > 0 && arr[idx - 1] !== p - 1 && (
-                    <span className="px-1 text-xs text-slate-500">…</span>
-                )}
-                        <Button
-                            variant={p === currentPage ? "default" : "outline"}
-                            size="sm"
-                            onClick={() => handlePageChange(p)}
-                            className={`h-8 w-8 rounded-xl text-xs ${
-                                p === currentPage
-                                    ? "bg-purple-600 hover:bg-purple-700"
-                                    : "border-slate-800 bg-slate-950/80"
-                            }`}
-                        >
-                  {p}
-                </Button>
-              </span>
-                  ))}
-              <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handlePageChange(currentPage + 1)}
-                  disabled={currentPage === totalPages}
-                  className="h-8 rounded-xl border-slate-800 bg-slate-950/80 text-xs"
-              >
-                Next
-              </Button>
-            </div>
-        )}
       </div>
   )
 }

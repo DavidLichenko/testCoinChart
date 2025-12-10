@@ -34,49 +34,73 @@ export async function GET(
     request: NextRequest,
     { params }: { params: { userId: string } }
 ) {
-  try {
-    const guard = await requireAdmin()
-    if (guard.error) {
-      return NextResponse.json({ error: guard.error }, { status: guard.status })
+    try {
+        const guard = await requireAdmin()
+        if (guard.error) {
+            return NextResponse.json({ error: guard.error }, { status: guard.status })
+        }
+
+        const { userId } = params
+        
+        // Get current admin user ID to check favorites
+        const currentAdmin = guard.user;
+        const currentAdminId = currentAdmin?.id;
+
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+            select: {
+                id: true,
+                email: true,
+                name: true,
+                role: true,
+                status: true,
+                TotalBalance: true,
+                can_withdraw: true,
+                isVerif: true,
+                blocked: true,
+                baseCurrency: true,
+                createdAt: true,
+                updatedAt: true,
+                assignedTo: true,
+            },
+        })
+
+        if (!user) {
+            return NextResponse.json({ error: "User not found" }, { status: 404 })
+        }
+        
+        // Check if user is favorited by current admin
+        let isFavorite = false;
+        if (currentAdminId) {
+            const favorite = await prisma.favoriteClient.findUnique({
+                where: {
+                    agentId_clientId: {
+                        agentId: currentAdminId,
+                        clientId: userId
+                    }
+                }
+            });
+            isFavorite = !!favorite;
+        }
+
+        // Return user with favorite status
+        return NextResponse.json({
+            ...user,
+            isFavorite
+        })
+    } catch (error) {
+        console.error("Error fetching admin user:", error)
+        return NextResponse.json(
+            { error: "Internal server error" },
+            { status: 500 }
+        )
     }
-
-    const { userId } = params
-
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        role: true,
-        status: true,
-        TotalBalance: true,
-        can_withdraw: true,
-        isVerif: true,
-        blocked: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-    })
-
-    if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 })
-    }
-
-    return NextResponse.json(user)
-  } catch (error) {
-    console.error("Error fetching admin user:", error)
-    return NextResponse.json(
-        { error: "Internal server error" },
-        { status: 500 }
-    )
-  }
 }
 
 // PATCH /api/admin/users/[userId] — обновление юзера
 export async function PATCH(
     request: NextRequest,
-    { params }: { params: { userId: string } }
+    { params }: { params: Promise<{ userId: string }> }
 ) {
   try {
     const guard = await requireAdmin()
@@ -84,7 +108,7 @@ export async function PATCH(
       return NextResponse.json({ error: guard.error }, { status: guard.status })
     }
 
-    const { userId } = params
+    const { userId } = await params
     const updates = await request.json()
 
     // какие поля разрешено менять
@@ -96,6 +120,7 @@ export async function PATCH(
       "isVerif",
       "blocked",
       "status",
+      "baseCurrency",
     ] as const
 
     const filteredUpdates: any = {}
@@ -133,8 +158,32 @@ export async function PATCH(
       delete filteredUpdates.TotalBalance
     }
 
-    // Остальные поля (name, role, status, blocked, isVerif, can_withdraw)
+    // Остальные поля (name, role, status, blocked, isVerif, can_withdraw, baseCurrency)
     if (Object.keys(filteredUpdates).length > 0) {
+      // Handle baseCurrency change - ensure user has a wallet balance for the new currency
+      if ("baseCurrency" in filteredUpdates) {
+        const newBaseCurrency = filteredUpdates.baseCurrency;
+        
+        // Create wallet balance for new base currency if it doesn't exist
+        await prisma.walletBalance.upsert({
+          where: {
+            userId_assetSymbol: {
+              userId,
+              assetSymbol: newBaseCurrency,
+            },
+          },
+          update: {},
+          create: {
+            userId,
+            assetSymbol: newBaseCurrency,
+            ownBalance: 0,
+            creditLimit: 0,
+            creditUsed: 0,
+            locked: 0,
+          },
+        });
+      }
+      
       // If isVerif is being updated, also update the corresponding verification record
       if ("isVerif" in filteredUpdates) {
         // Update the user's isVerif flag
@@ -195,6 +244,7 @@ export async function PATCH(
         can_withdraw: true,
         isVerif: true,
         blocked: true,
+        baseCurrency: true,
         createdAt: true,
         updatedAt: true,
       },

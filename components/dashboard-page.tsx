@@ -1,34 +1,32 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import {useEffect, useState} from "react";
+import {motion} from "framer-motion";
 import {
-  TrendingUp,
-  DollarSign,
   Activity,
-  Target,
-  Users,
-  Calendar,
-  Shield,
-  CreditCard,
-  FileText,
-  X,
-  PieChart,
-  ArrowUpRight,
   ArrowDownRight,
-  Sparkles,
+  ArrowUpRight,
+  Calendar,
+  CreditCard,
+  DollarSign,
+  FileText,
+  Shield,
+  Target,
+  TrendingUp,
+  Users,
+  X,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { toast } from "@/components/toast";
+import {Button} from "@/components/ui/button";
+import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
+import {Badge} from "@/components/ui/badge";
+import {Progress} from "@/components/ui/progress";
+import {toast} from "@/components/toast";
 import Link from "next/link";
-import { updateBalance } from "@/app/actions/updateBalance";
-import { useTickers } from "@/hooks/market-data";
-import { useAuth } from "@/components/auth-provider";
-import { useI18n } from "@/components/i18n-provider";
-import { PerformanceWidget } from "./dashboard/performance-widget";
+import {updateBalance} from "@/app/actions/updateBalance";
+import {useTickers} from "@/hooks/market-data";
+import {useAuth} from "@/components/auth-provider";
+import {useI18n} from "@/components/i18n-provider";
+import {PerformanceWidget} from "./dashboard/performance-widget";
 
 interface UserStats {
   totalBalance: number;

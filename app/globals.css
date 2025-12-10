@@ -1,5 +1,3 @@
-@import 'highcharts/css/stocktools/gui.css';
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -7,6 +5,7 @@
 
 @layer base {
   :root {
+    --body-scrollbar-width: 3px;
     --background: 0 0% 100%;
     --foreground: 224 71.4% 4.1%;
     --card: 0 0% 100%;
@@ -32,6 +31,37 @@
     --chart-3: 197 37% 24%;
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
+    /* ---- Background hierarchy ---- */
+    --app-bg-deep: #03030a;     /* шапка, подложка за всем */
+    --app-bg-page: #050510;     /* основной фон страницы (как сейчас) */
+    --app-bg-surface: #08091a;  /* крупные панели/секции */
+    --app-bg-tile: #0d1024;     /* карточки, карточки сайдбара, инпуты */
+    --app-bg-tile-soft: #141632;/* hover состояний, выделение */
+
+    /* ---- Borders ---- */
+    --app-border-subtle: #181a33;
+    --app-border-strong: #262a4e;
+
+    /* ---- Accent / brand ---- */
+    --app-accent: #8b5cf6;        /* основной фиолетовый */
+    --app-accent-soft: #2b214e;   /* фон под accent */
+    --app-accent-strong: #a855f7; /* яркий для градиентов/иконок */
+
+    /* ---- Status colors ---- */
+    --app-success: #22c55e;
+    --app-success-soft: #10291b;
+    --app-danger: #f97373;
+    --app-danger-soft: #2b1619;
+    --app-warning: #facc15;
+    --app-warning-soft: #302612;
+
+    /* ---- Text ---- */
+    --app-text-primary: #f9fafb;
+    --app-text-secondary: #9ca3af;
+    --app-text-muted: #6b7280;
+
+    /* лёгкий фиолетовый подсвет */
+    --app-glow-violet: 0 18px 45px rgba(139, 92, 246, 0.35);
   }
 
   .dark {
@@ -59,27 +89,39 @@
     --chart-3: 30 80% 55%;
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
+    /* ---- Background hierarchy ---- */
+    --app-bg-deep: #03030a;     /* шапка, подложка за всем */
+    --app-bg-page: #050510;     /* основной фон страницы (как сейчас) */
+    --app-bg-surface: #08091a;  /* крупные панели/секции */
+    --app-bg-tile: #0d1024;     /* карточки, карточки сайдбара, инпуты */
+    --app-bg-tile-soft: #141632;/* hover состояний, выделение */
+
+    /* ---- Borders ---- */
+    --app-border-subtle: #181a33;
+    --app-border-strong: #262a4e;
+
+    /* ---- Accent / brand ---- */
+    --app-accent: #8b5cf6;        /* основной фиолетовый */
+    --app-accent-soft: #2b214e;   /* фон под accent */
+    --app-accent-strong: #a855f7; /* яркий для градиентов/иконок */
+
+    /* ---- Status colors ---- */
+    --app-success: #22c55e;
+    --app-success-soft: #10291b;
+    --app-danger: #f97373;
+    --app-danger-soft: #2b1619;
+    --app-warning: #facc15;
+    --app-warning-soft: #302612;
+
+    /* ---- Text ---- */
+    --app-text-primary: #f9fafb;
+    --app-text-secondary: #9ca3af;
+    --app-text-muted: #6b7280;
+
+    /* лёгкий фиолетовый подсвет */
+    --app-glow-violet: 0 18px 45px rgba(139, 92, 246, 0.35);
   }
 }
-
-.anychart-toolbar {
-  background-color: #222 !important;
-  border-radius: 8px;
-  padding: 4px;
-}
-
-.anychart-toolbar .anychart-toolbar-item {
-  color: #fff !important;
-  background-color: #333;
-  margin: 2px;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.anychart-toolbar .anychart-toolbar-item:hover {
-  background-color: #555;
-}
-
 
 @layer base {
   * {
@@ -89,6 +131,24 @@
     @apply bg-background text-foreground;
   }
 }
+.wh-38 {
+  height: 38px;
+  width: 38px;
+}
+.modal-prevent-scroll {
+  overflow: hidden !important;
+  overscroll-behavior: none;
+  padding-right: var(--body-scrollbar-width);
+  touch-action: none;
+}
+
+
+.bounce {
+  @apply hover:opacity-100 hover:-translate-y-0.5 transition duration-75 animate-out;
+}
+
+
+
 .toast {
   padding: 1rem;
   border-radius: 0.5rem;
@@ -116,3 +176,126 @@
 .toast-destructive {
   border-left: 4px solid #b91c1c;
 }
+
+
+
+/* Светлая тема только для админки */
+.admin-theme {
+  --background: 0 0% 99.2157%;
+  --foreground: 0 0% 0%;
+  --card: 0 0% 99.2157%;
+  --card-foreground: 0 0% 0%;
+  --popover: 0 0% 98.8235%;
+  --popover-foreground: 0 0% 0%;
+  --primary: 257.9412 100% 60%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 214.2857 24.1379% 94.3137%;
+  --secondary-foreground: 0 0% 3.1373%;
+  --muted: 0 0% 96.0784%;
+  --muted-foreground: 0 0% 32.1569%;
+  --accent: 221.3793 100% 94.3137%;
+  --accent-foreground: 216.3158 76% 49.0196%;
+  --destructive: 358.4416 74.7573% 59.6078%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 240 17.0732% 91.9608%;
+  --input: 0 0% 92.1569%;
+  --ring: 0 0% 0%;
+  --chart-1: 148.0952 53.3898% 53.7255%;
+  --chart-2: 257.9412 100% 60%;
+  --chart-3: 24.8571 98.1308% 58.0392%;
+  --chart-4: 217.0787 76.7241% 54.5098%;
+  --chart-5: 0 0% 45.4902%;
+  --sidebar: 210 42.8571% 97.2549%;
+  --sidebar-foreground: 0 0% 0%;
+  --sidebar-primary: 0 0% 0%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 0 0% 92.1569%;
+  --sidebar-accent-foreground: 0 0% 0%;
+  --sidebar-border: 0 0% 92.1569%;
+  --sidebar-ring: 0 0% 0%;
+
+  --font-sans: Plus Jakarta Sans, sans-serif;
+  --font-serif: Lora, serif;
+  --font-mono: IBM Plex Mono, monospace;
+
+  --radius: 1.4rem;
+  --shadow-x: 0px;
+  --shadow-y: 2px;
+  --shadow-blur: 3px;
+  --shadow-spread: 0px;
+  --shadow-opacity: 0.16;
+  --shadow-color: hsl(0 0% 0%);
+  --shadow-2xs: 0px 2px 3px 0px hsl(0 0% 0% / 0.08);
+  --shadow-xs: 0px 2px 3px 0px hsl(0 0% 0% / 0.08);
+  --shadow-sm: 0px 2px 3px 0px hsl(0 0% 0% / 0.16), 0px 1px 2px -1px hsl(0 0% 0% / 0.16);
+  --shadow: 0px 2px 3px 0px hsl(0 0% 0% / 0.16), 0px 1px 2px -1px hsl(0 0% 0% / 0.16);
+  --shadow-md: 0px 2px 3px 0px hsl(0 0% 0% / 0.16), 0px 2px 4px -1px hsl(0 0% 0% / 0.16);
+  --shadow-lg: 0px 2px 3px 0px hsl(0 0% 0% / 0.16), 0px 4px 6px -1px hsl(0 0% 0% / 0.16);
+  --shadow-xl: 0px 2px 3px 0px hsl(0 0% 0% / 0.16), 0px 8px 10px -1px hsl(0 0% 0% / 0.16);
+  --shadow-2xl: 0px 2px 3px 0px hsl(0 0% 0% / 0.40);
+}
+
+/* Тёмная тема только для админки */
+.admin-theme.dark {
+  --background: 240 4.0000% 4.9020%;
+  --foreground: 0 0% 94.1176%;
+  --card: 240 2.4390% 8.0392%;
+  --card-foreground: 0 0% 94.1176%;
+  --popover: 228.0000 6.8493% 14.3137%;
+  --popover-foreground: 0 0% 94.1176%;
+  --primary: 257.6687 100% 68.0392%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 226.6667 9.6774% 18.2353%;
+  --secondary-foreground: 0 0% 94.1176%;
+  --muted: 226.6667 9.6774% 18.2353%;
+  --muted-foreground: 0 0% 62.7451%;
+  --accent: 217.2414 32.5843% 17.4510%;
+  --accent-foreground: 208.2090 100.0000% 73.7255%;
+  --destructive: 0 90.6040% 70.7843%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 222.8571 6.4220% 21.3725%;
+  --input: 222.8571 6.4220% 21.3725%;
+  --ring: 257.6687 100% 68.0392%;
+  --chart-1: 141.8919 69.1589% 58.0392%;
+  --chart-2: 257.6687 100% 68.0392%;
+  --chart-3: 0 93.5484% 81.7647%;
+  --chart-4: 217.5484 87.5706% 65.2941%;
+  --chart-5: 0 0% 62.7451%;
+  --sidebar: 240 4.3478% 9.0196%;
+  --sidebar-foreground: 0 0% 94.1176%;
+  --sidebar-primary: 257.6687 100% 68.0392%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 226.6667 9.6774% 18.2353%;
+  --sidebar-accent-foreground: 257.6687 100% 68.0392%;
+  --sidebar-border: 222.8571 6.4220% 21.3725%;
+  --sidebar-ring: 257.6687 100% 68.0392%;
+  --radius: 1.4rem;
+  --shadow-x: 0px;
+  --shadow-y: 2px;
+  --shadow-blur: 3px;
+  --shadow-spread: 0px;
+  --shadow-opacity: 0.16;
+  --shadow-color: hsl(0 0% 0%);
+  --shadow-2xs: 0px 2px 3px 0px hsl(0 0% 0% / 0.08);
+  --shadow-xs: 0px 2px 3px 0px hsl(0 0% 0% / 0.08);
+  --shadow-sm: 0px 2px 3px 0px hsl(0 0% 0% / 0.16), 0px 1px 2px -1px hsl(0 0% 0% / 0.16);
+  --shadow: 0px 2px 3px 0px hsl(0 0% 0% / 0.16), 0px 1px 2px -1px hsl(0 0% 0% / 0.16);
+  --shadow-md: 0px 2px 3px 0px hsl(0 0% 0% / 0.16), 0px 2px 4px -1px hsl(0 0% 0% / 0.16);
+  --shadow-lg: 0px 2px 3px 0px hsl(0 0% 0% / 0.16), 0px 4px 6px -1px hsl(0 0% 0% / 0.16);
+  --shadow-xl: 0px 2px 3px 0px hsl(0 0% 0% / 0.16), 0px 8px 10px -1px hsl(0 0% 0% / 0.16);
+  --shadow-2xl: 0px 2px 3px 0px hsl(0 0% 0% / 0.40);
+
+  --font-sans: Plus Jakarta Sans, sans-serif;
+  --font-serif: Lora, serif;
+  --font-mono: IBM Plex Mono, monospace;
+}
+
+/* можно, если хочешь, отдельно трогать letter-spacing только в админке */
+.admin-theme {
+  letter-spacing: var(--tracking-normal);
+}
+
+
+
+
+

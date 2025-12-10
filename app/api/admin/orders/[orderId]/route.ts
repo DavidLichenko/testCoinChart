@@ -1,82 +1,114 @@
-import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { auth } from "@/auth";
-import { pusherServer } from "@/lib/pusher-server";
+// app/api/admin/orders/[orderId]/route.ts
+import { NextRequest, NextResponse } from "next/server"
+import { prisma } from "@/lib/prisma"
+import { auth } from "@/auth"
+import { pusherServer } from "@/lib/pusher-server"
+import { getUserBalanceData } from "@/lib/user-balance"
 
 export async function PATCH(
-  request: NextRequest,
-  { params }: { params: { orderId: string } }
+    request: NextRequest,
+    { params }: { params: { orderId: string } },
 ) {
   try {
-    const session = await auth();
-    const { orderId } = params;
-    const { status } = await request.json();
-
-    // Validate status
-    if (!["PENDING", "SUCCESSFUL", "CANCELLED"].includes(status)) {
-      return NextResponse.json({ error: "Invalid status" }, { status: 400 });
+    const session = await auth()
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    // Fetch the order including user and amount
+    const { orderId } = params
+    const { status } = await request.json()
+
+    if (!["PENDING", "SUCCESSFUL", "CANCELLED"].includes(status)) {
+      return NextResponse.json({ error: "Invalid status" }, { status: 400 })
+    }
+
     const order = await prisma.orders.findUnique({
       where: { id: orderId },
       include: { User: true },
-    });
+    })
 
     if (!order) {
-      return NextResponse.json({ error: "Order not found" }, { status: 404 });
+      return NextResponse.json({ error: "Order not found" }, { status: 404 })
     }
 
-    // If order is already SUCCESSFUL or CANCELLED, prevent double processing
     if (order.status === "SUCCESSFUL" || order.status === "CANCELLED") {
-      return NextResponse.json({ error: "Order already processed" }, { status: 400 });
+      return NextResponse.json(
+          { error: "Order already processed" },
+          { status: 400 },
+      )
     }
 
-    // Update order status
-    const updatedOrder = await prisma.orders.update({
-      where: { id: orderId },
-      data: { status },
-      include: { User: true },
-    });
+    const updatedOrder = await prisma.$transaction(async (tx) => {
+      const updated = await tx.orders.update({
+        where: { id: orderId },
+        data: { status },
+        include: { User: true },
+      })
 
-    // If status is SUCCESSFUL, add funds to user balance
+      if (status === "SUCCESSFUL") {
+        const baseCurrency =
+            (updated.User.baseCurrency || "EUR") as "EUR" | "USD" | string
+        const userId = updated.userId
+        const amount = updated.amount
+
+        const wallet = await tx.walletBalance.findUnique({
+          where: {
+            userId_assetSymbol: {
+              userId,
+              assetSymbol: baseCurrency,
+            },
+          },
+        })
+
+        const currentOwn = wallet?.ownBalance ?? 0
+        const delta =
+            updated.type === "WITHDRAW" ? -Math.abs(amount) : Math.abs(amount)
+        const newOwn = currentOwn + delta
+
+        await tx.walletBalance.upsert({
+          where: {
+            userId_assetSymbol: {
+              userId,
+              assetSymbol: baseCurrency,
+            },
+          },
+          update: {
+            ownBalance: newOwn,
+          },
+          create: {
+            userId,
+            assetSymbol: baseCurrency,
+            ownBalance: Math.max(0, newOwn),
+            creditLimit: 0,
+            creditUsed: 0,
+            locked: 0,
+          },
+        })
+      }
+
+      return updated
+    })
+
     if (status === "SUCCESSFUL") {
-
-      await prisma.$transaction(async (tx) => {
-        let newBalance = 0
-        if(order.type === 'WITHDRAW') {
-          newBalance = (order.User.TotalBalance || 0) - order.amount;
-        } else {
-          newBalance = (order.User.TotalBalance || 0) + order.amount;
-        }
-
-
-        // Update user's TotalBalance
-        await tx.user.update({
-          where: { id: order.userId },
-          data: { TotalBalance: newBalance },
-        });
-
-        // Update or create Balances record
-        await tx.balances.upsert({
-          where: { userId: order.userId },
-          update: { usd: newBalance },
-          create: { userId: order.userId, usd: newBalance },
-        });
-
-        // Send real-time update via Pusher
-        await pusherServer.trigger(`user-${order.userId}`, "balance-update", {
-          totalBalance: newBalance,
-        });
-      });
+      const data = await getUserBalanceData(updatedOrder.userId)
+      await pusherServer.trigger(
+          `user-${updatedOrder.userId}`,
+          "balance-update",
+          {
+            userId: updatedOrder.userId,
+            balance: data.balance,
+            liveProfit: data.liveProfit,
+            details: data.details,
+          },
+      )
     }
 
-    return NextResponse.json(updatedOrder);
+    return NextResponse.json(updatedOrder)
   } catch (error) {
-    console.error("Error updating order:", error);
+    console.error("Error updating order:", error)
     return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+        { error: "Internal server error" },
+        { status: 500 },
+    )
   }
 }

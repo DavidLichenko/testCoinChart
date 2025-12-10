@@ -1,51 +1,51 @@
+// app/api/admin/orders/route.ts
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
-import { auth } from "@/auth"
 import { getCurrentUser } from "@/lib/auth"
 import { hasAdminAccess, hasOwnerOrCRManagementAccess } from "@/lib/admin-access"
-import { updateBalance } from "@/app/actions/updateBalance"
+import { getUserBalanceData } from "@/lib/user-balance"
+import { pusherServer } from "@/lib/pusher-server"
 
 export async function GET(request: NextRequest) {
   try {
     const currentUser = await getCurrentUser()
-    
+
     if (!currentUser) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    // Check if user is admin
     const user = await prisma.user.findUnique({
       where: { id: currentUser.id },
-      select: { role: true }
+      select: { role: true },
     })
 
     if (!user || !hasAdminAccess(user)) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
 
-    // Get query parameters
     const { searchParams } = new URL(request.url)
-    const userId = searchParams.get('userId')
+    const userId = searchParams.get("userId")
 
-    // Build where clause
     const whereClause: any = {}
     if (userId) {
       whereClause.userId = userId
     }
 
-    // Fetch orders (filtered by userId if provided)
     const orders = await prisma.orders.findMany({
       where: whereClause,
       orderBy: { createdAt: "desc" },
       include: {
-        User: true, // This will pull all fields from the User model for each order
-      }
-    });
+        User: true,
+      },
+    })
 
-    return NextResponse.json(orders);
+    return NextResponse.json(orders)
   } catch (error) {
-    console.error("Error fetching orders:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    console.error("Error fetching orders:", error)
+    return NextResponse.json(
+        { error: "Internal server error" },
+        { status: 500 },
+    )
   }
 }
 
@@ -56,7 +56,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const adminDetails = await prisma.user.findUnique({ where: { id: adminUser.id } })
+    const adminDetails = await prisma.user.findUnique({
+      where: { id: adminUser.id },
+    })
     if (!adminDetails || !hasOwnerOrCRManagementAccess(adminDetails)) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
@@ -64,34 +66,97 @@ export async function POST(req: NextRequest) {
     const { userId, type, amount, status } = await req.json()
 
     if (!userId || !type || !amount || !status) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
+      return NextResponse.json(
+          { error: "Missing required fields" },
+          { status: 400 },
+      )
     }
 
-    const targetUser = await prisma.user.findUnique({ where: { id: userId } })
-    if (!targetUser) {
-      return NextResponse.json({ error: "Target user not found" }, { status: 404 })
-    }
-
-    const newOrder = await prisma.orders.create({
-      data: {
-        userId,
-        type,
-        amount: parseFloat(amount),
-        status,
+    const targetUser = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        baseCurrency: true,
       },
     })
+    if (!targetUser) {
+      return NextResponse.json(
+          { error: "Target user not found" },
+          { status: 404 },
+      )
+    }
 
-    // If a successful deposit is created, update the user's balance
-    if (type === "DEPOSIT" && status === "SUCCESSFUL") {
-      const currentBalance = targetUser.TotalBalance || 0
-      const newBalance = currentBalance + parseFloat(amount)
-      await updateBalance(userId, newBalance)
+    const numericAmount = parseFloat(amount)
+
+    const newOrder = await prisma.$transaction(async (tx) => {
+      const created = await tx.orders.create({
+        data: {
+          userId,
+          type,
+          amount: numericAmount,
+          status,
+        },
+      })
+
+      if (status === "SUCCESSFUL") {
+        const baseCurrency =
+            (targetUser.baseCurrency || "EUR") as "EUR" | "USD" | string
+
+        const wallet = await tx.walletBalance.findUnique({
+          where: {
+            userId_assetSymbol: {
+              userId,
+              assetSymbol: baseCurrency,
+            },
+          },
+        })
+
+        const currentOwn = wallet?.ownBalance ?? 0
+        const delta =
+            type === "DEPOSIT" ? numericAmount : -Math.abs(numericAmount)
+        const newOwn = currentOwn + delta
+
+        await tx.walletBalance.upsert({
+          where: {
+            userId_assetSymbol: {
+              userId,
+              assetSymbol: baseCurrency,
+            },
+          },
+          update: {
+            ownBalance: newOwn,
+          },
+          create: {
+            userId,
+            assetSymbol: baseCurrency,
+            ownBalance: Math.max(0, newOwn),
+            creditLimit: 0,
+            creditUsed: 0,
+            locked: 0,
+          },
+        })
+      }
+
+      return created
+    })
+
+    // После успешного изменения кошелька (если было) — пушим баланс
+    if (status === "SUCCESSFUL") {
+      const data = await getUserBalanceData(userId)
+      await pusherServer.trigger(`user-${userId}`, "balance-update", {
+        userId,
+        balance: data.balance,
+        liveProfit: data.liveProfit,
+        details: data.details,
+      })
     }
 
     return NextResponse.json(newOrder, { status: 201 })
-
   } catch (error) {
     console.error("Error creating order:", error)
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 })
+    return NextResponse.json(
+        { error: "Internal Server Error" },
+        { status: 500 },
+    )
   }
 }

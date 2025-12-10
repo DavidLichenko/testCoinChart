@@ -23,9 +23,9 @@ export function DesktopHeader() {
   const pathname = usePathname()
 
   const navItems = [
-    { href: "/dashboard", label: "Dashboard" },
+    { href: "/profile/dashboard", label: "Dashboard" },
     { href: "/profile", label: "Portfolio" },
-    { href: "/transactions", label: "Transactions" },
+    { href: "/profile/transactions", label: "Transactions" },
     { href: "/", label: "Market" },
     { href: "/news", label: "News" },
   ]
@@ -120,7 +120,7 @@ export function DesktopHeader() {
         </div>
       </motion.header>
 
-      <DepositModal open={depositModalOpen} onOpenChange={setDepositModalOpen} />
+      <DepositModal open={depositModalOpen} onOpenChange={setDepositModalOpen} userId={user?.id || ''} />
     </>
   )
 }

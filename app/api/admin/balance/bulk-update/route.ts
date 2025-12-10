@@ -1,74 +1,67 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { getCurrentUser } from "@/lib/auth"
-import { pusherServer } from "@/lib/pusher-server"
 import { hasAdminAccess } from "@/lib/admin-access"
 
-export async function POST(request: NextRequest) {
+export async function PATCH(
+    request: NextRequest,
+    { params }: { params: { tradeId: string } }
+) {
   try {
     const currentUser = await getCurrentUser()
-    
+
     if (!currentUser) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
     // Check if user is admin using standardized function
-    const adminUser = await prisma.user.findUnique({
+    const user = await prisma.user.findUnique({
       where: { id: currentUser.id },
       select: { role: true }
     })
 
-    if (!adminUser || !hasAdminAccess(adminUser)) {
+    if (!user || !hasAdminAccess(user)) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
 
-    const { updates } = await request.json()
+    const { tradeId } = params
+    const updates = await request.json()
 
-    if (!Array.isArray(updates)) {
-      return NextResponse.json({ error: "Invalid updates format" }, { status: 400 })
+    const allowedFields = ['profit', 'openIn', 'openInA', 'closeIn', 'status']
+    const filteredUpdates: any = {}
+
+    for (const field of allowedFields) {
+      if (field in updates) filteredUpdates[field] = updates[field]
     }
 
-    const results = []
+    // Get the existing trade
+    const existingTrade = await prisma.trade_Transaction.findUnique({
+      where: { id: tradeId }
+    })
 
-    for (const update of updates) {
-      const { userId, newBalance } = update
-
-      if (!userId || typeof newBalance !== 'number') {
-        results.push({ userId, success: false, error: "Invalid data" })
-        continue
-      }
-
-      try {
-        await prisma.$transaction(async (tx) => {
-          // Update user's TotalBalance
-          await tx.user.update({
-            where: { id: userId },
-            data: { TotalBalance: newBalance },
-          })
-
-          // Update balances record
-          await tx.balances.upsert({
-            where: { userId },
-            update: { usd: newBalance },
-            create: { userId, usd: newBalance },
-          })
-
-          // Notify via Pusher
-          await pusherServer.trigger(`balance-update-${userId}`, "balance-update", {
-            balance: newBalance,
-          })
-        })
-
-        results.push({ userId, success: true })
-      } catch (error) {
-        console.error(`Error updating balance for user ${userId}:`, error)
-        results.push({ userId, success: false, error: "Failed to update balance" })
-      }
+    if (!existingTrade) {
+      return NextResponse.json({ error: "Trade not found" }, { status: 404 })
     }
 
-    return NextResponse.json({ results })
+    // Update the trade
+    const updatedTrade = await prisma.trade_Transaction.update({
+      where: { id: tradeId },
+      data: filteredUpdates,
+      include: { User: { select: { id: true, TotalBalance: true, email: true, name: true } } }
+    })
+
+    // If profit was updated - adjust user balance
+    if ('profit' in filteredUpdates) {
+      const profitDiff = filteredUpdates.profit - (existingTrade.profit || 0)
+      await prisma.user.update({
+        where: { id: updatedTrade.User.id },
+        data: { TotalBalance: { increment: profitDiff } }
+      })
+    }
+
+    return NextResponse.json(updatedTrade)
   } catch (error) {
-    console.error("Error in bulk balance update:", error)
+    console.error("Error updating trade:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }
