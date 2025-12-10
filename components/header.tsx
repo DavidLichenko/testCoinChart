@@ -31,6 +31,8 @@ import { AiFillFileText } from "react-icons/ai";
 import { IoMdSettings } from "react-icons/io";
 import { FaAngleRight } from "react-icons/fa";
 import {MobileBalanceCard} from "@/components/balance-card";
+import { AnimatedNumber } from "@/components/animated-number"
+
 const MotionButton = motion(Button);
 const navItems = [
     {
@@ -204,6 +206,30 @@ export default function Header({homepage=false}) {
         ? cryptoBalanceUsd / details.eurUsdRate
         : cryptoBalanceUsd;
 
+
+    type MoneyAnimatedProps = {
+        value: number
+        currency: string  // "USD" | "EUR" | ...
+        className?: string
+        minimumFractionDigits?: number
+        maximumFractionDigits?: number
+    }
+
+    const MoneyAnimated: React.FC<MoneyAnimatedProps> = ({
+                                                             value,
+                                                             currency,
+                                                             className,
+                                                             minimumFractionDigits = 2,
+                                                             maximumFractionDigits = 2,
+                                                         }) => (
+        <AnimatedNumber
+            value={value || 0}
+            suffix={` ${currency}`}
+            minimumFractionDigits={minimumFractionDigits}
+            maximumFractionDigits={maximumFractionDigits}
+            className={className}
+        />
+    )
     // внутри Header (или рядом), просто замени старый BalanceDropdown на этот
 
     const BalanceDropdown = () => {
@@ -682,7 +708,10 @@ export default function Header({homepage=false}) {
                                          </span>
                                         <span
                                             className="text-[13px] font-semibold text-violet-500 flex items-center gap-1">
-                                             {formatMoney(totalEquity)} {baseCurrency}
+                                          <MoneyAnimated
+                                              value={totalEquity}
+                                              currency={baseCurrency}
+                                          />
                                          </span>
                                     </div>
                                 </button>
