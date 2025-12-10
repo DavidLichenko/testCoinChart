@@ -3465,33 +3465,6 @@ const TestChart: React.FC = () => {
                     </div>
                 )}
 
-                {/* BOTTOM NAV */}
-                {!isMobileChartFullscreen && (
-                    <div className="fixed bottom-0 left-0 right-0 z-20 border-t border-slate-900 bg-slate-950/95 px-1 py-1">
-                        <div className="flex items-center justify-around">
-                            <button className="flex flex-col items-center p-2 text-slate-400">
-                                <Home className="h-4 w-4"/>
-                                <span className="text-[10px]">{t("bottomDashboard")}</span>
-                            </button>
-                            <button className="flex flex-col items-center p-2 text-slate-400">
-                                <FileText className="h-4 w-4" />
-                                <span className="text-[10px]">{t("bottomTransactions")}</span>
-                            </button>
-                            <button className="flex flex-col items-center p-2 text-purple-400">
-                                <BarChart3 className="h-4 w-4" />
-                                <span className="text-[10px]">{t("bottomTrade")}</span>
-                            </button>
-                            <button className="flex flex-col items-center p-2 text-slate-400">
-                                <Newspaper className="h-4 w-4" />
-                                <span className="text-[10px]">{t("bottomNews")}</span>
-                            </button>
-                            <button className="flex flex-col items-center p-2 text-slate-400">
-                                <User className="h-4 w-4" />
-                                <span className="text-[10px]">{t("bottomProfile")}</span>
-                            </button>
-                        </div>
-                    </div>
-                )}
             </div>
         )
     }
