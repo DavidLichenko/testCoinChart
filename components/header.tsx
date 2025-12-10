@@ -491,7 +491,10 @@ export default function Header({homepage=false}) {
                                          {t("totalEquity")}
                                     </span>
                                     <span className="text-[13px] font-semibold text-violet-500 flex items-center gap-1">
-                                         {formatMoney(totalEquity)} {baseCurrency}
+                                        <MoneyAnimated
+                                            value={totalEquity}
+                                            currency={baseCurrency}
+                                        />
                                      </span>
                                 </div>
                             </button>
