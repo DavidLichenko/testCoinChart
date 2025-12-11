@@ -1,49 +1,85 @@
 "use client";
 
-import {useEffect, useState} from "react";
+import { useEffect, useState } from "react";
 
 export type BinanceTicker = {
-    s: string; // символ, например "BTCUSDT"
-    c: string; // last price
-    P: string; // priceChangePercent
+  s: string; // символ, например "BTCUSDT"
+  c: string; // last price
+  P: string; // priceChangePercent
 };
 
 type PricesState = Record<string, BinanceTicker>; // key = "BTC", "ETH", ...
 
+const QUOTE = "USDT";
+
 export function useBinancePrices(symbols: string[]) {
-    const [prices, setPrices] = useState<PricesState>({});
+  const [prices, setPrices] = useState<PricesState>({});
 
-    useEffect(() => {
-        const unique = Array.from(
-            new Set(symbols.map((s) => s.toUpperCase()))
-        ).filter(Boolean);
+  useEffect(() => {
+    const unique = Array.from(
+      new Set(symbols.map((s) => s.toUpperCase()))
+    ).filter(Boolean);
 
-        if (!unique.length) return;
+    // не подписываемся на USDTUSDT — такого рынка нет
+    const toStream = unique.filter((sym) => sym !== "USDT");
 
-        const streams = unique
-            .map((sym) => `${sym.toLowerCase()}usdt@ticker`)
-            .join("/");
+    if (!toStream.length) return;
 
-        const ws = new WebSocket(
-            `wss://stream.binance.com:9443/stream?streams=${streams}`
-        );
+    const streams = toStream
+      .map((sym) => `${sym.toLowerCase()}${QUOTE.toLowerCase()}@ticker`)
+      .join("/");
 
-        ws.onmessage = (event) => {
-            try {
-                const msg = JSON.parse(event.data);
-                const data = msg.data as BinanceTicker;
-                const full = data.s; // BTCUSDT
-                const base = full.replace("USDT", "");
-                setPrices((prev) => ({ ...prev, [base]: data }));
-            } catch (e) {
-                console.error("Binance WS parse error", e);
-            }
-        };
+    const ws = new WebSocket(
+      `wss://stream.binance.com:9443/stream?streams=${streams}`
+    );
 
-        return () => {
-            ws.close();
-        };
-    }, [symbols.join(",")]);
+    ws.onmessage = (event) => {
+      try {
+        const msg = JSON.parse(event.data);
+        const data = msg.data as BinanceTicker;
 
-    return prices;
+        const full = data.s; // например "MATICUSDT"
+
+        let base = full;
+        // аккуратно отрезаем только суффикс "USDT" в конце
+        if (full.endsWith(QUOTE)) {
+          base = full.slice(0, -QUOTE.length); // "MATIC"
+        }
+
+        setPrices((prev) => ({
+          ...prev,
+          [base]: data,
+        }));
+      } catch (e) {
+        console.error("Binance WS parse error", e);
+      }
+    };
+
+    ws.onerror = (e) => {
+      console.error("Binance WS error", e);
+    };
+
+    return () => {
+      ws.close();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [symbols.join(",")]);
+
+  // ⚙️ отдельный эффект: выставляем статичный тикер для USDT, если он есть в списке
+  useEffect(() => {
+    const hasUsdt = symbols.some((s) => s.toUpperCase() === "USDT");
+    if (!hasUsdt) return;
+
+    setPrices((prev) => ({
+      ...prev,
+      USDT: {
+        s: "USDTUSDT", // просто заглушка-строка
+        c: "1.0000",   // 1$
+        P: "0.00",     // 0% изменения
+      },
+    }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [symbols.join(",")]);
+
+  return prices;
 }

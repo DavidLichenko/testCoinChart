@@ -9,6 +9,7 @@ import { Switch } from "@/components/ui/switch";
 import { toast } from "@/components/toast";
 import { Plus, Minus, Wallet, CreditCard } from "lucide-react";
 import { WalletBalance } from "./wallet-balance-item";
+import { useI18n } from "@/components/i18n-provider";
 
 interface WalletManagementProps {
   userId: string;
@@ -18,6 +19,7 @@ interface WalletManagementProps {
 }
 
 export function WalletManagement({ userId, walletBalances, onRefresh, baseCurrency = "USD" }: WalletManagementProps) {
+  const { t } = useI18n("admin");
   // Find base currency balance or use first one
   const baseBalance = walletBalances.find(b => b.assetSymbol === baseCurrency) || walletBalances[0];
   const [selectedAsset, setSelectedAsset] = useState(baseBalance?.assetSymbol || "");
@@ -62,8 +64,8 @@ export function WalletManagement({ userId, walletBalances, onRefresh, baseCurren
   const handleAdjustWallet = async () => {
     if (!selectedAsset) {
       toast({
-        title: "Error",
-        description: "Please select an asset",
+        title: t("error") || "Error",
+        description: t("pleaseSelectAsset") || "Please select an asset",
         variant: "destructive",
       });
       return;
@@ -71,8 +73,8 @@ export function WalletManagement({ userId, walletBalances, onRefresh, baseCurren
 
     if (showBalanceInput && !balanceValue) {
       toast({
-        title: "Error",
-        description: "Please enter a balance value",
+        title: t("error") || "Error",
+        description: t("pleaseEnterBalance") || "Please enter a balance value",
         variant: "destructive",
       });
       return;
@@ -80,8 +82,8 @@ export function WalletManagement({ userId, walletBalances, onRefresh, baseCurren
 
     if (enableCredit && !creditLimitValue) {
       toast({
-        title: "Error",
-        description: "Please enter a credit limit",
+        title: t("error") || "Error",
+        description: t("pleaseEnterCreditLimit") || "Please enter a credit limit",
         variant: "destructive",
       });
       return;
@@ -95,8 +97,8 @@ export function WalletManagement({ userId, walletBalances, onRefresh, baseCurren
         const numValue = parseFloat(balanceValue);
         if (isNaN(numValue)) {
           toast({
-            title: "Error",
-            description: "Invalid balance value",
+            title: t("error") || "Error",
+            description: t("invalidBalanceValue") || "Invalid balance value",
             variant: "destructive",
           });
           setIsSubmitting(false);
@@ -128,7 +130,7 @@ export function WalletManagement({ userId, walletBalances, onRefresh, baseCurren
 
       if (res.ok) {
         toast({
-          title: "Success",
+          title: t("success") || "Success",
           description: "Wallet updated successfully",
         });
         // Clear form
@@ -143,16 +145,16 @@ export function WalletManagement({ userId, walletBalances, onRefresh, baseCurren
       } else {
         const error = await res.json();
         toast({
-          title: "Error",
-          description: error.error || "Failed to update wallet",
+          title: t("error") || "Error",
+          description: error.error || t("walletUpdateFailed") || "Failed to update wallet",
           variant: "destructive",
         });
       }
     } catch (e) {
       console.error("Error updating wallet:", e);
       toast({
-        title: "Error",
-        description: "Failed to update wallet",
+        title: t("error") || "Error",
+        description: t("walletUpdateFailed") || "Failed to update wallet",
         variant: "destructive",
       });
     } finally {
@@ -164,7 +166,7 @@ export function WalletManagement({ userId, walletBalances, onRefresh, baseCurren
     <div className="space-y-4">
       {/* Asset Selection */}
       <div className="space-y-2">
-        <Label className="text-xs font-medium text-slate-300">Asset</Label>
+        <Label className="text-xs font-medium text-slate-300">{t("asset")}</Label>
         <Select value={selectedAsset} onValueChange={setSelectedAsset}>
           <SelectTrigger className="h-10 rounded-lg border-slate-800 bg-slate-900 text-sm">
             <SelectValue />
@@ -179,7 +181,7 @@ export function WalletManagement({ userId, walletBalances, onRefresh, baseCurren
         </Select>
         {selectedBalance && (
           <div className="text-xs text-slate-400 mt-1">
-            Current balance: <span className="font-semibold text-slate-300">{selectedBalance.ownBalance.toFixed(2)} {selectedAsset}</span>
+            {t("currentBalance")}: <span className="font-semibold text-slate-300">{selectedBalance.ownBalance.toFixed(2)} {selectedAsset}</span>
           </div>
         )}
       </div>
@@ -189,7 +191,7 @@ export function WalletManagement({ userId, walletBalances, onRefresh, baseCurren
         <div className="flex items-center justify-between">
           <Label className="text-sm font-semibold text-slate-200 flex items-center gap-2">
             <Wallet className="h-4 w-4" />
-            Balance
+            {t("balance")}
           </Label>
           <div className="flex items-center gap-1">
             <Button
@@ -230,7 +232,7 @@ export function WalletManagement({ userId, walletBalances, onRefresh, baseCurren
                 type="number"
                 value={balanceValue}
                 onChange={(e) => setBalanceValue(e.target.value)}
-                placeholder={balanceOperation === "set" ? "New balance" : `Amount to ${balanceOperation === "add" ? "add" : "subtract"}`}
+                placeholder={balanceOperation === "set" ? t("newBalance") : balanceOperation === "add" ? t("amountToAdd") : t("amountToSubtract")}
                 className="h-10 rounded-lg border-slate-800 bg-slate-900 text-sm flex-1"
                 step="0.01"
                 autoFocus
@@ -255,11 +257,11 @@ export function WalletManagement({ userId, walletBalances, onRefresh, baseCurren
                 balanceOperation === "subtract" ? "bg-rose-500/20 text-rose-400" :
                 "bg-blue-500/20 text-blue-400"
               }`}>
-                {balanceOperation === "add" ? "Adding" : balanceOperation === "subtract" ? "Subtracting" : "Setting"}
+                {balanceOperation === "add" ? t("adding") : balanceOperation === "subtract" ? t("subtracting") : t("setting")}
               </div>
               {balanceValue && selectedBalance && balanceOperation !== "set" && (
                 <span className="text-slate-400">
-                  New balance: {
+                  {t("newBalance")}: {
                     (balanceOperation === "add" 
                       ? selectedBalance.ownBalance + parseFloat(balanceValue || "0")
                       : selectedBalance.ownBalance - parseFloat(balanceValue || "0")
@@ -271,7 +273,7 @@ export function WalletManagement({ userId, walletBalances, onRefresh, baseCurren
           </div>
         ) : (
           <div className="text-xs text-slate-500">
-            Click + to add or - to subtract from balance, or enter value directly to set
+            {t("clickToAddOrSubtract")}
           </div>
         )}
 
@@ -284,14 +286,14 @@ export function WalletManagement({ userId, walletBalances, onRefresh, baseCurren
               setBalanceValue(e.target.value);
               setBalanceOperation("set");
             }}
-            placeholder="Enter new balance"
+            placeholder={t("enterNewBalance")}
             className="h-10 rounded-lg border-slate-800 bg-slate-900 text-sm"
             step="0.01"
           />
         )}
         {selectedBalance && (
           <div className="text-xs text-slate-400 mt-1">
-            Current: <span className="font-semibold text-slate-300">{selectedBalance.ownBalance.toFixed(2)} {selectedAsset}</span>
+            {t("currentBalance")}: <span className="font-semibold text-slate-300">{selectedBalance.ownBalance.toFixed(2)} {selectedAsset}</span>
           </div>
         )}
       </div>
@@ -301,7 +303,7 @@ export function WalletManagement({ userId, walletBalances, onRefresh, baseCurren
         <div className="flex items-center justify-between">
           <Label className="text-sm font-semibold text-slate-200 flex items-center gap-2">
             <CreditCard className="h-4 w-4" />
-            Credit
+            {t("credit")}
           </Label>
           <Switch
             checked={enableCredit}
@@ -313,18 +315,18 @@ export function WalletManagement({ userId, walletBalances, onRefresh, baseCurren
         {enableCredit && (
           <div className="space-y-3 pt-2">
             <div className="space-y-2">
-              <Label className="text-xs text-slate-400">Credit Limit</Label>
+              <Label className="text-xs text-slate-400">{t("creditLimit")}</Label>
               <Input
                 type="number"
                 value={creditLimitValue}
                 onChange={(e) => setCreditLimitValue(e.target.value)}
-                placeholder="Enter credit limit"
+                placeholder={t("enterCreditLimit")}
                 className="h-10 rounded-lg border-slate-800 bg-slate-900 text-sm"
                 step="0.01"
               />
             </div>
             <div className="space-y-2">
-              <Label className="text-xs text-slate-400">Credit Used (Optional)</Label>
+              <Label className="text-xs text-slate-400">{t("creditUsed")}</Label>
               <Input
                 type="number"
                 value={creditUsedValue}
@@ -343,7 +345,7 @@ export function WalletManagement({ userId, walletBalances, onRefresh, baseCurren
         disabled={isSubmitting || (!showBalanceInput && !balanceValue && !enableCredit)}
         className="w-full rounded-lg bg-emerald-600 text-sm font-medium hover:bg-emerald-700 h-10"
       >
-        {isSubmitting ? "Updating..." : "Update Wallet"}
+        {isSubmitting ? t("updating") : t("updateWallet")}
       </Button>
     </div>
   );

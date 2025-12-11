@@ -9,6 +9,7 @@ import localFont from "next/font/local";
 import {Toaster} from "react-hot-toast";
 import {Footer} from "@/components/footer";
 import { AuthProvider } from "@/components/auth-provider";
+import Header from "@/components/header";
 
 const geistSans = localFont({
     src: "./../public/fonts/Geist[wght].woff2",
@@ -36,12 +37,13 @@ export const metadata: Metadata = {
     icons: {
         icon: "/barchart3.png",
     },
-    viewport: {
-        width: "device-width",
-        initialScale: 1,
-        maximumScale: 1,
-        userScalable: false,
-    },
+};
+
+export const viewport = {
+    width: "device-width",
+    initialScale: 1,
+    maximumScale: 1,
+    userScalable: false,
 };
 
 export default function RootLayout({
@@ -67,6 +69,7 @@ export default function RootLayout({
             enableSystem={false}
             forcedTheme={'dark'}
         >
+            <Header/>
             <I18nProvider>
                 <div className="flex flex-col min-h-screen">
                     <main className="flex-grow">

@@ -7,7 +7,7 @@ import { RegisterForm } from "@/components/auth/register-form"
 import { motion } from "framer-motion"
 
 export default function RegisterPage() {
-  const { user, loading } = useAuth()
+  const { user, loading, refreshUser } = useAuth()
   const router = useRouter()
   const searchParams = useSearchParams()
   const [initialReferralCode, setInitialReferralCode] = useState<string>("")
@@ -29,12 +29,12 @@ export default function RegisterPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background text-white flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto"></div>
-          <p className="mt-4 text-gray-400">Loading...</p>
+        <div className="min-h-screen bg-background text-white flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto"></div>
+            <p className="mt-4 text-gray-400">Loading...</p>
+          </div>
         </div>
-      </div>
     )
   }
 
@@ -43,20 +43,23 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background text-white flex items-center justify-center p-4">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
-        className="w-full max-w-md"
-      >
-        <RegisterForm
-          initialReferralCode={initialReferralCode}
-          onSwitchToLogin={() => router.push("/login")}
-          onSuccess={() => router.push("/")}
-        />
-      </motion.div>
-    </div>
+      <div className="min-h-screen bg-background text-white flex items-center justify-center">
+        <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+            className="w-full max-w-full"
+        >
+          <RegisterForm
+              initialReferralCode={initialReferralCode}
+              onSwitchToLogin={() => router.push("/login")}
+              onSuccess={async () => {
+                // cookie уже стоит после успешной регистрации
+                await refreshUser()
+                router.push("/")
+              }}
+          />
+        </motion.div>
+      </div>
   )
 }
-

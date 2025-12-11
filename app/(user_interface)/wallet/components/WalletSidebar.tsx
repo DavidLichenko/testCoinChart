@@ -6,7 +6,6 @@ import {useI18n} from "@/components/i18n-provider";
 import Link from "next/link";
 import {usePathname} from "next/navigation";
 import {Button} from "@/components/ui/button";
-import {WalletHistory} from "./WalletHistory";
 
 type Props = {
     selectedSymbol?: string | null;
@@ -20,17 +19,19 @@ export function WalletSidebar({ selectedSymbol }: Props) {
 
     const isStaking = pathname.startsWith("/wallet/staking");
     const isWallet = pathname === "/wallet" || pathname.startsWith("/wallet?");
+    const isHistory = pathname === "/wallet/history";
 
-    // Extract detailed balance information
-    const total = summary?.totalBalance ?? 0;
+    // Extract detailed balance information - только свободный баланс (ownBalance), без кредита
+    const total = summary?.ownFunds ?? 0; // Используем ownFunds вместо totalBalance (ownFunds = только собственные средства)
     const base = (summary?.baseCurrency as "USD" | "EUR") ?? "USD";
     
-    // Calculate crypto balance (sum of all crypto assets)
+    // Calculate crypto balance (sum of all crypto assets) - только собственные средства
     const cryptoBalance = assets?.reduce((sum, asset) => {
         // Exclude base currency assets (USD/EUR) from crypto balance
         if (asset.symbol === "USD" || asset.symbol === "USDT" || asset.symbol === base) {
             return sum;
         }
+        // Используем totalValue который уже рассчитан только для ownBalance + locked (без кредита)
         return sum + asset.totalValue;
     }, 0) ?? 0;
     
@@ -76,14 +77,6 @@ export function WalletSidebar({ selectedSymbol }: Props) {
                             {cryptoBalance.toFixed(2)} {base}
                         </span>
                     </div>
-                    {hasCredit && (
-                        <div className="flex justify-between text-sm">
-                            <span className="text-white/60">{t("creditBalance")}</span>
-                            <span className="text-white font-medium">
-                                {creditUsed.toFixed(2)} / {creditLimit.toFixed(2)} {base}
-                            </span>
-                        </div>
-                    )}
                 </div>
 
                 <div className="mt-4 flex gap-2">
@@ -157,10 +150,24 @@ export function WalletSidebar({ selectedSymbol }: Props) {
                 </p>
             </nav>
 
-            {/* History Section */}
-            <div className="bg-[#11111f] rounded-2xl p-4 border border-white/8">
-                <WalletHistory />
-            </div>
+            {/* History Link */}
+            <Link
+                href="/wallet/history"
+                className={`block w-full rounded-2xl px-3 py-2.5 text-sm font-medium transition-all ${
+                    isHistory
+                        ? "bg-[linear-gradient(135deg,#7a3cff,#ff4fd1)] text-[#fff] shadow-[0_0_22px_rgba(255,79,209,0.55)]"
+                        : "text-white/70 hover:text-white hover:bg-white/5 bg-[#11111f] border border-white/8"
+                }`}
+            >
+                <div className="flex items-center gap-2">
+                    <span
+                        className={`inline-flex h-5 w-1 rounded-full ${
+                            isHistory ? "bg-[#050510]/40" : "bg-white/10"
+                        }`}
+                    />
+                    <span>{t("history") || "Transaction History"}</span>
+                </div>
+            </Link>
         </aside>
     );
 }

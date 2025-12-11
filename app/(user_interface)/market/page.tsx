@@ -188,8 +188,8 @@ const TestChart: React.FC = () => {
             cancelled = true
         }
     }, [])
-
-    // Load AI trading tickers
+    const aiAvailable = !!me?.aiTrading
+    // Load AI trading tickers and settings
     useEffect(() => {
         if (!aiAvailable) return
 
@@ -205,10 +205,26 @@ const TestChart: React.FC = () => {
             }
         }
 
+        const loadAiAnalysisSettings = async () => {
+            try {
+                const res = await fetch("/api/admin/ai-analysis-settings")
+                if (res.ok) {
+                    const data = await res.json()
+                    setAiAnalysisSettings({
+                        minSeconds: data.minSeconds || 5,
+                        maxSeconds: data.maxSeconds || 10,
+                    })
+                }
+            } catch (e) {
+                console.error("Failed to load AI analysis settings", e)
+            }
+        }
+
         loadAiTickers()
+        loadAiAnalysisSettings()
     }, [aiAvailable])
 
-    const aiAvailable = !!me?.aiTrading
+
 
     // 🔹 AI-режим
     const [aiEnabled, setAiEnabled] = useState(false)
@@ -216,6 +232,10 @@ const TestChart: React.FC = () => {
     const [aiAnalyzing, setAiAnalyzing] = useState(false)
     const [aiAnalyzed, setAiAnalyzed] = useState(false)
     const [aiTickers, setAiTickers] = useState<string[]>([])
+    const [aiAnalysisSettings, setAiAnalysisSettings] = useState({
+        minSeconds: 5,
+        maxSeconds: 10,
+    })
     const [aiSuggested, setAiSuggested] = useState<{
         symbol: string
         type: "BUY" | "SELL"
@@ -599,10 +619,18 @@ const TestChart: React.FC = () => {
             return
         }
 
-        // имитация красивого анализа: через ~2.3 сек выдаём результат
+        // Random analysis time based on settings
+        const analysisTime = Math.floor(
+            Math.random() * (aiAnalysisSettings.maxSeconds - aiAnalysisSettings.minSeconds + 1) +
+            aiAnalysisSettings.minSeconds
+        ) * 1000
+
         setTimeout(async () => {
             // Randomly select from AI-enabled tickers only
             const randomTicker = availableAiTickers[Math.floor(Math.random() * availableAiTickers.length)]
+            
+            // Update selectedTicker to show the chart for the selected ticker
+            setMarketTicker(randomTicker)
             
             // Get candles for the selected ticker
             let tickerCandles: Candle[] = []
@@ -612,13 +640,15 @@ const TestChart: React.FC = () => {
             } else {
                 // Fetch candles for the selected ticker
                 try {
-                    const candlesRes = await fetch(`/api/market/candles?symbol=${randomTicker.symbol}&timeframe=H1&limit=100`)
+                    const candlesRes = await fetch(`/api/market/candles?symbol=${randomTicker.symbol}&timeframe=${timeframe}&limit=100`)
                     if (candlesRes.ok) {
                         const candlesData = await candlesRes.json()
                         tickerCandles = fillGapsWithBridgingCandles(
                             candlesData as Candle[],
                             timeframeSeconds
                         )
+                        // Update candles state to show the chart
+                        setCandles(tickerCandles)
                     }
                 } catch (e) {
                     console.error("Failed to fetch candles for AI ticker", e)
@@ -649,38 +679,45 @@ const TestChart: React.FC = () => {
             })
             setAiAnalyzing(false)
             setAiAnalyzed(true)
-        }, 2300)
-    }, [aiAvailable, aiEnabled, aiAnalyzing, tickers, aiTickers, candles, symbol, timeframeSeconds, aiAmount, fillGapsWithBridgingCandles])
+        }, analysisTime)
+    }, [aiAvailable, aiEnabled, aiAnalyzing, tickers, aiTickers, candles, symbol, timeframeSeconds, aiAmount, fillGapsWithBridgingCandles, setMarketTicker, timeframe, aiAnalysisSettings])
 
-// 🔹 открыть ордер по результатам AI
+// 🔹 открыть ордер по результатам AI - работает как обычный placeOrder
     const handlePlaceAiOrder = useCallback(async () => {
-        if (!aiSuggested) return
+        if (!aiSuggested || !selectedTicker) return
 
         const parsedMargin = Number(aiAmount)
         if (!parsedMargin) return setError("Enter correct AI amount")
 
-        const price = aiSuggested.price
-        const leverageValue = 25
+        const vol = Number(volume)
+        const lev = Number(leverage)
 
-        let vol = (parsedMargin * leverageValue) / price
-        if (vol < 0.01) vol = 0.01
-        if (vol > 1000) vol = 1000
+        if (!vol || !lev) return setError("Fill volume and leverage")
 
-        await placeTrade({
+        const last = candles[candles.length - 1]
+        const price = last?.close || last?.open || aiSuggested.price
+
+        if (!price) return setError("No price available")
+
+        // Use the same logic as regular placeOrder
+        const payload = {
             type: aiSuggested.type,
             ticker: aiSuggested.symbol,
             volume: vol,
-            leverage: leverageValue,
-            margin: parsedMargin,
+            leverage: lev,
+            margin: margin, // from useMemo
             openIn: price,
-            takeProfit: null,
-            stopLoss: null,
-            assetType: "Crypto",
+            takeProfit: takeProfitEnabled ? Number(takeProfit) : null,
+            stopLoss: stopLossEnabled ? Number(stopLoss) : null,
+            assetType: selectedTicker.category === "crypto" ? "Crypto" : selectedTicker.category === "forex" ? "Forex" : "IEX",
             aiEnabled: true,
-        })
+        }
+
+        await placeTrade(payload)
 
         setAiSuggested(null)
-    }, [aiSuggested, aiAmount])
+        setAiAnalyzed(false)
+    }, [aiSuggested, aiAmount, selectedTicker, volume, leverage, margin, candles, takeProfitEnabled, stopLossEnabled, takeProfit, stopLoss, placeTrade])
     // --- candles from hook + gap fill ---
     useEffect(() => {
         if (candlesBySymbol && candlesBySymbol.length > 0) {
@@ -2442,7 +2479,7 @@ const TestChart: React.FC = () => {
                     </div>
                     <div className="text-xs text-slate-400">
                         {balance != null && (
-                            <span className="font-mono">${balance.toFixed(2)}</span>
+                            <span className="font-mono">{baseCurrency === "EUR" ? "€" : "$"}{balance.toFixed(2)}</span>
                         )}
                     </div>
                 </div>
@@ -3062,9 +3099,16 @@ const TestChart: React.FC = () => {
                                                     <div className="mt-1 rounded-xl border border-slate-800/80 bg-slate-950/90 px-3 py-2 text-[11px] text-slate-300">
                                                         <div className="mt-1 flex items-center justify-between">
                                                             <span>{t("marginRequired")}</span>
-                                                            <span className="font-mono text-amber-300">
-                                {margin.toFixed(2)} {baseCurrency}
-                              </span>
+                                                            <div className="flex flex-col items-end">
+                                                                <span className="font-mono text-amber-300">
+                                    {margin.toFixed(2)} {baseCurrency}
+                                  </span>
+                                                                {baseCurrency === "EUR" && eurUsdRate && (
+                                                                    <span className="text-[9px] text-slate-500 mt-0.5">
+                                        ≈ ${(margin * eurUsdRate).toFixed(2)} USD
+                                    </span>
+                                                                )}
+                                                            </div>
                                                         </div>
                                                     </div>
 
@@ -3167,7 +3211,7 @@ const TestChart: React.FC = () => {
                                       {t("processing")}...
                                   </>
                               ) : (
-                                  `$${balance?.toFixed(2) ?? "0.00"}`
+                                  `${baseCurrency === "EUR" ? "€" : "$"}${balance?.toFixed(2) ?? "0.00"}`
                               )}
                             </span>
                                                     </div>
@@ -4237,7 +4281,7 @@ const TestChart: React.FC = () => {
                                 {t("processing")}...
                             </>
                         ) : (
-                            `$${balance?.toFixed(2) ?? "0.00"}`
+                            `${baseCurrency === "EUR" ? "€" : "$"}${balance?.toFixed(2) ?? "0.00"}`
                         )}
                       </span>
                                             </div>

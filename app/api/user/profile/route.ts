@@ -58,11 +58,122 @@ export async function PUT(request: Request) {
   try {
     const userId = await requireAuth()
     const body = await request.json()
-    const { name, email, image } = body
+    const { name, email, image, baseCurrency } = body
+
+    // Get current user to check old baseCurrency
+    const currentUser = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { baseCurrency: true },
+    })
+
+    const updates: any = { name, email, image }
+    
+    // Handle baseCurrency change with balance conversion
+    if (baseCurrency && currentUser && baseCurrency !== currentUser.baseCurrency) {
+      const oldBaseCurrency = currentUser.baseCurrency || "USD"
+      const newBaseCurrency = baseCurrency
+      
+      // Get current EUR/USD rate
+      let eurUsdRate = 1
+      try {
+        const eurUsdRes = await fetch(
+          "https://api.binance.com/api/v3/ticker/price?symbol=EURUSDT",
+          { cache: "no-store" }
+        )
+        if (eurUsdRes.ok) {
+          const eurUsdData = await eurUsdRes.json()
+          eurUsdRate = parseFloat(eurUsdData.price) || 1
+        }
+      } catch (error) {
+        console.warn("Failed to fetch EUR/USD rate, using fallback:", error)
+      }
+      
+      // Get old base currency balance
+      const oldBalance = await prisma.walletBalance.findUnique({
+        where: {
+          userId_assetSymbol: {
+            userId,
+            assetSymbol: oldBaseCurrency,
+          },
+        },
+      })
+      
+      let convertedBalance = 0
+      let convertedCreditLimit = 0
+      let convertedCreditUsed = 0
+      let convertedLocked = 0
+      
+      if (oldBalance) {
+        // Convert balance based on currency change
+        if (oldBaseCurrency === "EUR" && newBaseCurrency === "USD") {
+          // EUR to USD: multiply by EUR/USD rate
+          convertedBalance = oldBalance.ownBalance * eurUsdRate
+          convertedCreditLimit = oldBalance.creditLimit * eurUsdRate
+          convertedCreditUsed = oldBalance.creditUsed * eurUsdRate
+          convertedLocked = oldBalance.locked * eurUsdRate
+        } else if (oldBaseCurrency === "USD" && newBaseCurrency === "EUR") {
+          // USD to EUR: divide by EUR/USD rate
+          convertedBalance = oldBalance.ownBalance / eurUsdRate
+          convertedCreditLimit = oldBalance.creditLimit / eurUsdRate
+          convertedCreditUsed = oldBalance.creditUsed / eurUsdRate
+          convertedLocked = oldBalance.locked / eurUsdRate
+        } else {
+          convertedBalance = oldBalance.ownBalance
+          convertedCreditLimit = oldBalance.creditLimit
+          convertedCreditUsed = oldBalance.creditUsed
+          convertedLocked = oldBalance.locked
+        }
+      }
+      
+      // Update baseCurrency in user
+      updates.baseCurrency = newBaseCurrency
+      
+      // Create/update wallet balance for new base currency
+      await prisma.walletBalance.upsert({
+        where: {
+          userId_assetSymbol: {
+            userId,
+            assetSymbol: newBaseCurrency,
+          },
+        },
+        update: {
+          ownBalance: convertedBalance,
+          creditLimit: convertedCreditLimit,
+          creditUsed: convertedCreditUsed,
+          locked: convertedLocked,
+        },
+        create: {
+          userId,
+          assetSymbol: newBaseCurrency,
+          ownBalance: convertedBalance,
+          creditLimit: convertedCreditLimit,
+          creditUsed: convertedCreditUsed,
+          locked: convertedLocked,
+        },
+      })
+      
+      // Set old balance to 0
+      if (oldBalance && oldBaseCurrency !== newBaseCurrency) {
+        await prisma.walletBalance.update({
+          where: {
+            userId_assetSymbol: {
+              userId,
+              assetSymbol: oldBaseCurrency,
+            },
+          },
+          data: {
+            ownBalance: 0,
+            creditLimit: 0,
+            creditUsed: 0,
+            locked: 0,
+          },
+        })
+      }
+    }
 
     const updatedUser = await prisma.user.update({
       where: { id: userId },
-      data: { name, email, image },
+      data: updates,
     })
 
     return NextResponse.json(updatedUser)

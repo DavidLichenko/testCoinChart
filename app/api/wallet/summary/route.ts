@@ -82,13 +82,13 @@ export async function GET() {
     for (const b of balances) {
         const priceUsdt = getUsdtPrice(b.assetSymbol) || 0;
 
-        // total = own + locked + creditUsed (то, чем реально владеем / пользуемся)
+        // total = own + locked (только свободный баланс, без кредита)
         const ownVal = b.ownBalance * priceUsdt;
         const lockedVal = b.locked * priceUsdt;
         const creditUsedVal = b.creditUsed * priceUsdt;
         const creditLimitVal = b.creditLimit * priceUsdt;
 
-        totalUsdt += ownVal + lockedVal + creditUsedVal;
+        totalUsdt += ownVal + lockedVal; // Только собственные средства + locked, без кредита
         ownUsdt += ownVal;
         creditUsedUsdt += creditUsedVal;
         creditLimitUsdt += creditLimitVal;
@@ -100,11 +100,11 @@ export async function GET() {
     const creditLimit = creditLimitUsdt * usdtToBase;
     const availableToTrade = ownFunds + (creditLimit - creditUsed);
 
-    // Оценка в USD (для подписи под EUR)
+    // Оценка в USD (для подписи под EUR) - используем ownFunds (без кредита)
     const approxUsd =
         baseCurrency === "EUR" && eurUsdt
-            ? totalBalance * eurUsdt // EUR → USDT≈USD
-            : totalBalance;          // уже USD
+            ? ownFunds * eurUsdt // EUR → USDT≈USD
+            : ownFunds;          // уже USD
 
     return NextResponse.json({
         totalBalance,

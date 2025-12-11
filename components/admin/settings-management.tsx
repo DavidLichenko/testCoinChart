@@ -124,6 +124,11 @@ export default function SettingsManagement() {
   const [loadingAI, setLoadingAI] = useState(true)
   const [aiSearchTerm, setAiSearchTerm] = useState("")
   const [favoriteTickers, setFavoriteTickers] = useState<Set<string>>(new Set())
+  const [aiAnalysisSettings, setAiAnalysisSettings] = useState({
+    minSeconds: 5,
+    maxSeconds: 10,
+  })
+  const [loadingAiSettings, setLoadingAiSettings] = useState(true)
 
   // Crypto Addresses
   const [addresses, setAddresses] = useState<DepositAddress[]>([])
@@ -184,6 +189,7 @@ export default function SettingsManagement() {
     fetchFavoriteTickers()
     fetchReferralRewards()
     fetchWithdrawalLimits()
+    fetchAiAnalysisSettings()
   }, [accessDenied])
 
   const fetchWithdrawalLimits = async () => {
@@ -279,6 +285,48 @@ export default function SettingsManagement() {
       console.error("Error fetching AI tickers:", e)
     } finally {
       setLoadingAI(false)
+    }
+  }
+
+  const fetchAiAnalysisSettings = async () => {
+    setLoadingAiSettings(true)
+    try {
+      const res = await fetch("/api/admin/ai-analysis-settings")
+      if (res.ok) {
+        const data = await res.json()
+        setAiAnalysisSettings({
+          minSeconds: data.minSeconds || 5,
+          maxSeconds: data.maxSeconds || 10,
+        })
+      }
+    } catch (e) {
+      console.error("Error fetching AI analysis settings:", e)
+    } finally {
+      setLoadingAiSettings(false)
+    }
+  }
+
+  const saveAiAnalysisSettings = async () => {
+    try {
+      const res = await fetch("/api/admin/ai-analysis-settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(aiAnalysisSettings),
+      })
+      if (res.ok) {
+        toast({
+          title: "Success",
+          description: "AI analysis settings saved successfully",
+        })
+      } else {
+        throw new Error("Failed to save settings")
+      }
+    } catch (e) {
+      toast({
+        title: "Error",
+        description: "Failed to save AI analysis settings",
+        variant: "destructive",
+      })
     }
   }
 
@@ -807,17 +855,80 @@ export default function SettingsManagement() {
 
           {/* AI-Trading Tab */}
           {activeTab === "ai-trading" && (
-            <Card className="border-slate-800 bg-slate-950/80">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Cpu className="h-4 w-4 text-slate-300" />
-                  AI-Trading Tickers
-                </CardTitle>
-                <p className="mt-2 text-sm text-slate-400">
-                  Select tickers that will be used by AI-trading system. Favorites are shown first.
-                </p>
-              </CardHeader>
-              <CardContent>
+            <div className="space-y-4">
+              {/* AI Analysis Settings */}
+              <Card className="border-slate-800 bg-slate-950/80">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Cpu className="h-4 w-4 text-slate-300" />
+                    AI Analysis Settings
+                  </CardTitle>
+                  <p className="mt-2 text-sm text-slate-400">
+                    Configure the time range for AI analysis (in seconds).
+                  </p>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="minSeconds">Minimum Time (seconds)</Label>
+                        <Input
+                          id="minSeconds"
+                          type="number"
+                          min="1"
+                          max="60"
+                          value={aiAnalysisSettings.minSeconds}
+                          onChange={(e) =>
+                            setAiAnalysisSettings({
+                              ...aiAnalysisSettings,
+                              minSeconds: parseInt(e.target.value) || 5,
+                            })
+                          }
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="maxSeconds">Maximum Time (seconds)</Label>
+                        <Input
+                          id="maxSeconds"
+                          type="number"
+                          min="1"
+                          max="60"
+                          value={aiAnalysisSettings.maxSeconds}
+                          onChange={(e) =>
+                            setAiAnalysisSettings({
+                              ...aiAnalysisSettings,
+                              maxSeconds: parseInt(e.target.value) || 10,
+                            })
+                          }
+                        />
+                      </div>
+                    </div>
+                    <Button onClick={saveAiAnalysisSettings} disabled={loadingAiSettings}>
+                      {loadingAiSettings ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Saving...
+                        </>
+                      ) : (
+                        "Save Settings"
+                      )}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* AI Trading Tickers */}
+              <Card className="border-slate-800 bg-slate-950/80">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Cpu className="h-4 w-4 text-slate-300" />
+                    AI-Trading Tickers
+                  </CardTitle>
+                  <p className="mt-2 text-sm text-slate-400">
+                    Select tickers that will be used by AI-trading system. Favorites are shown first.
+                  </p>
+                </CardHeader>
+                <CardContent>
                 <div className="mb-4">
                   <Input
                     placeholder="Search tickers..."

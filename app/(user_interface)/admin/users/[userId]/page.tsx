@@ -52,6 +52,7 @@ import { MarginCostDisplay } from "@/components/admin/margin-cost-display"
 import { useTickers, type MarketTicker } from "@/hooks/market-data"
 import { TickerAvatar } from "@/components/ticker-avatar"
 import { VirtualizedTickerList } from "@/components/virtualized-ticker-list"
+import { useI18n } from "@/components/i18n-provider"
 
 interface AdminUser {
     id: string
@@ -172,6 +173,7 @@ export default function AdminUserPage() {
     const router = useRouter()
     const params = useParams()
     const userId = params?.userId as string
+    const { t } = useI18n("admin")
 
     const [user, setUser] = useState<AdminUser | null>(null)
     const [loading, setLoading] = useState(true)
@@ -382,16 +384,20 @@ export default function AdminUserPage() {
             if (res.ok) {
                 const updated = await res.json()
                 setUser(updated)
+                if (updated.baseCurrency) {
+                    setBaseCurrency(updated.baseCurrency)
+                }
+                await refreshWalletData()
                 toast({
-                    title: "Success",
-                    description: "User updated successfully",
+                    title: t("success") || "Success",
+                    description: t("userUpdated") || "User updated successfully",
                 })
             }
         } catch (e) {
             console.error("Error updating user:", e)
             toast({
-                title: "Error",
-                description: "Failed to update user",
+                title: t("error") || "Error",
+                description: t("userUpdateFailed") || "Failed to update user",
                 variant: "destructive",
             })
         } finally {
@@ -419,15 +425,15 @@ export default function AdminUserPage() {
                 await refreshWalletData()
                 setIsTradeDialogOpen(false)
                 toast({
-                    title: "Success",
-                    description: "Trade created successfully",
+                    title: t("success") || "Success",
+                    description: t("tradeCreated") || "Trade created successfully",
                 })
             }
         } catch (e) {
             console.error("Error creating trade:", e)
             toast({
-                title: "Error",
-                description: "Failed to create trade",
+                title: t("error") || "Error",
+                description: t("tradeCreateFailed") || "Failed to create trade",
                 variant: "destructive",
             })
         }
@@ -482,15 +488,15 @@ export default function AdminUserPage() {
                 await refreshWalletData()
                 setIsOrderDialogOpen(false)
                 toast({
-                    title: "Success",
-                    description: "Order created successfully",
+                    title: t("success") || "Success",
+                    description: t("orderCreated") || "Order created successfully",
                 })
             }
         } catch (e) {
             console.error("Error creating order:", e)
             toast({
-                title: "Error",
-                description: "Failed to create order",
+                title: t("error") || "Error",
+                description: t("orderCreateFailed") || "Failed to create order",
                 variant: "destructive",
             })
         }
@@ -732,7 +738,7 @@ export default function AdminUserPage() {
     if (!user) {
         return (
             <div className="flex items-center justify-center min-h-screen bg-slate-950 text-slate-400">
-                User not found
+                {t("userNotFound")}
             </div>
         )
     }
@@ -751,7 +757,7 @@ export default function AdminUserPage() {
                                 className="h-8 px-3 text-xs border border-slate-800 bg-slate-900 hover:bg-slate-800"
                             >
                                 <ArrowLeft className="h-3.5 w-3.5 mr-1.5" />
-                                Back
+                                {t("back")}
                             </Button>
                             <div className="flex items-center gap-3">
                                 <div className="h-10 w-10 flex items-center justify-center bg-slate-900 border border-slate-800">
@@ -759,7 +765,7 @@ export default function AdminUserPage() {
                                 </div>
                                 <div>
                                     <h1 className="text-lg font-semibold text-white">
-                                        {user.name || "No Name"}
+                                        {user.name || t("noName")}
                                     </h1>
                                     <div className="flex items-center gap-2 text-xs text-slate-400">
                                         <Mail className="h-3 w-3" />
@@ -778,7 +784,7 @@ export default function AdminUserPage() {
                                 variant={user.blocked ? "destructive" : user.isVerif ? "default" : "secondary"}
                                 className="text-xs px-2 py-0.5"
                             >
-                                {user.blocked ? "Blocked" : user.isVerif ? "Verified" : "Unverified"}
+                                {user.blocked ? t("blocked") : user.isVerif ? t("verified") : t("unverified")}
                             </Badge>
                             {walletSummary && (
                                 <Badge variant="outline" className="border-emerald-700/50 bg-emerald-950/30 text-emerald-300 text-xs px-2 py-0.5">
@@ -804,7 +810,7 @@ export default function AdminUserPage() {
                             className="h-8 px-3 text-xs bg-slate-900 border border-slate-800 hover:bg-slate-800"
                         >
                             <TrendingUp className="h-3.5 w-3.5 mr-1.5" />
-                            Create Trade
+                            {t("createTrade")}
                         </Button>
                         <Button
                             size="sm"
@@ -812,7 +818,7 @@ export default function AdminUserPage() {
                             className="h-8 px-3 text-xs bg-slate-900 border border-slate-800 hover:bg-slate-800"
                         >
                             <CreditCard className="h-3.5 w-3.5 mr-1.5" />
-                            Create Order
+                            {t("createOrder")}
                         </Button>
                         <Button
                             size="sm"
@@ -828,7 +834,7 @@ export default function AdminUserPage() {
                             className="h-8 px-3 text-xs bg-slate-900 border border-slate-800 hover:bg-slate-800"
                         >
                             <MessageCircle className="h-3.5 w-3.5 mr-1.5" />
-                            Chat
+                            {t("chat")}
                         </Button>
                         <Button
                             size="sm"
@@ -836,7 +842,7 @@ export default function AdminUserPage() {
                             className="h-8 px-3 text-xs bg-slate-900 border border-slate-800 hover:bg-slate-800"
                         >
                             <Edit3 className="h-3.5 w-3.5 mr-1.5" />
-                            Comments
+                            {t("comments")}
                         </Button>
                         <Button
                             size="sm"
@@ -845,7 +851,7 @@ export default function AdminUserPage() {
                             className="h-8 px-3 text-xs bg-slate-900 border border-slate-800 hover:bg-slate-800"
                         >
                             <Settings className="h-3.5 w-3.5 mr-1.5" />
-                            Refresh
+                            {t("refresh")}
                         </Button>
                     </div>
                 </div>
@@ -858,7 +864,7 @@ export default function AdminUserPage() {
                             <CardHeader className="pb-3 border-b border-slate-800">
                                 <CardTitle className="text-sm font-semibold flex items-center gap-2">
                                     <DollarSign className="h-4 w-4 text-slate-400" />
-                                    Balance Management
+                                    {t("balanceManagement")}
                                 </CardTitle>
                             </CardHeader>
                             <CardContent className="pt-4">
@@ -889,7 +895,7 @@ export default function AdminUserPage() {
                                 <div className="flex items-center justify-between">
                                     <CardTitle className="text-sm font-semibold flex items-center gap-2">
                                         <TrendingUp className="h-4 w-4 text-slate-400" />
-                                        Trades
+                                        {t("trades")}
                                     </CardTitle>
                                     <div className="flex items-center gap-2">
                                         <Badge variant="outline" className="border-slate-700 bg-slate-900 text-xs px-2 py-0.5">
@@ -909,11 +915,11 @@ export default function AdminUserPage() {
                                 <div className="space-y-2 max-h-[600px] overflow-y-auto">
                                     {loadingRelations ? (
                                         <div className="py-8 text-center text-xs text-slate-500">
-                                            Loading trades...
+                                            {t("loadingTrades")}
                                         </div>
                                     ) : trades.length === 0 ? (
                                         <div className="py-8 text-center text-xs text-slate-500">
-                                            No trades yet
+                                            {t("noTradesYet")}
                                         </div>
                                     ) : (
                                         trades.map((t) => (
@@ -952,7 +958,7 @@ export default function AdminUserPage() {
                                 <div className="flex items-center justify-between">
                                     <CardTitle className="text-sm font-semibold flex items-center gap-2">
                                         <CreditCard className="h-4 w-4 text-slate-400" />
-                                        Orders
+                                        {t("orders")}
                                     </CardTitle>
                                     <div className="flex items-center gap-2">
                                         <Badge variant="outline" className="border-slate-700 bg-slate-900 text-xs px-2 py-0.5">
@@ -972,11 +978,11 @@ export default function AdminUserPage() {
                                 <div className="space-y-2 max-h-[600px] overflow-y-auto">
                                     {loadingRelations ? (
                                         <div className="py-8 text-center text-xs text-slate-500">
-                                            Loading orders...
+                                            {t("loadingOrders")}
                                         </div>
                                     ) : orders.length === 0 ? (
                                         <div className="py-8 text-center text-xs text-slate-500">
-                                            No orders yet
+                                            {t("noOrdersYet")}
                                         </div>
                                     ) : (
                                         orders.map((o) => (
@@ -1060,14 +1066,33 @@ export default function AdminUserPage() {
                                     </div>
                                 </div>
                                 <div>
-                                    <Label className="text-xs text-slate-400 mb-1.5 block">Base Currency</Label>
+                                    <Label className="text-xs text-slate-400 mb-1.5 block">{t("baseCurrency") || "Base Currency"}</Label>
                                     <Select value={baseCurrency} onValueChange={(v: "USD" | "EUR") => setBaseCurrency(v)}>
                                         <SelectTrigger className="h-8 text-sm border-slate-800 bg-slate-950">
-                                            <SelectValue />
+                                            <SelectValue>
+                                                <div className="flex items-center gap-2">
+                                                    <img 
+                                                        src={`/icons/forex_icons/${baseCurrency}.png`} 
+                                                        alt={baseCurrency} 
+                                                        className="h-4 w-4" 
+                                                    />
+                                                    <span>{baseCurrency}</span>
+                                                </div>
+                                            </SelectValue>
                                         </SelectTrigger>
                                         <SelectContent className="border-slate-800 bg-slate-950">
-                                            <SelectItem value="USD">USD</SelectItem>
-                                            <SelectItem value="EUR">EUR</SelectItem>
+                                            <SelectItem value="USD">
+                                                <div className="flex items-center gap-2">
+                                                    <img src="/icons/forex_icons/USD.png" alt="USD" className="h-4 w-4" />
+                                                    <span>USD</span>
+                                                </div>
+                                            </SelectItem>
+                                            <SelectItem value="EUR">
+                                                <div className="flex items-center gap-2">
+                                                    <img src="/icons/forex_icons/EUR.png" alt="EUR" className="h-4 w-4" />
+                                                    <span>EUR</span>
+                                                </div>
+                                            </SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </div>
@@ -1198,7 +1223,7 @@ export default function AdminUserPage() {
                             <CardHeader className="pb-3 border-b border-slate-800">
                                 <CardTitle className="text-sm font-semibold flex items-center gap-2">
                                     <CreditCard className="h-4 w-4 text-slate-400" />
-                                    Wallet Assets
+                                    {t("walletAssets")}
                                 </CardTitle>
                             </CardHeader>
                             <CardContent className="pt-4">
@@ -1214,7 +1239,7 @@ export default function AdminUserPage() {
                                     </div>
                                 ) : (
                                     <div className="py-4 text-center text-xs text-slate-500">
-                                        No wallet assets found
+                                        {t("noWalletAssetsFound")}
                                     </div>
                                 )}
                             </CardContent>
@@ -1228,14 +1253,14 @@ export default function AdminUserPage() {
                         <CardHeader className="pb-3 border-b border-slate-800">
                             <CardTitle className="text-sm font-semibold flex items-center gap-2">
                                 <Edit3 className="h-4 w-4 text-slate-400" />
-                                Comments
+                                {t("comments")}
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="pt-4">
                             <Textarea
                                 value={comments}
                                 onChange={(e) => setComments(e.target.value)}
-                                placeholder="Add your comments here..."
+                                placeholder={t("addCommentsPlaceholder") || "Add your comments here..."}
                                 className="min-h-[100px] text-sm border-slate-800 bg-slate-950 resize-none"
                             />
                             <Button
@@ -1243,7 +1268,7 @@ export default function AdminUserPage() {
                                 disabled={savingComments}
                                 className="mt-3 h-8 text-xs bg-slate-800 border border-slate-700 hover:bg-slate-700"
                             >
-                                {savingComments ? "Saving..." : "Save Comments"}
+                                {savingComments ? t("saving") || "Saving..." : t("saveComments")}
                             </Button>
                         </CardContent>
                     </Card>
@@ -1255,12 +1280,12 @@ export default function AdminUserPage() {
             <Dialog open={isTradeDialogOpen} onOpenChange={setIsTradeDialogOpen}>
                 <DialogContent className="border border-slate-800 bg-slate-900 text-slate-100 sm:max-w-md">
                     <DialogHeader>
-                        <DialogTitle className="text-base font-semibold">Create New Trade</DialogTitle>
+                        <DialogTitle className="text-base font-semibold">{t("newTrade")}</DialogTitle>
                     </DialogHeader>
                     <div className="space-y-3">
                         <div className="grid grid-cols-2 gap-2">
                             <div>
-                                <Label className="text-xs text-slate-400 mb-1 block">Type</Label>
+                                <Label className="text-xs text-slate-400 mb-1 block">{t("type")}</Label>
                                 <Select
                                     value={newTrade.type}
                                     onValueChange={(v) => setNewTrade({...newTrade, type: v as "BUY" | "SELL"})}
@@ -1269,13 +1294,13 @@ export default function AdminUserPage() {
                                         <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent className="border-slate-800 bg-slate-950">
-                                        <SelectItem value="BUY">Buy</SelectItem>
-                                        <SelectItem value="SELL">Sell</SelectItem>
+                                        <SelectItem value="BUY">{t("buy")}</SelectItem>
+                                        <SelectItem value="SELL">{t("sell")}</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>
                             <div>
-                                <Label className="text-xs text-slate-400 mb-1 block">Asset Type</Label>
+                                <Label className="text-xs text-slate-400 mb-1 block">{t("assetType")}</Label>
                                 <Select
                                     value={newTrade.assetType}
                                     onValueChange={(v) => setNewTrade({...newTrade, assetType: v})}
@@ -1284,21 +1309,21 @@ export default function AdminUserPage() {
                                         <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent className="border-slate-800 bg-slate-950">
-                                        <SelectItem value="CRYPTO">Crypto</SelectItem>
-                                        <SelectItem value="STOCK">Stock</SelectItem>
-                                        <SelectItem value="FOREX">Forex</SelectItem>
+                                        <SelectItem value="CRYPTO">{t("crypto")}</SelectItem>
+                                        <SelectItem value="STOCK">{t("stock")}</SelectItem>
+                                        <SelectItem value="FOREX">{t("forex")}</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>
                         </div>
                         
                         <div>
-                            <Label className="text-xs text-slate-400 mb-1 block">Ticker</Label>
+                            <Label className="text-xs text-slate-400 mb-1 block">{t("ticker")}</Label>
                             <div className="space-y-2">
                                 <div className="relative">
                                     <Search className="absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-500" />
                                     <Input
-                                        placeholder="Search tickers..."
+                                        placeholder={t("searchTickers")}
                                         value={searchTerm}
                                         onChange={(e) => setSearchTerm(e.target.value)}
                                         className="h-8 pl-8 text-sm border-slate-800 bg-slate-950"
@@ -1325,7 +1350,7 @@ export default function AdminUserPage() {
                                         />
                                     ) : (
                                         <div className="p-4 text-center text-xs text-slate-500">
-                                            No tickers available
+                                            {t("noTickersAvailable")}
                                         </div>
                                     )}
                                 </div>
@@ -1374,7 +1399,7 @@ export default function AdminUserPage() {
                         
                         <div className="grid grid-cols-2 gap-2">
                             <div>
-                                <Label className="text-xs text-slate-400 mb-1 block">Volume</Label>
+                                <Label className="text-xs text-slate-400 mb-1 block">{t("volume")}</Label>
                                 <Input
                                     type="number"
                                     value={newTrade.volume}
@@ -1383,7 +1408,7 @@ export default function AdminUserPage() {
                                 />
                             </div>
                             <div>
-                                <Label className="text-xs text-slate-400 mb-1 block">Leverage</Label>
+                                <Label className="text-xs text-slate-400 mb-1 block">{t("leverage")}</Label>
                                 <Input
                                     type="number"
                                     value={newTrade.leverage}
@@ -1395,7 +1420,7 @@ export default function AdminUserPage() {
                         
                         <div className="grid grid-cols-2 gap-2">
                             <div>
-                                <Label className="text-xs text-slate-400 mb-1 block">Margin</Label>
+                                <Label className="text-xs text-slate-400 mb-1 block">{t("margin")}</Label>
                                 <Input
                                     type="number"
                                     value={newTrade.margin}
@@ -1404,7 +1429,7 @@ export default function AdminUserPage() {
                                 />
                             </div>
                             <div>
-                                <Label className="text-xs text-slate-400 mb-1 block">Open Price</Label>
+                                <Label className="text-xs text-slate-400 mb-1 block">{t("openPrice")}</Label>
                                 <Input
                                     type="number"
                                     value={newTrade.openIn}
@@ -1423,7 +1448,7 @@ export default function AdminUserPage() {
                         
                         <div className="grid grid-cols-2 gap-2">
                             <div>
-                                <Label className="text-xs text-slate-400 mb-1 block">Take Profit (Optional)</Label>
+                                <Label className="text-xs text-slate-400 mb-1 block">{t("takeProfit")}</Label>
                                 <Input
                                     type="number"
                                     value={newTrade.takeProfit || ''}
@@ -1432,7 +1457,7 @@ export default function AdminUserPage() {
                                 />
                             </div>
                             <div>
-                                <Label className="text-xs text-slate-400 mb-1 block">Stop Loss (Optional)</Label>
+                                <Label className="text-xs text-slate-400 mb-1 block">{t("stopLoss")}</Label>
                                 <Input
                                     type="number"
                                     value={newTrade.stopLoss || ''}
@@ -1446,7 +1471,7 @@ export default function AdminUserPage() {
                             onClick={handleCreateTrade}
                             className="w-full h-8 text-xs bg-slate-800 border border-slate-700 hover:bg-slate-700"
                         >
-                            Create Trade
+                            {t("createTrade")}
                         </Button>
                     </div>
                 </DialogContent>
@@ -1456,12 +1481,12 @@ export default function AdminUserPage() {
             <Dialog open={isOrderDialogOpen} onOpenChange={setIsOrderDialogOpen}>
                 <DialogContent className="border border-slate-800 bg-slate-900 text-slate-100 sm:max-w-md">
                     <DialogHeader>
-                        <DialogTitle className="text-base font-semibold">Create New Order</DialogTitle>
+                        <DialogTitle className="text-base font-semibold">{t("newOrder")}</DialogTitle>
                     </DialogHeader>
                     <div className="space-y-3">
                         <div className="grid grid-cols-2 gap-2">
                             <div>
-                                <Label className="text-xs text-slate-400 mb-1 block">Type</Label>
+                                <Label className="text-xs text-slate-400 mb-1 block">{t("type")}</Label>
                                 <Select
                                     value={newOrder.type}
                                     onValueChange={(v) => setNewOrder({...newOrder, type: v as "DEPOSIT" | "WITHDRAW"})}
@@ -1476,7 +1501,7 @@ export default function AdminUserPage() {
                                 </Select>
                             </div>
                             <div>
-                                <Label className="text-xs text-slate-400 mb-1 block">Status</Label>
+                                <Label className="text-xs text-slate-400 mb-1 block">{t("status")}</Label>
                                 <Select
                                     value={newOrder.status}
                                     onValueChange={(v) => setNewOrder({...newOrder, status: v})}
@@ -1496,7 +1521,7 @@ export default function AdminUserPage() {
                         </div>
                         
                         <div>
-                            <Label className="text-xs text-slate-400 mb-1 block">Order Type</Label>
+                            <Label className="text-xs text-slate-400 mb-1 block">{t("orderType")}</Label>
                             <Select
                                 value={newOrder.orderType || "Card"}
                                 onValueChange={(v) => setNewOrder({...newOrder, orderType: v as "Card" | "Crypto" | "Bank" | "Referral"})}
@@ -1514,7 +1539,7 @@ export default function AdminUserPage() {
                         </div>
                         
                         <div>
-                            <Label className="text-xs text-slate-400 mb-1 block">Amount</Label>
+                            <Label className="text-xs text-slate-400 mb-1 block">{t("amount")}</Label>
                             <Input
                                 type="number"
                                 value={newOrder.amount}
@@ -1527,7 +1552,7 @@ export default function AdminUserPage() {
                             onClick={handleCreateOrder}
                             className="w-full h-8 text-xs bg-slate-800 border border-slate-700 hover:bg-slate-700"
                         >
-                            Create Order
+                            {t("createOrder")}
                         </Button>
                     </div>
                 </DialogContent>
@@ -1537,7 +1562,7 @@ export default function AdminUserPage() {
             <Dialog open={isEditTradeDialogOpen} onOpenChange={setIsEditTradeDialogOpen}>
                 <DialogContent className="border border-slate-800 bg-slate-900 text-slate-100 sm:max-w-md">
                     <DialogHeader>
-                        <DialogTitle className="text-base font-semibold">Edit Trade</DialogTitle>
+                        <DialogTitle className="text-base font-semibold">{t("editTrade")}</DialogTitle>
                     </DialogHeader>
                     <div className="space-y-3">
                         <div>
@@ -1599,7 +1624,7 @@ export default function AdminUserPage() {
             <Dialog open={isEditOrderDialogOpen} onOpenChange={setIsEditOrderDialogOpen}>
                 <DialogContent className="border border-slate-800 bg-slate-900 text-slate-100 sm:max-w-md">
                     <DialogHeader>
-                        <DialogTitle className="text-base font-semibold">Edit Order</DialogTitle>
+                        <DialogTitle className="text-base font-semibold">{t("editOrder")}</DialogTitle>
                     </DialogHeader>
                     <div className="space-y-3">
                         <div>
@@ -1721,7 +1746,7 @@ export default function AdminUserPage() {
                                 disabled={savingComments}
                                 className="h-8 px-3 text-xs bg-slate-800 border border-slate-700 hover:bg-slate-700"
                             >
-                                {savingComments ? "Saving..." : "Save Comments"}
+                                {savingComments ? t("saving") || "Saving..." : t("saveComments")}
                             </Button>
                         </div>
                     </div>

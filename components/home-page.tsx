@@ -3,259 +3,239 @@
 import { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion";
 import {
-    ArrowRight,
-    TrendingUp,
-    Shield,
-    Zap,
-    BarChart3,
-    Users,
-    Headphones,
-    Wallet,
-    ArrowUpRight,
-    Terminal,
-    Award,
+  ArrowRight,
+  TrendingUp,
+  Shield,
+  Zap,
+  BarChart3,
+  Users,
+  Headphones,
+  Wallet,
+  ArrowUpRight,
+  Terminal,
+  Award,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useI18n } from "@/components/i18n-provider";
-import {Skeleton} from "@/components/ui/skeleton";
+import { Skeleton } from "@/components/ui/skeleton";
 import Header from "@/components/header";
 import ChatButton from "@/components/chat/chat-button";
+import { useAuth } from "@/components/auth-provider";
 
 export function HomePageClient() {
-    const { t } = useI18n();
-    const { scrollY } = useScroll();
-    const containerRef = useRef<HTMLDivElement>(null);
-    const sliderRef = useRef<HTMLDivElement>(null);
-    const [loadUser,setLoadUser] = useState(true)
-    const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
-    const [currentSlide, setCurrentSlide] = useState(0);
-    const [isAutoPlaying, setIsAutoPlaying] = useState(true);
-    const [isDragging, setIsDragging] = useState(false);
-    const [dragStartX, setDragStartX] = useState(0);
-    const [dragOffset, setDragOffset] = useState(0);
+  const { t } = useI18n();
+  const { scrollY } = useScroll();
+  const containerRef = useRef<HTMLDivElement>(null);
+  const sliderRef = useRef<HTMLDivElement>(null);
 
-    // Parallax transforms
-    const layer1Y = useTransform(scrollY, [0, 2000], [0, -200]);
-    const layer2Y = useTransform(scrollY, [0, 2000], [0, -400]);
-    const layer3Y = useTransform(scrollY, [0, 2000], [0, -600]);
-    const layer4Y = useTransform(scrollY, [0, 2000], [0, -800]);
+  // 👉 вместо локального fetch("/api/auth/me")
+  const { user, loading } = useAuth();
+  const loadUser = loading;
+  const isAuthenticated = !!user;
 
-    // Content sections transforms
-    const featuresY = useTransform(scrollY, [0, 2000], [0, -100]);
-    const howItWorksY = useTransform(scrollY, [0, 2000], [0, -150]);
-    const educationY = useTransform(scrollY, [0, 2000], [0, -200]);
-    const ctaY = useTransform(scrollY, [0, 2000], [0, -100]);
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [isAutoPlaying, setIsAutoPlaying] = useState(true);
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStartX, setDragStartX] = useState(0);
+  const [dragOffset, setDragOffset] = useState(0);
 
-    // Hero scale on scroll
-    const heroScale = useTransform(scrollY, [0, 500], [1, 0.98]);
+  // Parallax transforms
+  const layer1Y = useTransform(scrollY, [0, 2000], [0, -200]);
+  const layer2Y = useTransform(scrollY, [0, 2000], [0, -400]);
+  const layer3Y = useTransform(scrollY, [0, 2000], [0, -600]);
+  const layer4Y = useTransform(scrollY, [0, 2000], [0, -800]);
 
-    // Content fade in
-    const contentOpacity = useTransform(scrollY, [400, 800], [0, 1]);
+  // Content sections transforms
+  const featuresY = useTransform(scrollY, [0, 2000], [0, -100]);
+  const howItWorksY = useTransform(scrollY, [0, 2000], [0, -150]);
+  const educationY = useTransform(scrollY, [0, 2000], [0, -200]);
+  const ctaY = useTransform(scrollY, [0, 2000], [0, -100]);
 
-    useEffect(() => {
-        let cancelled = false;
+  // Hero scale on scroll
+  const heroScale = useTransform(scrollY, [0, 500], [1, 0.98]);
 
-        const checkAuth = async () => {
-            try {
-                const res = await fetch("/api/auth/me", { cache: "no-store" });
-                if (!cancelled) {
-                    setIsAuthenticated(res.ok);
-                }
-            } catch {
-                if (!cancelled) {
-                    setIsAuthenticated(false);
-                }
-            } finally {
-                if (!cancelled) {
-                    setLoadUser(false);
-                }
-            }
-        };
+  // Content fade in
+  const contentOpacity = useTransform(scrollY, [400, 800], [0, 1]);
 
-        checkAuth();
+  // Auto-play slider
+  useEffect(() => {
+    if (!isAutoPlaying || isDragging) return;
 
-        return () => {
-            cancelled = true;
-        };
-    }, []);
-    // Auto-play slider
-    useEffect(() => {
-        if (!isAutoPlaying || isDragging) return;
+    const interval = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % 3);
+    }, 6000);
 
-        const interval = setInterval(() => {
-            setCurrentSlide((prev) => (prev + 1) % 3);
-        }, 6000);
+    return () => clearInterval(interval);
+  }, [isAutoPlaying, isDragging]);
 
-        return () => clearInterval(interval);
-    }, [isAutoPlaying, isDragging]);
+  // Swipe handlers
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setIsDragging(true);
+    setDragStartX(e.touches[0].clientX);
+    setIsAutoPlaying(false);
+  };
 
-    // Swipe handlers
-    const handleTouchStart = (e: React.TouchEvent) => {
-        setIsDragging(true);
-        setDragStartX(e.touches[0].clientX);
-        setIsAutoPlaying(false);
-    };
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isDragging) return;
+    const currentX = e.touches[0].clientX;
+    const diff = currentX - dragStartX;
+    setDragOffset(diff);
+  };
 
-    const handleTouchMove = (e: React.TouchEvent) => {
-        if (!isDragging) return;
-        const currentX = e.touches[0].clientX;
-        const diff = currentX - dragStartX;
-        setDragOffset(diff);
-    };
+  const handleTouchEnd = () => {
+    if (!isDragging) return;
+    setIsDragging(false);
 
-    const handleTouchEnd = () => {
-        if (!isDragging) return;
-        setIsDragging(false);
+    const threshold = 50;
+    if (Math.abs(dragOffset) > threshold) {
+      if (dragOffset > 0) {
+        prevSlide();
+      } else {
+        nextSlide();
+      }
+    }
+    setDragOffset(0);
+  };
 
-        const threshold = 50;
-        if (Math.abs(dragOffset) > threshold) {
-            if (dragOffset > 0) {
-                prevSlide();
-            } else {
-                nextSlide();
-            }
-        }
-        setDragOffset(0);
-    };
+  // Mouse drag handlers
+  const handleMouseDown = (e: React.MouseEvent) => {
+    setIsDragging(true);
+    setDragStartX(e.clientX);
+    setIsAutoPlaying(false);
+    e.preventDefault();
+  };
 
-    // Mouse drag handlers
-    const handleMouseDown = (e: React.MouseEvent) => {
-        setIsDragging(true);
-        setDragStartX(e.clientX);
-        setIsAutoPlaying(false);
-        e.preventDefault();
-    };
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging) return;
+    const currentX = e.clientX;
+    const diff = currentX - dragStartX;
+    setDragOffset(diff);
+  };
 
-    const handleMouseMove = (e: React.MouseEvent) => {
-        if (!isDragging) return;
-        const currentX = e.clientX;
-        const diff = currentX - dragStartX;
-        setDragOffset(diff);
-    };
+  const handleMouseUp = () => {
+    if (!isDragging) return;
+    setIsDragging(false);
 
-    const handleMouseUp = () => {
-        if (!isDragging) return;
-        setIsDragging(false);
+    const threshold = 50;
+    if (Math.abs(dragOffset) > threshold) {
+      if (dragOffset > 0) {
+        prevSlide();
+      } else {
+        nextSlide();
+      }
+    }
+    setDragOffset(0);
+  };
 
-        const threshold = 50;
-        if (Math.abs(dragOffset) > threshold) {
-            if (dragOffset > 0) {
-                prevSlide();
-            } else {
-                nextSlide();
-            }
-        }
-        setDragOffset(0);
-    };
+  const slides = [
+    {
+      id: "trading",
+      icon: BarChart3,
+      iconBg: "from-violet-600 to-violet-700",
+      titleKey: "heroSlideTradeTitle",
+      subtitleKey: "heroSlideTradeSubtitle",
+      descriptionKey: "heroSlideTradeDesc",
+      cta: isAuthenticated ? t("heroCtaGoToMarket") : t("heroCtaOpenAccount"),
+      gradient: "from-violet-600/20 to-violet-700/20",
+      borderColor: "border-violet-500/20",
+      ctaClass: "bg-violet-500 hover:bg-violet-600",
+    },
+    {
+      id: "wallet",
+      icon: Wallet,
+      iconBg: "from-cyan-600 to-cyan-700",
+      titleKey: "heroSlideWalletTitle",
+      subtitleKey: "heroSlideWalletSubtitle",
+      descriptionKey: "heroSlideWalletDesc",
+      cta: isAuthenticated ? t("heroCtaGoToDashboard") : t("heroCtaOpenAccount"),
+      gradient: "from-cyan-600/20 to-cyan-700/20",
+      borderColor: "border-cyan-500/20",
+      ctaClass: "bg-cyan-500 hover:bg-cyan-600",
+    },
+    {
+      id: "manager",
+      icon: Headphones,
+      iconBg: "from-orange-600 to-orange-700",
+      titleKey: "heroSlideManagerTitle",
+      subtitleKey: "heroSlideManagerSubtitle",
+      descriptionKey: "heroSlideManagerDesc",
+      cta: isAuthenticated ? t("heroCtaGoToDashboard") : t("heroCtaOpenAccount"),
+      gradient: "from-orange-600/20 to-orange-700/20",
+      borderColor: "border-orange-500/20",
+      ctaClass: "bg-orange-500 hover:bg-orange-600",
+    },
+  ];
 
-    const slides = [
-        {
-            id: "trading",
-            icon: BarChart3,
-            iconBg: "from-violet-600 to-violet-700",
-            titleKey: "heroSlideTradeTitle",
-            subtitleKey: "heroSlideTradeSubtitle",
-            descriptionKey: "heroSlideTradeDesc",
-            cta: isAuthenticated ? t("heroCtaGoToMarket") : t("heroCtaOpenAccount"),
-            gradient: "from-violet-600/20 to-violet-700/20",
-            borderColor: "border-violet-500/20",
-            ctaClass: "bg-violet-500 hover:bg-violet-600",
-        },
-        {
-            id: "wallet",
-            icon: Wallet,
-            iconBg: "from-cyan-600 to-cyan-700",
-            titleKey: "heroSlideWalletTitle",
-            subtitleKey: "heroSlideWalletSubtitle",
-            descriptionKey: "heroSlideWalletDesc",
-            cta: isAuthenticated ? t("heroCtaGoToDashboard") : t("heroCtaOpenAccount"),
-            gradient: "from-cyan-600/20 to-cyan-700/20",
-            borderColor: "border-cyan-500/20",
-            ctaClass: "bg-cyan-500 hover:bg-cyan-600",
-        },
-        {
-            id: "manager",
-            icon: Headphones,
-            iconBg: "from-orange-600 to-orange-700",
-            titleKey: "heroSlideManagerTitle",
-            subtitleKey: "heroSlideManagerSubtitle",
-            descriptionKey: "heroSlideManagerDesc",
-            cta: isAuthenticated ? t("heroCtaGoToDashboard") : t("heroCtaOpenAccount"),
-            gradient: "from-orange-600/20 to-orange-700/20",
-            borderColor: "border-orange-500/20",
-            ctaClass: "bg-orange-500 hover:bg-orange-600",
-        },
-    ];
+  const features = [
+    {
+      icon: Terminal,
+      titleKey: "advancedTrading",
+      descriptionKey: "advancedTradingDesc",
+      gradient: "from-violet-600/20 to-violet-700/20",
+      borderColor: "border-violet-500/20",
+    },
+    {
+      icon: Shield,
+      titleKey: "enterpriseSecurity",
+      descriptionKey: "enterpriseSecurityDesc",
+      gradient: "from-cyan-600/20 to-cyan-700/20",
+      borderColor: "border-cyan-500/20",
+    },
+    {
+      icon: Zap,
+      titleKey: "lightningFast",
+      descriptionKey: "lightningFastDesc",
+      gradient: "from-orange-600/20 to-orange-700/20",
+      borderColor: "border-orange-500/20",
+    },
+  ];
 
-    const features = [
-        {
-            icon: Terminal,
-            titleKey: "advancedTrading",
-            descriptionKey: "advancedTradingDesc",
-            gradient: "from-violet-600/20 to-violet-700/20",
-            borderColor: "border-violet-500/20",
-        },
-        {
-            icon: Shield,
-            titleKey: "enterpriseSecurity",
-            descriptionKey: "enterpriseSecurityDesc",
-            gradient: "from-cyan-600/20 to-cyan-700/20",
-            borderColor: "border-cyan-500/20",
-        },
-        {
-            icon: Zap,
-            titleKey: "lightningFast",
-            descriptionKey: "lightningFastDesc",
-            gradient: "from-orange-600/20 to-orange-700/20",
-            borderColor: "border-orange-500/20",
-        },
-    ];
+  const stats = [
+    { value: "3800+", labelKey: "heroStatActiveClients", icon: Users },
+    { value: "230+", labelKey: "trustedCompanies", icon: Award },
+    { value: "$230M+", labelKey: "dailyVolume", icon: TrendingUp },
+    { value: "0.001s", labelKey: "heroStatExecutionSpeed", icon: Zap },
+  ];
 
-    const stats = [
-        { value: "3800+", labelKey: "heroStatActiveClients", icon: Users },
-        { value: "230+", labelKey: "trustedCompanies", icon: Award },
-        { value: "$230M+", labelKey: "dailyVolume", icon: TrendingUp },
-        { value: "0.001s", labelKey: "heroStatExecutionSpeed", icon: Zap },
-    ];
+  const howItWorksSteps = [
+    { step: "01", titleKey: "stepCreateAccountTitle", descKey: "stepCreateAccountDesc" },
+    { step: "02", titleKey: "stepFundAccountTitle", descKey: "stepFundAccountDesc" },
+    { step: "03", titleKey: "stepStartTradingTitle", descKey: "stepStartTradingDesc" },
+  ];
 
-    const howItWorksSteps = [
-        { step: "01", titleKey: "stepCreateAccountTitle", descKey: "stepCreateAccountDesc" },
-        { step: "02", titleKey: "stepFundAccountTitle", descKey: "stepFundAccountDesc" },
-        { step: "03", titleKey: "stepStartTradingTitle", descKey: "stepStartTradingDesc" },
-    ];
+  const educationItems = [
+    { titleKey: "educationItemAcademy", descKey: "educationItemAcademyDesc", icon: Terminal },
+    { titleKey: "educationItemIdeas", descKey: "educationItemIdeasDesc", icon: BarChart3 },
+    { titleKey: "educationItemSupport", descKey: "educationItemSupportDesc", icon: Shield },
+  ];
 
-    const educationItems = [
-        { titleKey: "educationItemAcademy", descKey: "educationItemAcademyDesc", icon: Terminal },
-        { titleKey: "educationItemIdeas", descKey: "educationItemIdeasDesc", icon: BarChart3 },
-        { titleKey: "educationItemSupport", descKey: "educationItemSupportDesc", icon: Shield },
-    ];
+  const goToSlide = (index: number) => {
+    setCurrentSlide(index);
+    setIsAutoPlaying(false);
+  };
 
-    const goToSlide = (index: number) => {
-        setCurrentSlide(index);
-        setIsAutoPlaying(false);
-    };
+  const nextSlide = () => {
+    setCurrentSlide((prev) => (prev + 1) % 3);
+    setIsAutoPlaying(false);
+  };
 
-    const nextSlide = () => {
-        setCurrentSlide((prev) => (prev + 1) % 3);
-        setIsAutoPlaying(false);
-    };
+  const prevSlide = () => {
+    setCurrentSlide((prev) => (prev - 1 + 3) % 3);
+    setIsAutoPlaying(false);
+  };
 
-    const prevSlide = () => {
-        setCurrentSlide((prev) => (prev - 1 + 3) % 3);
-        setIsAutoPlaying(false);
-    };
+  const currentSlideData = slides[currentSlide];
+  console.log(loadUser);
 
-    const currentSlideData = slides[currentSlide];
-    console.log(loadUser)
-    return (
-        <div
-            ref={containerRef}
-            className="min-h-screen text-white overflow-x-hidden"
-            style={{ backgroundColor: "var(--app-bg-page)" }}
-        >
-            {/* Header for unauthenticated users */}
-            {!loadUser && !isAuthenticated && <Header homepage={true} />}
+  return (
+    <div
+      ref={containerRef}
+      className="min-h-screen text-white overflow-x-hidden"
+      style={{ backgroundColor: "var(--app-bg-page)" }}
+    >
+      {/* Header for unauthenticated users */}
+      {/*{!loadUser && !isAuthenticated && <Header homepage={true} />}*/}
             {/* Multi-layer Parallax Background */}
             <div className="fixed inset-0 z-0">
                 {/* Layer 1 */}

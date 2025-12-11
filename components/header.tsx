@@ -589,7 +589,9 @@ export default function Header({homepage=false}) {
                                 animate={{opacity: 1}}
                                 exit={{opacity: 0}}
                                 transition={{duration: 0.2}}
-                                className="fixed inset-0 z-[90] flex-1 h-screen overflow-hidden w-screen bg-app-bgPage flex flex-col"
+                                className="fixed inset-0 z-[90] flex-1 h-screen overflow-y-auto w-screen bg-app-bgPage flex flex-col"
+                                onTouchStart={(e) => e.stopPropagation()}
+                                onTouchMove={(e) => e.stopPropagation()}
                             >
                                 {/* top bar */}
                                 <div
@@ -622,7 +624,7 @@ export default function Header({homepage=false}) {
                                             onClick={openSupportChat}
                                             className="inline-flex  gap-4 justify-end text-right items-center text-sm font-bold p-2  bg-background rounded-sm">
                                             <MdSupportAgent className="h-7 w-7 flex items-center justify-center"/>
-                                            Support
+                                            {t("supportText") || t("support") || "Support"}
                                         </motion.div>
                                     </div>
                                 </div>
@@ -643,7 +645,7 @@ export default function Header({homepage=false}) {
                                               className={'group flex w-full  gap-2 items-center justify-center  p-4 rounded-md text-[11px] font-bold text-app-text bg-background  focus:text-blue-400 focus:bg-gray-800'}>
                                             <LucideWalletCards
                                                 className={'w-5 h-5 md:w-6 md:h-6 text-app-muted group-focus:text-blue-400'}/>
-                                            <span>{t("wallet")}</span>
+                                            <span>{t("walletText") || t("wallet") || "Wallet"}</span>
                                         </Link>
                                         <Link href={'/news'} onClick={() => {
                                             setMobileMenuOpen(false)

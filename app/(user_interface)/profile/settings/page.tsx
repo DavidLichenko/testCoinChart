@@ -43,6 +43,7 @@ export default function ProfileSettingsPage() {
   // Profile form states
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [baseCurrency, setBaseCurrency] = useState<"USD" | "EUR">("USD");
   const [selectedLanguage, setSelectedLanguage] = useState<"en" | "es">(lang as "en" | "es");
 
   // Settings states
@@ -64,6 +65,7 @@ export default function ProfileSettingsPage() {
           setUserProfile(profileData);
           setName(profileData.name || "");
           setEmail(profileData.email || "");
+          setBaseCurrency(profileData.baseCurrency || "USD");
         }
       } catch (error) {
         console.error("Error fetching profile data:", error);
@@ -85,18 +87,32 @@ export default function ProfileSettingsPage() {
       const response = await fetch("/api/user/profile", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email }),
+        body: JSON.stringify({ name, email, baseCurrency }),
       });
 
       if (response.ok) {
+        const updatedProfile = await response.json();
+        const oldBaseCurrency = baseCurrency;
+        
         toast({
           title: "✅ " + t("success"),
-          description: t("profileUpdated"),
+          description: t("profileUpdated") || "Profile updated successfully",
         });
-        const updatedProfile = await response.json();
+        
         setUserProfile((prev) => (prev ? { ...prev, ...updatedProfile } : null));
+        if (updatedProfile.baseCurrency) {
+          setBaseCurrency(updatedProfile.baseCurrency);
+        }
 
         if (selectedLanguage) setLang(selectedLanguage);
+        
+        // Refresh balance data after currency change
+        if (updatedProfile.baseCurrency && updatedProfile.baseCurrency !== oldBaseCurrency) {
+          // Reload to refresh balance data
+          setTimeout(() => {
+            window.location.reload();
+          }, 1000);
+        }
       } else {
         throw new Error("Failed to update profile");
       }
@@ -191,29 +207,71 @@ export default function ProfileSettingsPage() {
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label
-                  htmlFor="language"
-                  className="text-sm text-gray-400 font-medium"
-                >
-                  {t("language")}
-                </Label>
-                <Select
-                  value={selectedLanguage}
-                  onValueChange={(v) => setSelectedLanguage(v as "en" | "es")}
-                >
-                  <SelectTrigger className="h-11 rounded-xl border-gray-800 bg-gray-900/70 text-sm">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="border-gray-800 bg-gray-900 rounded-xl">
-                    <SelectItem value="en">
-                      {t("english")}
-                    </SelectItem>
-                    <SelectItem value="es">
-                      {t("spanish")}
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
+              <div className="grid gap-5 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="language"
+                    className="text-sm text-gray-400 font-medium"
+                  >
+                    {t("language")}
+                  </Label>
+                  <Select
+                    value={selectedLanguage}
+                    onValueChange={(v) => setSelectedLanguage(v as "en" | "es")}
+                  >
+                    <SelectTrigger className="h-11 rounded-xl border-gray-800 bg-gray-900/70 text-sm">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="border-gray-800 bg-gray-900 rounded-xl">
+                      <SelectItem value="en">
+                        {t("english")}
+                      </SelectItem>
+                      <SelectItem value="es">
+                        {t("spanish")}
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="baseCurrency"
+                    className="text-sm text-gray-400 font-medium"
+                  >
+                    {t("baseCurrency") || "Base Currency"}
+                  </Label>
+                  <Select
+                    value={baseCurrency}
+                    onValueChange={(v: "USD" | "EUR") => setBaseCurrency(v)}
+                  >
+                    <SelectTrigger className="h-11 rounded-xl border-gray-800 bg-gray-900/70 text-sm">
+                      <SelectValue>
+                        <div className="flex items-center gap-2">
+                          <img 
+                            src={`/icons/forex_icons/${baseCurrency}.png`} 
+                            alt={baseCurrency} 
+                            className="h-4 w-4" 
+                          />
+                          <span>{baseCurrency}</span>
+                        </div>
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent className="border-gray-800 bg-gray-900 rounded-xl">
+                      <SelectItem value="USD">
+                        <div className="flex items-center gap-2">
+                          <img src="/icons/forex_icons/USD.png" alt="USD" className="h-4 w-4" />
+                          <span>USD</span>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="EUR">
+                        <div className="flex items-center gap-2">
+                          <img src="/icons/forex_icons/EUR.png" alt="EUR" className="h-4 w-4" />
+                          <span>EUR</span>
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
 
               <div className="flex flex-wrap gap-3 pt-2">

@@ -11,8 +11,6 @@ import {
   ArrowUpCircle,
   Coins,
   AlertCircle,
-  User,
-  Mail,
   Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -55,13 +53,12 @@ export default function ProfileWithdrawPage() {
   const [amount, setAmount] = useState("");
   const [selectedMethod, setSelectedMethod] = useState<"CARD" | "CRYPTO" | null>(null);
   const [selectedAsset, setSelectedAsset] = useState<string>("");
-  const [transferType, setTransferType] = useState<"balance" | "user" | "crypto">("balance");
-  const [userEmail, setUserEmail] = useState("");
+  const [selectedCryptoAsset, setSelectedCryptoAsset] = useState<string>("");
   const [cardNumber, setCardNumber] = useState("");
   const [cardHolder, setCardHolder] = useState("");
   const [cryptoAddress, setCryptoAddress] = useState("");
   const [cryptoNetwork, setCryptoNetwork] = useState("");
-  const [userCryptoAddresses, setUserCryptoAddresses] = useState<any[]>([]);
+  const [availableNetworks, setAvailableNetworks] = useState<string[]>([]);
 
   // Data
   const [limits, setLimits] = useState<WithdrawalLimit[]>([]);
@@ -101,11 +98,12 @@ export default function ProfileWithdrawPage() {
           setUsedThisMonth(usedData.month || 0);
         }
 
-        // Fetch user crypto addresses
-        const addressesRes = await fetch("/api/user/crypto-addresses");
-        if (addressesRes.ok) {
-          const addressesData = await addressesRes.json();
-          setUserCryptoAddresses(addressesData);
+        // Fetch available networks for crypto withdrawal
+        const networksRes = await fetch("/api/wallet/deposit-addresses");
+        if (networksRes.ok) {
+          const networksData = await networksRes.json();
+          const networks = [...new Set(networksData.map((n: any) => n.network))];
+          setAvailableNetworks(networks);
         }
       } catch (error) {
         console.error("Error fetching withdrawal data:", error);
@@ -201,19 +199,10 @@ export default function ProfileWithdrawPage() {
       return;
     }
 
-    if (selectedMethod === "CRYPTO" && transferType === "user" && !userEmail) {
+    if (selectedMethod === "CRYPTO" && (!selectedCryptoAsset || !cryptoAddress || !cryptoNetwork)) {
       toast({
-        title: "Missing information",
-        description: "Please enter user email for transfer",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (selectedMethod === "CRYPTO" && transferType === "crypto" && (!cryptoAddress || !cryptoNetwork)) {
-      toast({
-        title: "Missing information",
-        description: "Please enter crypto address and network",
+        title: t("missingInformation") || "Missing information",
+        description: t("pleaseEnterCryptoAddress") || "Please select crypto asset, network and enter address",
         variant: "destructive",
       });
       return;
@@ -221,8 +210,8 @@ export default function ProfileWithdrawPage() {
 
     if (selectedMethod === "CARD" && (!cardNumber || !cardHolder)) {
       toast({
-        title: "Missing information",
-        description: "Please enter card details",
+        title: t("missingInformation") || "Missing information",
+        description: t("pleaseEnterCardDetails") || "Please enter card details",
         variant: "destructive",
       });
       return;
@@ -237,41 +226,41 @@ export default function ProfileWithdrawPage() {
         body: JSON.stringify({
           amount: amountNum,
           method: selectedMethod,
-          assetSymbol: selectedAsset,
-          transferType,
-          userEmail: transferType === "user" ? userEmail : null,
+          assetSymbol: selectedMethod === "CARD" ? selectedAsset : selectedCryptoAsset,
           cardNumber: selectedMethod === "CARD" ? cardNumber : null,
           cardHolder: selectedMethod === "CARD" ? cardHolder : null,
-          cryptoAddress: transferType === "crypto" ? cryptoAddress : null,
-          cryptoNetwork: transferType === "crypto" ? cryptoNetwork : null,
+          cryptoAddress: selectedMethod === "CRYPTO" ? cryptoAddress : null,
+          cryptoNetwork: selectedMethod === "CRYPTO" ? cryptoNetwork : null,
         }),
       });
 
       if (response.ok) {
         toast({
-          title: "✅ Withdrawal request submitted",
-          description: "Your withdrawal request is being processed",
+          title: `✅ ${t("withdrawalRequestSubmitted") || "Withdrawal request submitted"}`,
+          description: t("withdrawalRequestProcessing") || "Your withdrawal request is being processed",
         });
 
         // Reset form
         setAmount("");
         setSelectedMethod(null);
-        setUserEmail("");
+        setSelectedCryptoAsset("");
         setCardNumber("");
         setCardHolder("");
+        setCryptoAddress("");
+        setCryptoNetwork("");
         refetchBalance();
       } else {
         const errorData = await response.json().catch(() => ({}));
         toast({
-          title: "❌ Submission failed",
-          description: errorData.error || "Could not process withdrawal",
+          title: `❌ ${t("submissionFailed") || "Submission failed"}`,
+          description: errorData.error || t("couldNotProcessWithdrawal") || "Could not process withdrawal",
           variant: "destructive",
         });
       }
     } catch (error) {
       toast({
-        title: "❌ Error",
-        description: "Network error occurred",
+        title: `❌ ${t("error") || "Error"}`,
+        description: t("networkErrorOccurred") || "Network error occurred",
         variant: "destructive",
       });
     } finally {
@@ -281,37 +270,37 @@ export default function ProfileWithdrawPage() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="text-center">
+        <div className="flex min-h-screen items-center justify-center">
+          <div className="text-center">
           <Loader2 className="h-12 w-12 animate-spin text-violet-500 mx-auto" />
-          <p className="mt-4 text-gray-500">Loading withdrawal options...</p>
+          <p className="mt-4 text-gray-500">{t("loadingWithdrawalOptions")}</p>
+          </div>
         </div>
-      </div>
     );
   }
 
   return (
-    <div className="p-4 sm:p-6 max-w-6xl mx-auto">
+    <div className="p-4 sm:p-6 max-w-6xl mx-auto bg-slate-950 min-h-screen">
       <div className="mb-4">
         <h1 className="text-xl font-bold text-white">{t("withdrawFunds")}</h1>
-        <p className="text-gray-500 text-xs mt-1">Transfer funds to your account or another user</p>
-      </div>
+        <p className="text-gray-500 text-xs mt-1">{t("transferFundsToAccount")}</p>
+        </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
-        {/* Withdrawal Form */}
+          {/* Withdrawal Form */}
         <div className="lg:col-span-2 space-y-4">
-          <Card className="bg-slate-900/80 border-slate-800 rounded-lg">
+          <Card className="bg-slate-900 border-slate-800 rounded-lg">
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-base font-semibold">
                 <ArrowUpCircle className="h-4 w-4 text-purple-400" />
-                Withdrawal Form
-              </CardTitle>
-            </CardHeader>
+                {t("withdrawalForm")}
+                </CardTitle>
+              </CardHeader>
             <CardContent className="space-y-4">
               {/* Asset Selection */}
               <div className="space-y-2">
                 <Label className="text-xs text-slate-400 font-medium">
-                  Select Asset
+                  {t("selectAsset")}
                 </Label>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   {assets.map((asset) => (
@@ -322,7 +311,7 @@ export default function ProfileWithdrawPage() {
                       className={`flex flex-col items-center justify-center rounded-lg border p-3 text-xs transition-all ${
                         selectedAsset === asset.symbol
                           ? "border-purple-500 bg-purple-500/20 text-purple-300"
-                          : "border-slate-800 bg-slate-900/70 text-slate-500 hover:border-slate-700"
+                          : "border-slate-800 bg-slate-900 text-slate-500 hover:border-slate-700"
                       }`}
                     >
                       <span className="text-base font-bold">{asset.symbol}</span>
@@ -334,51 +323,51 @@ export default function ProfileWithdrawPage() {
                 </div>
               </div>
 
-              {/* Amount */}
+                {/* Amount */}
               <div className="space-y-1.5">
                 <Label htmlFor="amount" className="text-xs text-slate-400 font-medium">
                   Amount
-                </Label>
-                <div className="relative">
-                  <Input
-                    id="amount"
-                    type="number"
-                    value={amount}
-                    onChange={(e) => setAmount(e.target.value)}
+                  </Label>
+                  <div className="relative">
+                    <Input
+                        id="amount"
+                        type="number"
+                        value={amount}
+                        onChange={(e) => setAmount(e.target.value)}
                     placeholder="Enter amount"
-                    className="h-11 rounded-lg border-slate-800 bg-slate-900/70 pl-11 text-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    className="h-11 rounded-lg border-slate-800 bg-slate-900 pl-11 text-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                     step="0.01"
                     min={selectedLimit?.minAmount || 0}
                     max={selectedLimit?.maxAmount || undefined}
                   />
                   <div className="absolute left-3 top-1/2 -translate-y-1/2">
                     <Wallet className="h-4 w-4 text-slate-500" />
-                  </div>
+                    </div>
                   <div className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400 font-medium">
                     {selectedAsset}
+                    </div>
                   </div>
-                </div>
                 {selectedLimit && (
                   <div className="text-[10px] text-slate-500">
                     Min: {selectedLimit.minAmount} {selectedAsset}
                     {selectedLimit.maxAmount && ` • Max: ${selectedLimit.maxAmount} ${selectedAsset}`}
                   </div>
                 )}
-              </div>
+                </div>
 
               {/* Method Selection */}
               <div className="space-y-1.5">
                 <Label className="text-xs text-slate-400 font-medium">
                   Withdrawal Method
-                </Label>
+                  </Label>
                 <div className="grid gap-2">
-                  <button
-                    type="button"
+                        <button
+                            type="button"
                     onClick={() => setSelectedMethod("CARD")}
                     className={`flex items-center gap-3 rounded-lg border p-3 transition-all text-left ${
                       selectedMethod === "CARD"
                         ? "border-purple-500 bg-purple-500/20"
-                        : "border-slate-800 bg-slate-900/70 hover:border-slate-700"
+                        : "border-slate-800 bg-slate-900 hover:border-slate-700"
                     }`}
                   >
                     <CreditCard className="h-4 w-4 text-slate-400" />
@@ -386,8 +375,8 @@ export default function ProfileWithdrawPage() {
                       <div className="text-sm font-semibold text-slate-300">Card</div>
                       <div className="text-xs text-slate-500 mt-0.5">
                         {limits.find(l => l.method === "CARD")?.processingTime || "1-3 business days"}
-                      </div>
-                    </div>
+                  </div>
+                </div>
                   </button>
                   <button
                     type="button"
@@ -395,53 +384,53 @@ export default function ProfileWithdrawPage() {
                     className={`flex items-center gap-3 rounded-lg border p-3 transition-all text-left ${
                       selectedMethod === "CRYPTO"
                         ? "border-purple-500 bg-purple-500/20"
-                        : "border-slate-800 bg-slate-900/70 hover:border-slate-700"
+                        : "border-slate-800 bg-slate-900 hover:border-slate-700"
                     }`}
                   >
                     <Coins className="h-4 w-4 text-slate-400" />
                     <div className="flex-1">
                       <div className="text-sm font-semibold text-slate-300">Crypto</div>
                       <div className="text-xs text-slate-500 mt-0.5">
-                        Transfer to main balance or another user
-                      </div>
-                    </div>
+                        Withdraw to crypto address
+                                </div>
+                              </div>
                   </button>
+                  </div>
                 </div>
-              </div>
 
-              {/* Method-Specific Fields */}
+                {/* Method-Specific Fields */}
               <AnimatePresence mode="wait">
                 {selectedMethod === "CARD" && (
                   <motion.div
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: "auto" }}
                     exit={{ opacity: 0, height: 0 }}
-                    className="space-y-3 rounded-lg bg-slate-900/70 p-4 border border-slate-800"
+                    className="space-y-3 rounded-lg bg-slate-900 p-4 border border-slate-800"
                   >
                     <div className="space-y-1.5">
                       <Label htmlFor="cardHolder" className="text-xs text-slate-400">
                         Card Holder Name
-                      </Label>
-                      <Input
+                              </Label>
+                              <Input
                         id="cardHolder"
                         value={cardHolder}
                         onChange={(e) => setCardHolder(e.target.value)}
                         placeholder="Enter card holder name"
-                        className="h-10 rounded-lg border-slate-800 bg-slate-900/70 text-sm"
-                      />
-                    </div>
+                        className="h-10 rounded-lg border-slate-800 bg-slate-900 text-sm"
+                              />
+                            </div>
                     <div className="space-y-1.5">
                       <Label htmlFor="cardNumber" className="text-xs text-slate-400">
                         Card Number
-                      </Label>
-                      <Input
+                                </Label>
+                                <Input
                         id="cardNumber"
                         value={cardNumber}
                         onChange={(e) => setCardNumber(e.target.value)}
                         placeholder="Enter card number"
-                        className="h-10 rounded-lg border-slate-800 bg-slate-900/70 text-sm"
-                      />
-                    </div>
+                        className="h-10 rounded-lg border-slate-800 bg-slate-900 text-sm"
+                                />
+                              </div>
                   </motion.div>
                 )}
 
@@ -450,83 +439,64 @@ export default function ProfileWithdrawPage() {
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: "auto" }}
                     exit={{ opacity: 0, height: 0 }}
-                    className="space-y-3 rounded-lg bg-slate-900/70 p-4 border border-slate-800"
+                    className="space-y-3 rounded-lg bg-slate-900 p-4 border border-slate-800"
                   >
+                    {/* Crypto Asset Selection */}
                     <div className="space-y-1.5">
-                      <Label className="text-xs text-slate-400">Transfer Type</Label>
-                      <div className="grid grid-cols-3 gap-2">
-                        <button
-                          type="button"
-                          onClick={() => setTransferType("balance")}
-                          className={`rounded-lg border p-3 transition-all ${
-                            transferType === "balance"
-                              ? "border-purple-500 bg-purple-500/20"
-                              : "border-slate-800 bg-slate-900/70"
-                          }`}
-                        >
-                          <Wallet className="h-4 w-4 mx-auto mb-1 text-slate-400" />
-                          <div className="text-xs font-medium">To Main Balance</div>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setTransferType("user")}
-                          className={`rounded-lg border p-3 transition-all ${
-                            transferType === "user"
-                              ? "border-purple-500 bg-purple-500/20"
-                              : "border-slate-800 bg-slate-900/70"
-                          }`}
-                        >
-                          <User className="h-4 w-4 mx-auto mb-1 text-slate-400" />
-                          <div className="text-xs font-medium">To Another User</div>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setTransferType("crypto")}
-                          className={`rounded-lg border p-3 transition-all ${
-                            transferType === "crypto"
-                              ? "border-purple-500 bg-purple-500/20"
-                              : "border-slate-800 bg-slate-900/70"
-                          }`}
-                        >
-                          <Coins className="h-4 w-4 mx-auto mb-1 text-slate-400" />
-                          <div className="text-xs font-medium">To Crypto Address</div>
-                        </button>
+                      <Label className="text-xs text-slate-400">Select Crypto Asset</Label>
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                        {assets.map((asset) => (
+                          <button
+                            key={asset.symbol}
+                            type="button"
+                            onClick={() => {
+                              setSelectedCryptoAsset(asset.symbol);
+                              setCryptoNetwork("");
+                              setCryptoAddress("");
+                            }}
+                            className={`flex flex-col items-center justify-center rounded-lg border p-3 text-xs transition-all ${
+                              selectedCryptoAsset === asset.symbol
+                                ? "border-purple-500 bg-purple-500/20 text-purple-300"
+                                : "border-slate-800 bg-slate-900 text-slate-500 hover:border-slate-700"
+                            }`}
+                          >
+                            <span className="text-base font-bold">{asset.symbol}</span>
+                            <span className="mt-0.5 text-[10px] text-slate-400">
+                              {asset.ownBalance.toFixed(2)}
+                            </span>
+                          </button>
+                        ))}
                       </div>
                     </div>
-                    {transferType === "user" && (
-                      <div className="space-y-1.5">
-                        <Label htmlFor="userEmail" className="text-xs text-slate-400">
-                          User Email
-                        </Label>
-                        <div className="relative">
-                          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-500" />
-                          <Input
-                            id="userEmail"
-                            type="email"
-                            value={userEmail}
-                            onChange={(e) => setUserEmail(e.target.value)}
-                            placeholder="Enter user email"
-                            className="pl-9 h-10 rounded-lg border-slate-800 bg-slate-900/70 text-sm"
-                          />
-                        </div>
-                      </div>
-                    )}
-                    {transferType === "crypto" && (
-                      <div className="space-y-3">
+
+                    {selectedCryptoAsset && (
+                      <>
+                        {/* Network Selection */}
                         <div className="space-y-1.5">
-                          <Label className="text-xs text-slate-400">Network</Label>
+                          <Label className="text-xs text-slate-400">Select Network</Label>
                           <Select value={cryptoNetwork} onValueChange={setCryptoNetwork}>
-                            <SelectTrigger className="h-10 rounded-lg border-slate-800 bg-slate-900/70 text-sm">
+                            <SelectTrigger className="h-10 rounded-lg border-slate-800 bg-slate-900 text-sm">
                               <SelectValue placeholder="Select network" />
                             </SelectTrigger>
                             <SelectContent className="border-slate-800 bg-slate-900">
-                              <SelectItem value="Bitcoin">Bitcoin</SelectItem>
-                              <SelectItem value="ERC20">ERC20 (Ethereum)</SelectItem>
-                              <SelectItem value="TRC20">TRC20 (Tron)</SelectItem>
-                              <SelectItem value="BEP20">BEP20 (Binance Smart Chain)</SelectItem>
+                              {availableNetworks.map((network) => (
+                                <SelectItem key={network} value={network}>
+                                  {network}
+                                </SelectItem>
+                              ))}
+                              {availableNetworks.length === 0 && (
+                                <>
+                                  <SelectItem value="ERC20">ERC20 (Ethereum)</SelectItem>
+                                  <SelectItem value="TRC20">TRC20 (Tron)</SelectItem>
+                                  <SelectItem value="BEP20">BEP20 (Binance Smart Chain)</SelectItem>
+                                  <SelectItem value="Bitcoin">Bitcoin</SelectItem>
+                                </>
+                              )}
                             </SelectContent>
                           </Select>
                         </div>
+
+                        {/* Crypto Address Input */}
                         <div className="space-y-1.5">
                           <Label htmlFor="cryptoAddress" className="text-xs text-slate-400">
                             Crypto Address
@@ -536,33 +506,10 @@ export default function ProfileWithdrawPage() {
                             value={cryptoAddress}
                             onChange={(e) => setCryptoAddress(e.target.value)}
                             placeholder="Enter crypto address"
-                            className="h-10 rounded-lg border-slate-800 bg-slate-900/70 text-sm font-mono"
+                            className="h-10 rounded-lg border-slate-800 bg-slate-900 text-sm font-mono"
                           />
                         </div>
-                        {userCryptoAddresses.length > 0 && (
-                          <div className="space-y-2">
-                            <Label className="text-xs text-slate-400">Or select saved address</Label>
-                            <div className="space-y-1.5">
-                              {userCryptoAddresses
-                                .filter(addr => addr.assetSymbol === selectedAsset && addr.isActive)
-                                .map((addr) => (
-                                  <button
-                                    key={addr.id}
-                                    type="button"
-                                    onClick={() => {
-                                      setCryptoAddress(addr.address);
-                                      setCryptoNetwork(addr.network);
-                                    }}
-                                    className="w-full rounded-lg border border-slate-800 bg-slate-900/70 p-2 text-left text-xs hover:border-slate-700 transition"
-                                  >
-                                    <div className="font-medium text-slate-200">{addr.label || addr.network}</div>
-                                    <div className="text-slate-400 font-mono text-[10px] truncate">{addr.address}</div>
-                                  </button>
-                                ))}
-                            </div>
-                          </div>
-                        )}
-                      </div>
+                      </>
                     )}
                   </motion.div>
                 )}
@@ -570,7 +517,7 @@ export default function ProfileWithdrawPage() {
 
               {/* Fee Calculation */}
               {selectedLimit && amount && !isNaN(parseFloat(amount)) && (
-                <div className="rounded-lg bg-slate-900/70 p-3 border border-slate-800">
+                <div className="rounded-lg bg-slate-900 p-3 border border-slate-800">
                   <div className="flex justify-between text-xs mb-1.5">
                     <span className="text-slate-400">Amount:</span>
                     <span className="text-slate-300 font-medium">{amount} {selectedAsset}</span>
@@ -587,37 +534,37 @@ export default function ProfileWithdrawPage() {
                       {(parseFloat(amount) - calculateFee(parseFloat(amount))).toFixed(2)} {selectedAsset}
                     </span>
                   </div>
-                </div>
-              )}
+                    </div>
+                )}
 
-              {/* Submit Button */}
-              <Button
-                onClick={handleSubmit}
+                {/* Submit Button */}
+                  <Button
+                      onClick={handleSubmit}
                 disabled={isSubmitting || !selectedMethod || !amount}
                 className="w-full rounded-lg bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white h-11"
-              >
-                {isSubmitting ? (
-                  <>
+                  >
+                    {isSubmitting ? (
+                        <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Processing...
-                  </>
-                ) : (
+                        </>
+                    ) : (
                   "Withdraw"
-                )}
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
+                    )}
+                  </Button>
+              </CardContent>
+            </Card>
+          </div>
 
         {/* Sidebar - Available Funds */}
         <div className="space-y-4">
-          <Card className="bg-slate-900/80 border-slate-800 rounded-lg">
+          <Card className="bg-slate-900 border-slate-800 rounded-lg">
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-base font-semibold">
                 <Wallet className="h-4 w-4 text-purple-400" />
                 Available Funds
-              </CardTitle>
-            </CardHeader>
+                </CardTitle>
+              </CardHeader>
             <CardContent className="space-y-3">
               {assets.length === 0 ? (
                 <div className="text-center py-8 text-slate-500">
@@ -630,7 +577,7 @@ export default function ProfileWithdrawPage() {
                     className={`rounded-lg border p-3 ${
                       selectedAsset === asset.symbol
                         ? "border-purple-500 bg-purple-500/10"
-                        : "border-slate-800 bg-slate-900/70"
+                        : "border-slate-800 bg-slate-900"
                     }`}
                   >
                     <div className="flex items-center justify-between">
@@ -648,16 +595,16 @@ export default function ProfileWithdrawPage() {
                         </div>
                         <div className="text-[10px] text-slate-500">Available</div>
                       </div>
-                    </div>
-                  </div>
+                </div>
+                </div>
                 ))
               )}
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
 
-          {/* Withdrawal Limits */}
+            {/* Withdrawal Limits */}
           {selectedLimit && (
-            <Card className="bg-slate-900/80 border-slate-800 rounded-lg">
+            <Card className="bg-slate-900 border-slate-800 rounded-lg">
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm font-semibold text-slate-400">
                   Withdrawal Limits
@@ -670,7 +617,7 @@ export default function ProfileWithdrawPage() {
                     <span className="font-semibold text-slate-300">
                       {selectedLimit.dailyLimit.toFixed(2)} {selectedAsset}
                     </span>
-                  </div>
+                </div>
                 )}
                 {selectedLimit.monthlyLimit && (
                   <div className="flex justify-between text-xs">
@@ -678,7 +625,7 @@ export default function ProfileWithdrawPage() {
                     <span className="font-semibold text-slate-300">
                       {selectedLimit.monthlyLimit.toFixed(2)} {selectedAsset}
                     </span>
-                  </div>
+                </div>
                 )}
                 {selectedLimit.dailyLimit && (
                   <div className="flex justify-between text-xs">
@@ -686,7 +633,7 @@ export default function ProfileWithdrawPage() {
                     <span className="font-semibold text-slate-300">
                       {usedToday.toFixed(2)} {selectedAsset}
                     </span>
-                  </div>
+                </div>
                 )}
                 {selectedLimit.monthlyLimit && (
                   <div className="flex justify-between text-xs">
@@ -694,13 +641,13 @@ export default function ProfileWithdrawPage() {
                     <span className="font-semibold text-slate-300">
                       {usedThisMonth.toFixed(2)} {selectedAsset}
                     </span>
-                  </div>
+                </div>
                 )}
               </CardContent>
             </Card>
           )}
+          </div>
         </div>
       </div>
-    </div>
   );
 }

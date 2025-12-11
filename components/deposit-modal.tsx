@@ -33,8 +33,10 @@ interface DepositModalProps {
 
 interface DepositAddress {
   id: string;
+  assetSymbol: string | null;
   network: string;
   address: string;
+  label: string | null;
 }
 
 interface Bank {
@@ -355,7 +357,7 @@ Password: ${bankCredentials.password}
   };
 
   const groupedAddresses = addresses.reduce((acc, addr) => {
-    const token = addr.network.split(" ")[0];
+    const token = addr.assetSymbol || addr.network.split(" ")[0];
     if (!acc[token]) acc[token] = [];
     acc[token].push(addr);
     return acc;

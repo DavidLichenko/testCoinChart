@@ -110,6 +110,16 @@ export async function PATCH(
     const { userId } = await params
     const updates = await request.json()
 
+    // Get current user data first
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { baseCurrency: true },
+    })
+
+    if (!user) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 })
+    }
+
     // какие поля разрешено менять (убрали TotalBalance - используем walletBalances)
     const allowedFields = [
       "name",
@@ -132,11 +142,65 @@ export async function PATCH(
 
     // Остальные поля (name, role, status, blocked, isVerif, can_withdraw, baseCurrency)
     if (Object.keys(filteredUpdates).length > 0) {
-      // Handle baseCurrency change - ensure user has a wallet balance for the new currency
+      // Handle baseCurrency change - convert balance and ensure user has a wallet balance for the new currency
       if ("baseCurrency" in filteredUpdates) {
         const newBaseCurrency = filteredUpdates.baseCurrency;
+        const oldBaseCurrency = user.baseCurrency || "USD";
         
-        // Create wallet balance for new base currency if it doesn't exist
+        // Get current EUR/USD rate
+        let eurUsdRate = 1;
+        try {
+          const eurUsdRes = await fetch(
+            "https://api.binance.com/api/v3/ticker/price?symbol=EURUSDT",
+            { cache: "no-store" }
+          );
+          if (eurUsdRes.ok) {
+            const eurUsdData = await eurUsdRes.json();
+            eurUsdRate = parseFloat(eurUsdData.price) || 1;
+          }
+        } catch (error) {
+          console.warn("Failed to fetch EUR/USD rate, using fallback:", error);
+        }
+        
+        // Get old base currency balance
+        const oldBalance = await prisma.walletBalance.findUnique({
+          where: {
+            userId_assetSymbol: {
+              userId,
+              assetSymbol: oldBaseCurrency,
+            },
+          },
+        });
+        
+        let convertedBalance = 0;
+        let convertedCreditLimit = 0;
+        let convertedCreditUsed = 0;
+        let convertedLocked = 0;
+        
+        if (oldBalance) {
+          // Convert balance based on currency change
+          if (oldBaseCurrency === "EUR" && newBaseCurrency === "USD") {
+            // EUR to USD: multiply by EUR/USD rate
+            convertedBalance = oldBalance.ownBalance * eurUsdRate;
+            convertedCreditLimit = oldBalance.creditLimit * eurUsdRate;
+            convertedCreditUsed = oldBalance.creditUsed * eurUsdRate;
+            convertedLocked = oldBalance.locked * eurUsdRate;
+          } else if (oldBaseCurrency === "USD" && newBaseCurrency === "EUR") {
+            // USD to EUR: divide by EUR/USD rate
+            convertedBalance = oldBalance.ownBalance / eurUsdRate;
+            convertedCreditLimit = oldBalance.creditLimit / eurUsdRate;
+            convertedCreditUsed = oldBalance.creditUsed / eurUsdRate;
+            convertedLocked = oldBalance.locked / eurUsdRate;
+          } else {
+            // Same currency (shouldn't happen, but just in case)
+            convertedBalance = oldBalance.ownBalance;
+            convertedCreditLimit = oldBalance.creditLimit;
+            convertedCreditUsed = oldBalance.creditUsed;
+            convertedLocked = oldBalance.locked;
+          }
+        }
+        
+        // Create/update wallet balance for new base currency
         await prisma.walletBalance.upsert({
           where: {
             userId_assetSymbol: {
@@ -144,16 +208,39 @@ export async function PATCH(
               assetSymbol: newBaseCurrency,
             },
           },
-          update: {},
+          update: {
+            ownBalance: convertedBalance,
+            creditLimit: convertedCreditLimit,
+            creditUsed: convertedCreditUsed,
+            locked: convertedLocked,
+          },
           create: {
             userId,
             assetSymbol: newBaseCurrency,
-            ownBalance: 0,
-            creditLimit: 0,
-            creditUsed: 0,
-            locked: 0,
+            ownBalance: convertedBalance,
+            creditLimit: convertedCreditLimit,
+            creditUsed: convertedCreditUsed,
+            locked: convertedLocked,
           },
         });
+        
+        // Optionally: set old balance to 0 or delete it (keeping it for history)
+        if (oldBalance && oldBaseCurrency !== newBaseCurrency) {
+          await prisma.walletBalance.update({
+            where: {
+              userId_assetSymbol: {
+                userId,
+                assetSymbol: oldBaseCurrency,
+              },
+            },
+            data: {
+              ownBalance: 0,
+              creditLimit: 0,
+              creditUsed: 0,
+              locked: 0,
+            },
+          });
+        }
       }
       
       // If isVerif is being updated, also update the corresponding verification record

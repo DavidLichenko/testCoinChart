@@ -1,10 +1,8 @@
 "use client"
 
 import type React from "react"
-import {createContext, useContext, useEffect, useState} from "react"
-import {usePathname, useRouter} from "next/navigation"
-import Header from "@/components/header";
-import ChatButton from "./chat/chat-button"
+import { createContext, useContext, useEffect, useState } from "react"
+import { usePathname, useRouter } from "next/navigation"
 import Loading from "./loading"
 
 interface User {
@@ -39,6 +37,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true)
   const router = useRouter()
   const pathname = usePathname()
+
   const checkAuth = async () => {
     try {
       const response = await fetch("/api/auth/me")
@@ -60,6 +59,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       await fetch("/api/auth/logout", { method: "POST" })
       setUser(null)
+      // можно тут же router.push("/login")
     } catch (error) {
       console.error("Logout failed:", error)
     }
@@ -84,7 +84,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const originalInsertBefore = Node.prototype.insertBefore
       Node.prototype.insertBefore = function (newNode, referenceNode) {
         if (referenceNode && referenceNode.parentNode !== this) {
-          console.warn("Prevented insertBefore on node with different parent", referenceNode, this)
+          console.warn(
+              "Prevented insertBefore on node with different parent",
+              referenceNode,
+              this
+          )
           return newNode
         }
         return originalInsertBefore.apply(this, arguments as any)
@@ -96,44 +100,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   // Public routes that don't require authentication
-  const publicRoutes = ["/", "/login", "/register", "/privacy", "/terms", "/news"]
+  const publicRoutes = ["/", "/login", "/register", "/privacy", "/terms", "/news", "/forgot-password", "/reset-password"]
   const isPublicRoute = publicRoutes.includes(pathname)
 
   useEffect(() => {
     if (!loading && !user && !isPublicRoute) {
-      // Redirect to login if trying to access protected route
       router.push("/login")
     }
   }, [user, loading, pathname, isPublicRoute, router])
 
-  if (loading) {
-    return <Loading />
-  }
-
-  // For public routes, render without auth wrapper
-  if (!user && isPublicRoute) {
-    return <>{children}</>
-  }
-
-  // If not logged in and not on public route, show nothing (redirect will happen)
-  if (!user) {
-    return null
+  const value: AuthContextType = {
+    user,
+    loading,
+    logout,
+    refreshUser,
   }
 
   return (
-      <AuthContext.Provider value={{ user, loading, logout, refreshUser }}>
-        {/* Каркас авторизованной части сайта */}
-        <div className="min-h-screen overflow-hidden flex flex-col bg-background text-white">
-          {/* Хедер всегда сверху, фиксированной высоты по своему контенту */}
-          <Header />
-
-          {/* Основной контент (в т.ч. /wallet и /wallet/staking) растягивается на остаток */}
-          <main className="flex-1 flex flex-col !bg-app-bgPage h-full">
-            {children}
-          </main>
-
-          <ChatButton />
-        </div>
+      <AuthContext.Provider value={value}>
+        {loading ? (
+            <Loading />
+        ) : (
+            children
+        )}
       </AuthContext.Provider>
   )
 }

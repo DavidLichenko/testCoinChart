@@ -25,10 +25,12 @@ import {
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/components/auth-provider"
+import { useI18n } from "@/components/i18n-provider"
 
 export default function AITradingPage() {
   const router = useRouter()
   const { user } = useAuth()
+  const { t } = useI18n()
   const containerRef = useRef<HTMLDivElement>(null)
   const [isVisible, setIsVisible] = useState(false)
   
@@ -210,12 +212,12 @@ export default function AITradingPage() {
             </motion.div>
             
             <h1 className="text-6xl md:text-8xl font-bold bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400 bg-clip-text text-transparent">
-              AI Trading
+              {t("aiTrading") || "AI Trading"}
             </h1>
             
             <p className="text-2xl md:text-3xl text-slate-300 max-w-3xl mx-auto">
-              Powered by advanced neural networks trained on{" "}
-              <span className="text-purple-400 font-semibold">10+ years</span> of market data
+              {t("aiTradingPoweredBy") || "Powered by advanced neural networks trained on"}{" "}
+              <span className="text-purple-400 font-semibold">{t("aiTrading10Years") || "10+ years"}</span> {t("aiTradingOfMarketData") || "of market data"}
             </p>
             
             <div className="flex flex-wrap items-center justify-center gap-6 text-base text-slate-400">
@@ -224,21 +226,21 @@ export default function AITradingPage() {
                 className="flex items-center gap-2 px-4 py-2 rounded-full bg-slate-900/50 border border-emerald-500/30"
               >
                 <CheckCircle2 className="h-5 w-5 text-emerald-400" />
-                <span className="font-semibold">2,016 Tickers</span>
+                <span className="font-semibold">{t("aiTrading2016Tickers") || "2,016 Tickers"}</span>
               </motion.div>
               <motion.div
                 whileHover={{ scale: 1.1 }}
                 className="flex items-center gap-2 px-4 py-2 rounded-full bg-slate-900/50 border border-emerald-500/30"
               >
                 <CheckCircle2 className="h-5 w-5 text-emerald-400" />
-                <span className="font-semibold">Terabytes of Data</span>
+                <span className="font-semibold">{t("aiTradingTerabytes") || "Terabytes of Data"}</span>
               </motion.div>
               <motion.div
                 whileHover={{ scale: 1.1 }}
                 className="flex items-center gap-2 px-4 py-2 rounded-full bg-slate-900/50 border border-emerald-500/30"
               >
                 <CheckCircle2 className="h-5 w-5 text-emerald-400" />
-                <span className="font-semibold">94% Accuracy</span>
+                <span className="font-semibold">{t("aiTrading94Accuracy") || "94% Accuracy"}</span>
               </motion.div>
             </div>
           </motion.div>
@@ -267,11 +269,11 @@ export default function AITradingPage() {
                 <div>
                   <h3 className="text-3xl font-bold text-white flex items-center gap-3">
                     <Cpu className="h-8 w-8 text-purple-400" />
-                    Data Analysis
+                    {t("aiTradingDataAnalysis") || "Data Analysis"}
                   </h3>
                   <p className="text-slate-400 mt-2 text-lg">
-                    Our AI analyzes <span className="text-purple-400 font-semibold">terabytes</span> of historical market data across{" "}
-                    <span className="text-pink-400 font-semibold">2,016 tickers</span>, identifying patterns and trends that human traders might miss.
+                    {t("aiTradingDataAnalysisDesc") || "Our AI analyzes"} <span className="text-purple-400 font-semibold">{t("aiTradingTerabytes") || "terabytes"}</span> {t("aiTradingDataAnalysisDesc2") || "of historical market data across"}{" "}
+                    <span className="text-pink-400 font-semibold">{t("aiTrading2016Tickers") || "2,016 tickers"}</span>, {t("aiTradingDataAnalysisDesc3") || "identifying patterns and trends that human traders might miss."}
                   </p>
                 </div>
               </div>
@@ -359,11 +361,11 @@ export default function AITradingPage() {
                 <div>
                   <h3 className="text-3xl font-bold text-white flex items-center gap-3">
                     <Zap className="h-8 w-8 text-cyan-400" />
-                    Technical Indicators
+                    {t("aiTradingTechnicalIndicators") || "Technical Indicators"}
                   </h3>
                   <p className="text-slate-400 mt-2 text-lg">
-                    Advanced technical indicators including <span className="text-cyan-400 font-semibold">RSI</span>,{" "}
-                    <span className="text-purple-400 font-semibold">MACD</span>, Bollinger Bands, and custom algorithms work together to provide comprehensive market insights.
+                    {t("aiTradingTechnicalIndicatorsDesc") || "Advanced technical indicators including"} <span className="text-cyan-400 font-semibold">RSI</span>,{" "}
+                    <span className="text-purple-400 font-semibold">MACD</span>, {t("aiTradingTechnicalIndicatorsDesc2") || "Bollinger Bands, and custom algorithms work together to provide comprehensive market insights."}
                   </p>
                 </div>
               </div>
@@ -400,13 +402,13 @@ export default function AITradingPage() {
                 <div>
                   <h3 className="text-4xl font-bold text-white flex items-center justify-center gap-3">
                     <Target className="h-10 w-10 text-emerald-400" />
-                    94% Accuracy
+                    {t("aiTrading94AccuracyTitle") || "94% Accuracy"}
                   </h3>
                 </div>
               </div>
               <p className="text-xl text-slate-300 max-w-3xl mx-auto">
-                After processing <span className="text-emerald-400 font-semibold">millions of data points</span>, our neural network delivers trade recommendations with an impressive{" "}
-                <span className="text-cyan-400 font-bold text-2xl">94% accuracy rate</span>.
+                {t("aiTrading94AccuracyDescFull") || "After processing"} <span className="text-emerald-400 font-semibold">{t("aiTradingMillionsDataPoints") || "millions of data points"}</span>, {t("aiTrading94AccuracyDescFull2") || "our neural network delivers trade recommendations with an impressive"}{" "}
+                <span className="text-cyan-400 font-bold text-2xl">{t("aiTrading94AccuracyDesc") || "94% accuracy rate"}</span>.
               </p>
             </motion.div>
 
@@ -418,9 +420,9 @@ export default function AITradingPage() {
               className="mt-12 grid grid-cols-3 gap-6 max-w-2xl mx-auto"
             >
               {[
-                { label: "Wins", value: 94, color: "emerald" },
-                { label: "Losses", value: 6, color: "red" },
-                { label: "Total", value: 100, color: "purple" }
+                { label: t("wins") || "Wins", value: 94, color: "emerald" },
+                { label: t("losses") || "Losses", value: 6, color: "red" },
+                { label: t("total") || "Total", value: 100, color: "purple" }
               ].map((stat, i) => (
                 <motion.div
                   key={stat.label}
@@ -461,11 +463,11 @@ export default function AITradingPage() {
             </motion.div>
             
             <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
-              Congratulations! You're in Beta
+              {t("aiTradingBetaMessage") || "Congratulations! You're in Beta"}
             </h2>
             <p className="text-xl text-slate-300 mb-8 max-w-2xl mx-auto">
-              You're among the first to experience our revolutionary AI trading system. 
-              Help us improve by providing feedback and enjoy early access to cutting-edge technology.
+              {t("aiTradingBetaDesc") || "You're among the first to experience our revolutionary AI trading system."}{" "}
+              {t("aiTradingBetaDesc2") || "Help us improve by providing feedback and enjoy early access to cutting-edge technology."}
             </p>
             <motion.div
               whileHover={{ scale: 1.05 }}
@@ -476,7 +478,7 @@ export default function AITradingPage() {
                 size="lg"
                 className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white text-lg px-8 py-6 shadow-[0_0_30px_rgba(139,92,246,0.5)]"
               >
-                Try AI Trading Now
+                {t("aiTradingTryNow") || "Try AI Trading Now"}
                 <ArrowRight className="ml-2 h-6 w-6" />
               </Button>
             </motion.div>
@@ -492,7 +494,7 @@ export default function AITradingPage() {
       >
         <Badge className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-4 py-2 text-xs font-semibold shadow-lg">
           <Sparkles className="mr-2 h-3 w-3" />
-          Beta Test
+          {t("aiTradingBetaTest") || "Beta Test"}
         </Badge>
       </motion.div>
     </div>

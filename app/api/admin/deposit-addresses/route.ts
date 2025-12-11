@@ -3,10 +3,25 @@ import { prisma } from "@/lib/prisma"
 import { getCurrentUser } from "@/lib/auth"
 import { hasAdminAccess } from "@/lib/admin-access"
 
-// GET all deposit addresses
+// GET all deposit addresses (using PayoutAddress with type DEPOSIT or BOTH)
 export async function GET(request: NextRequest) {
   try {
-    const addresses = await prisma.depositAddress.findMany()
+    const settings = await prisma.settings.findFirst()
+    if (!settings) {
+      return NextResponse.json([])
+    }
+
+    const addresses = await prisma.payoutAddress.findMany({
+      where: {
+        settingsId: settings.id,
+        isActive: true,
+        type: {
+          in: ["DEPOSIT", "BOTH"]
+        }
+      },
+      orderBy: { createdAt: "asc" }
+    })
+
     return NextResponse.json(addresses)
   } catch (error) {
     console.error("Error fetching deposit addresses:", error)

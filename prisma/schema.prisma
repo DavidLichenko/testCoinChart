@@ -379,6 +379,9 @@ model Settings {
   // НОВОЕ: гибкие адреса для депозитов/выводов
   payoutAddresses  PayoutAddress[]
   withdrawalLimits WithdrawalLimit[]
+  // AI Trading settings
+  aiAnalysisMinSeconds Int?         @default(5) // Минимальное время анализа в секундах
+  aiAnalysisMaxSeconds Int?         @default(10) // Максимальное время анализа в секундах
 }
 
 // Лимиты на вывод средств

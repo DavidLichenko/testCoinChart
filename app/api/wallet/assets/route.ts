@@ -37,11 +37,11 @@ export async function GET() {
         });
     }
 
-    // тянем 24h-тикеры один раз with cache
+    // тянем 24h-тикеры один раз (без Next.js cache, т.к. данные > 2MB)
     const res = await fetch(
         "https://api.binance.com/api/v3/ticker/24hr",
         { 
-            next: { revalidate: 30 }, // Cache for 30 seconds
+            cache: "no-store", // Не используем Next.js data cache из-за размера данных > 2MB
         }
     );
 
@@ -103,10 +103,11 @@ export async function GET() {
         const price = ticker ? Number(ticker.lastPrice) : 0;
         const change24h = ticker ? Number(ticker.priceChangePercent) : 0;
 
-        const totalBalanceAmount = b.ownBalance + b.locked + b.creditUsed;
+        // Только свободный баланс (ownBalance + locked), без кредита
+        const totalBalanceAmount = b.ownBalance + b.locked;
         const visibleBalance = b.ownBalance + b.locked; // то, что показываем в списке
         
-        // Calculate total value in USD
+        // Calculate total value in USD (только для собственных средств)
         let totalValueUsd = 0;
         if (b.assetSymbol === "USD" || b.assetSymbol === "USDT") {
             totalValueUsd = totalBalanceAmount;
@@ -121,13 +122,13 @@ export async function GET() {
         return {
             symbol: b.assetSymbol,
             name: b.asset.name,
-            balance: visibleBalance,      // 👈 теперь сюда попадает и locked
-            ownBalance: b.ownBalance,     // 👈 добавляем отдельное поле для ownBalance
+            balance: visibleBalance,      // ownBalance + locked (без кредита)
+            ownBalance: b.ownBalance,     // только собственные средства
             creditUsed: b.creditUsed,
             creditLimit: b.creditLimit,
             price,
             change24h,
-            totalValue: price * totalBalanceAmount,
+            totalValue: price * totalBalanceAmount, // только для собственных средств
             totalValueUsd, // Add USD value for consistency with new calculation logic
         };
     });

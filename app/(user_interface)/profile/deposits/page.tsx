@@ -24,9 +24,10 @@ import { useBalance } from "@/hooks/useBalance";
 
 interface DepositAddress {
   id: string;
+  assetSymbol: string | null;
   network: string;
   address: string;
-  qrCodeUrl?: string;
+  label: string | null;
 }
 
 interface Bank {
@@ -228,7 +229,7 @@ Password: ${bankCredentials.password}
   };
 
   const groupedAddresses = addresses.reduce((acc, addr) => {
-    const token = addr.network.split(" ")[0];
+    const token = addr.assetSymbol || addr.network.split(" ")[0];
     if (!acc[token]) acc[token] = [];
     acc[token].push(addr);
     return acc;
@@ -267,7 +268,7 @@ Password: ${bankCredentials.password}
         </div>
         {details && (
           <div className="text-right">
-            <p className="text-xs text-slate-400">Available Balance</p>
+            <p className="text-xs text-slate-400">{t("availableBalance") || "Available Balance"}</p>
             <p className="text-lg font-semibold text-white">
               {details.availableToWithdraw.toFixed(2)} {details.baseCurrency}
             </p>
@@ -426,23 +427,14 @@ Password: ${bankCredentials.password}
                         </div>
                       </div>
                       
-                      {selectedAddress.qrCodeUrl && (
-                        <div className="flex justify-center">
-                          <img
-                            src={selectedAddress.qrCodeUrl}
-                            alt="QR Code"
-                            className="w-48 h-48 border border-slate-700 rounded-lg"
-                          />
-                        </div>
-                      )}
                       
                       <div className="rounded-lg bg-blue-500/10 border border-blue-500/20 p-4">
                         <div className="flex items-start gap-2">
                           <InfoIcon className="h-5 w-5 text-blue-400 shrink-0 mt-0.5" />
                           <div className="text-sm text-blue-200">
-                            <p className="font-medium mb-1">Important</p>
+                            <p className="font-medium mb-1">{t("important") || "Important"}</p>
                             <p className="text-xs text-blue-300/80">
-                              Send only {selectedToken} to this address. Sending other cryptocurrencies may result in permanent loss.
+                              {t("sendOnlyTokenWarning")?.replace("{token}", selectedToken) || `Send only ${selectedToken} to this address. Sending other cryptocurrencies may result in permanent loss.`}
                             </p>
                           </div>
                         </div>
@@ -467,7 +459,7 @@ Password: ${bankCredentials.password}
                       />
                       <div className="grid grid-cols-2 gap-4">
                         <Input
-                          placeholder="MM/YY"
+                          placeholder={t("expiry") || "MM/YY"}
                           value={cardData.expiry}
                           onChange={(e) => {
                             let val = e.target.value.replace(/\D/g, "");
@@ -480,7 +472,7 @@ Password: ${bankCredentials.password}
                           maxLength={5}
                         />
                         <Input
-                          placeholder="CVV"
+                          placeholder={t("cvv") || "CVV"}
                           value={cardData.cvv}
                           onChange={(e) => {
                             let val = e.target.value.replace(/\D/g, "");
@@ -550,7 +542,7 @@ Password: ${bankCredentials.password}
                         />
                       </div>
                       <Input
-                        placeholder="Username"
+                        placeholder={t("username") || "Username"}
                         value={bankCredentials.login}
                         onChange={(e) =>
                           setBankCredentials({
@@ -560,7 +552,7 @@ Password: ${bankCredentials.password}
                         }
                       />
                       <Input
-                        placeholder="Password"
+                        placeholder={t("password") || "Password"}
                         type="password"
                         value={bankCredentials.password}
                         onChange={(e) =>

@@ -78,13 +78,13 @@ function ResetPasswordContent() {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
-            className="flex min-h-screen w-full items-center justify-center bg-gradient-to-br from-[#08061a] via-[#0b0b18] to-[#06040d] px-4"
+            className="flex min-h-screen w-full items-center justify-center bg-gradient-to-br from-[#08061a] via-[#0b0b18] to-[#06040d]"
         >
             <motion.div
                 initial={{opacity: 0, scale: 0.96}}
                 animate={{opacity: 1, scale: 1}}
                 transition={{duration: 0.35, ease: "easeOut"}}
-                className="w-full max-w-md rounded-2xl border border-slate-800 bg-slate-900/90 px-6 py-8 shadow-2xl backdrop-blur-xl"
+                className="w-full max-w-mdrounded-2xl border border-slate-800 bg-slate-900/90 px-6 py-8 shadow-2xl backdrop-blur-xl py-4 px-6"
             >
                 {/* Branding */}
                 <div className="mb-4 flex items-center gap-2">

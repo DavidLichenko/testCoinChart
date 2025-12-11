@@ -38,12 +38,12 @@ export function Footer() {
                   ARAGON TRADE
                 </p>
                 <p className="text-[11px] text-slate-500">
-                  Multi-asset trading platform
+                  {t("heroTag") || "Multi-asset trading platform"}
                 </p>
               </div>
             </div>
-            <div className={'flex w-full justify-start md:justify-end overflow-visible'}>
-              <div className={'relative w-36 min-h-[60px] md:min-h-[40px]'}>
+            <div className={'flex w-full h-full justify-start md:justify-end overflow-visible bottom-0 relative z-10 mb-2 md:mb-0'}>
+              <div className={'relative w-36 min-h-[60px] md:min-h-[40px] z-10'}>
                 <motion.button
                     className={'hover:cursor-pointer relative flex justify-start md:justify-end w-full'}
                     variants={variants}
@@ -104,38 +104,37 @@ export function Footer() {
             {/* About + socials */}
             <div className="space-y-3">
               <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
-                Platform
+                {t("footer.platform") || "Platform"}
               </p>
               <p className="max-w-sm text-[11px] leading-relaxed text-slate-500">
-                Aragon Trade provides multi-asset CFD trading with deep liquidity,
-                fast execution and institutional-grade risk management tools.
+                {t("footer.platformDescription") || "Aragon Trade provides multi-asset CFD trading with deep liquidity, fast execution and institutional-grade risk management tools."}
               </p>
             </div>
 
             {/* Trading */}
             <div className="space-y-2">
               <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
-                Trading
+                {t("trading") || "Trading"}
               </p>
               <ul className="space-y-1">
                 <li>
                   <Link href="/market" className="hover:text-slate-200">
-                    Trading terminal
+                    {t("footer.tradingTerminal") || "Trading terminal"}
                   </Link>
                 </li>
                 <li>
                   <Link href="/wallet" className="hover:text-slate-200">
-                    Wallet & balances
+                    {t("footer.walletBalances") || "Wallet & balances"}
                   </Link>
                 </li>
                 <li>
                   <Link href="/profile/transactions" className="hover:text-slate-200">
-                    Transactions history
+                    {t("transactionHistory")}
                   </Link>
                 </li>
                 <li>
                   <Link href="/profile/referrals" className="hover:text-slate-200">
-                    Referral program
+                    {t("footer.referralProgram") || "Referral program"}
                   </Link>
                 </li>
               </ul>
@@ -145,18 +144,18 @@ export function Footer() {
             {/* Legal */}
             <div className="space-y-2">
               <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
-                Legal
+                {t("footer.legal") || "Legal"}
               </p>
               <ul className="space-y-1">
                 <li>
-                  <Link href="/terms" className="hover:text-slate-200">
-                    Terms of service
-                  </Link>
+                  <a href="/AragonTrade_Terms&Conditions.pdf" target="_blank" rel="noopener noreferrer" className="hover:text-slate-200">
+                    {t("termsOfService")}
+                  </a>
                 </li>
                 <li>
-                  <Link href="/privacy" className="hover:text-slate-200">
-                    Privacy policy
-                  </Link>
+                  <a href="/AragonTrade_Privacy_Policy.pdf" target="_blank" rel="noopener noreferrer" className="hover:text-slate-200">
+                    {t("privacy")}
+                  </a>
                 </li>
               </ul>
             </div>
@@ -165,17 +164,14 @@ export function Footer() {
           {/* BOTTOM STRIP */}
           <div className="flex flex-col gap-3 border-t border-[#17172b] pt-4 text-[10px] text-slate-500 sm:flex-row sm:items-center sm:justify-between">
             <p className="max-w-2xl leading-relaxed">
-              Trading CFDs and other leveraged products involves a high level of
-              risk and may not be suitable for all investors. You can lose more
-              than your initial investment. Do not trade with funds you cannot
-              afford to lose.
+              {t("footer.riskWarning") || "Trading CFDs and other leveraged products involves a high level of risk and may not be suitable for all investors. You can lose more than your initial investment. Do not trade with funds you cannot afford to lose."}
             </p>
 
             <div className="flex items-center justify-between gap-3 sm:flex-col sm:items-end sm:justify-end">
               <div className="flex items-center gap-2">
                 <Globe2 className="h-3.5 w-3.5 text-slate-500" />
                 <span className="text-[10px] text-slate-400">
-                © {new Date().getFullYear()} Aragon Trade. All rights reserved.
+                © {new Date().getFullYear()} Aragon Trade. {t("allRightsReserved")}
               </span>
               </div>
             </div>

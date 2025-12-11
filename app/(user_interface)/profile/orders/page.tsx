@@ -83,7 +83,7 @@ export default function ProfileOrdersPage() {
         console.error("Error fetching orders:", error);
         toast({
           title: t("error"),
-          description: "Failed to load orders",
+          description: t("admin.failedToLoadOrders") || "Failed to load orders",
           variant: "destructive",
         });
       } finally {
@@ -153,11 +153,11 @@ export default function ProfileOrdersPage() {
   };
 
   const getOrderType = (order: Order) => {
-    if (order.type === "DEPOSIT") return "Deposit";
-    if (order.type === "WITHDRAW") return "Withdrawal";
+    if (order.type === "DEPOSIT") return t("deposit");
+    if (order.type === "WITHDRAW") return t("withdrawal");
     const meta = typeof order.metadata === 'string' ? JSON.parse(order.metadata) : order.metadata;
-    if (meta?.type === "REFERRAL_BONUS") return "Referral Bonus";
-    if (meta?.type === "CREDIT_GRANT") return "Credit Grant";
+    if (meta?.type === "REFERRAL_BONUS") return t("referralBonus") || "Referral Bonus";
+    if (meta?.type === "CREDIT_GRANT") return t("creditGrant") || "Credit Grant";
     return order.type;
   };
 
@@ -175,7 +175,7 @@ export default function ProfileOrdersPage() {
       <div className="flex min-h-[50vh] items-center justify-center">
         <div className="text-center">
           <Loader2 className="mx-auto h-8 w-8 animate-spin text-violet-500" />
-          <p className="mt-3 text-xs text-slate-400">Loading orders...</p>
+          <p className="mt-3 text-xs text-slate-400">{t("loadingOrders") || "Loading orders..."}</p>
         </div>
       </div>
     );
@@ -188,15 +188,15 @@ export default function ProfileOrdersPage() {
         <div className="inline-flex items-center gap-2 rounded-sm border border-slate-900 bg-slate-950/80 px-3 py-1.5">
           <CreditCard className="h-3.5 w-3.5 text-indigo-400" />
           <span className="text-[11px] font-medium uppercase tracking-[0.16em] text-slate-400">
-            Orders
+            {t("orders") || "Orders"}
           </span>
         </div>
         <div className="space-y-2">
           <h1 className="text-2xl font-semibold text-slate-50 sm:text-3xl">
-            Order History
+            {t("orderHistory") || "Order History"}
           </h1>
           <p className="max-w-xl text-sm leading-relaxed text-slate-400">
-            View your deposit, withdrawal, referral bonus, and credit transactions
+            {t("orderHistoryDescription") || "View your deposit, withdrawal, referral bonus, and credit transactions"}
           </p>
         </div>
       </header>
@@ -210,7 +210,7 @@ export default function ProfileOrdersPage() {
               <div className="relative">
                 <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
                 <Input
-                  placeholder="Search orders..."
+                  placeholder={t("searchOrders") || "Search orders..."}
                   className="h-10 rounded-sm border-slate-800 bg-slate-950/90 pl-9 text-xs text-slate-50 placeholder:text-slate-500"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
@@ -221,29 +221,29 @@ export default function ProfileOrdersPage() {
             <div className="flex flex-wrap gap-2 md:justify-end">
               <Select value={statusFilter} onValueChange={setStatusFilter}>
                 <SelectTrigger className="h-9 w-[130px] rounded-sm border-slate-800 bg-slate-950/90 text-xs text-slate-100">
-                  <SelectValue placeholder="Status" />
+                  <SelectValue placeholder={t("status")} />
                 </SelectTrigger>
                 <SelectContent className="rounded-sm border-slate-800 bg-slate-950 text-xs text-slate-50">
-                  <SelectItem value="ALL">All Status</SelectItem>
-                  <SelectItem value="SUCCESSFUL">Successful</SelectItem>
-                  <SelectItem value="COMPLETED">Completed</SelectItem>
-                  <SelectItem value="PENDING">Pending</SelectItem>
-                  <SelectItem value="PROCESSING">Processing</SelectItem>
-                  <SelectItem value="FAILED">Failed</SelectItem>
-                  <SelectItem value="CANCELLED">Cancelled</SelectItem>
+                  <SelectItem value="ALL">{t("allStatus") || "All Status"}</SelectItem>
+                  <SelectItem value="SUCCESSFUL">{t("successful")}</SelectItem>
+                  <SelectItem value="COMPLETED">{t("completed") || "Completed"}</SelectItem>
+                  <SelectItem value="PENDING">{t("pending")}</SelectItem>
+                  <SelectItem value="PROCESSING">{t("processing")}</SelectItem>
+                  <SelectItem value="FAILED">{t("failed")}</SelectItem>
+                  <SelectItem value="CANCELLED">{t("cancelled")}</SelectItem>
                 </SelectContent>
               </Select>
 
               <Select value={typeFilter} onValueChange={setTypeFilter}>
                 <SelectTrigger className="h-9 w-[130px] rounded-sm border-slate-800 bg-slate-950/90 text-xs text-slate-100">
-                  <SelectValue placeholder="Type" />
+                  <SelectValue placeholder={t("type")} />
                 </SelectTrigger>
                 <SelectContent className="rounded-sm border-slate-800 bg-slate-950 text-xs text-slate-50">
-                  <SelectItem value="ALL">All Types</SelectItem>
-                  <SelectItem value="DEPOSIT">Deposit</SelectItem>
-                  <SelectItem value="WITHDRAW">Withdraw</SelectItem>
-                  <SelectItem value="REFERRAL">Referral Bonus</SelectItem>
-                  {hasCredit && <SelectItem value="CREDIT">Credit</SelectItem>}
+                  <SelectItem value="ALL">{t("allTypes") || "All Types"}</SelectItem>
+                  <SelectItem value="DEPOSIT">{t("deposit")}</SelectItem>
+                  <SelectItem value="WITHDRAW">{t("withdraw")}</SelectItem>
+                  <SelectItem value="REFERRAL">{t("referralBonus") || "Referral Bonus"}</SelectItem>
+                  {hasCredit && <SelectItem value="CREDIT">{t("credit") || "Credit"}</SelectItem>}
                 </SelectContent>
               </Select>
             </div>
@@ -291,7 +291,7 @@ export default function ProfileOrdersPage() {
                           maximumFractionDigits={2}
                           minimumFractionDigits={2}
                         />
-                        {details?.baseCurrency || "USD"}
+                        {" "}{details?.baseCurrency || "USD"}
                       </span>
                     </div>
 
@@ -299,12 +299,12 @@ export default function ProfileOrdersPage() {
                       <div className="mt-2 space-y-1">
                         {order.depositFrom && (
                           <p className="text-[11px] text-slate-400">
-                            From: {order.depositFrom}
+                            {t("from") || "From"}: {order.depositFrom}
                           </p>
                         )}
                         {order.withdrawMethod && (
                           <p className="text-[11px] text-slate-400">
-                            Method: {order.withdrawMethod}
+                            {t("method")}: {order.withdrawMethod}
                           </p>
                         )}
                         {order.cryptoAddress && (
@@ -324,11 +324,11 @@ export default function ProfileOrdersPage() {
                   <table className="w-full text-xs">
                     <thead className="sticky top-0 z-10 bg-slate-950/95">
                       <tr className="border-b border-slate-900 text-left text-[11px] uppercase tracking-[0.12em] text-slate-400">
-                        <th className="px-5 py-3.5">Date</th>
-                        <th className="px-5 py-3.5">Type</th>
-                        <th className="px-5 py-3.5">Amount</th>
-                        <th className="px-5 py-3.5">Status</th>
-                        <th className="px-5 py-3.5">Details</th>
+                        <th className="px-5 py-3.5">{t("date")}</th>
+                        <th className="px-5 py-3.5">{t("type")}</th>
+                        <th className="px-5 py-3.5">{t("amount")}</th>
+                        <th className="px-5 py-3.5">{t("status")}</th>
+                        <th className="px-5 py-3.5">{t("details") || "Details"}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -368,7 +368,7 @@ export default function ProfileOrdersPage() {
                                 maximumFractionDigits={2}
                                 minimumFractionDigits={2}
                               />
-                              {details?.baseCurrency || "USD"}
+                              {" "}{details?.baseCurrency || "USD"}
                             </span>
                           </td>
 
@@ -385,12 +385,12 @@ export default function ProfileOrdersPage() {
                             <div className="max-w-md space-y-1">
                               {order.depositFrom && (
                                 <p className="text-xs text-slate-300">
-                                  From: {order.depositFrom}
+                                  {t("from") || "From"}: {order.depositFrom}
                                 </p>
                               )}
                               {order.withdrawMethod && (
                                 <p className="text-xs text-slate-300">
-                                  Method: {order.withdrawMethod}
+                                  {t("method")}: {order.withdrawMethod}
                                 </p>
                               )}
                               {order.cryptoAddress && (
@@ -410,8 +410,8 @@ export default function ProfileOrdersPage() {
           ) : (
             <div className="py-10 text-center text-slate-500">
               <CreditCard className="mx-auto mb-4 h-9 w-9 text-slate-700" />
-              <div className="text-sm font-medium">No orders found</div>
-              <div className="mt-2 text-xs">Try adjusting your filters</div>
+              <div className="text-sm font-medium">{t("noOrdersFound") || "No orders found"}</div>
+              <div className="mt-2 text-xs">{t("tryAdjustingFilters")}</div>
             </div>
           )}
         </CardContent>

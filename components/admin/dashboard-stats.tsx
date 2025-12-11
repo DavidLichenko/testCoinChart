@@ -11,6 +11,7 @@ import { Users, DollarSign, TrendingUp, Activity, AlertTriangle, Plus, Minus, Ed
 import { hasAdminAccess } from "@/lib/admin-access"
 import { useAuth } from "@/components/auth-provider"
 import { toast } from "@/components/toast"
+import { useI18n } from "@/components/i18n-provider"
 
 interface DashboardStats {
   totalUsers: number
@@ -43,6 +44,7 @@ interface DashboardStats {
 export default function DashboardStats() {
   const { user } = useAuth()
   const router = useRouter()
+  const { t } = useI18n("admin")
   const [stats, setStats] = useState<DashboardStats | null>(null)
   const [loading, setLoading] = useState(true)
   const [accessDenied, setAccessDenied] = useState(false)
@@ -107,7 +109,7 @@ export default function DashboardStats() {
   if (!stats) {
     return (
         <div className="rounded-2xl border border-destructive/40 bg-destructive/10 px-4 py-3 text-center text-sm text-destructive-foreground">
-          Failed to load dashboard stats
+          {t("failedToLoadStats")}
         </div>
     )
   }
@@ -117,28 +119,28 @@ export default function DashboardStats() {
         {/* Верхние карточки со статистикой */}
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4 sm:gap-4">
           <StatCard
-              title="Total Users"
+              title={t("totalUsers")}
               icon={Users}
               value={stats.totalUsers.toLocaleString()}
-              sub="Registered users"
+              sub={t("registeredUsers")}
           />
           <StatCard
-              title="Total Balance"
+              title={t("totalBalance")}
               icon={DollarSign}
               value={`$${stats.totalBalance.toLocaleString()}`}
-              sub="Platform balance"
+              sub={t("platformBalance")}
           />
           <StatCard
-              title="Active Trades"
+              title={t("activeTrades")}
               icon={Activity}
               value={stats.activeTrades.toString()}
-              sub="Open positions"
+              sub={t("openPositions")}
           />
           <StatCard
-              title="Pending Verifications"
+              title={t("pendingVerifications")}
               icon={AlertTriangle}
               value={stats.pendingVerifications.toString()}
-              sub="Awaiting review"
+              sub={t("awaitingReview")}
               accent="warning"
           />
         </div>
@@ -157,17 +159,17 @@ export default function DashboardStats() {
                 <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-primary">
                   <Users className="h-4 w-4" />
                 </span>
-                  <span>Recent Users</span>
+                  <span>{t("recentUsers")}</span>
                 </CardTitle>
                 <Badge className="rounded-full bg-muted text-[11px] text-muted-foreground border border-border/60">
-                  {stats.totalUsers.toLocaleString()} total
+                  {stats.totalUsers.toLocaleString()} {t("total")}
                 </Badge>
               </CardHeader>
               <CardContent className="p-4 pt-0 sm:p-5 sm:pt-1">
                 <div className="space-y-2.5 sm:space-y-3">
                   {stats.recentUsers.length === 0 && (
                       <p className="py-4 text-center text-xs text-muted-foreground">
-                        No users yet.
+                        {t("noUsersYet")}
                       </p>
                   )}
 
@@ -215,7 +217,7 @@ export default function DashboardStats() {
                 <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-primary">
                   <TrendingUp className="h-4 w-4" />
                 </span>
-                  <span>Recent Trades</span>
+                  <span>{t("recentTrades")}</span>
                 </CardTitle>
                 <Badge className="rounded-full bg-muted text-[11px] text-muted-foreground border border-border/60">
                   {stats.totalTrades.toLocaleString()} total
@@ -225,7 +227,7 @@ export default function DashboardStats() {
                 <div className="space-y-2.5 sm:space-y-3">
                   {stats.recentTrades.length === 0 && (
                       <p className="py-4 text-center text-xs text-muted-foreground">
-                        No trades yet.
+                        {t("noTradesYet")}
                       </p>
                   )}
 
