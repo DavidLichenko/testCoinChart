@@ -233,6 +233,7 @@ model Orders {
   cryptoAddress  String?
   cryptoNetwork  String?
   withdrawMethod String?
+  metadata       Json?
   User           User        @relation(fields: [userId], references: [id])
 }
 

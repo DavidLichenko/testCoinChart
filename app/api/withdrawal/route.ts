@@ -5,7 +5,17 @@ import { requireAuth } from "@/lib/auth-utils"
 export async function POST(req: Request) {
   try {
     const userId = await requireAuth()
-    const { amount, method, assetSymbol, transferType, userEmail, cardNumber, cardHolder, cryptoAddress, cryptoNetwork } = await req.json()
+    const {
+      amount,
+      method,
+      assetSymbol,
+      transferType,
+      userEmail,
+      cardNumber,
+      cardHolder,
+      cryptoAddress,
+      cryptoNetwork,
+    } = await req.json()
 
     if (!amount || !method || !assetSymbol) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
@@ -34,21 +44,21 @@ export async function POST(req: Request) {
     // Check limits
     if (amount < limit.minAmount) {
       return NextResponse.json(
-        { error: `Minimum withdrawal amount is ${limit.minAmount}` },
-        { status: 400 }
+          { error: `Minimum withdrawal amount is ${limit.minAmount}` },
+          { status: 400 }
       )
     }
 
     if (limit.maxAmount && amount > limit.maxAmount) {
       return NextResponse.json(
-        { error: `Maximum withdrawal amount is ${limit.maxAmount}` },
-        { status: 400 }
+          { error: `Maximum withdrawal amount is ${limit.maxAmount}` },
+          { status: 400 }
       )
     }
 
     // Check daily/monthly limits
     const now = new Date()
-    const startOfDay = new Date(now.setHours(0, 0, 0, 0))
+    const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0)
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
 
     if (limit.dailyLimit) {
@@ -63,8 +73,8 @@ export async function POST(req: Request) {
       const todayTotal = todayWithdrawals.reduce((sum, t) => sum + t.amount, 0)
       if (todayTotal + amount > limit.dailyLimit) {
         return NextResponse.json(
-          { error: `Daily withdrawal limit exceeded` },
-          { status: 400 }
+            { error: `Daily withdrawal limit exceeded` },
+            { status: 400 }
         )
       }
     }
@@ -81,8 +91,8 @@ export async function POST(req: Request) {
       const monthTotal = monthWithdrawals.reduce((sum, t) => sum + t.amount, 0)
       if (monthTotal + amount > limit.monthlyLimit) {
         return NextResponse.json(
-          { error: `Monthly withdrawal limit exceeded` },
-          { status: 400 }
+            { error: `Monthly withdrawal limit exceeded` },
+            { status: 400 }
         )
       }
     }
@@ -94,8 +104,8 @@ export async function POST(req: Request) {
     const netAmount = amount - totalFee
 
     if (method === "CRYPTO") {
+      // 1) Внутренний перевод пользователю
       if (transferType === "user") {
-        // Transfer to another user
         if (!userEmail) {
           return NextResponse.json({ error: "User email required" }, { status: 400 })
         }
@@ -108,7 +118,6 @@ export async function POST(req: Request) {
           return NextResponse.json({ error: "User not found" }, { status: 404 })
         }
 
-        // Create internal transfer transaction
         await prisma.$transaction(async (tx) => {
           // Debit from sender
           await tx.walletBalance.update({
@@ -165,74 +174,15 @@ export async function POST(req: Request) {
         })
 
         return NextResponse.json({ success: true, message: "Transfer completed" })
-      } else {
-        // Transfer to main balance (base currency)
-        const user = await prisma.user.findUnique({
-          where: { id: userId },
-          select: { baseCurrency: true },
-        })
+      }
 
-        const baseCurrency = user?.baseCurrency || "USD"
-
-        if (assetSymbol === baseCurrency) {
-          return NextResponse.json(
-            { error: "Asset is already in base currency" },
-            { status: 400 }
-          )
-        }
-
-        // Convert to base currency (simplified - in production use real exchange rates)
-        await prisma.$transaction(async (tx) => {
-          // Debit from source asset
-          await tx.walletBalance.update({
-            where: {
-              userId_assetSymbol: { userId, assetSymbol },
-            },
-            data: {
-              ownBalance: { decrement: amount },
-            },
-          })
-
-          // Credit to base currency (minus fee)
-          await tx.walletBalance.upsert({
-            where: {
-              userId_assetSymbol: { userId, assetSymbol: baseCurrency },
-            },
-            update: {
-              ownBalance: { increment: netAmount },
-            },
-            create: {
-              userId,
-              assetSymbol: baseCurrency,
-              ownBalance: netAmount,
-              creditLimit: 0,
-              creditUsed: 0,
-              locked: 0,
-            },
-          })
-
-          // Create transaction record
-          await tx.walletTransaction.create({
-            data: {
-              userId,
-              assetSymbol,
-              amount: -amount,
-              type: "EXCHANGE",
-              status: "COMPLETED",
-              metadata: { 
-                toAsset: baseCurrency,
-                fee: totalFee,
-                netAmount,
-              },
-            },
-          })
-        })
-
-        return NextResponse.json({ success: true, message: "Transfer to main balance completed" })
-      } else if (transferType === "crypto") {
-        // Withdraw to crypto address
+      // 2) Вывод на крипто-адрес
+      if (transferType === "crypto") {
         if (!cryptoAddress || !cryptoNetwork) {
-          return NextResponse.json({ error: "Crypto address and network required" }, { status: 400 })
+          return NextResponse.json(
+              { error: "Crypto address and network required" },
+              { status: 400 }
+          )
         }
 
         await prisma.$transaction(async (tx) => {
@@ -265,8 +215,77 @@ export async function POST(req: Request) {
           })
         })
 
-        return NextResponse.json({ success: true, message: "Withdrawal request submitted" })
+        return NextResponse.json({
+          success: true,
+          message: "Withdrawal request submitted",
+        })
       }
+
+      // 3) По умолчанию — перевод в основную валюту (main balance)
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { baseCurrency: true },
+      })
+
+      const baseCurrency = user?.baseCurrency || "USD"
+
+      if (assetSymbol === baseCurrency) {
+        return NextResponse.json(
+            { error: "Asset is already in base currency" },
+            { status: 400 }
+        )
+      }
+
+      await prisma.$transaction(async (tx) => {
+        // Debit from source asset
+        await tx.walletBalance.update({
+          where: {
+            userId_assetSymbol: { userId, assetSymbol },
+          },
+          data: {
+            ownBalance: { decrement: amount },
+          },
+        })
+
+        // Credit to base currency (minus fee)
+        await tx.walletBalance.upsert({
+          where: {
+            userId_assetSymbol: { userId, assetSymbol: baseCurrency },
+          },
+          update: {
+            ownBalance: { increment: netAmount },
+          },
+          create: {
+            userId,
+            assetSymbol: baseCurrency,
+            ownBalance: netAmount,
+            creditLimit: 0,
+            creditUsed: 0,
+            locked: 0,
+          },
+        })
+
+        // Create transaction record
+        await tx.walletTransaction.create({
+          data: {
+            userId,
+            assetSymbol,
+            amount: -amount,
+            type: "EXCHANGE",
+            status: "COMPLETED",
+            metadata: {
+              toAsset: baseCurrency,
+              fee: totalFee,
+              netAmount,
+            },
+          },
+        })
+      })
+
+      return NextResponse.json({
+        success: true,
+        message: "Transfer to main balance completed",
+      })
     } else if (method === "CARD") {
       // Card withdrawal - create pending order
       if (!cardNumber || !cardHolder) {
@@ -303,7 +322,10 @@ export async function POST(req: Request) {
         })
       })
 
-      return NextResponse.json({ success: true, message: "Withdrawal request submitted" })
+      return NextResponse.json({
+        success: true,
+        message: "Withdrawal request submitted",
+      })
     }
 
     return NextResponse.json({ error: "Invalid withdrawal method" }, { status: 400 })
@@ -312,7 +334,3 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }
-
-
-
-
