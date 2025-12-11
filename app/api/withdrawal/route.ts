@@ -5,7 +5,7 @@ import { requireAuth } from "@/lib/auth-utils"
 export async function POST(req: Request) {
   try {
     const userId = await requireAuth()
-    const { amount, method, assetSymbol, transferType, userEmail, cardNumber, cardHolder } = await req.json()
+    const { amount, method, assetSymbol, transferType, userEmail, cardNumber, cardHolder, cryptoAddress, cryptoNetwork } = await req.json()
 
     if (!amount || !method || !assetSymbol) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
@@ -229,6 +229,43 @@ export async function POST(req: Request) {
         })
 
         return NextResponse.json({ success: true, message: "Transfer to main balance completed" })
+      } else if (transferType === "crypto") {
+        // Withdraw to crypto address
+        if (!cryptoAddress || !cryptoNetwork) {
+          return NextResponse.json({ error: "Crypto address and network required" }, { status: 400 })
+        }
+
+        await prisma.$transaction(async (tx) => {
+          // Lock the funds
+          await tx.walletBalance.update({
+            where: {
+              userId_assetSymbol: { userId, assetSymbol },
+            },
+            data: {
+              ownBalance: { decrement: amount },
+              locked: { increment: amount },
+            },
+          })
+
+          // Create withdrawal order
+          await tx.orders.create({
+            data: {
+              userId,
+              type: "WITHDRAW",
+              amount,
+              status: "PENDING",
+              withdrawMethod: "CRYPTO",
+              cryptoAddress,
+              cryptoNetwork,
+              metadata: {
+                fee: totalFee,
+                netAmount,
+              },
+            },
+          })
+        })
+
+        return NextResponse.json({ success: true, message: "Withdrawal request submitted" })
       }
     } else if (method === "CARD") {
       // Card withdrawal - create pending order
@@ -275,5 +312,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }
+
+
 
 

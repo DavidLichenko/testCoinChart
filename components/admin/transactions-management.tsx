@@ -22,7 +22,7 @@ import {
   DialogClose,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { TrendingUp, Search, X, Edit2, Loader2 } from "lucide-react";
+import { TrendingUp, Search, X, Edit2, Loader2, Cpu } from "lucide-react";
 
 import { useTickers } from "@/hooks/market-data";
 import OpenTradeAdminDialog from "./open-trade_modal";
@@ -48,6 +48,7 @@ interface Trade {
   createdAt: string;
   endAt: string | null;
   userId: string;
+  aiEnabled?: boolean;
   User: {
     email: string;
     name: string | null;
@@ -417,12 +418,17 @@ export default function TransactionsManagement() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.18 }}
                 >
-                  <Card className="rounded-2xl border border-border bg-card shadow-sm hover:border-primary/40 hover:shadow-md transition-colors">
+                  <Card className={`rounded-2xl border shadow-sm hover:shadow-md transition-colors ${
+                    trade.aiEnabled 
+                      ? "border-purple-500/50 bg-gradient-to-br from-purple-950/40 to-purple-900/20 hover:border-purple-500/70" 
+                      : "border-border bg-card hover:border-primary/40"
+                  }`}>
                     <CardContent className="flex flex-col justify-between gap-4 py-4 pl-4 pr-4 sm:flex-row sm:items-center sm:gap-6 sm:py-5">
                       {/* left: user + ticker + icon */}
                       <div className="flex min-w-0 flex-1 items-center gap-3">
                         <TickerAvatar
                             symbol={trade.ticker}
+                            className={trade.aiEnabled ? "border-purple-500/50" : ""}
                             category={category}
                             baseCurrency={baseCurrency}
                             quoteCurrency={quoteCurrency}
@@ -435,6 +441,12 @@ export default function TransactionsManagement() {
                         <span className="text-sm font-semibold text-foreground sm:text-base">
                           {trade.ticker}
                         </span>
+                            {trade.aiEnabled && (
+                              <Badge className="rounded-full px-2 py-0.5 text-[10px] bg-purple-500/20 text-purple-300 border border-purple-500/30 flex items-center gap-1">
+                                <Cpu className="h-3 w-3" />
+                                AI
+                              </Badge>
+                            )}
                             <Badge
                                 className={`rounded-full px-2 text-[10px] ${typeBadge}`}
                             >

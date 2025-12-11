@@ -12,7 +12,10 @@ import {ArrowRight, CandlestickChartIcon,
     Shield,
     Settings,
     FileText,
-    CreditCard} from "lucide-react";
+    CreditCard,
+    Coins,
+    TrendingUp,
+    AlertCircle} from "lucide-react";
 import { BsFillHouseDoorFill } from "react-icons/bs";
 import { openSupportChat } from "@/lib/support-chat"
 import {Button} from "@/components/ui/button";
@@ -346,7 +349,7 @@ export default function Header({homepage=false}) {
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -6 }}
                         transition={{ duration: 0.16 }}
-                        className="absolute top-14 left-3 right-3 md:-left-[calc(360px/2)] md:right-0 md:w-[360px] rounded-md bg-[#050510] border border-[#1f2937] p-3 z-[80] shadow-[0_18px_50px_rgba(0,0,0,0.7)]"
+                        className="absolute top-14 left-3 right-3 md:left-auto md:right-0 md:w-[420px] rounded-lg bg-[#050510] border border-[#1f2937] p-4 z-[80] shadow-[0_18px_50px_rgba(0,0,0,0.7)] max-h-[85vh] overflow-y-auto"
                     >
                         {!hasDetails ? (
                             renderSkeleton()
@@ -419,26 +422,46 @@ export default function Header({homepage=false}) {
 
                                 {/* Breakdown */}
                                 <div className="space-y-2 rounded-lg bg-[#050510] border border-[#111827] px-3 py-2.5">
-                                    <div className="text-[11px] font-semibold text-[#9ca3af] mb-1">
+                                    <div className="text-[11px] font-semibold text-[#9ca3af] mb-1.5 flex items-center gap-1.5">
+                                        <Activity className="w-3 h-3" />
                                         {t("breakdown") ?? "Breakdown"}
                                     </div>
 
                                     <div className="flex items-center justify-between text-[11px] text-[#9ca3af]">
-                                        <span>{t("inTrade") ?? "In trade"}</span>
+                                        <span className="flex items-center gap-1.5">
+                                            <TrendingUp className="w-3 h-3" />
+                                            {t("inTrade") ?? "In trade"}
+                                        </span>
                                         <span className="font-semibold text-[#e5e7eb]">
                     {formatMoney(tradingInTrade)} {baseCurrency}
                   </span>
                                     </div>
 
                                     <div className="flex items-center justify-between text-[11px] text-[#9ca3af]">
-                                        <span>{t("fundsInWork") ?? "Funds in work"}</span>
+                                        <span className="flex items-center gap-1.5">
+                                            <Coins className="w-3 h-3" />
+                                            {t("inCrypto") ?? "In crypto"}
+                                        </span>
                                         <span className="font-semibold text-[#e5e7eb]">
-                    {formatMoney(lockedTrading)} {baseCurrency}
+                    {formatMoney(cryptoBalanceDisplay)} {baseCurrency}
                   </span>
                                     </div>
 
                                     <div className="flex items-center justify-between text-[11px] text-[#9ca3af]">
-                                        <span>{t("pendingWithdrawals") ?? "Pending withdrawals"}</span>
+                                        <span className="flex items-center gap-1.5">
+                                            <Wallet className="w-3 h-3" />
+                                            {t("inStaking") ?? "In staking"}
+                                        </span>
+                                        <span className="font-semibold text-[#e5e7eb]">
+                    {formatMoney(stakingTotalUsd)} {baseCurrency}
+                  </span>
+                                    </div>
+
+                                    <div className="flex items-center justify-between text-[11px] text-[#9ca3af]">
+                                        <span className="flex items-center gap-1.5">
+                                            <AlertCircle className="w-3 h-3" />
+                                            {t("pendingWithdrawals") ?? "Pending withdrawals"}
+                                        </span>
                                         <span className="font-semibold text-[#e5e7eb]">
                     {formatMoney(pendingWithdrawAmount)} {baseCurrency}
                   </span>

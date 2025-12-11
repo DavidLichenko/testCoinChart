@@ -6,6 +6,7 @@ import {useI18n} from "@/components/i18n-provider";
 import Link from "next/link";
 import {usePathname} from "next/navigation";
 import {Button} from "@/components/ui/button";
+import {WalletHistory} from "./WalletHistory";
 
 type Props = {
     selectedSymbol?: string | null;
@@ -155,6 +156,11 @@ export function WalletSidebar({ selectedSymbol }: Props) {
                     {t("stakingHint")}
                 </p>
             </nav>
+
+            {/* History Section */}
+            <div className="bg-[#11111f] rounded-2xl p-4 border border-white/8">
+                <WalletHistory />
+            </div>
         </aside>
     );
 }

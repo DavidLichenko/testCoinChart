@@ -6,22 +6,41 @@ export async function GET(request: Request) {
   try {
     const userId = await requireAuth()
 
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      include: {
-        walletBalances: {
-          select: {
-            assetSymbol: true,
-            ownBalance: true,
-          }
-        },
-        trade_transaction: {
-          where: {
-            status: "CLOSE",
+    // Optimize: fetch only needed fields and use parallel queries
+    const [user, activeTradesCount] = await Promise.all([
+      prisma.user.findUnique({
+        where: { id: userId },
+        select: {
+          baseCurrency: true,
+          isVerif: true,
+          can_withdraw: true,
+          createdAt: true,
+          status: true,
+          blocked: true,
+          walletBalances: {
+            select: {
+              assetSymbol: true,
+              ownBalance: true,
+            }
+          },
+          _count: {
+            select: {
+              trade_transaction: {
+                where: {
+                  status: "CLOSE",
+                },
+              },
+            },
           },
         },
-      },
-    })
+      }),
+      prisma.trade_Transaction.count({
+        where: {
+          userId,
+          status: "OPEN",
+        },
+      }),
+    ])
 
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 })
@@ -32,14 +51,17 @@ export async function GET(request: Request) {
     const wallet = user.walletBalances.find(w => w.assetSymbol === baseCurrency)
     const totalBalance = wallet?.ownBalance || 0
 
-    const activeTrades = await prisma.trade_Transaction.count({
+    // Fetch closed trades with only profit field for PnL calculation
+    const closedTrades = await prisma.trade_Transaction.findMany({
       where: {
         userId,
-        status: "OPEN",
+        status: "CLOSE",
+      },
+      select: {
+        profit: true,
       },
     })
 
-    const closedTrades = user.trade_transaction
     const totalPnL = closedTrades.reduce((sum, trade) => sum + (trade.profit || 0), 0)
     const winningTrades = closedTrades.filter((trade) => (trade.profit || 0) > 0).length
     const winRate = closedTrades.length > 0 ? (winningTrades / closedTrades.length) * 100 : 0
@@ -48,13 +70,17 @@ export async function GET(request: Request) {
       totalBalance,
       totalPnL,
       totalPnLPercent: totalBalance > 0 ? (totalPnL / totalBalance) * 100 : 0,
-      activeTradesCount: activeTrades,
+      activeTradesCount,
       winRate,
       isVerified: user.isVerif,
       canWithdraw: user.can_withdraw,
       memberSince: user.createdAt,
       status: user.status,
       blocked: user.blocked,
+    }, {
+      headers: {
+        'Cache-Control': 'private, max-age=30', // Cache for 30 seconds
+      },
     })
   } catch (error) {
     console.error("Error fetching user stats:", error)

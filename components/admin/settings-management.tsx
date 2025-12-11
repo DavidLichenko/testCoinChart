@@ -479,7 +479,7 @@ export default function SettingsManagement() {
   })
 
   if (accessDenied) {
-    return (
+  return (
       <div className="rounded-2xl border border-rose-500/30 bg-rose-950/40 px-4 py-3 text-center text-sm text-rose-100">
         Access denied. Only owners can access settings.
       </div>
@@ -502,13 +502,13 @@ export default function SettingsManagement() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-2 border-b border-slate-800">
+      <div className="flex gap-1 border-b border-slate-800 bg-slate-900/50 rounded-t-lg p-1">
         <button
           onClick={() => setActiveTab("staking")}
-          className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 ${
+          className={`px-4 py-2.5 text-sm font-medium transition-all rounded-lg ${
             activeTab === "staking"
-              ? "border-purple-500 text-purple-400"
-              : "border-transparent text-slate-400 hover:text-slate-300"
+              ? "bg-slate-800 text-slate-100 shadow-sm"
+              : "text-slate-400 hover:text-slate-300 hover:bg-slate-800/50"
           }`}
         >
           <Coins className="inline h-4 w-4 mr-2" />
@@ -516,10 +516,10 @@ export default function SettingsManagement() {
         </button>
         <button
           onClick={() => setActiveTab("ai-trading")}
-          className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 ${
+          className={`px-4 py-2.5 text-sm font-medium transition-all rounded-lg ${
             activeTab === "ai-trading"
-              ? "border-purple-500 text-purple-400"
-              : "border-transparent text-slate-400 hover:text-slate-300"
+              ? "bg-slate-800 text-slate-100 shadow-sm"
+              : "text-slate-400 hover:text-slate-300 hover:bg-slate-800/50"
           }`}
         >
           <Cpu className="inline h-4 w-4 mr-2" />
@@ -527,10 +527,10 @@ export default function SettingsManagement() {
         </button>
         <button
           onClick={() => setActiveTab("crypto-addresses")}
-          className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 ${
+          className={`px-4 py-2.5 text-sm font-medium transition-all rounded-lg ${
             activeTab === "crypto-addresses"
-              ? "border-purple-500 text-purple-400"
-              : "border-transparent text-slate-400 hover:text-slate-300"
+              ? "bg-slate-800 text-slate-100 shadow-sm"
+              : "text-slate-400 hover:text-slate-300 hover:bg-slate-800/50"
           }`}
         >
           <Wallet className="inline h-4 w-4 mr-2" />
@@ -538,10 +538,10 @@ export default function SettingsManagement() {
         </button>
         <button
           onClick={() => setActiveTab("referral-rewards")}
-          className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 ${
+          className={`px-4 py-2.5 text-sm font-medium transition-all rounded-lg ${
             activeTab === "referral-rewards"
-              ? "border-purple-500 text-purple-400"
-              : "border-transparent text-slate-400 hover:text-slate-300"
+              ? "bg-slate-800 text-slate-100 shadow-sm"
+              : "text-slate-400 hover:text-slate-300 hover:bg-slate-800/50"
           }`}
         >
           <Gift className="inline h-4 w-4 mr-2" />
@@ -549,10 +549,10 @@ export default function SettingsManagement() {
         </button>
         <button
           onClick={() => setActiveTab("withdrawal-limits")}
-          className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 ${
+          className={`px-4 py-2.5 text-sm font-medium transition-all rounded-lg ${
             activeTab === "withdrawal-limits"
-              ? "border-purple-500 text-purple-400"
-              : "border-transparent text-slate-400 hover:text-slate-300"
+              ? "bg-slate-800 text-slate-100 shadow-sm"
+              : "text-slate-400 hover:text-slate-300 hover:bg-slate-800/50"
           }`}
         >
           <ArrowUpCircle className="inline h-4 w-4 mr-2" />
@@ -571,10 +571,10 @@ export default function SettingsManagement() {
         >
           {/* Staking Plans Tab */}
           {activeTab === "staking" && (
-            <Card className="border-slate-800 bg-slate-950/80">
-              <CardHeader className="flex items-center justify-between">
-                <CardTitle className="flex items-center gap-2">
-                  <Coins className="h-5 w-5 text-purple-400" />
+            <Card className="border-slate-800 bg-slate-950/80 rounded-lg">
+              <CardHeader className="flex items-center justify-between pb-3">
+                <CardTitle className="flex items-center gap-2 text-base font-semibold">
+                  <Coins className="h-4 w-4 text-slate-300" />
                   Staking Plans
                 </CardTitle>
                 <Dialog
@@ -594,7 +594,7 @@ export default function SettingsManagement() {
                     }
                   }}
                 >
-                  <DialogTrigger asChild>
+          <DialogTrigger asChild>
                     <Button
                       onClick={() => {
                         setEditingStakingPlan(null)
@@ -610,14 +610,14 @@ export default function SettingsManagement() {
                     >
                       <PlusCircle className="mr-2 h-4 w-4" />
                       Add Staking Plan
-                    </Button>
-                  </DialogTrigger>
+            </Button>
+          </DialogTrigger>
                   <DialogContent className="bg-slate-950 border-slate-800">
-                    <DialogHeader>
+            <DialogHeader>
                       <DialogTitle>
                         {editingStakingPlan ? "Edit" : "Create"} Staking Plan
                       </DialogTitle>
-                    </DialogHeader>
+            </DialogHeader>
                     <form onSubmit={handleSaveStakingPlan} className="space-y-4">
                       <div>
                         <Label>Plan Name</Label>
@@ -641,7 +641,7 @@ export default function SettingsManagement() {
                         >
                           <SelectTrigger className="mt-1">
                             <SelectValue placeholder="Select asset" />
-                          </SelectTrigger>
+                    </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="ALL">
                               All Assets (Default Plan)
@@ -650,15 +650,15 @@ export default function SettingsManagement() {
                               <SelectItem key={asset.symbol} value={asset.symbol}>
                                 {asset.symbol} - {asset.name}
                               </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                      ))}
+                    </SelectContent>
+                  </Select>
                         {stakingForm.assetSymbol === "ALL" && (
                           <p className="text-xs text-slate-400 mt-1">
                             This will create a default staking plan for all assets in the wallet
                           </p>
                         )}
-                      </div>
+                </div>
                       <div className="grid grid-cols-2 gap-4">
                         <div>
                           <Label>Duration (days)</Label>
@@ -726,7 +726,7 @@ export default function SettingsManagement() {
               <CardContent>
                 {loadingStaking ? (
                   <div className="flex items-center justify-center py-12">
-                    <Loader2 className="h-6 w-6 animate-spin text-purple-400" />
+                    <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
                   </div>
                 ) : stakingPlans.length === 0 ? (
                   <div className="text-center py-12 text-slate-400">
@@ -739,7 +739,7 @@ export default function SettingsManagement() {
                         key={plan.id}
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="flex items-center justify-between rounded-xl border border-slate-800 bg-slate-900/50 p-4"
+                        className="flex items-center justify-between rounded-lg border border-slate-800 bg-slate-900/50 p-4"
                       >
                         <div className="flex-1">
                           <div className="flex items-center gap-3">
@@ -810,7 +810,7 @@ export default function SettingsManagement() {
             <Card className="border-slate-800 bg-slate-950/80">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Cpu className="h-5 w-5 text-purple-400" />
+                  <Cpu className="h-4 w-4 text-slate-300" />
                   AI-Trading Tickers
                 </CardTitle>
                 <p className="mt-2 text-sm text-slate-400">
@@ -828,7 +828,7 @@ export default function SettingsManagement() {
                 </div>
                 {loadingAI ? (
                   <div className="flex items-center justify-center py-12">
-                    <Loader2 className="h-6 w-6 animate-spin text-purple-400" />
+                    <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
                   </div>
                 ) : (
                   <div className="space-y-2 max-h-[600px] overflow-y-auto">
@@ -840,9 +840,9 @@ export default function SettingsManagement() {
                           key={ticker.symbol}
                           initial={{ opacity: 0, x: -10 }}
                           animate={{ opacity: 1, x: 0 }}
-                          className={`flex items-center justify-between rounded-xl border p-3 ${
+                          className={`flex items-center justify-between rounded-lg border p-3 ${
                             isAI
-                              ? "border-purple-500/50 bg-purple-950/30"
+                              ? "border-slate-500/50 bg-slate-950/30"
                               : "border-slate-800 bg-slate-900/50"
                           }`}
                         >
@@ -870,7 +870,7 @@ export default function SettingsManagement() {
                           <Switch
                             checked={isAI}
                             onCheckedChange={() => handleToggleAITicker(ticker.symbol)}
-                            className="data-[state=checked]:bg-purple-500"
+                            className="data-[state=checked]:bg-slate-600"
                           />
                         </motion.div>
                       )
@@ -886,7 +886,7 @@ export default function SettingsManagement() {
             <Card className="border-slate-800 bg-slate-950/80">
               <CardHeader className="flex items-center justify-between">
                 <CardTitle className="flex items-center gap-2">
-                  <Wallet className="h-5 w-5 text-purple-400" />
+                  <Wallet className="h-4 w-4 text-slate-300" />
                   Crypto Addresses
                 </CardTitle>
                 <Dialog
@@ -932,7 +932,7 @@ export default function SettingsManagement() {
                         >
                           <SelectTrigger className="mt-1">
                             <SelectValue placeholder="Select token" />
-                    </SelectTrigger>
+                      </SelectTrigger>
                           <SelectContent>
                             {Object.keys(cryptoOptions).map((token) => (
                               <SelectItem key={token} value={token}>
@@ -987,11 +987,11 @@ export default function SettingsManagement() {
             </form>
           </DialogContent>
         </Dialog>
-              </CardHeader>
+        </CardHeader>
               <CardContent>
                 {loadingAddresses ? (
                   <div className="flex items-center justify-center py-12">
-                    <Loader2 className="h-6 w-6 animate-spin text-purple-400" />
+                    <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
       </div>
           ) : addresses.length === 0 ? (
                   <div className="text-center py-12 text-slate-400">
@@ -1004,7 +1004,7 @@ export default function SettingsManagement() {
                         key={addr.id}
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="flex items-center justify-between rounded-xl border border-slate-800 bg-slate-900/50 p-4"
+                        className="flex items-center justify-between rounded-lg border border-slate-800 bg-slate-900/50 p-4"
                       >
                   <div className="flex-1 min-w-0">
                           <div className="font-semibold text-white mb-1">{addr.network}</div>
@@ -1053,7 +1053,7 @@ export default function SettingsManagement() {
                   </div>
                       </motion.div>
                     ))}
-                  </div>
+                </div>
                 )}
               </CardContent>
             </Card>
@@ -1064,7 +1064,7 @@ export default function SettingsManagement() {
             <Card className="border-slate-800 bg-slate-950/80">
               <CardHeader className="flex items-center justify-between">
                 <CardTitle className="flex items-center gap-2">
-                  <Gift className="h-5 w-5 text-purple-400" />
+                  <Gift className="h-4 w-4 text-slate-300" />
                   Referral Rewards
                 </CardTitle>
                 <Dialog
@@ -1271,7 +1271,7 @@ export default function SettingsManagement() {
               <CardContent>
                 {loadingRewards ? (
                   <div className="flex items-center justify-center py-12">
-                    <Loader2 className="h-6 w-6 animate-spin text-purple-400" />
+                    <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
                   </div>
                 ) : referralRewards.length === 0 ? (
                   <div className="text-center py-12 text-slate-400">
@@ -1284,7 +1284,7 @@ export default function SettingsManagement() {
                         key={reward.id}
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="flex items-center justify-between rounded-xl border border-slate-800 bg-slate-900/50 p-4"
+                        className="flex items-center justify-between rounded-lg border border-slate-800 bg-slate-900/50 p-4"
                       >
                         <div className="flex-1">
                           <div className="flex items-center gap-3">
@@ -1375,8 +1375,8 @@ export default function SettingsManagement() {
               ))}
             </div>
           )}
-              </CardContent>
-            </Card>
+        </CardContent>
+      </Card>
           )}
 
           {/* Withdrawal Limits Tab */}
@@ -1384,7 +1384,7 @@ export default function SettingsManagement() {
             <Card className="border-slate-800 bg-slate-950/80">
               <CardHeader className="flex items-center justify-between">
                 <CardTitle className="flex items-center gap-2">
-                  <ArrowUpCircle className="h-5 w-5 text-purple-400" />
+                  <ArrowUpCircle className="h-4 w-4 text-slate-300" />
                   Withdrawal Limits
                 </CardTitle>
                 <Dialog
@@ -1494,7 +1494,7 @@ export default function SettingsManagement() {
                             <SelectItem value="CRYPTO">Crypto</SelectItem>
                           </SelectContent>
                         </Select>
-                      </div>
+    </div>
                       <div className="grid grid-cols-2 gap-4">
                         <div>
                           <Label>Min Amount</Label>
@@ -1617,7 +1617,7 @@ export default function SettingsManagement() {
               <CardContent>
                 {loadingLimits ? (
                   <div className="flex items-center justify-center py-12">
-                    <Loader2 className="h-6 w-6 animate-spin text-purple-400" />
+                    <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
                   </div>
                 ) : withdrawalLimits.length === 0 ? (
                   <div className="text-center py-12 text-slate-400">
@@ -1630,7 +1630,7 @@ export default function SettingsManagement() {
                         key={limit.id}
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="flex items-center justify-between rounded-xl border border-slate-800 bg-slate-900/50 p-4"
+                        className="flex items-center justify-between rounded-lg border border-slate-800 bg-slate-900/50 p-4"
                       >
                         <div className="flex-1">
                           <div className="flex items-center gap-3">

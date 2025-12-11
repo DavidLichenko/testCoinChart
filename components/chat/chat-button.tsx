@@ -772,6 +772,11 @@ export default function ChatButton() {
             document.body
         )
 
+    // Only show on desktop
+    if (isMobile) {
+        return <>{chatOverlay}</>
+    }
+
     return (
         <div className="fixed bottom-5 right-5 z-[60]">
             {triggerButton}

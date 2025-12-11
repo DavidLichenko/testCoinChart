@@ -32,7 +32,7 @@ async function requireAdmin() {
 // GET /api/admin/users/[userId] — данные одного юзера для админ-страницы
 export async function GET(
     request: NextRequest,
-    { params }: { params: { userId: string } }
+    { params }: { params: Promise<{ userId: string }> }
 ) {
     try {
         const guard = await requireAdmin()
@@ -40,7 +40,7 @@ export async function GET(
             return NextResponse.json({ error: guard.error }, { status: guard.status })
         }
 
-        const { userId } = params
+        const { userId } = await params
         
         // Get current admin user ID to check favorites
         const currentAdmin = guard.user;

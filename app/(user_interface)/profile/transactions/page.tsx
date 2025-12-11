@@ -13,6 +13,7 @@ import {
   ArrowUpRight,
   Activity,
   Users,
+  Cpu,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -36,6 +37,7 @@ interface Transaction {
   date: string;
   description: string;
   reference?: string;
+  aiEnabled?: boolean;
 }
 
 type SortField = "date" | "amount";
@@ -274,7 +276,11 @@ export default function ProfileTransactionsPage() {
                       return (
                           <div
                               key={tx.id}
-                              className="rounded-sm border border-slate-900 bg-slate-950/90 px-3 py-3.5 text-xs text-slate-100"
+                              className={`rounded-sm border px-3 py-3.5 text-xs ${
+                                tx.type === "TRADE" && tx.aiEnabled
+                                  ? "border-purple-500/50 bg-gradient-to-br from-purple-950/40 to-purple-900/20 text-slate-100 shadow-[0_0_12px_rgba(139,92,246,0.2)]"
+                                  : "border-slate-900 bg-slate-950/90 text-slate-100"
+                              }`}
                           >
                             {/* верхняя строка: дата + статус */}
                             <div className="mb-2 flex items-center justify-between gap-2">
@@ -292,9 +298,13 @@ export default function ProfileTransactionsPage() {
                             {/* тип + сумма */}
                             <div className="flex items-center justify-between gap-3">
                               <div className="flex items-center gap-2">
-                                {getTypeIcon(tx.type)}
+                                {tx.type === "TRADE" && tx.aiEnabled ? (
+                                  <Cpu className="h-3.5 w-3.5 text-purple-400" />
+                                ) : (
+                                  getTypeIcon(tx.type)
+                                )}
                                 <span className="text-xs capitalize text-slate-100">
-                            {t(tx.type.toLowerCase())}
+                            {tx.type === "TRADE" && tx.aiEnabled ? "AI Trade" : t(tx.type.toLowerCase())}
                           </span>
                               </div>
                               <span
@@ -366,10 +376,12 @@ export default function ProfileTransactionsPage() {
                           return (
                               <tr
                                   key={tx.id}
-                                  className={`border-t border-slate-900/80 text-slate-200 transition-colors hover:bg-slate-900/75 ${
-                                      idx % 2 === 0
-                                          ? "bg-slate-950/80"
-                                          : "bg-slate-950/60"
+                                  className={`border-t text-slate-200 transition-colors hover:bg-slate-900/75 ${
+                                      tx.type === "TRADE" && tx.aiEnabled
+                                          ? "border-purple-500/50 bg-gradient-to-br from-purple-950/40 to-purple-900/20 shadow-[0_0_12px_rgba(139,92,246,0.2)]"
+                                          : idx % 2 === 0
+                                          ? "border-slate-900/80 bg-slate-950/80"
+                                          : "border-slate-900/80 bg-slate-950/60"
                                   }`}
                               >
                                 {/* DATE */}
@@ -380,9 +392,13 @@ export default function ProfileTransactionsPage() {
                                 {/* TYPE */}
                                 <td className="px-5 py-3.5 align-top">
                                   <div className="flex items-center gap-2">
-                                    {getTypeIcon(tx.type)}
+                                    {tx.type === "TRADE" && tx.aiEnabled ? (
+                                      <Cpu className="h-3.5 w-3.5 text-purple-400" />
+                                    ) : (
+                                      getTypeIcon(tx.type)
+                                    )}
                                     <span className="text-xs capitalize text-slate-100">
-                                  {t(tx.type.toLowerCase())}
+                                  {tx.type === "TRADE" && tx.aiEnabled ? "AI Trade" : t(tx.type.toLowerCase())}
                                 </span>
                                   </div>
                                 </td>

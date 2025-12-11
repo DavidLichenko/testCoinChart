@@ -1,12 +1,16 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { motion } from "framer-motion"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Users, DollarSign, TrendingUp, Activity, AlertTriangle } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Users, DollarSign, TrendingUp, Activity, AlertTriangle, Plus, Minus, Edit3, Check, X } from "lucide-react"
 import { hasAdminAccess } from "@/lib/admin-access"
 import { useAuth } from "@/components/auth-provider"
+import { toast } from "@/components/toast"
 
 interface DashboardStats {
   totalUsers: number
@@ -38,9 +42,13 @@ interface DashboardStats {
 
 export default function DashboardStats() {
   const { user } = useAuth()
+  const router = useRouter()
   const [stats, setStats] = useState<DashboardStats | null>(null)
   const [loading, setLoading] = useState(true)
   const [accessDenied, setAccessDenied] = useState(false)
+  const [editingProfit, setEditingProfit] = useState<string | null>(null)
+  const [profitValue, setProfitValue] = useState("")
+  const [profitOperation, setProfitOperation] = useState<"add" | "subtract" | "set">("set")
 
   // Add access control check
   useEffect(() => {
@@ -166,7 +174,8 @@ export default function DashboardStats() {
                   {stats.recentUsers.map((user) => (
                       <div
                           key={user.id}
-                          className="flex items-center justify-between rounded-xl bg-muted/60 px-3 py-2.5 text-xs sm:text-sm"
+                          onClick={() => router.push(`/admin/users/${user.id}`)}
+                          className="flex items-center justify-between rounded-xl bg-muted/60 px-3 py-2.5 text-xs sm:text-sm cursor-pointer hover:bg-muted/80 transition-colors"
                       >
                         <div className="min-w-0 flex-1">
                           <p className="truncate font-medium text-foreground">
@@ -225,6 +234,55 @@ export default function DashboardStats() {
                     const positive = profit >= 0
                     const userLabel =
                         trade.User?.name || trade.User?.email || "Unknown user"
+                    const isEditing = editingProfit === trade.id
+
+                    const handleSaveProfit = async () => {
+                      try {
+                        let finalProfit = parseFloat(profitValue)
+                        if (isNaN(finalProfit)) {
+                          toast({
+                            title: "Error",
+                            description: "Invalid profit value",
+                            variant: "destructive",
+                          })
+                          return
+                        }
+                        
+                        if (profitOperation === "add") {
+                          finalProfit = profit + finalProfit
+                        } else if (profitOperation === "subtract") {
+                          finalProfit = profit - finalProfit
+                        }
+
+                        const res = await fetch(`/api/admin/trades/${trade.id}`, {
+                          method: "PATCH",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ profit: finalProfit }),
+                        })
+
+                        if (res.ok) {
+                          const updated = await res.json()
+                          setStats(prev => prev ? {
+                            ...prev,
+                            recentTrades: prev.recentTrades.map(t => 
+                              t.id === trade.id ? { ...t, profit: updated.profit } : t
+                            )
+                          } : null)
+                          setEditingProfit(null)
+                          setProfitValue("")
+                          toast({
+                            title: "Success",
+                            description: "Profit updated successfully",
+                          })
+                        }
+                      } catch (error) {
+                        toast({
+                          title: "Error",
+                          description: "Failed to update profit",
+                          variant: "destructive",
+                        })
+                      }
+                    }
 
                     return (
                         <div
@@ -240,18 +298,76 @@ export default function DashboardStats() {
                               {trade.User?.email ? ` (${trade.User.email})` : ""}
                             </p>
                           </div>
-                          <div className="ml-3 flex flex-col items-end gap-1 text-[11px] sm:text-xs">
-                        <span
-                            className={`font-semibold ${
-                                positive ? "text-emerald-400" : "text-rose-400"
-                            }`}
-                        >
-                          {positive ? "+" : "-"}$
-                          {Math.abs(profit).toFixed(2)}
-                        </span>
-                            <span className="text-muted-foreground">
-                          {new Date(trade.createdAt).toLocaleDateString()}
-                        </span>
+                          <div className="ml-3 flex items-center gap-2">
+                            {isEditing ? (
+                              <div className="flex items-center gap-1">
+                                <div className="flex items-center gap-0.5 border border-border rounded-lg bg-background">
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    className={`h-6 w-6 p-0 ${profitOperation === "subtract" ? "bg-rose-500/20 text-rose-400" : "text-muted-foreground"}`}
+                                    onClick={() => setProfitOperation("subtract")}
+                                  >
+                                    <Minus className="h-3 w-3" />
+                                  </Button>
+                                  <Input
+                                    type="number"
+                                    value={profitValue}
+                                    onChange={(e) => setProfitValue(e.target.value)}
+                                    className="h-6 w-16 border-0 bg-transparent text-xs text-center focus-visible:ring-0"
+                                    autoFocus
+                                  />
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    className={`h-6 w-6 p-0 ${profitOperation === "add" ? "bg-emerald-500/20 text-emerald-400" : "text-muted-foreground"}`}
+                                    onClick={() => setProfitOperation("add")}
+                                  >
+                                    <Plus className="h-3 w-3" />
+                                  </Button>
+                                </div>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  className="h-6 w-6 p-0 text-emerald-400 hover:bg-emerald-500/20"
+                                  onClick={handleSaveProfit}
+                                >
+                                  <Check className="h-3 w-3" />
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  className="h-6 w-6 p-0 text-muted-foreground hover:bg-muted"
+                                  onClick={() => {
+                                    setEditingProfit(null)
+                                    setProfitValue("")
+                                  }}
+                                >
+                                  <X className="h-3 w-3" />
+                                </Button>
+                              </div>
+                            ) : (
+                              <>
+                                <div className="flex flex-col items-end gap-1 text-[11px] sm:text-xs">
+                                  <span
+                                      className={`font-semibold cursor-pointer hover:opacity-80 ${
+                                          positive ? "text-emerald-400" : "text-rose-400"
+                                      }`}
+                                      onClick={() => {
+                                        setEditingProfit(trade.id)
+                                        setProfitValue(Math.abs(profit).toString())
+                                        setProfitOperation("set")
+                                      }}
+                                  >
+                                    {positive ? "+" : "-"}$
+                                    {Math.abs(profit).toFixed(2)}
+                                  </span>
+                                  <span className="text-muted-foreground">
+                                    {new Date(trade.createdAt).toLocaleDateString()}
+                                  </span>
+                                </div>
+                              </>
+                            )}
                           </div>
                         </div>
                     )

@@ -68,6 +68,7 @@ export async function GET() {
         date: trade.endAt?.toISOString() || trade.createdAt.toISOString(),
         description: `${trade.type} ${trade.ticker} (${trade.volume} lots)`,
         reference: undefined,
+        aiEnabled: trade.aiEnabled || false,
       })),
 
       // Format referral rewards

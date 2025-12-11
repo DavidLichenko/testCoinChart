@@ -115,7 +115,7 @@ export function DashboardOverview() {
 
             {userStats?.memberSince && (
                 <div className="inline-flex items-center gap-2 rounded-sm border border-[#242443] bg-[#080815] px-3 py-1.5 text-[11px] text-slate-300">
-              <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-violet-500/15 text-[10px] text-violet-300">
+              <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-slate-700/15 text-[10px] text-slate-300">
                 ⓘ
               </span>
                   <div className="flex flex-col">
@@ -145,7 +145,7 @@ export function DashboardOverview() {
                     ${totalEquity.toFixed(2)}
                   </p>
                 </div>
-                <div className="inline-flex h-9 w-9 items-center justify-center rounded-sm bg-violet-500/15 text-violet-300">
+                <div className="inline-flex h-9 w-9 items-center justify-center rounded-sm bg-slate-700/15 text-slate-300">
                   <Wallet className="h-4 w-4" />
                 </div>
               </div>

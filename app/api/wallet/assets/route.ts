@@ -12,19 +12,37 @@ type Binance24h = {
 export async function GET() {
     const userId = await requireAuth();
 
+    // Optimize: select only needed fields
     const balances = await prisma.walletBalance.findMany({
         where: { userId },
-        include: { asset: true },
+        select: {
+            assetSymbol: true,
+            ownBalance: true,
+            locked: true,
+            creditUsed: true,
+            creditLimit: true,
+            asset: {
+                select: {
+                    name: true,
+                },
+            },
+        },
     });
 
     if (!balances.length) {
-        return NextResponse.json([]);
+        return NextResponse.json([], {
+            headers: {
+                'Cache-Control': 'private, max-age=60',
+            },
+        });
     }
 
-    // тянем 24h-тикеры один раз
+    // тянем 24h-тикеры один раз with cache
     const res = await fetch(
         "https://api.binance.com/api/v3/ticker/24hr",
-        { cache: "no-store" }
+        { 
+            next: { revalidate: 30 }, // Cache for 30 seconds
+        }
     );
 
     if (!res.ok) {
@@ -114,5 +132,9 @@ export async function GET() {
         };
     });
 
-    return NextResponse.json(result);
+    return NextResponse.json(result, {
+        headers: {
+            'Cache-Control': 'private, max-age=30', // Cache for 30 seconds
+        },
+    });
 }

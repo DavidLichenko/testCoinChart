@@ -20,6 +20,7 @@ import {
   Landmark,
   Coins,
   InfoIcon,
+  X,
 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useI18n } from "@/components/i18n-provider";
@@ -454,26 +455,34 @@ Password: ${bankCredentials.password}
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[95%] sm:max-w-lg bg-gray-950 text-white rounded-2xl shadow-xl border border-gray-800">
-        <DialogHeader className="mb-2">
-          <DialogTitle className="flex items-center justify-between">
-            <span className="text-lg font-semibold flex items-center gap-2">
-              <Wallet className="w-5 h-5 text-blue-500" /> {t("depositFunds")}
+      <DialogContent className="max-w-[95%] sm:max-w-lg bg-slate-950 text-white border border-slate-800">
+        <DialogHeader className="mb-2 relative">
+          <DialogTitle className="flex items-center justify-between pr-8">
+            <span className="text-base font-semibold flex items-center gap-2">
+              <Wallet className="w-4 h-4 text-blue-500" /> {t("depositFunds")}
             </span>
             {step !== "method" && (
-              <Button variant="ghost" size="sm" onClick={handleBack}>
-                <ArrowLeft className="w-4 h-4 mr-1" /> {t("back")}
+              <Button variant="ghost" size="sm" onClick={handleBack} className="h-8 text-xs">
+                <ArrowLeft className="w-3 h-3 mr-1" /> {t("back")}
               </Button>
             )}
           </DialogTitle>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => onOpenChange(false)}
+            className="absolute right-0 top-0 h-8 w-8 text-slate-400 hover:text-slate-200"
+          >
+            <X className="h-4 w-4" />
+          </Button>
         </DialogHeader>
 
         {/* Step Indicator */}
-        <div className="flex items-center gap-2 mb-6">
+        <div className="flex items-center gap-1.5 mb-4">
           {steps.map((s, idx) => (
             <div key={s.id} className="flex items-center flex-1">
               <div
-                className={`w-8 h-8 flex items-center justify-center rounded-full border ${
+                className={`w-7 h-7 flex items-center justify-center rounded-full border ${
                   idx <= stepIndex
                     ? "bg-blue-500 text-white border-blue-500"
                     : "bg-gray-800 text-gray-400 border-gray-700"
@@ -483,7 +492,7 @@ Password: ${bankCredentials.password}
               </div>
               {idx < steps.length - 1 && (
                 <div
-                  className={`flex-1 h-[2px] ${
+                  className={`flex-1 h-[1.5px] ${
                     idx < stepIndex ? "bg-blue-500" : "bg-gray-700"
                   }`}
                 ></div>
@@ -493,7 +502,7 @@ Password: ${bankCredentials.password}
         </div>
 
         {/* Content */}
-        <div className="min-h-[260px]">
+        <div className="min-h-[240px]">
           <AnimatePresence mode="wait">
             <motion.div
               key={step}

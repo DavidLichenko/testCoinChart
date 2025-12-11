@@ -19,6 +19,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useI18n } from "@/components/i18n-provider";
 import {Skeleton} from "@/components/ui/skeleton";
+import Header from "@/components/header";
+import ChatButton from "@/components/chat/chat-button";
 
 export function HomePageClient() {
     const { t } = useI18n();
@@ -252,6 +254,8 @@ export function HomePageClient() {
             className="min-h-screen text-white overflow-x-hidden"
             style={{ backgroundColor: "var(--app-bg-page)" }}
         >
+            {/* Header for unauthenticated users */}
+            {!loadUser && !isAuthenticated && <Header homepage={true} />}
             {/* Multi-layer Parallax Background */}
             <div className="fixed inset-0 z-0">
                 {/* Layer 1 */}
@@ -720,6 +724,8 @@ export function HomePageClient() {
                     </motion.div>
                 </div>
             </motion.section>
+            {/* Chat button for authenticated users */}
+            {!loadUser && isAuthenticated && <ChatButton />}
         </div>
     );
 }

@@ -6,7 +6,7 @@ import { calculateUserWalletSummary } from "@/lib/wallet-summary"
 
 export async function GET(
     req: NextRequest,
-    { params }: { params: { userId: string } }
+    { params }: { params: Promise<{ userId: string }> }
 ) {
     try {
         const currentUser = await getCurrentUser()
@@ -24,7 +24,7 @@ export async function GET(
             return NextResponse.json({ error: "Forbidden" }, { status: 403 })
         }
 
-        const { userId } = params
+        const { userId } = await params
 
         // Get user wallet summary
         const walletSummary = await calculateUserWalletSummary(userId)

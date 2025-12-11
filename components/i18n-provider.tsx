@@ -241,7 +241,12 @@ const en: Messages = {
     logout: "Log out",
     balance:"Balance",
     goToWallet: "Go to Wallet",
-    goToTrade: "Go to Trade"
+    goToTrade: "Go to Trade",
+    signIn: "Sign In",
+    signUp: "Sign Up",
+    breakdown: "Breakdown",
+    inCrypto: "In crypto",
+    inStaking: "In staking"
   },
   //Wallet
   wallet: {
@@ -1111,7 +1116,12 @@ const es: Messages = {
     logout: "Cerrar sesión",
     balance:"Saldo",
     goToWallet: "Ir a la Cartera",
-    goToTrade: "Ir a Trade"
+    goToTrade: "Ir a Trade",
+    signIn: "Iniciar Sesión",
+    signUp: "Regístrate",
+    breakdown: "Desglose",
+    inCrypto: "En cripto",
+    inStaking: "En staking"
   },
   wallet:{
     market: {

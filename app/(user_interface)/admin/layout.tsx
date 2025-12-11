@@ -171,6 +171,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         };
     }, []);
 
+    const sidebarWidth = (sidebarVisible || sidebarPinned) ? "16rem" : "0";
+
     return (
         <motion.div
             initial={{ opacity: 0, y: 8 }}
@@ -180,7 +182,19 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 "admin-theme dark min-h-screen bg-background text-foreground",
                 plusJakarta.variable
             )}
+            style={{
+                "--admin-sidebar-width": sidebarWidth,
+            } as React.CSSProperties}
         >
+            <style jsx global>{`
+                body {
+                    --admin-sidebar-width: ${sidebarWidth};
+                }
+                header {
+                    margin-left: var(--admin-sidebar-width, 0);
+                    transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                }
+            `}</style>
             <div className="relative mx-auto flex max-w-[85%] flex-col gap-6 px-4 py-6 md:flex-row md:py-8">
                 {/* Hint Tooltip */}
                 {showHint && !sidebarVisible && (

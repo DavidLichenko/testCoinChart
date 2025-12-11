@@ -5,7 +5,7 @@ import { hasAdminAccess } from "@/lib/admin-access"
 
 export async function POST(
     request: NextRequest,
-    { params }: { params: { userId: string } }
+    { params }: { params: Promise<{ userId: string }> }
 ) {
     try {
         const currentUser = await getCurrentUser()
@@ -25,6 +25,7 @@ export async function POST(
         }
 
         const { favorite } = await request.json()
+        const { userId } = await params
 
         if (favorite) {
             // Add to favorites (create FavoriteClient record)
@@ -33,7 +34,7 @@ export async function POST(
                 where: {
                     agentId_clientId: {
                         agentId: currentUser.id,
-                        clientId: params.userId
+                        clientId: userId
                     }
                 }
             })
@@ -42,7 +43,7 @@ export async function POST(
                 await prisma.favoriteClient.create({
                     data: {
                         agentId: currentUser.id,
-                        clientId: params.userId
+                        clientId: userId
                     }
                 })
             }
@@ -51,7 +52,7 @@ export async function POST(
             await prisma.favoriteClient.deleteMany({
                 where: {
                     agentId: currentUser.id,
-                    clientId: params.userId
+                    clientId: userId
                 }
             })
         }
