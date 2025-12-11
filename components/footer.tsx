@@ -42,10 +42,10 @@ export function Footer() {
                 </p>
               </div>
             </div>
-            <div className={'flex w-full h-full justify-start md:justify-end overflow-visible bottom-0 relative z-10 mb-2 md:mb-0'}>
+            <div className={'flex w-full h-full justify-end overflow-visible bottom-0 relative z-10 mb-2 md:mb-0'}>
               <div className={'relative w-36 min-h-[60px] md:min-h-[40px] z-10'}>
                 <motion.button
-                    className={'hover:cursor-pointer relative flex justify-start md:justify-end w-full'}
+                    className={'hover:cursor-pointer relative flex justify-end w-full'}
                     variants={variants}
                     onTap={() => setIsCollapse(!collapse)}
                 >
