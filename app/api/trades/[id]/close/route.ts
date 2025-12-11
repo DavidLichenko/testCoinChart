@@ -59,7 +59,7 @@ export async function POST(req: Request, { params }: RouteParams) {
 
         const { profit, closedTrade } = await prisma.$transaction(
             async (tx) => {
-                // P/L
+                // P/L calculation - правильный расчет для всех типов сделок (включая AI-trading)
                 const openIn = trade.openIn
                 const volume = trade.volume
                 const leverage = trade.leverage
@@ -70,6 +70,26 @@ export async function POST(req: Request, { params }: RouteParams) {
                         : (openIn - price) * volume * leverage
 
                 const profit = Number.isFinite(rawProfit) ? rawProfit : 0
+
+                // Получаем текущий баланс перед обновлением
+                const wallet = await tx.walletBalance.findUnique({
+                    where: {
+                        userId_assetSymbol: {
+                            userId,
+                            assetSymbol: baseCurrency,
+                        },
+                    },
+                })
+
+                const currentBalance = wallet?.ownBalance || 0
+                const currentLocked = wallet?.locked || 0
+                
+                // Рассчитываем новый баланс: текущий + разблокированная маржа + профит
+                const newBalance = currentBalance + trade.margin + profit
+
+                // Если баланс уходит в минус, обнуляем его
+                const finalBalance = Math.max(0, newBalance)
+                const finalLocked = Math.max(0, currentLocked - trade.margin)
 
                 // Обновляем сделку
                 const closed = await tx.trade_Transaction.update({
@@ -82,7 +102,22 @@ export async function POST(req: Request, { params }: RouteParams) {
                     },
                 })
 
-                // Возвращаем margin + profit
+                // Обновляем баланс: разблокируем маржу и добавляем профит (или обнуляем если уходит в минус)
+                // Также возвращаем использованный кредит, если он был
+                const walletBefore = await tx.walletBalance.findUnique({
+                    where: {
+                        userId_assetSymbol: {
+                            userId,
+                            assetSymbol: baseCurrency,
+                        },
+                    },
+                })
+                
+                const currentCreditUsed = walletBefore?.creditUsed || 0
+                // Если профит положительный, возвращаем кредит пропорционально
+                // Если профит отрицательный, кредит остается использованным
+                const creditToReturn = profit > 0 ? Math.min(currentCreditUsed, trade.margin) : 0
+                
                 await tx.walletBalance.update({
                     where: {
                         userId_assetSymbol: {
@@ -91,8 +126,9 @@ export async function POST(req: Request, { params }: RouteParams) {
                         },
                     },
                     data: {
-                        locked: { decrement: trade.margin },
-                        ownBalance: { increment: trade.margin + profit },
+                        locked: finalLocked,
+                        ownBalance: finalBalance,
+                        creditUsed: creditToReturn > 0 ? { decrement: creditToReturn } : undefined,
                     },
                 })
 

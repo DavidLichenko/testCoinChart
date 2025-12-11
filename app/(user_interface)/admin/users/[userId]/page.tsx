@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback, useMemo } from "react"
 import { useRouter, useParams } from "next/navigation"
+import { motion, AnimatePresence } from "framer-motion"
 import {
     ArrowLeft,
     Users,
@@ -38,6 +39,7 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
+import { Switch } from "@/components/ui/switch"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
@@ -276,6 +278,7 @@ export default function AdminUserPage() {
     const [blocked, setBlocked] = useState(false)
     const [isVerif, setIsVerif] = useState(false)
     const [canWithdraw, setCanWithdraw] = useState(false)
+    const [baseCurrency, setBaseCurrency] = useState<"USD" | "EUR">("USD")
     const [balance, setBalance] = useState("0")
 
     useEffect(() => {
@@ -296,11 +299,23 @@ export default function AdminUserPage() {
                     setBlocked(data.blocked)
                     setIsVerif(data.isVerif)
                     setCanWithdraw(data.can_withdraw)
+                    setBaseCurrency(data.baseCurrency || "USD")
                     // Removed balance update as we're using the new wallet system
                     
                     // Check if user is favorited
                     if (data.isFavorite !== undefined) {
                         setIsFavorite(data.isFavorite)
+                    }
+                    
+                    // Load comments
+                    try {
+                        const commentsRes = await fetch(`/api/admin/users/${userId}/comments`)
+                        if (commentsRes.ok) {
+                            const commentsData = await commentsRes.json()
+                            setComments(commentsData.comments || "")
+                        }
+                    } catch (e) {
+                        console.error("Error loading comments:", e)
                     }
                 }
 
@@ -366,6 +381,7 @@ export default function AdminUserPage() {
                     blocked,
                     isVerif,
                     can_withdraw: canWithdraw,
+                    baseCurrency,
                     // Removed TotalBalance update as we're using the new wallet system
                 }),
             })
@@ -740,30 +756,37 @@ export default function AdminUserPage() {
         <div className="min-h-screen bg-gray-950 px-2 py-4 text-slate-100 sm:px-6">
             <div className="mx-auto max-w-6xl space-y-5 sm:space-y-6">
                 {/* Header Section */}
-                <div className="bg-slate-900/80 rounded-2xl p-4 sm:p-6">
+                <div className="bg-gradient-to-r from-slate-900/90 to-slate-800/90 rounded-2xl p-4 sm:p-6 border border-slate-800/50">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-4">
                             <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => router.push("/admin")}
-                                className="h-8 rounded-full border border-slate-800 bg-slate-900/80 px-3 text-xs text-slate-300 hover:bg-slate-800"
+                                onClick={() => router.push("/admin/users")}
+                                className="h-9 rounded-xl border border-slate-800 bg-slate-900/80 px-3 text-xs text-slate-300 hover:bg-slate-800 hover:border-slate-700"
                             >
-                                <ArrowLeft className="mr-1 h-3.5 w-3.5" />
+                                <ArrowLeft className="mr-1 h-4 w-4" />
                                 Back
                             </Button>
-                            <div>
-                                <h1 className="flex items-center gap-2 text-xl font-bold">
-                                    <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-purple-500/20 text-purple-200">
-                                        <Users className="h-4 w-4" />
-                                    </span>
-                                    <span className="truncate max-w-xs">
+                            <div className="flex items-center gap-3">
+                                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-500/20 to-purple-600/20 border border-purple-500/30">
+                                    <User className="h-6 w-6 text-purple-300" />
+                                </div>
+                                <div>
+                                    <h1 className="text-2xl font-bold text-white">
                                         {user.name || "No Name"}
-                                    </span>
-                                </h1>
-                                <p className="text-xs text-slate-400 mt-1">
-                                    {user.email} • ID: {user.id}
-                                </p>
+                                    </h1>
+                                    <div className="flex items-center gap-2 mt-1">
+                                        <Mail className="h-3.5 w-3.5 text-slate-400" />
+                                        <p className="text-sm text-slate-300">
+                                            {user.email}
+                                        </p>
+                                        <span className="text-slate-600">•</span>
+                                        <p className="text-xs text-slate-500 font-mono">
+                                            ID: {user.id.slice(0, 8)}...
+                                        </p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
@@ -868,47 +891,63 @@ export default function AdminUserPage() {
                                             </Select>
                                         </div>
                                     </div>
+
+                                    <div>
+                                        <label className="text-xs text-slate-400">Base Currency</label>
+                                        <Select value={baseCurrency} onValueChange={(v: "USD" | "EUR") => setBaseCurrency(v)}>
+                                            <SelectTrigger className="h-9 rounded-xl border-slate-800 bg-slate-900 text-sm mt-1">
+                                                <SelectValue />
+                                            </SelectTrigger>
+                                            <SelectContent className="border-slate-800 bg-slate-900 text-sm">
+                                                <SelectItem value="USD">USD - US Dollar</SelectItem>
+                                                <SelectItem value="EUR">EUR - Euro</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
                                 </div>
 
-                                <div className="flex flex-wrap gap-3 pt-2">
-                                    <div className="flex items-center space-x-2">
-                                        <Checkbox
+                                <div className="space-y-3 pt-2 border-t border-slate-800">
+                                    <div className="flex items-center justify-between rounded-xl bg-slate-900/60 px-3 py-2.5">
+                                        <div className="flex items-center gap-2">
+                                            <Ban className="h-4 w-4 text-rose-400" />
+                                            <label htmlFor="blocked" className="text-xs font-medium text-slate-200 cursor-pointer">
+                                                Block user
+                                            </label>
+                                        </div>
+                                        <Switch
+                                            id="blocked"
                                             checked={blocked}
                                             onCheckedChange={(v) => setBlocked(!!v)}
-                                            id="blocked"
+                                            className="data-[state=checked]:bg-rose-500"
                                         />
-                                        <label
-                                            htmlFor="blocked"
-                                            className="text-xs font-medium text-slate-200"
-                                        >
-                                            Block user
-                                        </label>
                                     </div>
-                                    <div className="flex items-center space-x-2">
-                                        <Checkbox
+                                    <div className="flex items-center justify-between rounded-xl bg-slate-900/60 px-3 py-2.5">
+                                        <div className="flex items-center gap-2">
+                                            <Shield className="h-4 w-4 text-emerald-400" />
+                                            <label htmlFor="verified" className="text-xs font-medium text-slate-200 cursor-pointer">
+                                                Verified (KYC)
+                                            </label>
+                                        </div>
+                                        <Switch
+                                            id="verified"
                                             checked={isVerif}
                                             onCheckedChange={(v) => setIsVerif(!!v)}
-                                            id="verified"
+                                            className="data-[state=checked]:bg-emerald-500"
                                         />
-                                        <label
-                                            htmlFor="verified"
-                                            className="text-xs font-medium text-slate-200"
-                                        >
-                                            Verified (KYC)
-                                        </label>
                                     </div>
-                                    <div className="flex items-center space-x-2">
-                                        <Checkbox
+                                    <div className="flex items-center justify-between rounded-xl bg-slate-900/60 px-3 py-2.5">
+                                        <div className="flex items-center gap-2">
+                                            <CreditCard className="h-4 w-4 text-blue-400" />
+                                            <label htmlFor="can_withdraw" className="text-xs font-medium text-slate-200 cursor-pointer">
+                                                Can withdraw
+                                            </label>
+                                        </div>
+                                        <Switch
+                                            id="can_withdraw"
                                             checked={canWithdraw}
                                             onCheckedChange={(v) => setCanWithdraw(!!v)}
-                                            id="can_withdraw"
+                                            className="data-[state=checked]:bg-blue-500"
                                         />
-                                        <label
-                                            htmlFor="can_withdraw"
-                                            className="text-xs font-medium text-slate-200"
-                                        >
-                                            Can withdraw
-                                        </label>
                                     </div>
                                 </div>
 
@@ -923,6 +962,11 @@ export default function AdminUserPage() {
                         </Card>
 
                         {/* Wallet Management Card */}
+                        <motion.div
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.1 }}
+                        >
                         <Card className="rounded-2xl border-slate-900 bg-slate-950/80">
                             <CardHeader className="pb-3">
                                 <CardTitle className="flex items-center gap-2 text-base font-semibold">
@@ -950,6 +994,7 @@ export default function AdminUserPage() {
                                 )}
                             </CardContent>
                         </Card>
+                        </motion.div>
                     </div>
 
                     {/* Middle Column - Wallet Overview and Actions */}
@@ -1069,6 +1114,57 @@ export default function AdminUserPage() {
                                     <Button
                                         variant="outline"
                                         size="sm"
+                                        onClick={() => setIsTradeDialogOpen(true)}
+                                        className="h-9 rounded-xl border-slate-800 bg-slate-900 text-xs hover:bg-slate-800 hover:border-purple-500/50"
+                                    >
+                                        <TrendingUp className="mr-1.5 h-3.5 w-3.5" />
+                                        Create Trade
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => setIsOrderDialogOpen(true)}
+                                        className="h-9 rounded-xl border-slate-800 bg-slate-900 text-xs hover:bg-slate-800 hover:border-amber-500/50"
+                                    >
+                                        <CreditCard className="mr-1.5 h-3.5 w-3.5" />
+                                        Create Order
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => setIsAssignDialogOpen(true)}
+                                        className="h-9 rounded-xl border-slate-800 bg-slate-900 text-xs hover:bg-slate-800 hover:border-blue-500/50"
+                                    >
+                                        <UserCheck className="mr-1.5 h-3.5 w-3.5" />
+                                        Connect Referral
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={handleToggleFavorite}
+                                        className={`h-9 rounded-xl border-slate-800 text-xs hover:bg-slate-800 ${
+                                            isFavorite 
+                                                ? "bg-yellow-500/20 border-yellow-500/50 text-yellow-300" 
+                                                : "bg-slate-900 hover:border-yellow-500/50"
+                                        }`}
+                                    >
+                                        {isFavorite ? (
+                                            <>
+                                                <Star className="mr-1.5 h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
+                                                Favorite
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Star className="mr-1.5 h-3.5 w-3.5" />
+                                                Favorite
+                                            </>
+                                        )}
+                                    </Button>
+                                </div>
+                                <div className="grid grid-cols-2 gap-2">
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
                                         onClick={handleOpenChat}
                                         className="h-9 rounded-xl border-slate-800 bg-slate-900 text-xs hover:bg-slate-800"
                                     >
@@ -1083,33 +1179,6 @@ export default function AdminUserPage() {
                                     >
                                         <Edit3 className="mr-1.5 h-3.5 w-3.5" />
                                         Comments
-                                    </Button>
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={handleToggleFavorite}
-                                        className="h-9 rounded-xl border-slate-800 bg-slate-900 text-xs hover:bg-slate-800"
-                                    >
-                                        {isFavorite ? (
-                                            <>
-                                                <HeartOff className="mr-1.5 h-3.5 w-3.5" />
-                                                Unfavorite
-                                            </>
-                                        ) : (
-                                            <>
-                                                <Heart className="mr-1.5 h-3.5 w-3.5" />
-                                                Favorite
-                                            </>
-                                        )}
-                                    </Button>
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => setIsAssignDialogOpen(true)}
-                                        className="h-9 rounded-xl border-slate-800 bg-slate-900 text-xs hover:bg-slate-800"
-                                    >
-                                        <UserCheck className="mr-1.5 h-3.5 w-3.5" />
-                                        Assign
                                     </Button>
                                 </div>
                                     
@@ -1174,7 +1243,23 @@ export default function AdminUserPage() {
                                         <UserTradeItem 
                                             key={t.id} 
                                             trade={t} 
-                                            onEdit={openEditTradeDialog} 
+                                            onEdit={openEditTradeDialog}
+                                            onProfitUpdate={async (tradeId, newProfit) => {
+                                                try {
+                                                    const res = await fetch(`/api/admin/trades/${tradeId}`, {
+                                                        method: "PATCH",
+                                                        headers: { "Content-Type": "application/json" },
+                                                        body: JSON.stringify({ profit: newProfit }),
+                                                    });
+                                                    if (res.ok) {
+                                                        const updated = await res.json();
+                                                        setTrades(prev => prev.map(t => t.id === tradeId ? { ...t, profit: updated.profit } : t));
+                                                    }
+                                                } catch (e) {
+                                                    console.error("Error updating profit:", e);
+                                                }
+                                            }}
+                                            baseCurrency={walletSummary?.baseCurrency || "USD"}
                                         />
                                     ))
                                 )}
@@ -1224,6 +1309,42 @@ export default function AdminUserPage() {
                                         />
                                     ))
                                 )}
+                            </CardContent>
+                        </Card>
+
+                        {/* Comments Card */}
+                        <Card className="rounded-2xl border-slate-900 bg-slate-950/80">
+                            <CardHeader className="pb-3">
+                                <CardTitle className="flex items-center gap-2 text-base font-semibold">
+                                    <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-purple-500/15 text-purple-300">
+                                        <Edit3 className="h-4 w-4" />
+                                    </span>
+                                    Comments
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="space-y-3">
+                                    <Textarea
+                                        value={comments}
+                                        onChange={(e) => setComments(e.target.value)}
+                                        placeholder="Add your comments here..."
+                                        className="min-h-[120px] rounded-xl border-slate-800 bg-slate-900 p-3 text-sm resize-none"
+                                    />
+                                    <Button
+                                        onClick={handleSaveComments}
+                                        disabled={savingComments}
+                                        className="w-full rounded-xl bg-purple-600 text-sm hover:bg-purple-700"
+                                    >
+                                        {savingComments ? (
+                                            <div className="flex items-center">
+                                                <div className="h-3 w-3 animate-spin rounded-full border-2 border-white border-t-transparent mr-2"></div>
+                                                Saving...
+                                            </div>
+                                        ) : (
+                                            "Save Comments"
+                                        )}
+                                    </Button>
+                                </div>
                             </CardContent>
                         </Card>
                     </div>

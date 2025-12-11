@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo } from "react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/components/auth-provider"
 import { hasAdminAccess } from "@/lib/admin-access"
+import { motion, AnimatePresence } from "framer-motion"
 
 import {
   Card,
@@ -43,6 +44,7 @@ import {
   Save,
   ArrowRight,
   Loader2,
+  Star,
 } from "lucide-react"
 
 interface User {
@@ -52,6 +54,8 @@ interface User {
   role: string
   status: string
   TotalBalance: number
+  totalBalance?: number
+  baseCurrency?: string
   can_withdraw: boolean
   isVerif: boolean
   blocked: boolean
@@ -132,6 +136,7 @@ export default function UsersManagement() {
   const [savingInlineBalance, setSavingInlineBalance] = useState(false)
   const [savingBulk, setSavingBulk] = useState(false)
   const [savingDialogUser, setSavingDialogUser] = useState(false)
+  const [favoriteUsers, setFavoriteUsers] = useState<Set<string>>(new Set())
 
   // --- access guard ---
   useEffect(() => {
@@ -144,8 +149,46 @@ export default function UsersManagement() {
   useEffect(() => {
     if (accessDenied) return
     fetchUsers()
+    fetchFavorites()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [accessDenied])
+  }, [accessDenied, currentUser])
+
+  const fetchFavorites = async () => {
+    if (!currentUser) return
+    try {
+      const res = await fetch("/api/admin/favorite-clients")
+      if (res.ok) {
+        const data = await res.json()
+        setFavoriteUsers(new Set(data.map((f: any) => f.clientId)))
+      }
+    } catch (e) {
+      console.error("Error fetching favorites:", e)
+    }
+  }
+
+  const handleToggleFavorite = async (userId: string) => {
+    const isFavorite = favoriteUsers.has(userId)
+    try {
+      const res = await fetch(`/api/admin/users/${userId}/favorite`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ favorite: !isFavorite }),
+      })
+      if (res.ok) {
+        setFavoriteUsers((prev) => {
+          const newSet = new Set(prev)
+          if (isFavorite) {
+            newSet.delete(userId)
+          } else {
+            newSet.add(userId)
+          }
+          return newSet
+        })
+      }
+    } catch (e) {
+      console.error("Error toggling favorite:", e)
+    }
+  }
 
   const fetchUsers = async () => {
     try {
@@ -657,11 +700,14 @@ export default function UsersManagement() {
                     </tr>
                 )}
 
-                {visibleUsers.map(u => {
+                {visibleUsers.map((u, index) => {
                   const isSelected = selectedUsers.includes(u.id)
                   return (
-                      <tr
+                      <motion.tr
                           key={u.id}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.2, delay: index * 0.02 }}
                           className={`border-b border-border/40 bg-background  hover:bg-muted/70 transition-colors ${
                               isSelected ? "ring-1 ring-primary/40" : ""
                           }`}
@@ -679,8 +725,27 @@ export default function UsersManagement() {
                         {/* user info */}
                         <td className="px-2 py-5 align-middle">
                           <div className="max-w-xs">
-                            <div className="truncate text-xs font-semibold text-foreground">
-                              {u.name || "No name"}
+                            <div className="flex items-center gap-1.5">
+                              <div className="truncate text-xs font-semibold text-foreground">
+                                {u.name || "No name"}
+                              </div>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  handleToggleFavorite(u.id)
+                                }}
+                                className="h-5 w-5 p-0 hover:bg-transparent"
+                              >
+                                <Star
+                                  className={`h-3.5 w-3.5 ${
+                                    favoriteUsers.has(u.id)
+                                      ? "text-yellow-400 fill-yellow-400"
+                                      : "text-slate-500"
+                                  }`}
+                                />
+                              </Button>
                             </div>
                             <div className="truncate text-[11px] text-muted-foreground">
                               {u.email}
@@ -748,23 +813,28 @@ export default function UsersManagement() {
                                 </Button>
                               </div>
                           ) : (
-                              <div className="flex items-center justify-end gap-1">
-                            <span className="text-xs font-semibold text-foreground">
-                              ${u.TotalBalance?.toFixed(2) || "0.00"}
-                            </span>
-                                <Button
-                                    size="icon"
-                                    variant="ghost"
-                                    className="h-7 w-7 rounded-md text-muted-foreground hover:text-foreground"
-                                    onClick={() => {
-                                      setEditingBalanceUserId(u.id)
-                                      setBalanceEditValue(
-                                          (u.TotalBalance || 0).toString(),
-                                      )
-                                    }}
-                                >
-                                  <Edit2 className="h-3 w-3" />
-                                </Button>
+                              <div className="flex flex-col items-end gap-0.5">
+                                <div className="flex items-center justify-end gap-1">
+                                  <span className="text-xs font-semibold text-foreground">
+                                    {(u.totalBalance ?? u.TotalBalance ?? 0).toFixed(2)}
+                                  </span>
+                                  <span className="text-[10px] text-muted-foreground">
+                                    {u.baseCurrency || "USD"}
+                                  </span>
+                                  <Button
+                                      size="icon"
+                                      variant="ghost"
+                                      className="h-7 w-7 rounded-md text-muted-foreground hover:text-foreground"
+                                      onClick={() => {
+                                        setEditingBalanceUserId(u.id)
+                                        setBalanceEditValue(
+                                            ((u.totalBalance ?? u.TotalBalance) || 0).toString(),
+                                        )
+                                      }}
+                                  >
+                                    <Edit2 className="h-3 w-3" />
+                                  </Button>
+                                </div>
                               </div>
                           )}
                         </td>
@@ -1075,7 +1145,7 @@ export default function UsersManagement() {
                             </Dialog>
                           </div>
                         </td>
-                      </tr>
+                      </motion.tr>
                   )
                 })}
                 </tbody>

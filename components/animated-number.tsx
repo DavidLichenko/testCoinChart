@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 import { useMotionValue, animate } from "framer-motion"
 
 interface AnimatedNumberProps {
@@ -22,20 +22,48 @@ export function AnimatedNumber({
   minimumFractionDigits = 0,
   duration = 0.35,
 }: AnimatedNumberProps) {
+  const safeValue = Number.isFinite(value) ? value : 0
+  
+  // Храним предыдущее значение для анимации
+  const prevValueRef = useRef<number>(safeValue)
+  const isFirstRenderRef = useRef<boolean>(true)
+  
+  // Инициализируем motionValue с текущим значением
+  const motionValue = useMotionValue(safeValue)
+  
   const [display, setDisplay] = useState<string>(() => {
-    const safe = Number.isFinite(value) ? value : 0
-    return safe.toLocaleString(undefined, {
+    return safeValue.toLocaleString(undefined, {
       minimumFractionDigits,
       maximumFractionDigits,
     })
   })
 
-  // 🔥 стартуем всегда с 0, чтобы при загрузке была анимация
-  const motionValue = useMotionValue(0)
-
   useEffect(() => {
     const safe = Number.isFinite(value) ? value : 0
+    
+    // При первом рендере просто устанавливаем значение без анимации
+    if (isFirstRenderRef.current) {
+      motionValue.set(safe)
+      prevValueRef.current = safe
+      isFirstRenderRef.current = false
+      setDisplay(
+        safe.toLocaleString(undefined, {
+          minimumFractionDigits,
+          maximumFractionDigits,
+        }),
+      )
+      return
+    }
 
+    // Если значение не изменилось, не анимируем
+    if (safe === prevValueRef.current) {
+      return
+    }
+
+    // Анимируем от предыдущего значения к новому
+    const startValue = prevValueRef.current
+    motionValue.set(startValue) // Устанавливаем начальное значение
+    
     const controls = animate(motionValue, safe, {
       duration,
       onUpdate: (latest) => {
@@ -46,6 +74,9 @@ export function AnimatedNumber({
             maximumFractionDigits,
           }),
         )
+      },
+      onComplete: () => {
+        prevValueRef.current = safe
       },
     })
 

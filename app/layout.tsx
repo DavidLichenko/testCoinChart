@@ -36,6 +36,12 @@ export const metadata: Metadata = {
     icons: {
         icon: "/barchart3.png",
     },
+    viewport: {
+        width: "device-width",
+        initialScale: 1,
+        maximumScale: 1,
+        userScalable: false,
+    },
 };
 
 export default function RootLayout({
@@ -49,7 +55,7 @@ export default function RootLayout({
             className={cn(
                 "",
                 poppins.className,
-                "h-full"
+                "h-full overflow-x-hidden"
                 // geistSans.variable,
                 // geistMono.variable
             )}

@@ -86,12 +86,26 @@ export async function POST(request: NextRequest) {
         email: true,
         role: true,
         assignedTo: true,
-        TotalBalance: true,
         status: true,
+        baseCurrency: true,
+        walletBalances: {
+          select: {
+            assetSymbol: true,
+            ownBalance: true,
+          }
+        }
       },
     });
     
-    return NextResponse.json(updatedUser);
+    // Calculate balance from walletBalances
+    const baseCurrency = updatedUser.baseCurrency || "USD"
+    const wallet = updatedUser.walletBalances.find(w => w.assetSymbol === baseCurrency)
+    const userWithBalance = {
+      ...updatedUser,
+      TotalBalance: wallet?.ownBalance || 0
+    };
+    
+    return NextResponse.json(userWithBalance);
   } catch (error) {
     console.error("Error assigning user:", error);
     return NextResponse.json(

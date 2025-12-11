@@ -92,12 +92,48 @@ const BalanceSkeleton = () => (
 
 export default function Header({homepage=false}) {
     const { balance, liveProfit, details, assets } = useBalance();
-    const { user, logout } = useAuth();
+    const { user, logout, loading: authLoading } = useAuth();
     const { t } = useI18n("header");
     const isMobile = useIsMobile();
     const router = useRouter();
     const [depositModalOpen, setDepositModalOpen] = useState(false);
     const [isBalanceLoading, setIsBalanceLoading] = useState(true);
+
+    // If not authenticated, show simple header with login/register
+    if (!authLoading && !user) {
+        return (
+            <header className="sticky top-0 z-[60] h-16 !bg-app-bgDeep border-b border-gray-600/10 backdrop-blur-2xl">
+                <div className="max-w-screen-2xl mx-auto h-full flex items-center justify-between px-4">
+                    <Link href="/" className="flex items-center gap-2">
+                        <img
+                            src="/logo.png"
+                            className="h-12 w-12"
+                            alt="AragonTrade"
+                        />
+                        <span className="text-white font-semibold text-lg">
+                            AragonTrade
+                        </span>
+                    </Link>
+
+                    <div className="flex items-center gap-3">
+                        <Button
+                            variant="outline"
+                            onClick={() => router.push("/login")}
+                            className="border-slate-700 text-white hover:bg-slate-800"
+                        >
+                            {t("signIn") || "Sign In"}
+                        </Button>
+                        <Button
+                            onClick={() => router.push("/register")}
+                            className="bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:opacity-90"
+                        >
+                            {t("signUp") || "Sign Up"}
+                        </Button>
+                    </div>
+                </div>
+            </header>
+        )
+    }
     // Check if balance data is loaded with a minimum loading time to prevent flickering
     useEffect(() => {
         let timeoutId: NodeJS.Timeout;

@@ -25,11 +25,30 @@ export async function GET(request: NextRequest) {
       where: { role: "USER" },
     })
 
-    // Total balance only for USERs
-    const totalBalanceResult = await prisma.user.aggregate({
-      _sum: { TotalBalance: true },
+    // Total balance only for USERs - calculate from walletBalances
+    const users = await prisma.user.findMany({
       where: { role: "USER" },
+      select: {
+        id: true,
+        baseCurrency: true,
+        walletBalances: {
+          select: {
+            assetSymbol: true,
+            ownBalance: true,
+          }
+        }
+      }
     })
+    
+    // Calculate total balance from walletBalances
+    let totalBalance = 0
+    for (const user of users) {
+      const baseCurrency = user.baseCurrency || "USD"
+      const wallet = user.walletBalances.find(w => w.assetSymbol === baseCurrency)
+      if (wallet) {
+        totalBalance += wallet.ownBalance
+      }
+    }
 
     // Total trades only for USERs
     const totalTrades = await prisma.trade_Transaction.count({
@@ -96,7 +115,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       totalUsers,
-      totalBalance: totalBalanceResult._sum.TotalBalance || 0,
+      totalBalance,
       totalTrades,
       totalOrders,
       activeTrades,

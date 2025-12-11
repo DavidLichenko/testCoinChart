@@ -9,7 +9,12 @@ export async function GET(request: Request) {
     const user = await prisma.user.findUnique({
       where: { id: userId },
       include: {
-        balance: true,
+        walletBalances: {
+          select: {
+            assetSymbol: true,
+            ownBalance: true,
+          }
+        },
         trade_transaction: {
           where: {
             status: "CLOSE",
@@ -21,6 +26,11 @@ export async function GET(request: Request) {
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 })
     }
+
+    // Get balance from walletBalances
+    const baseCurrency = user.baseCurrency || "USD"
+    const wallet = user.walletBalances.find(w => w.assetSymbol === baseCurrency)
+    const totalBalance = wallet?.ownBalance || 0
 
     const activeTrades = await prisma.trade_Transaction.count({
       where: {
@@ -35,9 +45,9 @@ export async function GET(request: Request) {
     const winRate = closedTrades.length > 0 ? (winningTrades / closedTrades.length) * 100 : 0
 
     return NextResponse.json({
-      totalBalance: user.TotalBalance || 0,
+      totalBalance,
       totalPnL,
-      totalPnLPercent: user.TotalBalance ? (totalPnL / user.TotalBalance) * 100 : 0,
+      totalPnLPercent: totalBalance > 0 ? (totalPnL / totalBalance) * 100 : 0,
       activeTradesCount: activeTrades,
       winRate,
       isVerified: user.isVerif,

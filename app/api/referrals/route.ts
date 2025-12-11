@@ -29,7 +29,18 @@ export async function GET(request: Request) {
     // Enrich referrals with deposit information and update statuses
     const enrichedReferrals = await Promise.all(
       referrals.map(async (referral) => {
-        // Check if the referred user has made a deposit of at least $500
+        // Get active referral rewards from settings
+        const signupReward = await prisma.referralReward.findUnique({
+          where: { action: "SIGNUP" },
+        });
+        const depositThresholdReward = await prisma.referralReward.findFirst({
+          where: { 
+            action: "DEPOSIT_THRESHOLD",
+            isActive: true,
+          },
+        });
+
+        // Check if the referred user has made a deposit meeting threshold
         const depositOrders = await prisma.orders.findMany({
           where: {
             userId: referral.referredUser.id,
@@ -43,18 +54,20 @@ export async function GET(request: Request) {
           0
         );
 
-        const hasMadeDeposit = totalDeposits >= 500;
+        const threshold = depositThresholdReward?.threshold || 500;
+        const hasMadeDeposit = totalDeposits >= threshold;
 
         // Update referral status if conditions are met
         let updatedReferral = referral;
-        if (hasMadeDeposit && referral.status === "PENDING") {
-          // Update status to QUALIFIED and increase reward amount
+        if (hasMadeDeposit && referral.status === "PENDING" && depositThresholdReward) {
+          // Update status to QUALIFIED and add threshold reward
+          const bonusAmount = depositThresholdReward.rewardAmount;
           updatedReferral = await prisma.referral.update({
             where: { id: referral.id },
             data: {
               status: "QUALIFIED",
               rewardAmount: {
-                increment: 40, // Add $40 to the existing $10 = $50 total
+                increment: bonusAmount,
               },
             },
             include: {
@@ -98,18 +111,32 @@ export async function GET(request: Request) {
       },
     });
 
-    // Calculate pending bonuses (referrals that are qualified but reward hasn't been claimed)
+    // Get referral rewards for display
+    const referralRewards = await prisma.referralReward.findMany({
+      where: { isActive: true },
+      orderBy: { rewardAmount: "desc" },
+    });
+
+    // Calculate pending bonuses based on active rewards
+    const depositThresholdReward = referralRewards.find(
+      (r) => r.action === "DEPOSIT_THRESHOLD"
+    );
+    const signupReward = referralRewards.find((r) => r.action === "SIGNUP");
+    const signupAmount = signupReward?.rewardAmount || 0;
+    const thresholdBonus = depositThresholdReward?.rewardAmount || 0;
+
     const pendingBonuses = enrichedReferrals
       .filter(
         (referral) =>
           referral.status === "QUALIFIED" &&
           referral.referredUser.hasMadeDeposit &&
-          referral.rewardAmount < 50
+          referral.rewardAmount < signupAmount + thresholdBonus
       )
-      .reduce((sum) => sum + 40, 0); // $50 - $10 = $40 bonus
+      .reduce((sum) => sum + thresholdBonus, 0);
 
     return NextResponse.json({
       referrals: enrichedReferrals,
+      rewards: referralRewards, // Include rewards for display
       stats: {
         total: stats._count,
         totalEarnings: stats._sum.rewardAmount || 0,
@@ -152,14 +179,22 @@ export async function POST(request: Request) {
       );
     }
 
+    // Get signup reward from settings
+    const signupReward = await prisma.referralReward.findUnique({
+      where: { action: "SIGNUP" },
+    });
+
+    const initialReward = signupReward?.rewardAmount || 10;
+    const rewardCurrency = signupReward?.rewardCurrency || "USD";
+
     // Create new referral
     const referral = await prisma.referral.create({
       data: {
         referrerId: userId,
         referredUserId: referredUserId,
         code: `REF-${userId.substring(0, 8)}`,
-        rewardAmount: 10, // Default reward amount
-        rewardCurrency: "USD",
+        rewardAmount: initialReward,
+        rewardCurrency: rewardCurrency,
         status: "PENDING",
       },
     });

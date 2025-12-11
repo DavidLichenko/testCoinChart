@@ -156,7 +156,10 @@ const TestChart: React.FC = () => {
     const { t } = useI18n()
     const isMobile = useIsMobile()
     // 🔹 баланс
-    const { balance, refetchBalance } = useBalance()
+    const { balance, details, refetchBalance } = useBalance()
+    
+    // 🔹 использование кредитных средств для трейда
+    const [useCredit, setUseCredit] = useState(false)
     // 🔹 данные о себе, чтобы узнать aiTrading
     const [me, setMe] = useState<{
         id: string
@@ -186,6 +189,25 @@ const TestChart: React.FC = () => {
         }
     }, [])
 
+    // Load AI trading tickers
+    useEffect(() => {
+        if (!aiAvailable) return
+
+        const loadAiTickers = async () => {
+            try {
+                const res = await fetch("/api/ai-trading-tickers")
+                if (res.ok) {
+                    const data = await res.json()
+                    setAiTickers(data)
+                }
+            } catch (e) {
+                console.error("Failed to load AI tickers", e)
+            }
+        }
+
+        loadAiTickers()
+    }, [aiAvailable])
+
     const aiAvailable = !!me?.aiTrading
 
     // 🔹 AI-режим
@@ -193,6 +215,7 @@ const TestChart: React.FC = () => {
     const [aiAmount, setAiAmount] = useState<string>("50")
     const [aiAnalyzing, setAiAnalyzing] = useState(false)
     const [aiAnalyzed, setAiAnalyzed] = useState(false)
+    const [aiTickers, setAiTickers] = useState<string[]>([])
     const [aiSuggested, setAiSuggested] = useState<{
         symbol: string
         type: "BUY" | "SELL"
@@ -298,12 +321,22 @@ const TestChart: React.FC = () => {
         return price * vol // notional в валюте счёта
     }, [selectedTicker, candles, volume])
 
+    const baseCurrency = details?.baseCurrency || "USD"
+    const eurUsdRate = details?.eurUsdRate || 1
+
     const margin = useMemo(() => {
         const amt = orderAmount
         const lev = Number.parseFloat(leverage) || 0
         if (!amt || !lev) return 0
-        return amt / lev
-    }, [orderAmount, leverage])
+        const marginInUsd = amt / lev
+        
+        // Если базовая валюта EUR, конвертируем маржу в EUR
+        if (baseCurrency === "EUR" && eurUsdRate) {
+            return marginInUsd / eurUsdRate
+        }
+        
+        return marginInUsd
+    }, [orderAmount, leverage, baseCurrency, eurUsdRate])
 
     const timeframeSeconds = useMemo(
         () => timeframeMap[timeframe] ?? 60,
@@ -463,8 +496,12 @@ const TestChart: React.FC = () => {
                 return null
             }
 
-            if (!balance || balance < payload.margin) {
-                // balance + credit will be checked on backend, but FE can show msg too
+            // Проверяем баланс с учетом кредитных средств, если включен switch
+            const availableBalance = useCredit && details
+                ? (details.availableToTrade + details.creditAvailable)
+                : (details?.availableToTrade || balance || 0)
+            
+            if (availableBalance < payload.margin) {
                 setError("Insufficient balance")
                 return null
             }
@@ -508,7 +545,7 @@ const TestChart: React.FC = () => {
                 setIsPlacingOrder(false)
             }
         },
-        [balance, refetchBalance]
+        [balance, details, useCredit, refetchBalance]
     )
 
     const handlePlaceOrder = useCallback(async () => {
@@ -541,34 +578,69 @@ const TestChart: React.FC = () => {
 
     }, [orderType, selectedTicker, volume, leverage, margin, candles, takeProfitEnabled, stopLossEnabled])
     // 🔹 запуск "анализа" AI
-    const handleStartAiAnalyze = useCallback(() => {
+    const handleStartAiAnalyze = useCallback(async () => {
         if (!aiAvailable || !aiEnabled || aiAnalyzing) return
+        if (!aiAmount || Number(aiAmount) <= 0) {
+            setError("Enter a valid amount for AI trading")
+            return
+        }
 
         setAiAnalyzing(true)
         setAiAnalyzed(false)
         setAiSuggested(null)
         setError(null)
 
+        // Filter tickers to only AI-enabled ones
+        const availableAiTickers = tickers.filter(t => aiTickers.includes(t.symbol))
+        
+        if (availableAiTickers.length === 0) {
+            setAiAnalyzing(false)
+            setError("No AI trading tickers available. Please configure them in admin settings.")
+            return
+        }
+
         // имитация красивого анализа: через ~2.3 сек выдаём результат
-        setTimeout(() => {
-            if (!tickers.length) {
+        setTimeout(async () => {
+            // Randomly select from AI-enabled tickers only
+            const randomTicker = availableAiTickers[Math.floor(Math.random() * availableAiTickers.length)]
+            
+            // Get candles for the selected ticker
+            let tickerCandles: Candle[] = []
+            if (randomTicker.symbol === symbol && candles.length > 0) {
+                // Use current candles if we're already viewing this ticker
+                tickerCandles = candles
+            } else {
+                // Fetch candles for the selected ticker
+                try {
+                    const candlesRes = await fetch(`/api/market/candles?symbol=${randomTicker.symbol}&timeframe=H1&limit=100`)
+                    if (candlesRes.ok) {
+                        const candlesData = await candlesRes.json()
+                        tickerCandles = fillGapsWithBridgingCandles(
+                            candlesData as Candle[],
+                            timeframeSeconds
+                        )
+                    }
+                } catch (e) {
+                    console.error("Failed to fetch candles for AI ticker", e)
+                }
+            }
+
+            if (tickerCandles.length === 0) {
                 setAiAnalyzing(false)
                 setError("Not enough market data for AI analysis yet")
                 return
             }
 
-            const randomTicker =
-                tickers[Math.floor(Math.random() * tickers.length)]
-            const lastPrice =
-                candles[candles.length - 1]?.close ??
-                candles[candles.length - 1]?.open ??
-                randomTicker.bid ??
-                randomTicker.ask ??
-                randomTicker.lastPrice ??
-                1
+            const lastCandle = tickerCandles[tickerCandles.length - 1]
+            const lastPrice = lastCandle?.close ?? lastCandle?.open ?? randomTicker.bid ?? randomTicker.ask ?? randomTicker.lastPrice ?? 1
 
-            const direction: "BUY" | "SELL" =
-                Math.random() > 0.5 ? "BUY" : "SELL"
+            // Simple AI logic: analyze price trend
+            const recentPrices = tickerCandles.slice(-10).map(c => c.close)
+            const avgPrice = recentPrices.reduce((a, b) => a + b, 0) / recentPrices.length
+            const trend = lastPrice > avgPrice ? "BUY" : "SELL"
+            
+            // Add some randomness but bias towards trend
+            const direction: "BUY" | "SELL" = Math.random() > 0.3 ? trend : (trend === "BUY" ? "SELL" : "BUY")
 
             setAiSuggested({
                 symbol: randomTicker.symbol,
@@ -578,7 +650,7 @@ const TestChart: React.FC = () => {
             setAiAnalyzing(false)
             setAiAnalyzed(true)
         }, 2300)
-    }, [aiAvailable, aiEnabled, aiAnalyzing, tickers, candles])
+    }, [aiAvailable, aiEnabled, aiAnalyzing, tickers, aiTickers, candles, symbol, timeframeSeconds, aiAmount, fillGapsWithBridgingCandles])
 
 // 🔹 открыть ордер по результатам AI
     const handlePlaceAiOrder = useCallback(async () => {
@@ -618,10 +690,12 @@ const TestChart: React.FC = () => {
             )
             setCandles(processed)
             setLoading(false)
-        } else if (!isCandlesLoading && symbol) {
+        } else if (!isCandlesLoading) {
+            // Если загрузка завершена, но данных нет - все равно показываем график
             setCandles([])
             setLoading(false)
         }
+        // Если isCandlesLoading = true, оставляем loading = true для показа индикатора загрузки
     }, [
         candlesBySymbol,
         isCandlesLoading,
@@ -2126,9 +2200,9 @@ const TestChart: React.FC = () => {
                                         selectedSymbol={selectedTicker?.symbol}
                                         onSelectTicker={handleSelectTicker}
                                         formatPriceValue={formatPriceValue}
-                                        height={Math.min(420, catTickers.length * 64)}
-                                        favoriteSymbols={favoriteSymbols}   // 👈 один и тот же Set
-                                        onToggleFavorite={toggleFavorite}   // 👈 один и тот же хендлер
+                                        height={Math.min(420, Math.max(200, catTickers.length * 64))}
+                                        favoriteSymbols={favoriteSymbols}
+                                        onToggleFavorite={toggleFavorite}
                                     />
                                 </div>
                             )}
@@ -2355,7 +2429,7 @@ const TestChart: React.FC = () => {
 
 
         return (
-            <div className="flex min-h-screen flex-col bg-[#050012] text-white">
+            <div className="flex min-h-screen flex-col bg-[#050012] text-white overflow-x-hidden max-w-full">
                 {/* MOBILE HEADER */}
                 <div className="flex items-center justify-between border-b border-slate-800 bg-[#0f1419] px-3 py-2">
                     <div className="flex items-center gap-2">
@@ -2638,7 +2712,7 @@ const TestChart: React.FC = () => {
                                 </div>
 
                                 {/* 3) DRAWING TOOLS */}
-                                <div className="mt-2 -mx-1 flex gap-1 overflow-x-auto pb-1">
+                                <div className="mt-2 -mx-1 flex gap-1 overflow-x-auto pb-1 scrollbar-hide">
                                     {drawingTools.map((tool) => {
                                         const Icon = tool.icon
                                         const active = drawMode === tool.name
@@ -2683,7 +2757,7 @@ const TestChart: React.FC = () => {
                                         <div className="flex h-full flex-col items-center justify-center p-6 text-xs text-slate-400">
                                             {t("selectTickerTitle") || "Select a symbol to start"}
                                         </div>
-                                    ) : loading && candles.length === 0 ? (
+                                    ) : (loading || isCandlesLoading) && candles.length === 0 ? (
                                         <div className="flex h-full items-center justify-center">
                                             <div className="text-center text-xs text-slate-400">
                                                 <div className="mx-auto mb-3 h-8 w-8 animate-spin rounded-full border-b-2 border-purple-500" />
@@ -2989,10 +3063,35 @@ const TestChart: React.FC = () => {
                                                         <div className="mt-1 flex items-center justify-between">
                                                             <span>{t("marginRequired")}</span>
                                                             <span className="font-mono text-amber-300">
-                                ${margin.toFixed(2)}
+                                {margin.toFixed(2)} {baseCurrency}
                               </span>
                                                         </div>
                                                     </div>
+
+                                                    {/* Credit funds switch - только если есть кредитные средства */}
+                                                    {details && details.creditAvailable > 0 && (
+                                                        <div className="flex items-center justify-between rounded-lg border border-slate-800/80 bg-slate-900/50 px-3 py-2">
+                                                            <div className="flex items-center gap-2">
+                                                                <div className="flex flex-col">
+                                                                    <span className="text-[11px] font-semibold text-slate-50">
+                                                                        Use Credit Funds
+                                                                    </span>
+                                                                    <span className="text-[10px] text-slate-400">
+                                                                        Available: {details.creditAvailable.toFixed(2)} {details.baseCurrency}
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                            <label className="relative inline-flex cursor-pointer items-center">
+                                                                <input
+                                                                    type="checkbox"
+                                                                    checked={useCredit}
+                                                                    onChange={() => setUseCredit(!useCredit)}
+                                                                    className="peer sr-only"
+                                                                />
+                                                                <div className="h-5 w-9 rounded-full bg-slate-700 after:absolute after:left-[2px] after:top-[2px] after:h-4 after:w-4 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all peer-checked:bg-emerald-500 peer-checked:after:translate-x-full peer-checked:after:border-white" />
+                                                            </label>
+                                                        </div>
+                                                    )}
 
                                                     <div className="space-y-2">
                                                         {/* TP */}
@@ -3371,7 +3470,7 @@ const TestChart: React.FC = () => {
                                     </div>
 
                                     {/* tools */}
-                                    <div className="-mx-1 flex gap-1 overflow-x-auto pb-1">
+                                    <div className="-mx-1 flex gap-1 overflow-x-auto pb-1 scrollbar-hide">
                                         {drawingTools.map((tool) => {
                                             const Icon = tool.icon
                                             const active = drawMode === tool.name
@@ -4042,6 +4141,31 @@ const TestChart: React.FC = () => {
                         </span>
                                                 </div>
                                             </div>
+
+                                            {/* Credit funds switch - только если есть кредитные средства */}
+                                            {details && details.creditAvailable > 0 && (
+                                                <div className="flex items-center justify-between rounded-lg border border-slate-800/80 bg-slate-900/50 px-3 py-2">
+                                                    <div className="flex items-center gap-2">
+                                                        <div className="flex flex-col">
+                                                            <span className="text-[11px] font-semibold text-slate-50">
+                                                                Use Credit Funds
+                                                            </span>
+                                                            <span className="text-[10px] text-slate-400">
+                                                                Available: {details.creditAvailable.toFixed(2)} {details.baseCurrency}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                    <label className="relative inline-flex cursor-pointer items-center">
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={useCredit}
+                                                            onChange={() => setUseCredit(!useCredit)}
+                                                            className="peer sr-only"
+                                                        />
+                                                        <div className="h-5 w-9 rounded-full bg-slate-700 after:absolute after:left-[2px] after:top-[2px] after:h-4 after:w-4 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all peer-checked:bg-emerald-500 peer-checked:after:translate-x-full peer-checked:after:border-white" />
+                                                    </label>
+                                                </div>
+                                            )}
 
                                             <div className="space-y-2">
                                                 <div className="flex items-center justify-between">

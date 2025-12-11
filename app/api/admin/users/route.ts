@@ -29,17 +29,32 @@ export async function GET(request: NextRequest) {
         name: true,
         role: true,
         status: true,
-        TotalBalance: true, // legacy, можно удалить если точно не нужна
         can_withdraw: true,
         isVerif: true,
         blocked: true,
         createdAt: true,
         updatedAt: true,
         baseCurrency: true,
+        walletBalances: {
+          select: {
+            assetSymbol: true,
+            ownBalance: true,
+          }
+        }
       },
     })
+    
+    // Calculate balance from walletBalances for each user
+    const usersWithBalance = users.map(user => {
+      const baseCurrency = user.baseCurrency || "USD"
+      const wallet = user.walletBalances.find(w => w.assetSymbol === baseCurrency)
+      return {
+        ...user,
+        totalBalance: wallet?.ownBalance || 0
+      }
+    })
 
-    return NextResponse.json(users)
+    return NextResponse.json(usersWithBalance)
   } catch (error) {
     console.error("Error fetching users:", error)
     return NextResponse.json(

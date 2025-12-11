@@ -89,17 +89,29 @@ export async function POST(request: Request) {
         },
       })
 
-      const available = (wallet?.ownBalance || 0) + (wallet?.creditLimit || 0)
+      // Проверяем доступный баланс: собственные средства + доступный кредит
+      const ownBalance = wallet?.ownBalance || 0
+      const creditLimit = wallet?.creditLimit || 0
+      const creditUsed = wallet?.creditUsed || 0
+      const creditAvailable = Math.max(0, creditLimit - creditUsed)
+      
+      // Доступно для трейда: собственные средства + доступный кредит
+      const available = ownBalance + creditAvailable
 
       if (available < margin) throw new Error("InsufficientBalance")
+      
+      // Определяем, сколько использовать из кредита (если нужно)
+      const ownBalanceToUse = Math.min(ownBalance, margin)
+      const creditToUse = Math.max(0, margin - ownBalanceToUse)
 
-      // Lock margin
+      // Lock margin: сначала используем собственные средства, затем кредит
       await tx.walletBalance.update({
         where: {
           userId_assetSymbol: { userId, assetSymbol: baseCurrency },
         },
         data: {
-          ownBalance: { decrement: margin },
+          ownBalance: { decrement: ownBalanceToUse },
+          creditUsed: creditToUse > 0 ? { increment: creditToUse } : undefined,
           locked: { increment: margin },
         },
       })

@@ -23,7 +23,8 @@ interface VirtualizedTickerListProps {
 }
 
 const ITEM_HEIGHT = 64
-const BUFFER_SIZE = 5 // Number of items to render outside viewport
+const BUFFER_SIZE = 3 // Reduced buffer for better performance
+const MAX_VISIBLE_ITEMS = 20 // Maximum items to render at once
 
 const TickerRow = memo<{
     ticker: MarketTicker
@@ -41,7 +42,10 @@ const TickerRow = memo<{
          favoriteSymbols,
          onToggleFavorite,
      }) => {
-        const priceValue = formatPriceValue(ticker.bid ?? ticker.price)
+        const priceValue = useMemo(
+            () => formatPriceValue(ticker.bid ?? ticker.price),
+            [formatPriceValue, ticker.bid, ticker.price]
+        )
         const isFavorite = favoriteSymbols.has(ticker.symbol)
         return (
             <div className="px-2 py-1.5">
@@ -130,24 +134,28 @@ export const VirtualizedTickerList = memo<VirtualizedTickerListProps>(
 
         const handleScroll = useCallback(
             (e: React.UIEvent<HTMLDivElement>) => {
-                setScrollTop(e.currentTarget.scrollTop)
+                // Use requestAnimationFrame for smoother scrolling
+                requestAnimationFrame(() => {
+                    setScrollTop(e.currentTarget.scrollTop)
+                })
             },
             [],
         )
 
         const { visibleItems, paddingTop, paddingBottom } = useMemo(() => {
+            const visibleCount = Math.ceil(height / ITEM_HEIGHT)
             const startIndex = Math.max(
                 0,
                 Math.floor(scrollTop / ITEM_HEIGHT) - BUFFER_SIZE,
             )
             const endIndex = Math.min(
                 tickers.length,
-                Math.ceil((scrollTop + height) / ITEM_HEIGHT) + BUFFER_SIZE,
+                startIndex + visibleCount + BUFFER_SIZE * 2,
             )
 
             const visibleItems = tickers.slice(startIndex, endIndex)
             const paddingTop = startIndex * ITEM_HEIGHT
-            const paddingBottom = (tickers.length - endIndex) * ITEM_HEIGHT
+            const paddingBottom = Math.max(0, (tickers.length - endIndex) * ITEM_HEIGHT)
 
             return { visibleItems, paddingTop, paddingBottom }
         }, [tickers, scrollTop, height])

@@ -2,6 +2,35 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Prevent horizontal scroll on mobile */
+@layer base {
+  html, body {
+    overflow-x: hidden;
+    max-width: 100vw;
+    position: relative;
+  }
+  
+  body {
+    width: 100%;
+  }
+  
+  /* Prevent horizontal scroll on all containers */
+  * {
+    max-width: 100%;
+  }
+  
+  /* Mobile viewport fix for Safari/Chrome */
+  @supports (-webkit-touch-callout: none) {
+    html {
+      height: -webkit-fill-available;
+    }
+    
+    body {
+      min-height: -webkit-fill-available;
+    }
+  }
+}
+
 
 @layer base {
   :root {
@@ -293,6 +322,24 @@
 /* можно, если хочешь, отдельно трогать letter-spacing только в админке */
 .admin-theme {
   letter-spacing: var(--tracking-normal);
+}
+
+/* Hide scrollbar but keep functionality */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;  /* Chrome, Safari and Opera */
+}
+
+/* Mobile safe area for iOS */
+@supports (padding: max(0px)) {
+  .mobile-safe-area {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+    padding-top: max(1rem, env(safe-area-inset-top));
+  }
 }
 
 

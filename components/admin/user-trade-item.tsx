@@ -1,9 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Edit3 } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Edit3, Plus, Minus, Check, X } from "lucide-react";
+import { toast } from "@/components/toast";
 
 interface UserTrade {
   id: string;
@@ -22,10 +25,59 @@ interface UserTrade {
 interface UserTradeItemProps {
   trade: UserTrade;
   onEdit: (trade: UserTrade) => void;
+  onProfitUpdate?: (tradeId: string, newProfit: number, operation?: "add" | "subtract" | "set") => void;
+  baseCurrency?: string;
 }
 
-export function UserTradeItem({ trade, onEdit }: UserTradeItemProps) {
+export function UserTradeItem({ trade, onEdit, onProfitUpdate, baseCurrency = "USD" }: UserTradeItemProps) {
+  const [isEditingProfit, setIsEditingProfit] = useState(false);
+  const [profitValue, setProfitValue] = useState((trade.profit ?? 0).toString());
+  const [profitOperation, setProfitOperation] = useState<"add" | "subtract" | "set">("set");
+  const [saving, setSaving] = useState(false);
+  
   const isProfit = (trade.profit ?? 0) >= 0;
+
+  const handleSaveProfit = async () => {
+    if (!onProfitUpdate) {
+      setIsEditingProfit(false);
+      return;
+    }
+
+    const numValue = parseFloat(profitValue);
+    if (isNaN(numValue)) {
+      toast({
+        title: "Error",
+        description: "Invalid profit value",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setSaving(true);
+    try {
+      let finalProfit = numValue;
+      if (profitOperation === "add") {
+        finalProfit = (trade.profit ?? 0) + numValue;
+      } else if (profitOperation === "subtract") {
+        finalProfit = (trade.profit ?? 0) - numValue;
+      }
+
+      await onProfitUpdate(trade.id, finalProfit, profitOperation);
+      setIsEditingProfit(false);
+      toast({
+        title: "Success",
+        description: "Profit updated successfully",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update profit",
+        variant: "destructive",
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
   
   // Get asset icon based on ticker
   const getAssetIcon = (ticker: string) => {
@@ -40,7 +92,13 @@ export function UserTradeItem({ trade, onEdit }: UserTradeItemProps) {
   };
 
   return (
-    <div className="flex items-center justify-between rounded-xl bg-slate-900/80 px-3 py-2.5 hover:bg-slate-900 transition-colors">
+    <motion.div
+      initial={{ opacity: 0, x: -10 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: 10 }}
+      whileHover={{ scale: 1.01 }}
+      className="flex items-center justify-between rounded-xl bg-slate-900/80 px-3 py-2.5 hover:bg-slate-900 transition-colors"
+    >
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
           <div className="flex h-6 w-6 items-center justify-center rounded-full bg-slate-800 text-xs font-medium">
@@ -75,31 +133,91 @@ export function UserTradeItem({ trade, onEdit }: UserTradeItemProps) {
         </div>
       </div>
       <div className="ml-3 flex items-center gap-2">
-        <div className="text-right">
-          <div
-            className={`text-xs font-semibold ${
-              isProfit ? "text-emerald-400" : "text-rose-400"
-            }`}
-          >
-            {(isProfit ? "+" : "")}$
-            {(trade.profit ?? 0).toFixed(2)}
+        {isEditingProfit ? (
+          <div className="flex items-center gap-1">
+            <div className="flex items-center gap-0.5 border border-slate-700 rounded-lg bg-slate-900">
+              <Button
+                size="sm"
+                variant="ghost"
+                className={`h-7 w-7 p-0 ${profitOperation === "subtract" ? "bg-rose-500/20 text-rose-400" : "text-slate-400"}`}
+                onClick={() => setProfitOperation("subtract")}
+              >
+                <Minus className="h-3 w-3" />
+              </Button>
+              <Input
+                type="number"
+                value={profitValue}
+                onChange={(e) => setProfitValue(e.target.value)}
+                className="h-7 w-20 border-0 bg-transparent text-xs text-center text-slate-100 focus-visible:ring-0"
+                autoFocus
+              />
+              <Button
+                size="sm"
+                variant="ghost"
+                className={`h-7 w-7 p-0 ${profitOperation === "add" ? "bg-emerald-500/20 text-emerald-400" : "text-slate-400"}`}
+                onClick={() => setProfitOperation("add")}
+              >
+                <Plus className="h-3 w-3" />
+              </Button>
+            </div>
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-7 w-7 p-0 text-emerald-400 hover:bg-emerald-500/20"
+              onClick={handleSaveProfit}
+              disabled={saving}
+            >
+              <Check className="h-3.5 w-3.5" />
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-7 w-7 p-0 text-slate-400 hover:bg-slate-800"
+              onClick={() => {
+                setIsEditingProfit(false);
+                setProfitValue((trade.profit ?? 0).toString());
+                setProfitOperation("set");
+              }}
+            >
+              <X className="h-3.5 w-3.5" />
+            </Button>
           </div>
-          <div className="text-[11px] text-slate-400">
-            Open: {trade.openIn.toFixed(5)}
-            {trade.closeIn && (
-              <span className="block">Close: {trade.closeIn.toFixed(5)}</span>
-            )}
-          </div>
-        </div>
-        <Button 
-          size="sm" 
-          variant="ghost"
-          className="h-7 w-7 p-0 text-slate-400 hover:bg-slate-800 hover:text-slate-200"
-          onClick={() => onEdit(trade)}
-        >
-          <Edit3 className="h-3.5 w-3.5" />
-        </Button>
+        ) : (
+          <>
+            <div className="text-right">
+              <div
+                className={`text-xs font-semibold cursor-pointer hover:opacity-80 transition-opacity ${
+                  isProfit ? "text-emerald-400" : "text-rose-400"
+                }`}
+                onClick={() => {
+                  if (onProfitUpdate) {
+                    setIsEditingProfit(true);
+                    setProfitValue((trade.profit ?? 0).toString());
+                    setProfitOperation("set");
+                  }
+                }}
+              >
+                {(isProfit ? "+" : "")}
+                {(trade.profit ?? 0).toFixed(2)} {baseCurrency}
+              </div>
+              <div className="text-[11px] text-slate-400">
+                Open: {trade.openIn.toFixed(5)}
+                {trade.closeIn && (
+                  <span className="block">Close: {trade.closeIn.toFixed(5)}</span>
+                )}
+              </div>
+            </div>
+            <Button 
+              size="sm" 
+              variant="ghost"
+              className="h-7 w-7 p-0 text-slate-400 hover:bg-slate-800 hover:text-slate-200"
+              onClick={() => onEdit(trade)}
+            >
+              <Edit3 className="h-3.5 w-3.5" />
+            </Button>
+          </>
+        )}
       </div>
-    </div>
+    </motion.div>
   );
 }

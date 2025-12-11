@@ -13,11 +13,13 @@ import {PiCoinBold} from "react-icons/pi";
 interface RegisterFormProps {
   onSuccess?: () => void;
   onSwitchToLogin?: () => void;
+  initialReferralCode?: string;
 }
 
 export function RegisterForm({
                                onSuccess = () => {},
                                onSwitchToLogin = () => {},
+                               initialReferralCode = "",
                              }: RegisterFormProps) {
   const { t } = useI18n();
 
@@ -31,6 +33,7 @@ export function RegisterForm({
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const [baseCurrency, setBaseCurrency] = useState<"EUR" | "USD">("EUR");
+  const [referralCode, setReferralCode] = useState(initialReferralCode);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -55,6 +58,7 @@ export function RegisterForm({
           email,
           password,
           baseCurrency, // 👈 отправляем выбранную валюту
+          referralCode: referralCode.trim() || null, // 👈 отправляем реферальный код (опционально)
         }),
       });
 
@@ -248,6 +252,21 @@ export function RegisterForm({
                   </SelectContent>
                 </Select>
               </div>
+            </div>
+
+            {/* Referral Code (optional) */}
+            <div className="space-y-2">
+              <label className="text-sm text-slate-200" htmlFor="referralCode">
+                {t("referralCode") || "Referral Code"} <span className="text-slate-500 text-xs">(optional)</span>
+              </label>
+              <Input
+                  id="referralCode"
+                  type="text"
+                  value={referralCode}
+                  onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
+                  placeholder={t("enterReferralCode") || "Enter referral code"}
+                  className="h-10 rounded-xl border-slate-700 bg-slate-950/70 text-sm text-white placeholder:text-slate-500 focus:border-purple-500 focus:ring-purple-500 uppercase"
+              />
             </div>
 
             {/* Submit */}

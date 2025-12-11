@@ -47,15 +47,34 @@ export async function PATCH(
     const updatedTrade = await prisma.trade_Transaction.update({
       where: { id: tradeId },
       data: filteredUpdates,
-      include: { User: { select: { id: true, TotalBalance: true, email: true, name: true } } }
+      include: { 
+        User: { 
+          select: { 
+            id: true, 
+            email: true, 
+            name: true,
+            baseCurrency: true
+          } 
+        } 
+      }
     })
 
-    // If profit was updated - adjust user balance
+    // If profit was updated - adjust user wallet balance
     if ('profit' in filteredUpdates) {
       const profitDiff = filteredUpdates.profit - (existingTrade.profit || 0)
-      await prisma.user.update({
-        where: { id: updatedTrade.User.id },
-        data: { TotalBalance: { increment: profitDiff } }
+      const baseCurrency = updatedTrade.User.baseCurrency || "USD"
+      
+      // Update wallet balance instead of TotalBalance
+      await prisma.walletBalance.update({
+        where: {
+          userId_assetSymbol: {
+            userId: updatedTrade.User.id,
+            assetSymbol: baseCurrency
+          }
+        },
+        data: {
+          ownBalance: { increment: profitDiff }
+        }
       })
     }
 

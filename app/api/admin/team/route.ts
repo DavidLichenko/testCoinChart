@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
     
     const currentUser = guard.user;
     
-    // Fetch all users
+    // Fetch all users with walletBalances
     const users = await prisma.user.findMany({
       select: {
         id: true,
@@ -46,13 +46,29 @@ export async function GET(request: NextRequest) {
         role: true,
         assignedTo: true,
         assignedAgentTo: true,
-        TotalBalance: true,
         status: true,
         createdAt: true,
+        baseCurrency: true,
+        walletBalances: {
+          select: {
+            assetSymbol: true,
+            ownBalance: true,
+          }
+        }
       },
       orderBy: {
         createdAt: "desc",
       },
+    });
+    
+    // Calculate balance from walletBalances for each user
+    const usersWithBalance = users.map(user => {
+      const baseCurrency = user.baseCurrency || "USD"
+      const wallet = user.walletBalances.find(w => w.assetSymbol === baseCurrency)
+      return {
+        ...user,
+        TotalBalance: wallet?.ownBalance || 0
+      }
     });
     
     // Get current user's role
@@ -69,24 +85,24 @@ export async function GET(request: NextRequest) {
     const clients = users.filter(user => user.role === "USER");
     
     // For TEAMLEAD users, only show their assigned users
-    let filteredUsers = users;
+    let filteredUsers = usersWithBalance;
     if (userRole === "TEAMLEAD") {
-      filteredUsers = users.filter(
+      filteredUsers = usersWithBalance.filter(
         user => user.id === currentUser.id || user.assignedTo === currentUser.id
       );
     }
     
     // Calculate team stats
-    const totalDeposits = users.reduce((sum, user) => {
+    const totalDeposits = usersWithBalance.reduce((sum, user) => {
       return sum + (user.TotalBalance || 0);
     }, 0);
     
-    const activeUsers = users.filter(user => user.status !== "TRASH").length;
+    const activeUsers = usersWithBalance.filter(user => user.status !== "TRASH").length;
     
     // Calculate team lead performance
     const teamLeadPerformance = teamLeads.map(lead => {
-      const leadWorkers = users.filter(user => user.assignedTo === lead.id);
-      const leadClients = users.filter(user => user.assignedTo === lead.id);
+      const leadWorkers = usersWithBalance.filter(user => user.assignedTo === lead.id);
+      const leadClients = usersWithBalance.filter(user => user.assignedTo === lead.id);
       const leadDeposits = leadWorkers.reduce((sum, worker) => {
         return sum + (worker.TotalBalance || 0);
       }, 0);

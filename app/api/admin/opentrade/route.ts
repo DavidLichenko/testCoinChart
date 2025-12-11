@@ -32,46 +32,65 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
     }
 
-    const user = await prisma.user.findUnique({ where: { id: userId } })
+    const user = await prisma.user.findUnique({ 
+      where: { id: userId },
+      select: { baseCurrency: true }
+    })
 
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 })
     }
 
-    // ⚠️ если ты уже ушёл от TotalBalance — тут потом тоже перепишем под walletBalance
-    if ((user.TotalBalance || 0) < margin) {
-      return NextResponse.json({ error: "Insufficient balance" }, { status: 400 })
-    }
+    const baseCurrency = user.baseCurrency || "USD"
 
-    const trade = await prisma.trade_Transaction.create({
-      data: {
-        userId,
-        type,
-        ticker,
-        volume: Number(volume),
-        leverage: Number(leverage),
-        margin: Number(margin),
-        openIn: Number(openIn),
-        openInA: Number(openIn),
-        takeProfit: takeProfit ? Number(takeProfit) : null,
-        stopLoss: stopLoss ? Number(stopLoss) : null,
-        assetType,
-        profit: 0,
-        status: "OPEN",
-        aiEnabled: Boolean(aiEnabled),  // 👈 вот тут
-      },
-    })
-
-    await prisma.user.update({
-      where: { id: userId },
-      data: {
-        TotalBalance: {
-          decrement: Number(margin),
+    // Используем walletBalances вместо TotalBalance
+    const result = await prisma.$transaction(async (tx) => {
+      const wallet = await tx.walletBalance.findUnique({
+        where: {
+          userId_assetSymbol: { userId, assetSymbol: baseCurrency },
         },
-      },
+      })
+
+      const available = (wallet?.ownBalance || 0) + (wallet?.creditLimit || 0) - (wallet?.creditUsed || 0)
+
+      if (available < margin) {
+        throw new Error("Insufficient balance")
+      }
+
+      // Lock margin
+      await tx.walletBalance.update({
+        where: {
+          userId_assetSymbol: { userId, assetSymbol: baseCurrency },
+        },
+        data: {
+          ownBalance: { decrement: margin },
+          locked: { increment: margin },
+        },
+      })
+
+      const trade = await tx.trade_Transaction.create({
+        data: {
+          userId,
+          type,
+          ticker,
+          volume: Number(volume),
+          leverage: Number(leverage),
+          margin: Number(margin),
+          openIn: Number(openIn),
+          openInA: Number(openIn),
+          takeProfit: takeProfit ? Number(takeProfit) : null,
+          stopLoss: stopLoss ? Number(stopLoss) : null,
+          assetType,
+          profit: 0,
+          status: "OPEN",
+          aiEnabled: Boolean(aiEnabled),
+        },
+      })
+
+      return { trade }
     })
 
-    return NextResponse.json(trade)
+    return NextResponse.json(result.trade)
   } catch (error) {
     console.error("Admin error creating trade:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })

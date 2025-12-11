@@ -3,9 +3,9 @@
 import type React from "react"
 import {createContext, useContext, useEffect, useState} from "react"
 import {usePathname, useRouter} from "next/navigation"
-import WelcomePage from "@/components/auth/welcome-page"
 import Header from "@/components/header";
 import ChatButton from "./chat/chat-button"
+import Loading from "./loading"
 
 interface User {
   id: string
@@ -95,26 +95,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     checkAuth()
   }, [])
 
+  // Public routes that don't require authentication
+  const publicRoutes = ["/", "/login", "/register", "/privacy", "/terms", "/news"]
+  const isPublicRoute = publicRoutes.includes(pathname)
+
+  useEffect(() => {
+    if (!loading && !user && !isPublicRoute) {
+      // Redirect to login if trying to access protected route
+      router.push("/login")
+    }
+  }, [user, loading, pathname, isPublicRoute, router])
+
   if (loading) {
-    return (
-        <div className="min-h-screen bg-background text-white flex items-center justify-center">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-500 mx-auto"></div>
-            <p className="mt-4 text-gray-400">Loading...</p>
-          </div>
-        </div>
-    )
+    return <Loading />
   }
 
+  // For public routes, render without auth wrapper
+  if (!user && isPublicRoute) {
+    return <>{children}</>
+  }
+
+  // If not logged in and not on public route, show nothing (redirect will happen)
   if (!user) {
-    return (
-        <WelcomePage
-            onAuthSuccess={() => {
-              checkAuth()
-              router.push("/")
-            }}
-        />
-    )
+    return null
   }
 
   return (

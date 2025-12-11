@@ -166,8 +166,9 @@ model User {
   baseCurrency FiatCurrency @default(EUR) // базовая валюта отображения (USD/EUR)
 
   favoriteTickers         FavoriteTicker[]
-  favoriteClientsAsAgent  FavoriteClient[] @relation("AgentFavorites")
-  favoriteClientsAsClient FavoriteClient[] @relation("ClientFavorites")
+  favoriteClientsAsAgent  FavoriteClient[]    @relation("AgentFavorites")
+  favoriteClientsAsClient FavoriteClient[]    @relation("ClientFavorites")
+  cryptoAddresses         UserCryptoAddress[]
 
   walletBalances         WalletBalance[]
   walletTransactions     WalletTransaction[] @relation("UserWalletTransactions")
@@ -343,10 +344,11 @@ model Asset {
   createdAt  DateTime   @default(now())
   updatedAt  DateTime   @updatedAt
 
-  walletBalances     WalletBalance[]
-  walletTransactions WalletTransaction[]
-  stakingPositions   StakingPosition[]
-  stakingPlans       StakingPlan[]
+  walletBalances      WalletBalance[]
+  walletTransactions  WalletTransaction[]
+  stakingPositions    StakingPosition[]
+  stakingPlans        StakingPlan[]
+  userCryptoAddresses UserCryptoAddress[]
 }
 
 model StakingPlan {
@@ -365,16 +367,38 @@ model StakingPlan {
 }
 
 model Settings {
-  id              Int             @id @default(autoincrement())
-  siteName        String          @default("AragonTrade")
-  btcAddress      String?
-  ethAddress      String?
-  usdtAddress     String?
-  usdtNetwork     String          @default("TRC20")
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
+  id               Int               @id @default(autoincrement())
+  siteName         String            @default("AragonTrade")
+  btcAddress       String?
+  ethAddress       String?
+  usdtAddress      String?
+  usdtNetwork      String            @default("TRC20")
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
   // НОВОЕ: гибкие адреса для депозитов/выводов
-  payoutAddresses PayoutAddress[]
+  payoutAddresses  PayoutAddress[]
+  withdrawalLimits WithdrawalLimit[]
+}
+
+// Лимиты на вывод средств
+model WithdrawalLimit {
+  id             String    @id @default(cuid())
+  method         String // "CARD", "CRYPTO"
+  minAmount      Float     @default(0)
+  maxAmount      Float?
+  dailyLimit     Float?
+  monthlyLimit   Float?
+  fee            Float     @default(0)
+  feePercent     Float? // Процент комиссии
+  processingTime String? // "1-3 business days", "10-30 minutes"
+  isActive       Boolean   @default(true)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  Settings       Settings? @relation(fields: [settingsId], references: [id])
+  settingsId     Int?
+
+  @@unique([method])
+  @@index([isActive])
 }
 
 model Comments {
@@ -446,6 +470,39 @@ model FavoriteClient {
   @@unique([agentId, clientId])
   @@index([agentId])
   @@index([clientId])
+}
+
+// AI-Trading тикеры (тикеры для использования AI-трейдингом)
+model AITradingTicker {
+  id        String   @id @default(cuid())
+  symbol    String // "BTCUSDT", "AAPL.NAS", "EURUSD" и т.п.
+  isActive  Boolean  @default(true)
+  priority  Int      @default(0) // Приоритет (чем выше, тем важнее)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([symbol])
+  @@index([isActive])
+  @@index([priority])
+}
+
+// Криптоадреса пользователей для вывода
+model UserCryptoAddress {
+  id          String   @id @default(cuid())
+  userId      String
+  assetSymbol String // "BTC", "ETH", "USDT" и т.п.
+  network     String // "Bitcoin", "ERC20", "TRC20" и т.п.
+  address     String
+  label       String? // Опциональная метка для адреса
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  asset Asset @relation(fields: [assetSymbol], references: [symbol])
+
+  @@index([userId])
+  @@index([assetSymbol])
 }
 
 // Балансы кошелька на пользователя и актив
@@ -538,6 +595,23 @@ model Referral {
 
   @@unique([referredUserId]) // один реферер на пользователя
   @@index([referrerId])
+}
+
+// Настройки наград за рефералов
+model ReferralReward {
+  id             String   @id @default(cuid())
+  action         String // "SIGNUP", "FIRST_DEPOSIT", "DEPOSIT_THRESHOLD", "TRADE", etc.
+  actionLabel    String // "User signs up", "First deposit", "Deposit $500+", etc.
+  rewardAmount   Float    @default(0)
+  rewardCurrency String   @default("USD")
+  threshold      Float? // Минимальная сумма для действия (для депозитов, трейдов)
+  isActive       Boolean  @default(true)
+  description    String? // Описание награды
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([action])
+  @@index([isActive])
 }
 
 // Уведомления пользователю

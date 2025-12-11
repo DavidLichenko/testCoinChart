@@ -19,7 +19,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Wallet, User } from "lucide-react";
 import { useWallet } from "@/app/(user_interface)/wallet/hooks/useWallet";
 import { useBalance, refetchBalance } from "@/hooks/useBalance";
 
@@ -35,6 +35,7 @@ export function TransferModal({ transferOpen, closeAll, activeAssetSymbol }: Tra
     const { details } = useBalance();
     const [assetSymbol, setAssetSymbol] = useState("");
     const [amount, setAmount] = useState("");
+    const [transferType, setTransferType] = useState<"balance" | "user">("balance");
     const [toEmail, setToEmail] = useState("");
 
     const selectedAsset = assets?.find(a => a.symbol === assetSymbol);
@@ -53,14 +54,21 @@ export function TransferModal({ transferOpen, closeAll, activeAssetSymbol }: Tra
     };
 
     const onSubmit = async () => {
-        if (!assetSymbol || !amount || !toEmail) return;
+        if (!assetSymbol || !amount) return;
+        if (transferType === "user" && !toEmail) return;
+        
         const numAmount = Number(amount);
         if (Number.isNaN(numAmount) || numAmount <= 0) return;
 
         const res = await fetch("/api/wallet/transfer", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ assetSymbol, amount: numAmount, toEmail })
+            body: JSON.stringify({ 
+                assetSymbol, 
+                amount: numAmount, 
+                transferType,
+                toEmail: transferType === "user" ? toEmail : null 
+            })
         });
 
         if (!res.ok) {
@@ -90,15 +98,50 @@ export function TransferModal({ transferOpen, closeAll, activeAssetSymbol }: Tra
                 </DialogHeader>
 
                 <div className="space-y-4 mt-2">
-                    <div className="space-y-1">
-                        <Label className="text-xs text-white/70">{t("email")}</Label>
-                        <Input
-                            value={toEmail}
-                            onChange={(e) => setToEmail(e.target.value)}
-                            placeholder="user@example.com"
-                            className="bg-[#181827] border-white/10 text-white"
-                        />
+                    <div className="space-y-2">
+                        <Label className="text-xs text-white/70">Transfer Type</Label>
+                        <div className="grid grid-cols-2 gap-3">
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setTransferType("balance");
+                                    setToEmail("");
+                                }}
+                                className={`flex flex-col items-center gap-2 rounded-xl border p-4 transition-all ${
+                                    transferType === "balance"
+                                        ? "border-[#2BFFDA] bg-[#2BFFDA]/10"
+                                        : "border-white/10 bg-[#181827]"
+                                }`}
+                            >
+                                <Wallet className="h-5 w-5 text-white/70" />
+                                <span className="text-xs font-medium text-white">To Main Balance</span>
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setTransferType("user")}
+                                className={`flex flex-col items-center gap-2 rounded-xl border p-4 transition-all ${
+                                    transferType === "user"
+                                        ? "border-[#2BFFDA] bg-[#2BFFDA]/10"
+                                        : "border-white/10 bg-[#181827]"
+                                }`}
+                            >
+                                <User className="h-5 w-5 text-white/70" />
+                                <span className="text-xs font-medium text-white">To Another User</span>
+                            </button>
+                        </div>
                     </div>
+
+                    {transferType === "user" && (
+                        <div className="space-y-1">
+                            <Label className="text-xs text-white/70">{t("email")}</Label>
+                            <Input
+                                value={toEmail}
+                                onChange={(e) => setToEmail(e.target.value)}
+                                placeholder="user@example.com"
+                                className="bg-[#181827] border-white/10 text-white"
+                            />
+                        </div>
+                    )}
 
                     <div className="space-y-1">
                         <Label className="text-xs text-white/70">{t("asset")}</Label>

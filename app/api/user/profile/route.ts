@@ -9,14 +9,26 @@ export async function GET(request: Request) {
     const user = await prisma.user.findUnique({
       where: { id: userId },
       include: {
-        balance: true,
         verification: true,
+        walletBalances: {
+          select: {
+            assetSymbol: true,
+            ownBalance: true,
+            creditLimit: true,
+            creditUsed: true,
+          }
+        }
       },
     })
 
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 })
     }
+
+    // Get balance from walletBalances
+    const baseCurrency = user.baseCurrency || "USD"
+    const wallet = user.walletBalances.find(w => w.assetSymbol === baseCurrency)
+    const totalBalance = wallet?.ownBalance || 0
 
     return NextResponse.json({
       id: user.id,
@@ -25,12 +37,13 @@ export async function GET(request: Request) {
       image: user.image,
       canWithdraw: user.can_withdraw,
       isVerif: user.isVerif,
-      totalBalance: user.TotalBalance || 0,
-      usdBalance: user.balance?.usd || 0,
+      totalBalance,
+      baseCurrency,
       blocked: user.blocked,
       status: user.status,
       createdAt: user.createdAt,
       verification: user.verification[0] || null,
+      referralCode: user.referralCode, // 👈 Add referral code
     })
   } catch (error) {
     console.error("Error fetching user profile:", error)

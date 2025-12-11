@@ -1,5 +1,6 @@
 "use client";
 
+import { motion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Edit3 } from "lucide-react";
@@ -19,7 +20,13 @@ interface UserOrderItemProps {
 
 export function UserOrderItem({ order, onEdit }: UserOrderItemProps) {
   return (
-    <div className="flex items-center justify-between rounded-xl bg-slate-900/80 px-3 py-2.5 hover:bg-slate-900 transition-colors">
+    <motion.div
+      initial={{ opacity: 0, x: -10 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: 10 }}
+      whileHover={{ scale: 1.01 }}
+      className="flex items-center justify-between rounded-xl bg-slate-900/80 px-3 py-2.5 hover:bg-slate-900 transition-colors"
+    >
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
           <Badge
@@ -57,6 +64,6 @@ export function UserOrderItem({ order, onEdit }: UserOrderItemProps) {
           <Edit3 className="h-3.5 w-3.5" />
         </Button>
       </div>
-    </div>
+    </motion.div>
   );
 }

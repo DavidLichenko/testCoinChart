@@ -16,14 +16,20 @@ export async function GET() {
         id: true,
         email: true,
         name: true,
-        TotalBalance: true,
         can_withdraw: true,
         isVerif: true,
         blocked: true,
         status: true,
         createdAt: true,
         role: true,
-        aiTrading: true
+        aiTrading: true,
+        baseCurrency: true,
+        walletBalances: {
+          select: {
+            assetSymbol: true,
+            ownBalance: true,
+          }
+        }
       },
     })
 

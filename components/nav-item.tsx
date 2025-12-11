@@ -21,7 +21,7 @@ const NavItem = ({mobile = false }) => {
     ];
 
     if (isAdmin) {
-        routes.push({ name: t("admin"), href: "/admin", icon: <MdOutlineAccountTree className={"w-5 h-5 md:w-6 md:h-6"}/>, color: "hover:bg-gradient-to-t  hover:from-amber-300 hover:via-gray-900 hover:to-gray-900", bg: "bg-gradient-to-t from-orange-400 via-gray-900 to-gray-900 !text-white font-bold"});
+        routes.push({ name: t("admin"), href: "/admin", icon: <MdOutlineAccountTree className={"w-5 h-5 md:w-6 md:h-6"}/>, color: "hover:bg-gradient-to-t  hover:from-orange-300 hover:via-gray-900 hover:to-gray-900", bg: "bg-gradient-to-t from-orange-400 via-gray-900 to-gray-900 !text-white font-bold"});
     }
 
     return (

@@ -6,7 +6,7 @@ import {generateToken, hashPassword} from "@/lib/auth";
 
 export async function POST(request: Request) {
   try {
-    const { name, email, password, baseCurrency } = await request.json();
+    const { name, email, password, baseCurrency, referralCode } = await request.json();
 
     // Validate input
     if (!name || !email || !password) {
@@ -42,6 +42,30 @@ export async function POST(request: Request) {
     // Hash password
     const hashedPassword = await hashPassword(password);
 
+    // Handle referral code if provided
+    let referrerId: string | null = null
+    if (referralCode) {
+      const code = referralCode.trim().toUpperCase()
+      
+      // First try to find by referral code
+      let referrer = await prisma.user.findUnique({
+        where: { referralCode: code },
+        select: { id: true },
+      })
+      
+      // If not found, try to find by user ID (for backward compatibility with ?ref=userId)
+      if (!referrer && code.length > 8) {
+        referrer = await prisma.user.findUnique({
+          where: { id: code },
+          select: { id: true },
+        })
+      }
+      
+      if (referrer) {
+        referrerId = referrer.id
+      }
+    }
+
     // Create user (без TotalBalance / Balances)
     const user = await prisma.user.create({
       data: {
@@ -53,8 +77,17 @@ export async function POST(request: Request) {
         blocked: false,
         status: "NEW",
         baseCurrency: normalizedCurrency, // 👈 enum FiatCurrency
+        referralCode: null, // Will be generated below
+        referredById: referrerId, // 👈 Link to referrer if code was provided
       },
-    });
+    })
+
+    // Generate unique referral code for new user
+    const newReferralCode = `REF${user.id.slice(0, 8).toUpperCase()}`
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { referralCode: newReferralCode },
+    })
 
     // Create initial wallet balance in chosen fiat asset (EUR or USD)
     // Make sure you have Asset with symbol "EUR" and "USD" in the DB (seed).

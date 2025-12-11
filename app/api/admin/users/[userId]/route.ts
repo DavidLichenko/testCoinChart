@@ -54,7 +54,6 @@ export async function GET(
                 name: true,
                 role: true,
                 status: true,
-                TotalBalance: true,
                 can_withdraw: true,
                 isVerif: true,
                 blocked: true,
@@ -111,11 +110,10 @@ export async function PATCH(
     const { userId } = await params
     const updates = await request.json()
 
-    // какие поля разрешено менять
+    // какие поля разрешено менять (убрали TotalBalance - используем walletBalances)
     const allowedFields = [
       "name",
       "role",
-      "TotalBalance",
       "can_withdraw",
       "isVerif",
       "blocked",
@@ -130,33 +128,7 @@ export async function PATCH(
       }
     }
 
-    // Если меняем баланс — отдельная транзакция + balances + pusher
-    if ("TotalBalance" in filteredUpdates) {
-      const newBalance = filteredUpdates.TotalBalance
-
-      await prisma.$transaction(async (tx) => {
-        // Update user's TotalBalance
-        await tx.user.update({
-          where: { id: userId },
-          data: { TotalBalance: newBalance },
-        })
-
-        // Update or create Balances record
-        await tx.balances.upsert({
-          where: { userId },
-          update: { usd: newBalance },
-          create: { userId, usd: newBalance },
-        })
-      })
-
-      // Trigger real-time update
-      await pusherServer.trigger(`user-${userId}`, "balance-update", {
-        totalBalance: newBalance,
-      })
-
-      // убираем TotalBalance, чтобы ниже не обновлять повторно
-      delete filteredUpdates.TotalBalance
-    }
+    // TotalBalance больше не используется - баланс управляется через walletBalances
 
     // Остальные поля (name, role, status, blocked, isVerif, can_withdraw, baseCurrency)
     if (Object.keys(filteredUpdates).length > 0) {
