@@ -68,12 +68,14 @@ export function ReferralSystem() {
     fetchProfile();
   }, []);
 
-  // безопасно соберём ссылку
+  // безопасно соберём ссылку с реферальным кодом
   useEffect(() => {
-    if (typeof window !== "undefined" && user?.id) {
+    if (typeof window !== "undefined" && referralCode) {
+      setReferralLink(`${window.location.origin}/register?ref=${referralCode}`);
+    } else if (typeof window !== "undefined" && user?.id) {
       setReferralLink(`${window.location.origin}/register?ref=${user.id}`);
     }
-  }, [user?.id]);
+  }, [user?.id, referralCode]);
 
   useEffect(() => {
     const fetchReferralsData = async () => {
@@ -125,7 +127,7 @@ export function ReferralSystem() {
     setCodeCopied(true);
     toast({
       title: t("copied"),
-      description: "Referral code copied to clipboard",
+      description: t("referralCodeCopied") || "Referral code copied to clipboard",
     });
     setTimeout(() => setCodeCopied(false), 1800);
   };

@@ -31,6 +31,7 @@ import { hasOwnerAccess } from "@/lib/admin-access"
 import { useAuth } from "@/components/auth-provider"
 import { useTickers } from "@/hooks/market-data"
 import { TickerAvatar } from "@/components/ticker-avatar"
+import { useI18n } from "@/components/i18n-provider"
 
 interface DepositAddress {
   id: string
@@ -101,6 +102,7 @@ const cryptoOptions: Record<string, string[]> = {
 export default function SettingsManagement() {
   const { user } = useAuth()
   const { tickers } = useTickers()
+  const { t } = useI18n()
   const [accessDenied, setAccessDenied] = useState(false)
   const [activeTab, setActiveTab] = useState<"staking" | "ai-trading" | "crypto-addresses" | "referral-rewards" | "withdrawal-limits">("staking")
   
@@ -315,16 +317,16 @@ export default function SettingsManagement() {
       })
       if (res.ok) {
         toast({
-          title: "Success",
-          description: "AI analysis settings saved successfully",
+          title: t("success"),
+          description: t("aiAnalysisSettingsSavedSuccessfully") || "AI analysis settings saved successfully",
         })
       } else {
         throw new Error("Failed to save settings")
       }
     } catch (e) {
       toast({
-        title: "Error",
-        description: "Failed to save AI analysis settings",
+        title: t("error"),
+        description: t("failedToSaveAiAnalysisSettings") || "Failed to save AI analysis settings",
         variant: "destructive",
       })
     }
@@ -368,8 +370,8 @@ export default function SettingsManagement() {
 
       if (res.ok) {
         toast({
-          title: "Success",
-          description: `Staking plan ${editingStakingPlan ? "updated" : "created"} successfully`,
+          title: t("success"),
+          description: `${t("stakingPlan")} ${editingStakingPlan ? t("updated") : t("created")} ${t("successfully")}`,
         })
         fetchStakingPlans()
         setStakingDialogOpen(false)
@@ -385,27 +387,27 @@ export default function SettingsManagement() {
       }
     } catch (e) {
       toast({
-        title: "Error",
-        description: "Failed to save staking plan",
+        title: t("error"),
+        description: t("failedToSaveStakingPlan") || "Failed to save staking plan",
         variant: "destructive",
       })
     }
   }
 
   const handleDeleteStakingPlan = async (id: string) => {
-    if (!window.confirm("Are you sure you want to delete this staking plan?")) return
+    if (!window.confirm(t("confirmDeleteStakingPlan") || "Are you sure you want to delete this staking plan?")) return
     try {
       const res = await fetch(`/api/admin/staking-plans/${id}`, {
         method: "DELETE",
       })
       if (res.ok) {
-        toast({ title: "Success", description: "Staking plan deleted successfully" })
+        toast({ title: t("success"), description: t("stakingPlanDeletedSuccessfully") || "Staking plan deleted successfully" })
         fetchStakingPlans()
       }
     } catch (e) {
       toast({
-        title: "Error",
-        description: "Failed to delete staking plan",
+        title: t("error"),
+        description: t("failedToDeleteStakingPlan") || "Failed to delete staking plan",
         variant: "destructive",
       })
     }
@@ -454,8 +456,8 @@ export default function SettingsManagement() {
 
       if (res.ok) {
         toast({
-          title: "Success",
-          description: `Address ${editingAddress ? "updated" : "added"} successfully`,
+          title: t("success"),
+          description: `${t("address")} ${editingAddress ? t("updated") : t("added")} ${t("successfully")}`,
         })
         fetchAddresses()
         setAddressDialogOpen(false)
@@ -464,27 +466,27 @@ export default function SettingsManagement() {
       }
     } catch (e) {
       toast({
-        title: "Error",
-        description: "Failed to save address",
+        title: t("error"),
+        description: t("failedToSaveAddress") || "Failed to save address",
         variant: "destructive",
       })
     }
   }
 
   const handleDeleteAddress = async (id: string) => {
-    if (!window.confirm("Are you sure you want to delete this address?")) return
+    if (!window.confirm(t("confirmDeleteAddress") || "Are you sure you want to delete this address?")) return
     try {
       const res = await fetch(`/api/admin/deposit-addresses/${id}`, {
         method: "DELETE",
       })
       if (res.ok) {
-        toast({ title: "Success", description: "Address deleted successfully" })
+        toast({ title: t("success"), description: t("addressDeletedSuccessfully") || "Address deleted successfully" })
         fetchAddresses()
       }
     } catch (e) {
       toast({
-        title: "Error",
-        description: "Failed to delete address",
+        title: t("error"),
+        description: t("failedToDeleteAddress") || "Failed to delete address",
         variant: "destructive",
       })
     }
@@ -529,7 +531,7 @@ export default function SettingsManagement() {
   if (accessDenied) {
   return (
       <div className="rounded-2xl border border-rose-500/30 bg-rose-950/40 px-4 py-3 text-center text-sm text-rose-100">
-        Access denied. Only owners can access settings.
+        {t("accessDenied") || "Access denied. Only owners can access settings."}
       </div>
     )
   }
@@ -541,10 +543,10 @@ export default function SettingsManagement() {
         <div>
           <h1 className="text-2xl font-bold text-white flex items-center gap-2">
             <Settings className="h-6 w-6 text-blue-400" />
-            Platform Settings
+            {t("platformSettings") || "Platform Settings"}
           </h1>
           <p className="mt-1 text-sm text-slate-400">
-            Manage staking plans, AI-trading tickers, and crypto addresses
+            {t("manageStakingPlansAiTradingAndCryptoAddresses") || "Manage staking plans, AI-trading tickers, and crypto addresses"}
           </p>
         </div>
       </div>
@@ -560,7 +562,7 @@ export default function SettingsManagement() {
           }`}
         >
           <Coins className="inline h-4 w-4 mr-2" />
-          Staking Plans
+          {t("stakingPlans") || "Staking Plans"}
         </button>
         <button
           onClick={() => setActiveTab("ai-trading")}
@@ -571,7 +573,7 @@ export default function SettingsManagement() {
           }`}
         >
           <Cpu className="inline h-4 w-4 mr-2" />
-          AI-Trading
+          {t("aiTrading") || "AI-Trading"}
         </button>
         <button
           onClick={() => setActiveTab("crypto-addresses")}
@@ -582,7 +584,7 @@ export default function SettingsManagement() {
           }`}
         >
           <Wallet className="inline h-4 w-4 mr-2" />
-          Crypto Addresses
+          {t("cryptoAddresses") || "Crypto Addresses"}
         </button>
         <button
           onClick={() => setActiveTab("referral-rewards")}
@@ -593,7 +595,7 @@ export default function SettingsManagement() {
           }`}
         >
           <Gift className="inline h-4 w-4 mr-2" />
-          Referral Rewards
+          {t("referralRewards") || "Referral Rewards"}
         </button>
         <button
           onClick={() => setActiveTab("withdrawal-limits")}
@@ -604,7 +606,7 @@ export default function SettingsManagement() {
           }`}
         >
           <ArrowUpCircle className="inline h-4 w-4 mr-2" />
-          Withdrawal Limits
+          {t("withdrawalLimits") || "Withdrawal Limits"}
         </button>
       </div>
 
@@ -623,7 +625,7 @@ export default function SettingsManagement() {
               <CardHeader className="flex items-center justify-between pb-3">
                 <CardTitle className="flex items-center gap-2 text-base font-semibold">
                   <Coins className="h-4 w-4 text-slate-300" />
-                  Staking Plans
+                  {t("stakingPlans") || "Staking Plans"}
                 </CardTitle>
                 <Dialog
                   open={stakingDialogOpen}
@@ -657,18 +659,18 @@ export default function SettingsManagement() {
                       }}
                     >
                       <PlusCircle className="mr-2 h-4 w-4" />
-                      Add Staking Plan
+                      {t("addStakingPlan") || "Add Staking Plan"}
             </Button>
           </DialogTrigger>
                   <DialogContent className="bg-slate-950 border-slate-800">
             <DialogHeader>
                       <DialogTitle>
-                        {editingStakingPlan ? "Edit" : "Create"} Staking Plan
+                        {editingStakingPlan ? t("edit") : t("create")} {t("stakingPlan") || "Staking Plan"}
                       </DialogTitle>
             </DialogHeader>
                     <form onSubmit={handleSaveStakingPlan} className="space-y-4">
                       <div>
-                        <Label>Plan Name</Label>
+                        <Label>{t("planName") || "Plan Name"}</Label>
                         <Input
                           value={stakingForm.name}
                           onChange={(e) =>
@@ -679,7 +681,7 @@ export default function SettingsManagement() {
                         />
                       </div>
                       <div>
-                        <Label>Asset</Label>
+                        <Label>{t("asset") || "Asset"}</Label>
                         <Select
                           value={stakingForm.assetSymbol}
                           onValueChange={(v) =>
@@ -688,11 +690,11 @@ export default function SettingsManagement() {
                           required
                         >
                           <SelectTrigger className="mt-1">
-                            <SelectValue placeholder="Select asset" />
+                            <SelectValue placeholder={t("selectAsset") || "Select asset"} />
                     </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="ALL">
-                              All Assets (Default Plan)
+                              {t("allAssetsDefaultPlan") || "All Assets (Default Plan)"}
                             </SelectItem>
                             {assets.map((asset) => (
                               <SelectItem key={asset.symbol} value={asset.symbol}>
@@ -703,13 +705,13 @@ export default function SettingsManagement() {
                   </Select>
                         {stakingForm.assetSymbol === "ALL" && (
                           <p className="text-xs text-slate-400 mt-1">
-                            This will create a default staking plan for all assets in the wallet
+                            {t("defaultStakingPlanForAllAssets") || "This will create a default staking plan for all assets in the wallet"}
                           </p>
                         )}
                 </div>
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <Label>Duration (days)</Label>
+                          <Label>{t("durationDays") || "Duration (days)"}</Label>
                           <Input
                             type="number"
                             value={stakingForm.duration}
@@ -722,7 +724,7 @@ export default function SettingsManagement() {
                           />
                         </div>
                         <div>
-                          <Label>APR (%)</Label>
+                          <Label>{t("apr") || "APR (%)"}</Label>
                           <Input
                             type="number"
                             step="0.01"
@@ -737,7 +739,7 @@ export default function SettingsManagement() {
                         </div>
                       </div>
                       <div>
-                        <Label>Minimum Amount</Label>
+                        <Label>{t("minimumAmount") || "Minimum Amount"}</Label>
                         <Input
                           type="number"
                           step="0.01"
@@ -751,7 +753,7 @@ export default function SettingsManagement() {
                         />
                       </div>
                       <div className="flex items-center justify-between">
-                        <Label>Active</Label>
+                        <Label>{t("active") || "Active"}</Label>
                         <Switch
                           checked={stakingForm.isActive}
                           onCheckedChange={(v) =>
@@ -762,10 +764,10 @@ export default function SettingsManagement() {
                       <DialogFooter>
                         <DialogClose asChild>
                           <Button type="button" variant="outline">
-                            Cancel
+                            {t("cancel")}
                           </Button>
                         </DialogClose>
-                        <Button type="submit">Save</Button>
+                        <Button type="submit">{t("save")}</Button>
                       </DialogFooter>
                     </form>
                   </DialogContent>
@@ -778,7 +780,7 @@ export default function SettingsManagement() {
                   </div>
                 ) : stakingPlans.length === 0 ? (
                   <div className="text-center py-12 text-slate-400">
-                    No staking plans configured. Create your first plan above.
+                    {t("noStakingPlansConfigured") || "No staking plans configured. Create your first plan above."}
                   </div>
                 ) : (
                   <div className="space-y-3">
@@ -800,21 +802,21 @@ export default function SettingsManagement() {
                                   : "bg-slate-700 text-slate-400"
                               }
                             >
-                              {plan.isActive ? "Active" : "Inactive"}
+                              {plan.isActive ? t("active") : t("inactive")}
                             </Badge>
                           </div>
                           <div className="mt-2 grid grid-cols-2 gap-4 text-sm text-slate-400">
                             <div>
-                              <span className="text-slate-500">Asset:</span> {plan.assetSymbol}
+                              <span className="text-slate-500">{t("asset")}:</span> {plan.assetSymbol}
                             </div>
                             <div>
-                              <span className="text-slate-500">Duration:</span> {plan.duration} days
+                              <span className="text-slate-500">{t("duration")}:</span> {plan.duration} {t("days")}
                             </div>
                             <div>
-                              <span className="text-slate-500">APR:</span> {plan.apr}%
+                              <span className="text-slate-500">{t("apr")}:</span> {plan.apr}%
                             </div>
                             <div>
-                              <span className="text-slate-500">Min Amount:</span> {plan.minAmount}
+                              <span className="text-slate-500">{t("minAmount") || "Min Amount"}:</span> {plan.minAmount}
                             </div>
                           </div>
                         </div>
@@ -861,17 +863,17 @@ export default function SettingsManagement() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Cpu className="h-4 w-4 text-slate-300" />
-                    AI Analysis Settings
+                    {t("aiAnalysisSettings") || "AI Analysis Settings"}
                   </CardTitle>
                   <p className="mt-2 text-sm text-slate-400">
-                    Configure the time range for AI analysis (in seconds).
+                    {t("configureTimeRangeForAiAnalysis") || "Configure the time range for AI analysis (in seconds)."}
                   </p>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <Label htmlFor="minSeconds">Minimum Time (seconds)</Label>
+                        <Label htmlFor="minSeconds">{t("minimumTimeSeconds") || "Minimum Time (seconds)"}</Label>
                         <Input
                           id="minSeconds"
                           type="number"
@@ -887,7 +889,7 @@ export default function SettingsManagement() {
                         />
                       </div>
                       <div>
-                        <Label htmlFor="maxSeconds">Maximum Time (seconds)</Label>
+                        <Label htmlFor="maxSeconds">{t("maximumTimeSeconds") || "Maximum Time (seconds)"}</Label>
                         <Input
                           id="maxSeconds"
                           type="number"
@@ -907,10 +909,10 @@ export default function SettingsManagement() {
                       {loadingAiSettings ? (
                         <>
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Saving...
+                          {t("saving")}...
                         </>
                       ) : (
-                        "Save Settings"
+                        t("saveSettings") || "Save Settings"
                       )}
                     </Button>
                   </div>
@@ -922,16 +924,16 @@ export default function SettingsManagement() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Cpu className="h-4 w-4 text-slate-300" />
-                    AI-Trading Tickers
+                    {t("aiTradingTickers") || "AI-Trading Tickers"}
                   </CardTitle>
                   <p className="mt-2 text-sm text-slate-400">
-                    Select tickers that will be used by AI-trading system. Favorites are shown first.
+                    {t("selectTickersForAiTrading") || "Select tickers that will be used by AI-trading system. Favorites are shown first."}
                   </p>
                 </CardHeader>
                 <CardContent>
                 <div className="mb-4">
                   <Input
-                    placeholder="Search tickers..."
+                    placeholder={t("searchTickers") || "Search tickers..."}
                     value={aiSearchTerm}
                     onChange={(e) => setAiSearchTerm(e.target.value)}
                     className="max-w-md"
@@ -990,6 +992,7 @@ export default function SettingsManagement() {
                 )}
               </CardContent>
             </Card>
+            </div>
           )}
 
           {/* Crypto Addresses Tab */}
@@ -998,7 +1001,7 @@ export default function SettingsManagement() {
               <CardHeader className="flex items-center justify-between">
                 <CardTitle className="flex items-center gap-2">
                   <Wallet className="h-4 w-4 text-slate-300" />
-                  Crypto Addresses
+                  {t("cryptoAddresses") || "Crypto Addresses"}
                 </CardTitle>
                 <Dialog
                   open={addressDialogOpen}
@@ -1018,18 +1021,18 @@ export default function SettingsManagement() {
                       }}
                     >
                       <PlusCircle className="mr-2 h-4 w-4" />
-                      Add Address
+                      {t("addAddress") || "Add Address"}
             </Button>
           </DialogTrigger>
                   <DialogContent className="bg-slate-950 border-slate-800">
             <DialogHeader>
                       <DialogTitle>
-                        {editingAddress ? "Edit" : "Add"} Crypto Address
+                        {editingAddress ? t("edit") : t("add")} {t("cryptoAddress") || "Crypto Address"}
                       </DialogTitle>
             </DialogHeader>
                     <form onSubmit={handleSaveAddress} className="space-y-4">
                       <div>
-                        <Label>Token</Label>
+                        <Label>{t("token") || "Token"}</Label>
                         <Select
                           value={addressForm.selectedToken}
                           onValueChange={(v) =>
@@ -1042,7 +1045,7 @@ export default function SettingsManagement() {
                           required
                         >
                           <SelectTrigger className="mt-1">
-                            <SelectValue placeholder="Select token" />
+                            <SelectValue placeholder={t("selectToken") || "Select token"} />
                       </SelectTrigger>
                           <SelectContent>
                             {Object.keys(cryptoOptions).map((token) => (
@@ -1055,7 +1058,7 @@ export default function SettingsManagement() {
                 </div>
                       {addressForm.selectedToken && (
                         <div>
-                          <Label>Network</Label>
+                          <Label>{t("network") || "Network"}</Label>
                           <Select
                             value={addressForm.selectedNetwork}
                             onValueChange={(v) =>
@@ -1064,7 +1067,7 @@ export default function SettingsManagement() {
                             required
                           >
                             <SelectTrigger className="mt-1">
-                              <SelectValue placeholder="Select network" />
+                              <SelectValue placeholder={t("selectNetwork") || "Select network"} />
                       </SelectTrigger>
                             <SelectContent>
                               {cryptoOptions[addressForm.selectedToken].map((network) => (
@@ -1077,7 +1080,7 @@ export default function SettingsManagement() {
                   </div>
                 )}
                       <div>
-                        <Label>Address</Label>
+                        <Label>{t("address")}</Label>
                         <Input
                           value={addressForm.address}
                           onChange={(e) =>
@@ -1090,10 +1093,10 @@ export default function SettingsManagement() {
                       <DialogFooter>
                 <DialogClose asChild>
                           <Button type="button" variant="outline">
-                            Cancel
+                            {t("cancel")}
                           </Button>
                 </DialogClose>
-                        <Button type="submit">Save</Button>
+                        <Button type="submit">{t("save")}</Button>
               </DialogFooter>
             </form>
           </DialogContent>
@@ -1106,7 +1109,7 @@ export default function SettingsManagement() {
       </div>
           ) : addresses.length === 0 ? (
                   <div className="text-center py-12 text-slate-400">
-                    No crypto addresses configured. Add your first address above.
+                    {t("noCryptoAddressesConfigured") || "No crypto addresses configured. Add your first address above."}
                   </div>
           ) : (
                   <div className="space-y-3">
@@ -1176,7 +1179,7 @@ export default function SettingsManagement() {
               <CardHeader className="flex items-center justify-between">
                 <CardTitle className="flex items-center gap-2">
                   <Gift className="h-4 w-4 text-slate-300" />
-                  Referral Rewards
+                  {t("referralRewards") || "Referral Rewards"}
                 </CardTitle>
                 <Dialog
                   open={rewardDialogOpen}
@@ -1212,13 +1215,13 @@ export default function SettingsManagement() {
                       }}
                     >
                       <PlusCircle className="mr-2 h-4 w-4" />
-                      Add Reward
+                      {t("addReward") || "Add Reward"}
                     </Button>
                   </DialogTrigger>
                   <DialogContent className="bg-slate-950 border-slate-800">
                     <DialogHeader>
                       <DialogTitle>
-                        {editingReward ? "Edit" : "Create"} Referral Reward
+                        {editingReward ? t("edit") : t("create")} {t("referralReward") || "Referral Reward"}
                       </DialogTitle>
                     </DialogHeader>
                     <form
@@ -1246,16 +1249,16 @@ export default function SettingsManagement() {
 
                           if (res.ok) {
                             toast({
-                              title: "Success",
-                              description: `Reward ${editingReward ? "updated" : "created"} successfully`,
+                              title: t("success"),
+                              description: `${t("reward")} ${editingReward ? t("updated") : t("created")} ${t("successfully")}`,
                             })
                             fetchReferralRewards()
                             setRewardDialogOpen(false)
                           }
                         } catch (e) {
                           toast({
-                            title: "Error",
-                            description: "Failed to save reward",
+                            title: t("error"),
+                            description: t("failedToSaveReward") || "Failed to save reward",
                             variant: "destructive",
                           })
                         }
@@ -1263,7 +1266,7 @@ export default function SettingsManagement() {
                       className="space-y-4"
                     >
                       <div>
-                        <Label>Action Type</Label>
+                        <Label>{t("actionType") || "Action Type"}</Label>
                         <Select
                           value={rewardForm.action}
                           onValueChange={(v) =>
@@ -1272,32 +1275,32 @@ export default function SettingsManagement() {
                           required
                         >
                           <SelectTrigger className="mt-1">
-                            <SelectValue placeholder="Select action" />
+                            <SelectValue placeholder={t("selectAction") || "Select action"} />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="SIGNUP">User Signs Up</SelectItem>
-                            <SelectItem value="FIRST_DEPOSIT">First Deposit</SelectItem>
-                            <SelectItem value="DEPOSIT_THRESHOLD">Deposit Threshold</SelectItem>
-                            <SelectItem value="FIRST_TRADE">First Trade</SelectItem>
-                            <SelectItem value="TRADE_VOLUME">Trade Volume</SelectItem>
+                            <SelectItem value="SIGNUP">{t("userSignsUp") || "User Signs Up"}</SelectItem>
+                            <SelectItem value="FIRST_DEPOSIT">{t("firstDeposit") || "First Deposit"}</SelectItem>
+                            <SelectItem value="DEPOSIT_THRESHOLD">{t("depositThreshold") || "Deposit Threshold"}</SelectItem>
+                            <SelectItem value="FIRST_TRADE">{t("firstTrade") || "First Trade"}</SelectItem>
+                            <SelectItem value="TRADE_VOLUME">{t("tradeVolume") || "Trade Volume"}</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
                       <div>
-                        <Label>Action Label</Label>
+                        <Label>{t("actionLabel") || "Action Label"}</Label>
                         <Input
                           value={rewardForm.actionLabel}
                           onChange={(e) =>
                             setRewardForm({ ...rewardForm, actionLabel: e.target.value })
                           }
                           required
-                          placeholder="e.g., User signs up"
+                          placeholder={t("egUserSignsUp") || "e.g., User signs up"}
                           className="mt-1"
                         />
                       </div>
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <Label>Reward Amount</Label>
+                          <Label>{t("rewardAmount") || "Reward Amount"}</Label>
                           <Input
                             type="number"
                             step="0.01"
@@ -1311,7 +1314,7 @@ export default function SettingsManagement() {
                           />
                         </div>
                         <div>
-                          <Label>Currency</Label>
+                          <Label>{t("currency")}</Label>
                           <Select
                             value={rewardForm.rewardCurrency}
                             onValueChange={(v) =>
@@ -1332,7 +1335,7 @@ export default function SettingsManagement() {
                       {(rewardForm.action === "DEPOSIT_THRESHOLD" ||
                         rewardForm.action === "TRADE_VOLUME") && (
                         <div>
-                          <Label>Threshold</Label>
+                          <Label>{t("threshold") || "Threshold"}</Label>
                           <Input
                             type="number"
                             step="0.01"
@@ -1342,24 +1345,24 @@ export default function SettingsManagement() {
                             }
                             required
                             min="0"
-                            placeholder="e.g., 500"
+                            placeholder={t("eg500") || "e.g., 500"}
                             className="mt-1"
                           />
                         </div>
                       )}
                       <div>
-                        <Label>Description (optional)</Label>
+                        <Label>{t("descriptionOptional") || "Description (optional)"}</Label>
                         <Input
                           value={rewardForm.description}
                           onChange={(e) =>
                             setRewardForm({ ...rewardForm, description: e.target.value })
                           }
-                          placeholder="Additional details about this reward"
+                          placeholder={t("additionalDetailsAboutReward") || "Additional details about this reward"}
                           className="mt-1"
                         />
                       </div>
                       <div className="flex items-center justify-between">
-                        <Label>Active</Label>
+                        <Label>{t("active")}</Label>
                         <Switch
                           checked={rewardForm.isActive}
                           onCheckedChange={(v) =>
@@ -1370,10 +1373,10 @@ export default function SettingsManagement() {
                       <DialogFooter>
                         <DialogClose asChild>
                           <Button type="button" variant="outline">
-                            Cancel
+                            {t("cancel")}
                           </Button>
                         </DialogClose>
-                        <Button type="submit">Save</Button>
+                        <Button type="submit">{t("save")}</Button>
                       </DialogFooter>
                     </form>
                   </DialogContent>
@@ -1386,7 +1389,7 @@ export default function SettingsManagement() {
                   </div>
                 ) : referralRewards.length === 0 ? (
                   <div className="text-center py-12 text-slate-400">
-                    No referral rewards configured. Create your first reward above.
+                    {t("noReferralRewardsConfigured") || "No referral rewards configured. Create your first reward above."}
                   </div>
                 ) : (
                   <div className="space-y-3">
@@ -1408,25 +1411,25 @@ export default function SettingsManagement() {
                                   : "bg-slate-700 text-slate-400"
                               }
                             >
-                              {reward.isActive ? "Active" : "Inactive"}
+                              {reward.isActive ? t("active") : t("inactive")}
                             </Badge>
                           </div>
                           <div className="mt-2 grid grid-cols-2 gap-4 text-sm text-slate-400">
                             <div>
-                              <span className="text-slate-500">Reward:</span>{" "}
+                              <span className="text-slate-500">{t("reward")}:</span>{" "}
                               {reward.rewardCurrency === "EUR" ? "€" : "$"}
                               {reward.rewardAmount.toFixed(2)}
                             </div>
                             {reward.threshold && (
                               <div>
-                                <span className="text-slate-500">Threshold:</span>{" "}
+                                <span className="text-slate-500">{t("threshold")}:</span>{" "}
                                 {reward.rewardCurrency === "EUR" ? "€" : "$"}
                                 {reward.threshold.toFixed(2)}
                               </div>
                             )}
                             {reward.description && (
                               <div className="col-span-2">
-                                <span className="text-slate-500">Description:</span>{" "}
+                                <span className="text-slate-500">{t("description")}:</span>{" "}
                                 {reward.description}
                               </div>
                             )}
@@ -1456,7 +1459,7 @@ export default function SettingsManagement() {
                             variant="destructive"
                             size="sm"
                             onClick={async () => {
-                              if (!window.confirm("Are you sure you want to delete this reward?"))
+                              if (!window.confirm(t("confirmDeleteReward") || "Are you sure you want to delete this reward?"))
                                 return
                               try {
                                 const res = await fetch(
@@ -1465,15 +1468,15 @@ export default function SettingsManagement() {
                                 )
                                 if (res.ok) {
                                   toast({
-                                    title: "Success",
-                                    description: "Reward deleted successfully",
+                                    title: t("success"),
+                                    description: t("rewardDeletedSuccessfully") || "Reward deleted successfully",
                                   })
                                   fetchReferralRewards()
                                 }
                               } catch (e) {
                                 toast({
-                                  title: "Error",
-                                  description: "Failed to delete reward",
+                                  title: t("error"),
+                                  description: t("failedToDeleteReward") || "Failed to delete reward",
                                   variant: "destructive",
                                 })
                               }
@@ -1496,7 +1499,7 @@ export default function SettingsManagement() {
               <CardHeader className="flex items-center justify-between">
                 <CardTitle className="flex items-center gap-2">
                   <ArrowUpCircle className="h-4 w-4 text-slate-300" />
-                  Withdrawal Limits
+                  {t("withdrawalLimits") || "Withdrawal Limits"}
                 </CardTitle>
                 <Dialog
                   open={limitDialogOpen}
@@ -1536,13 +1539,13 @@ export default function SettingsManagement() {
                       }}
                     >
                       <PlusCircle className="mr-2 h-4 w-4" />
-                      Add Limit
+                      {t("addLimit") || "Add Limit"}
                     </Button>
                   </DialogTrigger>
                   <DialogContent className="bg-slate-950 border-slate-800 max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
                       <DialogTitle>
-                        {editingLimit ? "Edit" : "Create"} Withdrawal Limit
+                        {editingLimit ? t("edit") : t("create")} {t("withdrawalLimit") || "Withdrawal Limit"}
                       </DialogTitle>
                     </DialogHeader>
                     <form
@@ -1572,16 +1575,16 @@ export default function SettingsManagement() {
 
                           if (res.ok) {
                             toast({
-                              title: "Success",
-                              description: `Limit ${editingLimit ? "updated" : "created"} successfully`,
+                              title: t("success"),
+                              description: `${t("limit") || "Limit"} ${editingLimit ? t("updated") : t("created")} ${t("successfully")}`,
                             })
                             fetchWithdrawalLimits()
                             setLimitDialogOpen(false)
                           }
                         } catch (e) {
                           toast({
-                            title: "Error",
-                            description: "Failed to save limit",
+                            title: t("error"),
+                            description: t("failedToSaveLimit") || "Failed to save limit",
                             variant: "destructive",
                           })
                         }
@@ -1589,7 +1592,7 @@ export default function SettingsManagement() {
                       className="space-y-4"
                     >
                       <div>
-                        <Label>Method</Label>
+                        <Label>{t("method")}</Label>
                         <Select
                           value={limitForm.method}
                           onValueChange={(v) =>
@@ -1598,17 +1601,17 @@ export default function SettingsManagement() {
                           required
                         >
                           <SelectTrigger className="mt-1">
-                            <SelectValue placeholder="Select method" />
+                            <SelectValue placeholder={t("selectMethod") || "Select method"} />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="CARD">Card</SelectItem>
-                            <SelectItem value="CRYPTO">Crypto</SelectItem>
+                            <SelectItem value="CARD">{t("card")}</SelectItem>
+                            <SelectItem value="CRYPTO">{t("crypto")}</SelectItem>
                           </SelectContent>
                         </Select>
-    </div>
+                      </div>
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <Label>Min Amount</Label>
+                          <Label>{t("minAmount") || "Min Amount"}</Label>
                           <Input
                             type="number"
                             step="0.01"
@@ -1622,7 +1625,7 @@ export default function SettingsManagement() {
                           />
                         </div>
                         <div>
-                          <Label>Max Amount (optional)</Label>
+                          <Label>{t("maxAmountOptional") || "Max Amount (optional)"}</Label>
                           <Input
                             type="number"
                             step="0.01"
@@ -1637,7 +1640,7 @@ export default function SettingsManagement() {
                       </div>
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <Label>Daily Limit (optional)</Label>
+                          <Label>{t("dailyLimitOptional") || "Daily Limit (optional)"}</Label>
                           <Input
                             type="number"
                             step="0.01"
@@ -1650,7 +1653,7 @@ export default function SettingsManagement() {
                           />
                         </div>
                         <div>
-                          <Label>Monthly Limit (optional)</Label>
+                          <Label>{t("monthlyLimitOptional") || "Monthly Limit (optional)"}</Label>
                           <Input
                             type="number"
                             step="0.01"
@@ -1665,7 +1668,7 @@ export default function SettingsManagement() {
                       </div>
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <Label>Fixed Fee</Label>
+                          <Label>{t("fixedFee") || "Fixed Fee"}</Label>
                           <Input
                             type="number"
                             step="0.01"
@@ -1679,7 +1682,7 @@ export default function SettingsManagement() {
                           />
                         </div>
                         <div>
-                          <Label>Fee Percent (optional)</Label>
+                          <Label>{t("feePercentOptional") || "Fee Percent (optional)"}</Label>
                           <Input
                             type="number"
                             step="0.01"
@@ -1694,18 +1697,18 @@ export default function SettingsManagement() {
                         </div>
                       </div>
                       <div>
-                        <Label>Processing Time (optional)</Label>
+                        <Label>{t("processingTimeOptional") || "Processing Time (optional)"}</Label>
                         <Input
                           value={limitForm.processingTime}
                           onChange={(e) =>
                             setLimitForm({ ...limitForm, processingTime: e.target.value })
                           }
-                          placeholder="e.g., 1-3 business days"
+                          placeholder={t("eg13BusinessDays") || "e.g., 1-3 business days"}
                           className="mt-1"
                         />
                       </div>
                       <div className="flex items-center justify-between">
-                        <Label>Active</Label>
+                        <Label>{t("active")}</Label>
                         <Switch
                           checked={limitForm.isActive}
                           onCheckedChange={(v) =>
@@ -1716,10 +1719,10 @@ export default function SettingsManagement() {
                       <DialogFooter>
                         <DialogClose asChild>
                           <Button type="button" variant="outline">
-                            Cancel
+                            {t("cancel")}
                           </Button>
                         </DialogClose>
-                        <Button type="submit">Save</Button>
+                        <Button type="submit">{t("save")}</Button>
                       </DialogFooter>
                     </form>
                   </DialogContent>
@@ -1732,7 +1735,7 @@ export default function SettingsManagement() {
                   </div>
                 ) : withdrawalLimits.length === 0 ? (
                   <div className="text-center py-12 text-slate-400">
-                    No withdrawal limits configured. Create your first limit above.
+                    {t("noWithdrawalLimitsConfigured") || "No withdrawal limits configured. Create your first limit above."}
                   </div>
                 ) : (
                   <div className="space-y-3">
@@ -1754,33 +1757,33 @@ export default function SettingsManagement() {
                                   : "bg-slate-700 text-slate-400"
                               }
                             >
-                              {limit.isActive ? "Active" : "Inactive"}
+                              {limit.isActive ? t("active") : t("inactive")}
                             </Badge>
                           </div>
                           <div className="mt-2 grid grid-cols-2 gap-4 text-sm text-slate-400">
                             <div>
-                              <span className="text-slate-500">Min:</span> {limit.minAmount}
+                              <span className="text-slate-500">{t("min") || "Min"}:</span> {limit.minAmount}
                               {limit.maxAmount && (
-                                <span> • Max: {limit.maxAmount}</span>
+                                <span> • {t("max") || "Max"}: {limit.maxAmount}</span>
                               )}
                             </div>
                             <div>
-                              <span className="text-slate-500">Fee:</span> {limit.fee}
+                              <span className="text-slate-500">{t("fee") || "Fee"}:</span> {limit.fee}
                               {limit.feePercent && ` + ${limit.feePercent}%`}
                             </div>
                             {limit.dailyLimit && (
                               <div>
-                                <span className="text-slate-500">Daily:</span> {limit.dailyLimit}
+                                <span className="text-slate-500">{t("daily") || "Daily"}:</span> {limit.dailyLimit}
                               </div>
                             )}
                             {limit.monthlyLimit && (
                               <div>
-                                <span className="text-slate-500">Monthly:</span> {limit.monthlyLimit}
+                                <span className="text-slate-500">{t("monthly") || "Monthly"}:</span> {limit.monthlyLimit}
                               </div>
                             )}
                             {limit.processingTime && (
                               <div className="col-span-2">
-                                <span className="text-slate-500">Processing:</span> {limit.processingTime}
+                                <span className="text-slate-500">{t("processing")}:</span> {limit.processingTime}
                               </div>
                             )}
                           </div>
@@ -1811,7 +1814,7 @@ export default function SettingsManagement() {
                             variant="destructive"
                             size="sm"
                             onClick={async () => {
-                              if (!window.confirm("Are you sure you want to delete this limit?"))
+                              if (!window.confirm(t("confirmDeleteLimit") || "Are you sure you want to delete this limit?"))
                                 return
                               try {
                                 const res = await fetch(
@@ -1820,15 +1823,15 @@ export default function SettingsManagement() {
                                 )
                                 if (res.ok) {
                                   toast({
-                                    title: "Success",
-                                    description: "Limit deleted successfully",
+                                    title: t("success"),
+                                    description: t("limitDeletedSuccessfully") || "Limit deleted successfully",
                                   })
                                   fetchWithdrawalLimits()
                                 }
                               } catch (e) {
                                 toast({
-                                  title: "Error",
-                                  description: "Failed to delete limit",
+                                  title: t("error"),
+                                  description: t("failedToDeleteLimit") || "Failed to delete limit",
                                   variant: "destructive",
                                 })
                               }

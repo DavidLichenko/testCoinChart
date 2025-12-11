@@ -128,11 +128,10 @@ export async function GET(request: Request) {
     const pendingBonuses = enrichedReferrals
       .filter(
         (referral) =>
-          referral.status === "QUALIFIED" &&
-          referral.referredUser.hasMadeDeposit &&
-          referral.rewardAmount < signupAmount + thresholdBonus
+          referral.status === "PENDING" &&
+          referral.referredUser.hasMadeDeposit
       )
-      .reduce((sum) => sum + thresholdBonus, 0);
+      .reduce((sum, referral) => sum + thresholdBonus, 0);
 
     return NextResponse.json({
       referrals: enrichedReferrals,

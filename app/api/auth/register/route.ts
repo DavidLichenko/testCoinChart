@@ -89,6 +89,82 @@ export async function POST(request: Request) {
       data: { referralCode: newReferralCode },
     })
 
+    // Create referral record if user was referred
+    if (referrerId) {
+      try {
+        // Get signup reward from settings
+        const signupReward = await prisma.referralReward.findUnique({
+          where: { action: "SIGNUP" },
+        });
+
+        const initialReward = signupReward?.rewardAmount || 10;
+        const rewardCurrency = signupReward?.rewardCurrency || "USD";
+
+        // Create referral record
+        await prisma.referral.create({
+          data: {
+            referrerId: referrerId,
+            referredUserId: user.id,
+            code: newReferralCode,
+            rewardAmount: initialReward,
+            rewardCurrency: rewardCurrency,
+            status: "PENDING",
+          },
+        });
+
+        // Add reward to referrer's balance
+        if (initialReward > 0) {
+          const referrerBaseCurrency = await prisma.user.findUnique({
+            where: { id: referrerId },
+            select: { baseCurrency: true },
+          });
+
+          const currency = referrerBaseCurrency?.baseCurrency || "USD";
+          
+          // Update referrer's wallet balance
+          await prisma.walletBalance.upsert({
+            where: {
+              userId_assetSymbol: {
+                userId: referrerId,
+                assetSymbol: currency,
+              },
+            },
+            update: {
+              ownBalance: {
+                increment: initialReward,
+              },
+            },
+            create: {
+              userId: referrerId,
+              assetSymbol: currency,
+              ownBalance: initialReward,
+              creditLimit: 0,
+              creditUsed: 0,
+              locked: 0,
+            },
+          });
+
+          // Create order record for referral bonus
+          await prisma.orders.create({
+            data: {
+              userId: referrerId,
+              type: "DEPOSIT",
+              amount: initialReward,
+              status: "SUCCESSFUL",
+              metadata: JSON.stringify({
+                type: "REFERRAL_BONUS",
+                referredUserId: user.id,
+                referralCode: newReferralCode,
+              }),
+            },
+          });
+        }
+      } catch (error) {
+        // Log error but don't fail registration
+        console.error("Error creating referral record:", error);
+      }
+    }
+
     // Create initial wallet balance in chosen fiat asset (EUR or USD)
     // Make sure you have Asset with symbol "EUR" and "USD" in the DB (seed).
     await prisma.walletBalance.upsert({
