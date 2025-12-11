@@ -45,12 +45,9 @@ export function WalletSummary() {
                     highlight
                 />
                 <SummaryTile
-                    label={t("creditUsed") /* en: "Credit used", es: "Crédito usado" */}
-                    value={summary.creditUsed}
-                />
-                <SummaryTile
-                    label={t("creditLimit") /* en: "Credit limit", es: "Límite de crédito" */}
-                    value={summary.creditLimit}
+                    label={t("creditBalance") /* en: "Credit balance", es: "Saldo de crédito" */}
+                    value={summary.creditBalance}
+                    positive
                 />
                 <SummaryTile
                     label={

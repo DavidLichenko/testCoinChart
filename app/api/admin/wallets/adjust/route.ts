@@ -28,8 +28,7 @@ export async function POST(request: Request) {
             assetSymbol,
             balanceDelta,
             lockedDelta,
-            creditLimit,
-            creditUsed,
+            creditBalance,
         } = body;
 
         if (!userId || !assetSymbol) {
@@ -62,8 +61,7 @@ export async function POST(request: Request) {
 
         let newOwn = existing?.ownBalance ?? 0;
         let newLocked = existing?.locked ?? 0;
-        let newCreditLimit = existing?.creditLimit ?? 0;
-        let newCreditUsed = existing?.creditUsed ?? 0;
+        let newCreditBalance = existing?.creditBalance ?? 0;
 
         if (typeof balanceDelta === "number" && !isNaN(balanceDelta)) {
             newOwn += balanceDelta;
@@ -74,24 +72,13 @@ export async function POST(request: Request) {
         }
 
         // When setting credit limit, we add to the user's account
-        if (typeof creditLimit === "number" && !isNaN(creditLimit)) {
-            newCreditLimit = creditLimit;
+        if (typeof creditBalance === "number" && !isNaN(creditBalance)) {
+            newCreditBalance = creditBalance;
         }
 
-        if (typeof creditUsed === "number" && !isNaN(creditUsed)) {
-            newCreditUsed = creditUsed;
-        }
-
-        if (newOwn < 0 || newLocked < 0 || newCreditLimit < 0 || newCreditUsed < 0) {
+        if (newOwn < 0 || newLocked < 0 || newCreditBalance < 0) {
             return NextResponse.json(
                 { error: "Negative values are not allowed" },
-                { status: 400 }
-            );
-        }
-
-        if (newCreditUsed > newCreditLimit) {
-            return NextResponse.json(
-                { error: "Credit used cannot exceed credit limit" },
                 { status: 400 }
             );
         }
@@ -106,16 +93,14 @@ export async function POST(request: Request) {
             update: {
                 ownBalance: newOwn,
                 locked: newLocked,
-                creditLimit: newCreditLimit,
-                creditUsed: newCreditUsed,
+                creditBalance: newCreditBalance,
             },
             create: {
                 userId,
                 assetSymbol,
                 ownBalance: newOwn,
                 locked: newLocked,
-                creditLimit: newCreditLimit,
-                creditUsed: newCreditUsed,
+                creditBalance: newCreditBalance,
             },
         });
 
@@ -142,8 +127,7 @@ export async function POST(request: Request) {
                     name: b.asset.name,
                     balance: b.ownBalance + b.locked,
                     ownBalance: b.ownBalance,
-                    creditUsed: b.creditUsed,
-                    creditLimit: b.creditLimit,
+                    creditBalance: b.creditBalance,
                     price: 0,
                     change24h: 0,
                     totalValue: 0,

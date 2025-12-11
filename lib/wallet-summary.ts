@@ -8,10 +8,9 @@ export type WalletSummary = {
     tradingInTrade: number;        // margin in open trades
     walletTotal: number;           // sum of ownBalance across all assets (in user's preferred currency)
     stakingTotal: number;          // sum of active staking positions (in user's preferred currency)
-    creditLimit: number;
-    creditUsed: number;
-    availableForWithdraw: number;  // own funds, not credit, not in trade, not locked, not in pending withdraws
-    availableForTrade: number;     // own + free credit - locked - pending withdraws
+    creditBalance: number;         // credit money (like a balance, but separate)
+    availableForWithdraw: number;  // own funds, not in trade, not locked, not in pending withdraws
+    availableForTrade: number;     // own + credit - locked - pending withdraws
 };
 
 export async function calculateUserWalletSummary(userId: string): Promise<WalletSummary> {
@@ -23,8 +22,7 @@ export async function calculateUserWalletSummary(userId: string): Promise<Wallet
                 select: {
                     assetSymbol: true,
                     ownBalance: true,
-                    creditLimit: true,
-                    creditUsed: true,
+                    creditBalance: true,
                     locked: true,
                 },
             },
@@ -222,34 +220,30 @@ export async function calculateUserWalletSummary(userId: string): Promise<Wallet
         }
     }
 
-    let creditLimit = 0;
-    let creditUsed = 0;
+    let creditBalance = 0;
     let tradingBalance = 0;
     let availableForWithdraw = 0;
     let availableForTrade = 0;
 
     if (baseWallet) {
-        creditLimit = baseWallet.creditLimit || 0;
-        creditUsed = baseWallet.creditUsed || 0;
+        creditBalance = baseWallet.creditBalance || 0;
 
         const own = baseWallet.ownBalance || 0;
         const locked = baseWallet.locked || 0;
-        const freeCredit = Math.max(0, creditLimit - creditUsed);
 
-        // то, что используем для Equity в хедере (можешь подправить формулу под себя)
-        tradingBalance = own + freeCredit;
+        // Trading balance includes own balance + credit balance
+        tradingBalance = own + creditBalance;
 
-        // доступные для вывода: только свои, без кредита,
-        // не в сделках, не в pending withdraw, не locked
+        // Available for withdraw: only own funds, not in trade, not locked, not in pending withdraws
         availableForWithdraw = Math.max(
             0,
             own - tradingInTrade - locked - pendingWithdrawAmount
         );
 
-        // доступные для открытия сделок: свои + свободный кредит, не locked и не в pending withdraw
+        // Available for trade: own + credit - locked - pending withdraws
         availableForTrade = Math.max(
             0,
-            own + freeCredit - locked - pendingWithdrawAmount
+            own + creditBalance - locked - pendingWithdrawAmount
         );
     }
 
@@ -259,8 +253,7 @@ export async function calculateUserWalletSummary(userId: string): Promise<Wallet
         tradingInTrade,
         walletTotal,
         stakingTotal,
-        creditLimit,
-        creditUsed,
+        creditBalance,
         availableForWithdraw,
         availableForTrade,
     };

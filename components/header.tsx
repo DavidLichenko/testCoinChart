@@ -1,6 +1,6 @@
 "use client";
 
-import React, {useEffect, useState} from "react";
+import React, {useEffect, useState, useMemo, useCallback} from "react";
 import Link from "next/link";
 import {useRouter} from "next/navigation";
 import {AnimatePresence, motion} from "framer-motion";
@@ -75,8 +75,8 @@ const navItems = [
     },
 ];
 const MotionPlus = motion(Plus);
-// Loading skeleton component for balance
-const BalanceSkeleton = () => (
+// Memoize balance skeleton to prevent re-renders
+const BalanceSkeleton = React.memo(() => (
     <motion.div
         className="flex items-center gap-3 px-4 py-2 rounded-md bg-gray-900"
         initial={{ opacity: 0.5 }}
@@ -91,7 +91,8 @@ const BalanceSkeleton = () => (
             <div className="h-4 w-24 bg-gray-700 rounded"></div>
         </div>
     </motion.div>
-);
+));
+BalanceSkeleton.displayName = 'BalanceSkeleton';
 
 export default function Header({homepage=false}) {
     const { balance, liveProfit, details, assets } = useBalance();
@@ -203,7 +204,7 @@ export default function Header({homepage=false}) {
         };
     }, [mobileMenuOpen]);
 
-    // -------- расчёты баланса --------
+    // -------- расчёты баланса (memoized) --------
     const baseCurrency = details?.baseCurrency ?? "USD";
     const tradingBalance = details?.tradingBalance ?? 0;
     const tradingInTrade = details?.tradingInTrade ?? 0;
@@ -214,10 +215,8 @@ export default function Header({homepage=false}) {
     const walletTotalUsd = details?.walletTotal ?? 0;
     const stakingTotalUsd = details?.stakingTotal ?? 0;
 
-    const creditLimit = details?.creditLimit ?? 0;
-    const creditUsed = details?.creditUsed ?? 0;
-    const creditAvailable = Math.max(0, creditLimit - creditUsed);
-    const hasCredit = creditLimit > 0.0001;
+    const creditBalance = details?.creditBalance ?? 0;
+    const hasCredit = creditBalance > 0.0001;
 
     const tradingFree = Math.max(0, tradingBalance - tradingInTrade);
 
@@ -225,25 +224,30 @@ export default function Header({homepage=false}) {
     // Exclude pending withdrawal amounts from total equity as per requirements
     const totalEquity = balance;
 
-    const formatMoney = (v: number) =>
+    // Memoize formatMoney function
+    const formatMoney = useCallback((v: number) =>
         new Intl.NumberFormat("en-US", {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,
-        }).format(v || 0);
+        }).format(v || 0), []);
+        
     const [rotated, setRotated] = useState(false);
-    // Calculate crypto balance from assets
-    const cryptoBalanceUsd = assets?.reduce((sum, asset) => {
-        // Exclude base currency assets (USD/EUR) from crypto balance
-        if (asset.symbol === "USD" || asset.symbol === "USDT" || asset.symbol === baseCurrency) {
-            return sum;
-        }
-        return sum + (asset.totalValueUsd || asset.totalValue || 0);
-    }, 0) ?? 0;
+    
+    // Calculate crypto balance from assets (memoized)
+    const cryptoBalanceDisplay = useMemo(() => {
+        const cryptoBalanceUsd = assets?.reduce((sum, asset) => {
+            // Exclude base currency assets (USD/EUR) from crypto balance
+            if (asset.symbol === "USD" || asset.symbol === "USDT" || asset.symbol === baseCurrency) {
+                return sum;
+            }
+            return sum + (asset.totalValueUsd || asset.totalValue || 0);
+        }, 0) ?? 0;
 
-    // For EUR users, convert crypto balance to EUR
-    const cryptoBalanceDisplay = baseCurrency === "EUR" && details?.eurUsdRate
-        ? cryptoBalanceUsd / details.eurUsdRate
-        : cryptoBalanceUsd;
+        // For EUR users, convert crypto balance to EUR
+        return baseCurrency === "EUR" && details?.eurUsdRate
+            ? cryptoBalanceUsd / details.eurUsdRate
+            : cryptoBalanceUsd;
+    }, [assets, baseCurrency, details?.eurUsdRate]);
 
 
     type MoneyAnimatedProps = {
@@ -283,12 +287,10 @@ export default function Header({homepage=false}) {
         const tradingInTrade = details?.tradingInTrade ?? 0;
         const lockedTrading = details?.lockedTrading ?? 0;
         const pendingWithdrawAmount = details?.pendingWithdrawAmount ?? 0;
-        const creditLimit = details?.creditLimit ?? 0;
-        const creditUsed = details?.creditUsed ?? 0;
-        const creditAvailable = details?.creditAvailable ?? 0;
+        const creditBalance = details?.creditBalance ?? 0;
         const approxUsd = details?.approxUsd;
 
-        const hasCredit = creditLimit > 0.0001;
+        const hasCredit = creditBalance > 0.0001;
 
         // либо берём из API, либо считаем fallback’ом
         const availableToWithdraw =
@@ -481,21 +483,16 @@ export default function Header({homepage=false}) {
 
                                 {/* Credit block (only if credit exists) */}
                                 {hasCredit && (
-                                    <div className="mt-3 rounded-xl bg-red-500/5 border border-red-500/20 px-4 py-3">
+                                    <div className="mt-3 rounded-xl bg-purple-500/5 border border-purple-500/20 px-4 py-3">
                                         <div className="flex items-center justify-between text-xs text-slate-400 mb-1">
-                                            <span>{t("creditUsed") ?? "Credit used"}</span>
-                                            <span className="font-semibold text-red-400">
-                                                {formatMoney(creditUsed)} {baseCurrency}
+                                            <span>{t("creditBalance") ?? "Credit balance"}</span>
+                                            <span className="font-semibold text-purple-400">
+                                                {formatMoney(creditBalance)} {baseCurrency}
                                             </span>
                                         </div>
-                                        <div className="flex items-center justify-between text-xs text-purple-300">
-                                            <span>
-                                                {t("creditLimit") ?? "Limit"}: {formatMoney(creditLimit)} {baseCurrency}
-                                            </span>
-                                            <span>
-                                                {t("creditAvailable") ?? "Available"}: {formatMoney(creditAvailable)} {baseCurrency}
-                                            </span>
-                                        </div>
+                                        <p className="text-[10px] text-slate-500 mt-1">
+                                            {t("creditBalanceDesc") ?? "Available credit funds for trading"}
+                                        </p>
                                         <button
                                             type="button"
                                             onClick={handleGoWallet}

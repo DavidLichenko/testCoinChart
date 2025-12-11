@@ -55,7 +55,7 @@ export default function ProfileOrdersPage() {
 
   useEffect(() => {
     if (details) {
-      setHasCredit((details.creditLimit || 0) > 0);
+      setHasCredit((details.creditBalance || 0) > 0);
     }
   }, [details]);
 

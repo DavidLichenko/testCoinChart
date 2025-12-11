@@ -460,8 +460,9 @@ const TestChart: React.FC = () => {
         }
 
         fetchActiveTrades()
-        const interval = setInterval(fetchActiveTrades, 10000)
-        return () => clearInterval(interval)
+        // Use Pusher for real-time updates instead of polling
+        // const interval = setInterval(fetchActiveTrades, 10000)
+        // return () => clearInterval(interval)
     }, [])
     useEffect(() => {
         if (typeof window === "undefined") return
@@ -518,7 +519,7 @@ const TestChart: React.FC = () => {
 
             // Проверяем баланс с учетом кредитных средств, если включен switch
             const availableBalance = useCredit && details
-                ? (details.availableToTrade + details.creditAvailable)
+                ? (details.availableToTrade)
                 : (details?.availableToTrade || balance || 0)
             
             if (availableBalance < payload.margin) {
@@ -3112,8 +3113,8 @@ const TestChart: React.FC = () => {
                                                         </div>
                                                     </div>
 
-                                                    {/* Credit funds switch - только если есть кредитные средства */}
-                                                    {details && details.creditAvailable > 0 && (
+                                                    {/* Credit funds switch - only if there is credit balance */}
+                                                    {details && details.creditBalance > 0 && (
                                                         <div className="flex items-center justify-between rounded-lg border border-slate-800/80 bg-slate-900/50 px-3 py-2">
                                                             <div className="flex items-center gap-2">
                                                                 <div className="flex flex-col">
@@ -3121,7 +3122,7 @@ const TestChart: React.FC = () => {
                                                                         Use Credit Funds
                                                                     </span>
                                                                     <span className="text-[10px] text-slate-400">
-                                                                        Available: {details.creditAvailable.toFixed(2)} {details.baseCurrency}
+                                                                        Credit: {details.creditBalance.toFixed(2)} {details.baseCurrency}
                                                                     </span>
                                                                 </div>
                                                             </div>
@@ -3622,7 +3623,7 @@ const TestChart: React.FC = () => {
     return (
         <div className="flex h-[calc(100vh-65px)] flex-col overflow-y-hidden bg-[#050012] text-white">
             {/* HEADER */}
-            <div className="flex items-center justify-between border-b border-slate-800 bg-[#0f1419] px-4 py-2">
+            <div className="flex items-center justify-between border-b border-slate-700/50 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 px-4 py-3 shadow-lg">
                 <div className="flex items-center gap-3">
                     {selectedTicker && (
                         <TickerAvatar
@@ -3635,20 +3636,20 @@ const TestChart: React.FC = () => {
                     )}
                     <div>
                         <div className="flex items-center gap-2">
-                            <h1 className="text-lg font-semibold">
+                            <h1 className="text-lg font-semibold bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">
                                 {selectedTicker
                                     ? selectedTicker.showName
                                     : t("selectTickerTitle") || "Select a symbol"}
                             </h1>
                             {selectedTicker && (
-                                <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-xs font-medium text-emerald-300">
-                LIVE
+                                <span className="rounded-full bg-emerald-500/20 px-2.5 py-0.5 text-xs font-semibold text-emerald-400 shadow-sm">
+                {t("liveMarket") || "LIVE"}
               </span>
                             )}
                         </div>
                         <div className="text-xs text-slate-400">
                             {selectedTicker
-                                ? `${selectedTicker.symbol} • Realtime with drawings`
+                                ? `${selectedTicker.symbol} • ${t("realtimeWithDrawings") || "Realtime with drawings"}`
                                 : t("selectTickerDescription") ||
                                 "Choose a symbol from the list to display the chart."}
                         </div>
@@ -4186,8 +4187,8 @@ const TestChart: React.FC = () => {
                                                 </div>
                                             </div>
 
-                                            {/* Credit funds switch - только если есть кредитные средства */}
-                                            {details && details.creditAvailable > 0 && (
+                                            {/* Credit funds switch - only if there is credit balance */}
+                                            {details && details.creditBalance > 0 && (
                                                 <div className="flex items-center justify-between rounded-lg border border-slate-800/80 bg-slate-900/50 px-3 py-2">
                                                     <div className="flex items-center gap-2">
                                                         <div className="flex flex-col">
@@ -4195,7 +4196,7 @@ const TestChart: React.FC = () => {
                                                                 Use Credit Funds
                                                             </span>
                                                             <span className="text-[10px] text-slate-400">
-                                                                Available: {details.creditAvailable.toFixed(2)} {details.baseCurrency}
+                                                                Credit: {details.creditBalance.toFixed(2)} {details.baseCurrency}
                                                             </span>
                                                         </div>
                                                     </div>

@@ -89,6 +89,7 @@ export function useTickers(initialTimeframe = "H1") {
         // Batch updates to reduce re-renders
         let updateQueue: TickerData[] = []
         let updateTimer: NodeJS.Timeout | null = null
+        let isPaused = false
         
         const processUpdates = () => {
             if (updateQueue.length === 0) return
@@ -138,6 +139,9 @@ export function useTickers(initialTimeframe = "H1") {
 
         ws.onmessage = async (event) => {
             try {
+                // Skip updates if tab is hidden
+                if (isPaused) return
+                
                 const data: TickerData[] = JSON.parse(event.data)
                 const filteredData = data.filter((tick) => tickerSymbolSet.has(tick.symbol))
                 
@@ -159,12 +163,24 @@ export function useTickers(initialTimeframe = "H1") {
         ws.onerror = (err) => {
             console.error("WebSocket error", err)
         }
+        
+        // Pause updates when tab is hidden (Performance optimization)
+        const handleVisibilityChange = () => {
+            isPaused = document.hidden
+            if (!isPaused && updateQueue.length > 0) {
+                // Process queued updates when tab becomes visible
+                processUpdates()
+            }
+        }
+        
+        document.addEventListener('visibilitychange', handleVisibilityChange)
 
         return () => {
             ws.close()
             if (updateTimer) clearTimeout(updateTimer)
+            document.removeEventListener('visibilitychange', handleVisibilityChange)
         }
-    }, [timeframe])
+    }, []) // Remove timeframe dependency - WS doesn't need to reconnect
 
     return {
         tickers,

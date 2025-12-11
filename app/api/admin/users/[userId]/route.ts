@@ -58,6 +58,7 @@ export async function GET(
                 isVerif: true,
                 blocked: true,
                 baseCurrency: true,
+                aiTrading: true,
                 createdAt: true,
                 updatedAt: true,
                 assignedTo: true,
@@ -129,6 +130,7 @@ export async function PATCH(
       "blocked",
       "status",
       "baseCurrency",
+      "aiTrading",
     ] as const
 
     const filteredUpdates: any = {}
@@ -173,8 +175,7 @@ export async function PATCH(
         });
         
         let convertedBalance = 0;
-        let convertedCreditLimit = 0;
-        let convertedCreditUsed = 0;
+        let convertedCreditBalance = 0;
         let convertedLocked = 0;
         
         if (oldBalance) {
@@ -182,20 +183,17 @@ export async function PATCH(
           if (oldBaseCurrency === "EUR" && newBaseCurrency === "USD") {
             // EUR to USD: multiply by EUR/USD rate
             convertedBalance = oldBalance.ownBalance * eurUsdRate;
-            convertedCreditLimit = oldBalance.creditLimit * eurUsdRate;
-            convertedCreditUsed = oldBalance.creditUsed * eurUsdRate;
+            convertedCreditBalance = oldBalance.creditBalance * eurUsdRate;
             convertedLocked = oldBalance.locked * eurUsdRate;
           } else if (oldBaseCurrency === "USD" && newBaseCurrency === "EUR") {
             // USD to EUR: divide by EUR/USD rate
             convertedBalance = oldBalance.ownBalance / eurUsdRate;
-            convertedCreditLimit = oldBalance.creditLimit / eurUsdRate;
-            convertedCreditUsed = oldBalance.creditUsed / eurUsdRate;
+            convertedCreditBalance = oldBalance.creditBalance / eurUsdRate;
             convertedLocked = oldBalance.locked / eurUsdRate;
           } else {
             // Same currency (shouldn't happen, but just in case)
             convertedBalance = oldBalance.ownBalance;
-            convertedCreditLimit = oldBalance.creditLimit;
-            convertedCreditUsed = oldBalance.creditUsed;
+            convertedCreditBalance = oldBalance.creditBalance;
             convertedLocked = oldBalance.locked;
           }
         }
@@ -210,16 +208,14 @@ export async function PATCH(
           },
           update: {
             ownBalance: convertedBalance,
-            creditLimit: convertedCreditLimit,
-            creditUsed: convertedCreditUsed,
+            creditBalance: convertedCreditBalance,
             locked: convertedLocked,
           },
           create: {
             userId,
             assetSymbol: newBaseCurrency,
             ownBalance: convertedBalance,
-            creditLimit: convertedCreditLimit,
-            creditUsed: convertedCreditUsed,
+            creditBalance: convertedCreditBalance,
             locked: convertedLocked,
           },
         });
@@ -235,8 +231,7 @@ export async function PATCH(
             },
             data: {
               ownBalance: 0,
-              creditLimit: 0,
-              creditUsed: 0,
+              creditBalance: 0,
               locked: 0,
             },
           });
@@ -308,6 +303,7 @@ export async function PATCH(
         isVerif: true,
         blocked: true,
         baseCurrency: true,
+        aiTrading: true,
         createdAt: true,
         updatedAt: true,
       },

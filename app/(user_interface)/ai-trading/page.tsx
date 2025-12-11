@@ -21,7 +21,8 @@ import {
   Wallet,
   Settings,
   Play,
-  Pause
+  Pause,
+  ChevronDown
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/components/auth-provider"
@@ -33,6 +34,7 @@ export default function AITradingPage() {
   const { t } = useI18n()
   const containerRef = useRef<HTMLDivElement>(null)
   const [isVisible, setIsVisible] = useState(false)
+  const [showScrollHint, setShowScrollHint] = useState(true)
   
   const { scrollYProgress } = useScroll({
     target: containerRef,
@@ -58,6 +60,22 @@ export default function AITradingPage() {
 
   useEffect(() => {
     setIsVisible(true)
+    
+    // Hide scroll hint after 3 seconds or on scroll
+    const hideTimer = setTimeout(() => setShowScrollHint(false), 3000)
+    
+    const handleScroll = () => {
+      if (window.scrollY > 50) {
+        setShowScrollHint(false)
+      }
+    }
+    
+    window.addEventListener('scroll', handleScroll)
+    
+    return () => {
+      clearTimeout(hideTimer)
+      window.removeEventListener('scroll', handleScroll)
+    }
   }, [])
 
   // Skeleton structure matching market/page.tsx
@@ -192,6 +210,69 @@ export default function AITradingPage() {
       {/* Fixed skeleton - always visible */}
       <TradingSkeleton />
 
+      {/* Scroll hint indicator - WOW effect */}
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ 
+          opacity: showScrollHint ? 1 : 0,
+          y: showScrollHint ? 0 : -20
+        }}
+        className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 pointer-events-none"
+      >
+        <motion.div
+          animate={{
+            y: [0, 10, 0],
+            scale: [1, 1.1, 1]
+          }}
+          transition={{
+            duration: 2,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+          className="flex flex-col items-center gap-2 bg-gradient-to-r from-purple-600/90 to-pink-600/90 backdrop-blur-xl px-6 py-4 rounded-full shadow-[0_0_40px_rgba(139,92,246,0.6)] border border-purple-400/30"
+        >
+          <span className="text-white font-semibold text-sm">
+            {t("scrollToExplore") || "Scroll to explore"}
+          </span>
+          <motion.div
+            animate={{ y: [0, 5, 0] }}
+            transition={{
+              duration: 1.5,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+          >
+            <ChevronDown className="h-6 w-6 text-white" />
+          </motion.div>
+        </motion.div>
+      </motion.div>
+
+      {/* Floating particles background - WOW effect */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        {Array.from({ length: 20 }).map((_, i) => (
+          <motion.div
+            key={i}
+            className="absolute w-1 h-1 bg-purple-400 rounded-full"
+            style={{
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+            }}
+            animate={{
+              y: [0, -30, 0],
+              x: [0, Math.random() * 20 - 10, 0],
+              opacity: [0.2, 0.8, 0.2],
+              scale: [1, 1.5, 1]
+            }}
+            transition={{
+              duration: 3 + Math.random() * 2,
+              repeat: Infinity,
+              delay: Math.random() * 2,
+              ease: "easeInOut"
+            }}
+          />
+        ))}
+      </div>
+
       {/* Scrollable content with parallax */}
       <div className="relative z-10 space-y-8">
         {/* Hero Section */}
@@ -204,11 +285,44 @@ export default function AITradingPage() {
             className="max-w-4xl mx-auto text-center space-y-6"
           >
             <motion.div
-              animate={{ rotate: [0, 10, -10, 0], scale: [1, 1.1, 1] }}
-              transition={{ duration: 3, repeat: Infinity, repeatDelay: 2 }}
-              className="inline-flex items-center justify-center w-24 h-24 rounded-full bg-gradient-to-br from-purple-500 via-pink-500 to-purple-500 mb-4 shadow-[0_0_50px_rgba(139,92,246,0.5)]"
+              animate={{ 
+                rotate: [0, 10, -10, 0],
+                scale: [1, 1.1, 1]
+              }}
+              transition={{ 
+                duration: 3, 
+                repeat: Infinity, 
+                repeatDelay: 2 
+              }}
+              className="inline-flex items-center justify-center w-24 h-24 rounded-full bg-gradient-to-br from-purple-500 via-pink-500 to-purple-500 mb-4 shadow-[0_0_50px_rgba(139,92,246,0.5)] relative"
             >
               <Brain className="h-12 w-12 text-white" />
+              {/* Pulse rings - WOW effect */}
+              <motion.div
+                className="absolute inset-0 rounded-full border-2 border-purple-400"
+                animate={{
+                  scale: [1, 1.5, 2],
+                  opacity: [0.8, 0.4, 0]
+                }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                  ease: "easeOut"
+                }}
+              />
+              <motion.div
+                className="absolute inset-0 rounded-full border-2 border-pink-400"
+                animate={{
+                  scale: [1, 1.5, 2],
+                  opacity: [0.8, 0.4, 0]
+                }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                  delay: 0.5,
+                  ease: "easeOut"
+                }}
+              />
             </motion.div>
             
             <h1 className="text-6xl md:text-8xl font-bold bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400 bg-clip-text text-transparent">
@@ -222,22 +336,40 @@ export default function AITradingPage() {
             
             <div className="flex flex-wrap items-center justify-center gap-6 text-base text-slate-400">
               <motion.div
-                whileHover={{ scale: 1.1 }}
-                className="flex items-center gap-2 px-4 py-2 rounded-full bg-slate-900/50 border border-emerald-500/30"
+                initial={{ scale: 0, rotate: -180 }}
+                animate={{ scale: 1, rotate: 0 }}
+                transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
+                whileHover={{ 
+                  scale: 1.15,
+                  boxShadow: "0 0 20px rgba(16,185,129,0.5)"
+                }}
+                className="flex items-center gap-2 px-4 py-2 rounded-full bg-slate-900/50 border border-emerald-500/30 cursor-pointer"
               >
                 <CheckCircle2 className="h-5 w-5 text-emerald-400" />
                 <span className="font-semibold">{t("aiTrading2016Tickers") || "2,016 Tickers"}</span>
               </motion.div>
               <motion.div
-                whileHover={{ scale: 1.1 }}
-                className="flex items-center gap-2 px-4 py-2 rounded-full bg-slate-900/50 border border-emerald-500/30"
+                initial={{ scale: 0, rotate: -180 }}
+                animate={{ scale: 1, rotate: 0 }}
+                transition={{ delay: 0.4, type: "spring", stiffness: 200 }}
+                whileHover={{ 
+                  scale: 1.15,
+                  boxShadow: "0 0 20px rgba(16,185,129,0.5)"
+                }}
+                className="flex items-center gap-2 px-4 py-2 rounded-full bg-slate-900/50 border border-emerald-500/30 cursor-pointer"
               >
                 <CheckCircle2 className="h-5 w-5 text-emerald-400" />
                 <span className="font-semibold">{t("aiTradingTerabytes") || "Terabytes of Data"}</span>
               </motion.div>
               <motion.div
-                whileHover={{ scale: 1.1 }}
-                className="flex items-center gap-2 px-4 py-2 rounded-full bg-slate-900/50 border border-emerald-500/30"
+                initial={{ scale: 0, rotate: -180 }}
+                animate={{ scale: 1, rotate: 0 }}
+                transition={{ delay: 0.6, type: "spring", stiffness: 200 }}
+                whileHover={{ 
+                  scale: 1.15,
+                  boxShadow: "0 0 20px rgba(16,185,129,0.5)"
+                }}
+                className="flex items-center gap-2 px-4 py-2 rounded-full bg-slate-900/50 border border-emerald-500/30 cursor-pointer"
               >
                 <CheckCircle2 className="h-5 w-5 text-emerald-400" />
                 <span className="font-semibold">{t("aiTrading94Accuracy") || "94% Accuracy"}</span>
@@ -476,10 +608,34 @@ export default function AITradingPage() {
               <Button
                 onClick={() => router.push("/market")}
                 size="lg"
-                className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white text-lg px-8 py-6 shadow-[0_0_30px_rgba(139,92,246,0.5)]"
+                className="relative overflow-hidden bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white text-lg px-8 py-6 shadow-[0_0_30px_rgba(139,92,246,0.5)] group"
               >
-                {t("aiTradingTryNow") || "Try AI Trading Now"}
-                <ArrowRight className="ml-2 h-6 w-6" />
+                {/* Animated background shine - WOW effect */}
+                <motion.div
+                  className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+                  animate={{
+                    x: [-200, 200]
+                  }}
+                  transition={{
+                    duration: 3,
+                    repeat: Infinity,
+                    repeatDelay: 1,
+                    ease: "easeInOut"
+                  }}
+                />
+                <span className="relative z-10 flex items-center">
+                  {t("aiTradingTryNow") || "Try AI Trading Now"}
+                  <motion.div
+                    animate={{ x: [0, 5, 0] }}
+                    transition={{
+                      duration: 1.5,
+                      repeat: Infinity,
+                      ease: "easeInOut"
+                    }}
+                  >
+                    <ArrowRight className="ml-2 h-6 w-6" />
+                  </motion.div>
+                </span>
               </Button>
             </motion.div>
           </motion.div>

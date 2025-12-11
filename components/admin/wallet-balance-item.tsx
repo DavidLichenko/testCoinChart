@@ -4,8 +4,7 @@ export interface WalletBalance {
   id: string;
   assetSymbol: string;
   ownBalance: number;
-  creditLimit: number;
-  creditUsed: number;
+  creditBalance: number;
   locked: number;
   asset: {
     name: string;
@@ -53,9 +52,9 @@ export function WalletBalanceItem({ balance }: WalletBalanceItemProps) {
             Locked: {balance.locked.toFixed(4)}
           </div>
         )}
-        {balance.creditUsed > 0 && (
-          <div className="text-xs text-amber-400">
-            Credit: {balance.creditUsed.toFixed(2)}/{balance.creditLimit.toFixed(2)}
+        {balance.creditBalance > 0 && (
+          <div className="text-xs text-purple-400">
+            Credit: {balance.creditBalance.toFixed(2)}
           </div>
         )}
       </div>

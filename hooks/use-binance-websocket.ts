@@ -39,6 +39,9 @@ const SYMBOL_NAMES: Record<string, string> = {
 export function useBinanceWebSocket() {
   const [cryptoTickers, setCryptoTickers] = useState<BinanceTicker[]>([])
   const wsRef = useRef<WebSocket | null>(null)
+  const reconnectAttemptsRef = useRef(0)
+  const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const maxReconnectDelay = 30000 // 30 seconds max
 
   useEffect(() => {
     const connectWebSocket = () => {
@@ -49,6 +52,7 @@ export function useBinanceWebSocket() {
 
       wsRef.current.onopen = () => {
         console.log("✅ Binance WebSocket connected")
+        reconnectAttemptsRef.current = 0 // Reset attempts on successful connection
       }
 
       wsRef.current.onmessage = (event) => {
@@ -96,14 +100,22 @@ export function useBinanceWebSocket() {
       }
 
       wsRef.current.onclose = () => {
-        console.warn("⚠️ WebSocket closed. Reconnecting in 3s...")
-        setTimeout(connectWebSocket, 3000)
+        // Exponential backoff: 1s, 2s, 4s, 8s, ... up to 30s
+        const delay = Math.min(1000 * Math.pow(2, reconnectAttemptsRef.current), maxReconnectDelay)
+        reconnectAttemptsRef.current++
+        
+        console.warn(`⚠️ Binance WebSocket closed. Reconnecting in ${delay}ms... (attempt ${reconnectAttemptsRef.current})`)
+        
+        reconnectTimeoutRef.current = setTimeout(connectWebSocket, delay)
       }
     }
 
     connectWebSocket()
 
     return () => {
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current)
+      }
       wsRef.current?.close()
     }
   }, [])

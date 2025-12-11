@@ -6,8 +6,7 @@ import {fetcher} from "./fetcher";
 export type WalletSummary = {
     totalBalance: number;
     ownFunds: number;
-    creditUsed: number;
-    creditLimit: number;
+    creditBalance: number;
     availableToTrade: number;
     baseCurrency: string;
 };
@@ -17,8 +16,7 @@ export type WalletAsset = {
     name: string;
     balance: number;
     ownBalance: number;
-    creditUsed: number;
-    creditLimit: number;
+    creditBalance: number;
     price: number;
     change24h: number;
     totalValue: number;

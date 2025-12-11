@@ -51,7 +51,7 @@ export async function POST(request: Request) {
         },
       })
 
-      const available = (wallet?.ownBalance || 0) + (wallet?.creditLimit || 0) - (wallet?.creditUsed || 0)
+      const available = (wallet?.ownBalance || 0) + (wallet?.creditBalance || 0)
 
       if (available < margin) {
         throw new Error("Insufficient balance")

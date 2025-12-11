@@ -15,11 +15,9 @@ export type BalanceDetails = {
   walletTotal: number; // Value in USD
   stakingTotal: number; // Value in USD
 
-  creditLimit: number;
-  creditUsed: number;
-  creditAvailable: number;
+  creditBalance: number; // Credit money (like a balance)
 
-  // свободный баланс для любых операций (trade / стейкинг / обмен в базовой валюте)
+  // Available balance for operations
   availableToTrade: number;
   availableToWithdraw:number;
   // Approximate USD value for EUR users

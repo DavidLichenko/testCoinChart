@@ -32,8 +32,7 @@ interface UserStats {
 interface WalletSummary {
   totalBalance: number;
   ownFunds: number;
-  creditUsed: number;
-  creditLimit: number;
+  creditBalance: number;
   availableToTrade: number;
   baseCurrency: string;
   approxUsd?: number;
@@ -296,11 +295,10 @@ export function DashboardOverview() {
 
                       <div className="rounded-2xl border border-[#20203a] bg-[#2e1a5e]/80 px-3 py-3">
                         <p className="text-[11px] uppercase tracking-[0.16em] text-slate-500">
-                          {t("creditLine") ?? "Credit line"}
+                          {t("creditBalance") ?? "Credit balance"}
                         </p>
                         <p className="mt-1.5 text-sm font-semibold text-slate-50">
-                          {walletSummary.creditUsed.toFixed(2)} /{" "}
-                          {walletSummary.creditLimit.toFixed(2)}{" "}
+                          {walletSummary.creditBalance.toFixed(2)}{" "}
                           {walletSummary.baseCurrency}
                         </p>
                       </div>

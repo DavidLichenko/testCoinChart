@@ -81,8 +81,9 @@ export default function ChatManagement() {
 
     load()
 
-    const interval = setInterval(fetchChatSessions, 10000)
-    return () => clearInterval(interval)
+    // Remove polling - Pusher will handle real-time updates
+    // const interval = setInterval(fetchChatSessions, 10000)
+    // return () => clearInterval(interval)
   }, [accessDenied])
 
   const fetchChatSessions = async () => {

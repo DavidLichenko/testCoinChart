@@ -79,8 +79,7 @@ export async function PATCH(
             userId,
             assetSymbol: baseCurrency,
             ownBalance: Math.max(0, newOwn),
-            creditLimit: 0,
-            creditUsed: 0,
+            creditBalance: 0,
             locked: 0,
           },
         })

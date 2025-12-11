@@ -79,6 +79,7 @@ import { Badge } from "@/components/ui/badge";
 import { LoginForm } from "./login-form";
 import { RegisterForm } from "./register-form";
 import { useI18n } from "@/components/i18n-provider";
+import { useAuth } from "@/components/auth-provider";
 
 interface PriceData {
   symbol: string;
@@ -99,6 +100,14 @@ export default function WelcomePage({
   const [loading, setLoading] = useState(true);
 
   const { t } = useI18n();
+  const { user } = useAuth();
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (user) {
+      onAuthSuccess();
+    }
+  }, [user, onAuthSuccess]);
 
   const features = [
     {
@@ -276,7 +285,7 @@ export default function WelcomePage({
     animate: {
       opacity: 1,
       y: 0,
-      transition: { duration: 0.4, delay, ease: "easeOut" },
+      transition: { duration: 0.5, delay, ease: [0.25, 0.1, 0.25, 1] },
     },
   });
 
@@ -294,18 +303,18 @@ export default function WelcomePage({
             <div className="absolute bottom-[-12%] left-1/3 h-64 w-64 rounded-full bg-fuchsia-500/20 blur-3xl" />
           </div>
 
-          <div className="relative z-10 mx-auto flex min-h-screen max-w-screen-2xl flex-col px-4 pb-12 pt-6 sm:px-6 lg:px-8 lg:pt-8">
+          <div className="relative z-10 mx-auto flex min-h-screen max-w-screen-2xl flex-col px-3 sm:px-4 pb-8 sm:pb-12 pt-4 sm:pt-6 lg:px-8 lg:pt-8">
             {/* HEADER + компактный верх */}
             <motion.header
                 {...fadeUp(0)}
-                className="mb-8 flex flex-row  justify-between gap-4 md:flex-row md:items-center md:justify-between"
+                className="mb-6 sm:mb-8 flex flex-col items-center justify-between gap-4 md:flex-row md:items-center md:justify-between"
             >
               <div className="flex items-center gap-0 flex-col md:items-start">
-                <div className="mb-4 flex items-center gap-2">
-                  <div className="flex h-12 w-12 items-center justify-center">
-                    <img src={'/logo.png'} className="h-14 w-14 text-white"/>
+                <div className="mb-2 sm:mb-4 flex items-center gap-2">
+                  <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center">
+                    <img src={'/logo.png'} className="h-12 w-12 sm:h-14 sm:w-14 text-white"/>
                   </div>
-                  <span className="text-xs font-semibold tracking-[0.18em] text-slate-300">
+                  <span className="text-[10px] sm:text-xs font-semibold tracking-[0.18em] text-slate-300">
                   ARAGON<br/>TRADE
                 </span>
                 </div>
@@ -315,17 +324,17 @@ export default function WelcomePage({
                 </span>
                 </div>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 sm:gap-3">
                 <Button
                     variant="outline"
                     onClick={() => setShowLogin(true)}
-                    className="border-slate-500/60 bg-slate-900/60 text-xs font-medium text-slate-100 hover:border-purple-400 hover:bg-slate-900"
+                    className="border-slate-500/60 bg-slate-900/60 text-[11px] sm:text-xs font-medium text-slate-100 hover:border-purple-400 hover:bg-slate-900 px-3 sm:px-4"
                 >
                   {t("signIn")}
                 </Button>
                 <Button
                     onClick={() => setShowRegister(true)}
-                    className="bg-gradient-to-r from-purple-500 via-fuchsia-500 to-indigo-500 px-5 text-xs font-semibold shadow-md shadow-purple-500/40 hover:brightness-110"
+                    className="bg-gradient-to-r from-purple-500 via-fuchsia-500 to-indigo-500 px-4 sm:px-5 text-[11px] sm:text-xs font-semibold shadow-md shadow-purple-500/40 hover:brightness-110"
                 >
                   {t("signUp")}
                 </Button>
@@ -335,46 +344,46 @@ export default function WelcomePage({
             {/* HERO БЛОК: две колонки, более светлый центр */}
             <motion.section
                 {...fadeUp(0.05)}
-                className="mb-14 grid gap-8 rounded-3xl border border-slate-700/60 bg-slate-900/70 px-5 py-7 shadow-xl shadow-black/40 sm:px-8 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]"
+                className="mb-10 sm:mb-14 grid gap-6 sm:gap-8 rounded-2xl sm:rounded-3xl border border-slate-700/60 bg-slate-900/70 px-4 py-5 sm:px-5 sm:py-7 lg:px-8 shadow-xl shadow-black/40 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]"
             >
               {/* ЛЕВАЯ КОЛОНКА */}
-              <div className="flex flex-col gap-7">
+              <div className="flex flex-col gap-5 sm:gap-7">
 
-                <div className="space-y-4">
-                  <h1 className="text-balance text-4xl font-semibold sm:leading-[1.2] leading-tight tracking-tight sm:text-5xl lg:text-[3.1rem]">
+                <div className="space-y-3 sm:space-y-4">
+                  <h1 className="text-balance text-3xl sm:text-4xl font-semibold leading-tight tracking-tight sm:leading-[1.2] lg:text-[3.1rem]">
                     {t("tradeSmarter")}{" "}
                     <span className="bg-gradient-to-r from-purple-300 via-fuchsia-300 to-indigo-200 bg-clip-text text-transparent">
                     {t("notHarder")}
                   </span>
                   </h1>
-                  <p className="max-w-xl text-balance text-sm text-slate-200/85 sm:text-base">
+                  <p className="max-w-xl text-balance text-xs sm:text-sm text-slate-200/85 lg:text-base">
                     {t("joinThousandsDescription")}
                   </p>
                 </div>
 
                 {/* CTA */}
-                <div className="flex flex-col gap-3 sm:flex-row sm:w-1/2">
+                <div className="flex flex-col gap-3 sm:flex-row sm:w-full md:w-1/2">
                   <Button
                       size="lg"
                       onClick={() => setShowRegister(true)}
-                      className="flex-1 py-2 sm:py-0 bg-gradient-to-r from-purple-500 via-fuchsia-500 to-indigo-500 text-sm font-semibold shadow-lg shadow-purple-500/40 hover:brightness-110"
+                      className="flex-1 py-3 sm:py-0 bg-gradient-to-r from-purple-500 via-fuchsia-500 to-indigo-500 text-xs sm:text-sm font-semibold shadow-lg shadow-purple-500/40 hover:brightness-110"
                   >
                     {t("startTradingNow")}
-                    <ArrowRight className="ml-2 h-5 w-5" />
+                    <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5" />
                   </Button>
                 </div>
 
                 {/* Статистика в одну линию */}
-                <div className="grid gap-4 rounded-2xl bg-slate-950/60 p-4 sm:grid-cols-4">
+                <div className="grid gap-3 sm:gap-4 rounded-xl sm:rounded-2xl bg-slate-950/60 p-3 sm:p-4 grid-cols-2 sm:grid-cols-4">
                   {stats.map((s) => (
                       <div
                           key={s.label}
                           className="space-y-1 text-left sm:text-center"
                       >
-                        <div className="text-[11px] text-slate-300/80">
+                        <div className="text-[10px] sm:text-[11px] text-slate-300/80">
                           {s.label}
                         </div>
-                        <div className="text-lg font-semibold text-purple-200 sm:text-xl">
+                        <div className="text-base sm:text-lg font-semibold text-purple-200 lg:text-xl">
                           {s.value}
                         </div>
                       </div>
@@ -383,51 +392,51 @@ export default function WelcomePage({
               </div>
 
               {/* ПРАВАЯ КОЛОНКА: простая, чистая карточка рынка */}
-              <div className="flex flex-col gap-4">
+              <div className="flex flex-col gap-3 sm:gap-4">
                 {/* текущий выбранный инструмент */}
                 <Card className="flex-1 border-slate-700/70 bg-slate-950/80 shadow-md">
-                  <CardContent className="flex h-full flex-col gap-4 p-4 sm:p-5">
+                  <CardContent className="flex h-full flex-col gap-3 sm:gap-4 p-3 sm:p-4 lg:p-5">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-300">
+                        <p className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-300">
                           {t("liveTradingStats")}
                         </p>
-                        <p className="text-[11px] text-slate-400">
+                        <p className="text-[9px] sm:text-[11px] text-slate-400">
                           {t("realTimeMarketData")}
                         </p>
                       </div>
-                      <span className="rounded-full bg-emerald-500/15 px-3 py-1 text-[11px] font-medium text-emerald-300">
+                      <span className="rounded-full bg-emerald-500/15 px-2 sm:px-3 py-1 text-[9px] sm:text-[11px] font-medium text-emerald-300">
                       {t("joinLiveTrading")}
                     </span>
                     </div>
 
-                    <div className="rounded-2xl bg-slate-900/80 p-4">
+                    <div className="rounded-xl sm:rounded-2xl bg-slate-900/80 p-3 sm:p-4">
                       {loading || !selectedPrice ? (
                           <div className="space-y-2 animate-pulse">
-                            <div className="h-3 w-20 rounded bg-slate-700/80" />
-                            <div className="h-7 w-28 rounded bg-slate-700/80" />
-                            <div className="h-3 w-16 rounded bg-slate-700/60" />
+                            <div className="h-3 w-16 sm:w-20 rounded bg-slate-700/80" />
+                            <div className="h-6 sm:h-7 w-24 sm:w-28 rounded bg-slate-700/80" />
+                            <div className="h-3 w-12 sm:w-16 rounded bg-slate-700/60" />
                           </div>
                       ) : (
-                          <div className="flex items-end justify-between gap-4">
+                          <div className="flex items-end justify-between gap-3 sm:gap-4">
                             <div className="space-y-1">
-                              <div className="text-[11px] uppercase tracking-wide text-slate-300">
+                              <div className="text-[10px] sm:text-[11px] uppercase tracking-wide text-slate-300">
                                 {selectedPrice.symbol}
                               </div>
-                              <div className="text-2xl font-semibold text-white">
+                              <div className="text-xl sm:text-2xl font-semibold text-white">
                                 {selectedPrice.price}
                               </div>
-                              <div className="text-[11px] text-slate-400">24h</div>
+                              <div className="text-[10px] sm:text-[11px] text-slate-400">24h</div>
                             </div>
                             <div
-                                className={`text-right text-sm font-semibold ${
+                                className={`text-right text-xs sm:text-sm font-semibold ${
                                     selectedPrice.positive
                                         ? "text-emerald-400"
                                         : "text-red-400"
                                 }`}
                             >
                               <div>{selectedPrice.change}</div>
-                              <div className="text-[10px] text-slate-400">
+                              <div className="text-[9px] sm:text-[10px] text-slate-400">
                                 24h change
                               </div>
                             </div>
@@ -436,30 +445,30 @@ export default function WelcomePage({
                     </div>
 
                     {/* компактный список остальных инструментов */}
-                    <div className="grid grid-cols-3 gap-2 text-[11px] text-slate-300">
+                    <div className="grid grid-cols-3 gap-1.5 sm:gap-2 text-[10px] sm:text-[11px] text-slate-300">
                       {prices.map((p) => (
                           <button
                               key={p.symbol}
                               onClick={() => setSelectedSymbol(p.symbol)}
-                              className={`rounded-xl border bg-slate-900/80 px-2 py-2 text-left transition-all ${
+                              className={`rounded-lg sm:rounded-xl border bg-slate-900/80 px-1.5 sm:px-2 py-1.5 sm:py-2 text-left transition-all ${
                                   selectedSymbol === p.symbol
                                       ? "border-purple-400/80"
                                       : "border-slate-700/70 hover:border-purple-400/60"
                               }`}
                           >
-                            <div className="flex items-center justify-between gap-2">
-                          <span className="truncate text-[10px]">
+                            <div className="flex items-center justify-between gap-1 sm:gap-2">
+                          <span className="truncate text-[9px] sm:text-[10px]">
                             {p.symbol}
                           </span>
                               <span
-                                  className={`text-[10px] ${
+                                  className={`text-[9px] sm:text-[10px] ${
                                       p.positive ? "text-emerald-400" : "text-red-400"
                                   }`}
                               >
                             {p.change}
                           </span>
                             </div>
-                            <div className="text-xs text-slate-300 mt-1">
+                            <div className="text-[10px] sm:text-xs text-slate-300 mt-0.5 sm:mt-1">
                               {p.price}
                             </div>
                           </button>
@@ -468,7 +477,7 @@ export default function WelcomePage({
 
                     <Button
                         onClick={() => setShowRegister(true)}
-                        className="mt-1 w-full bg-purple-600 text-xs font-semibold hover:bg-purple-700"
+                        className="mt-1 w-full bg-purple-600 text-[11px] sm:text-xs font-semibold hover:bg-purple-700"
                     >
                       {t("startTradingNow")}
                     </Button>
@@ -480,20 +489,20 @@ export default function WelcomePage({
             {/* БЛОК 1: How it works (НОВЫЙ) */}
             <motion.section
                 {...fadeUp(0.08)}
-                className="mb-12 rounded-3xl border border-slate-800/70 bg-slate-900/70 px-5 py-7 sm:px-8"
+                className="mb-10 sm:mb-12 rounded-2xl sm:rounded-3xl border border-slate-800/70 bg-slate-900/70 px-4 py-5 sm:px-5 sm:py-7 lg:px-8"
             >
-              <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+              <div className="mb-5 sm:mb-6 flex flex-col gap-2 sm:gap-3 sm:flex-row sm:items-end sm:justify-between">
                 <div>
-                  <h2 className="text-xl font-semibold text-white sm:text-2xl">
+                  <h2 className="text-lg sm:text-xl font-semibold text-white lg:text-2xl">
                     {t("howItWorksTitle") || "How AragonTrade works"}
                   </h2>
-                  <p className="mt-1 text-sm text-slate-300">
+                  <p className="mt-1 text-xs sm:text-sm text-slate-300">
                     {t("howItWorksSubtitle") ||
                         "A simple path from registration to your first trade."}
                   </p>
                 </div>
               </div>
-              <div className="grid gap-4 sm:grid-cols-3">
+              <div className="grid gap-3 sm:gap-4 sm:grid-cols-3">
                 {[
                   {
                     step: 1,
@@ -516,12 +525,12 @@ export default function WelcomePage({
                 ].map((s) => (
                     <div
                         key={s.step}
-                        className="flex items-start gap-3 rounded-2xl bg-slate-950/70 px-4 py-4 ring-1 ring-slate-700/70"
+                        className="flex items-start gap-2 sm:gap-3 rounded-xl sm:rounded-2xl bg-slate-950/70 px-3 py-3 sm:px-4 sm:py-4 ring-1 ring-slate-700/70"
                     >
-                      <div className="mt-0.5 flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-purple-500 to-indigo-500 text-xs font-semibold">
+                      <div className="mt-0.5 flex h-6 w-6 sm:h-7 sm:w-7 items-center justify-center rounded-full bg-gradient-to-br from-purple-500 to-indigo-500 text-[10px] sm:text-xs font-semibold">
                         {s.step}
                       </div>
-                      <div className="text-xs text-slate-200">{s.label}</div>
+                      <div className="text-[11px] sm:text-xs text-slate-200">{s.label}</div>
                     </div>
                 ))}
               </div>
@@ -530,21 +539,21 @@ export default function WelcomePage({
             {/* БЛОК 2: FEATURES (как раньше, но чище) */}
             <motion.section
                 {...fadeUp(0.1)}
-                className="mb-12 border-t border-slate-800/70 pt-10"
+                className="mb-10 sm:mb-12 border-t border-slate-800/70 pt-8 sm:pt-10"
             >
-              <div className="mb-8 text-center">
-                <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">
+              <div className="mb-6 sm:mb-8 text-center">
+                <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight lg:text-4xl">
                   {t("whyChoose")}{" "}
                   <span className="bg-gradient-to-r from-purple-300 to-indigo-200 bg-clip-text text-transparent">
                   {t("aragonTrade")}
                 </span>
                 </h2>
-                <p className="mx-auto mt-3 max-w-2xl text-sm text-slate-300 sm:text-base">
+                <p className="mx-auto mt-2 sm:mt-3 max-w-2xl text-xs sm:text-sm text-slate-300 lg:text-base">
                   {t("experienceFutureDescription")}
                 </p>
               </div>
 
-              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              <div className="grid gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
                 {features.map((feature, index) => (
                     <motion.div
                         key={feature.title}
@@ -564,15 +573,15 @@ export default function WelcomePage({
                         className="will-change-transform"
                     >
                       <Card className="h-full border-slate-800/80 bg-slate-900/80">
-                        <CardContent className="flex h-full flex-col gap-4 p-6">
-                          <div className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-purple-600/15 ring-1 ring-purple-500/40">
-                            <feature.icon className="h-5 w-5 text-purple-200" />
+                        <CardContent className="flex h-full flex-col gap-3 sm:gap-4 p-4 sm:p-6">
+                          <div className="inline-flex h-9 w-9 sm:h-11 sm:w-11 items-center justify-center rounded-xl sm:rounded-2xl bg-purple-600/15 ring-1 ring-purple-500/40">
+                            <feature.icon className="h-4 w-4 sm:h-5 sm:w-5 text-purple-200" />
                           </div>
-                          <div className="space-y-2">
-                            <h3 className="text-sm font-semibold text-white">
+                          <div className="space-y-1.5 sm:space-y-2">
+                            <h3 className="text-xs sm:text-sm font-semibold text-white">
                               {feature.title}
                             </h3>
-                            <p className="text-xs text-slate-300">
+                            <p className="text-[11px] sm:text-xs text-slate-300">
                               {feature.description}
                             </p>
                           </div>
@@ -586,21 +595,21 @@ export default function WelcomePage({
             {/* БЛОК 3: Education / Support (НОВЫЙ) */}
             <motion.section
                 {...fadeUp(0.12)}
-                className="mb-12 grid gap-8 rounded-3xl border border-slate-800/70 bg-slate-900/75 px-5 py-7 sm:px-8 md:grid-cols-[1.05fr_0.95fr]"
+                className="mb-10 sm:mb-12 grid gap-6 sm:gap-8 rounded-2xl sm:rounded-3xl border border-slate-800/70 bg-slate-900/75 px-4 py-5 sm:px-5 sm:py-7 lg:px-8 md:grid-cols-[1.05fr_0.95fr]"
             >
-              <div className="flex flex-col gap-4">
-                <div className="inline-flex items-center gap-2 rounded-full bg-slate-800/80 px-3 py-1 text-[11px] text-slate-100/90">
-                  <BookOpen className="h-3.5 w-3.5 text-purple-200" />
+              <div className="flex flex-col gap-3 sm:gap-4">
+                <div className="inline-flex items-center gap-1.5 sm:gap-2 rounded-full bg-slate-800/80 px-2.5 sm:px-3 py-1 text-[10px] sm:text-[11px] text-slate-100/90">
+                  <BookOpen className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-purple-200" />
                   <span>
                   {t("educationBlockTitle") ||
                       "Built for learning and long–term success"}
                 </span>
                 </div>
-                <p className="text-sm text-slate-200">
+                <p className="text-xs sm:text-sm text-slate-200">
                   {t("educationBlockDesc") ||
                       "Whether you're just starting out or actively trading every day, AragonTrade gives you structure, tools, and guidance to improve your decisions over time."}
                 </p>
-                <ul className="mt-2 space-y-2 text-xs text-slate-200">
+                <ul className="mt-1 sm:mt-2 space-y-1.5 sm:space-y-2 text-[11px] sm:text-xs text-slate-200">
 
                   <li>
                     •{" "}
@@ -615,44 +624,44 @@ export default function WelcomePage({
                 </ul>
               </div>
 
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="rounded-2xl bg-slate-950/80 p-4 ring-1 ring-slate-800/80">
-                  <div className="text-xs font-semibold text-slate-200">
+              <div className="grid gap-3 sm:gap-4 sm:grid-cols-2">
+                <div className="rounded-xl sm:rounded-2xl bg-slate-950/80 p-3 sm:p-4 ring-1 ring-slate-800/80">
+                  <div className="text-[11px] sm:text-xs font-semibold text-slate-200">
                     {t("globalCoverageTitle") || "Global market access"}
                   </div>
-                  <p className="mt-2 text-[11px] text-slate-400">
+                  <p className="mt-1.5 sm:mt-2 text-[10px] sm:text-[11px] text-slate-400">
                     {t("globalCoverageDesc") ||
                         "Trade major forex pairs, crypto, and US stocks from a single dashboard."}
                   </p>
-                  <div className="mt-3 flex flex-wrap gap-2 text-[10px] text-slate-200">
-                  <span className="rounded-full bg-slate-800/80 px-3 py-1">
+                  <div className="mt-2 sm:mt-3 flex flex-wrap gap-1.5 sm:gap-2 text-[9px] sm:text-[10px] text-slate-200">
+                  <span className="rounded-full bg-slate-800/80 px-2 sm:px-3 py-1">
                     Forex
                   </span>
-                    <span className="rounded-full bg-slate-800/80 px-3 py-1">
+                    <span className="rounded-full bg-slate-800/80 px-2 sm:px-3 py-1">
                     Crypto
                   </span>
-                    <span className="rounded-full bg-slate-800/80 px-3 py-1">
+                    <span className="rounded-full bg-slate-800/80 px-2 sm:px-3 py-1">
                     Stocks
                   </span>
                   </div>
                 </div>
-                <div className="rounded-2xl bg-slate-950/80 p-4 ring-1 ring-slate-800/80">
-                  <div className="flex items-center gap-2 text-xs font-semibold text-slate-200">
-                    <Globe2 className="h-4 w-4 text-purple-200" />
+                <div className="rounded-xl sm:rounded-2xl bg-slate-950/80 p-3 sm:p-4 ring-1 ring-slate-800/80">
+                  <div className="flex items-center gap-1.5 sm:gap-2 text-[11px] sm:text-xs font-semibold text-slate-200">
+                    <Globe2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-purple-200" />
                     <span>{t("trustedByTraders")}</span>
                   </div>
-                  <p className="mt-2 text-[11px] text-slate-400">
+                  <p className="mt-1.5 sm:mt-2 text-[10px] sm:text-[11px] text-slate-400">
                     {t("joinThousandsSuccessful")}
                   </p>
-                  <div className="mt-3 grid grid-cols-2 gap-3 text-[11px] text-slate-200">
+                  <div className="mt-2 sm:mt-3 grid grid-cols-2 gap-2 sm:gap-3 text-[10px] sm:text-[11px] text-slate-200">
                     <div>
-                      <div className="text-lg font-semibold text-purple-200">
+                      <div className="text-base sm:text-lg font-semibold text-purple-200">
                         24/5
                       </div>
                       <div className="text-slate-400">Trading sessions</div>
                     </div>
                     <div>
-                      <div className="text-lg font-semibold text-purple-200">
+                      <div className="text-base sm:text-lg font-semibold text-purple-200">
                         {stats[3].value}
                       </div>
                       <div className="text-slate-400">Countries</div>
@@ -665,31 +674,31 @@ export default function WelcomePage({
             {/* БЛОК 4: Финальный CTA */}
             <motion.section
                 {...fadeUp(0.14)}
-                className="mb-8 rounded-3xl border border-slate-800/70 bg-slate-900/80 px-5 py-8 text-center sm:px-8"
+                className="mb-6 sm:mb-8 rounded-2xl sm:rounded-3xl border border-slate-800/70 bg-slate-900/80 px-4 py-6 sm:px-5 sm:py-8 lg:px-8 text-center"
             >
-              <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
+              <h2 className="text-xl sm:text-2xl font-semibold tracking-tight lg:text-3xl">
                 {t("readyToStart")}{" "}
                 <span className="bg-gradient-to-r from-purple-300 to-indigo-200 bg-clip-text text-transparent">
                 {t("tradingJourney")}
               </span>
               </h2>
-              <p className="mx-auto mt-3 max-w-2xl text-sm text-slate-200 sm:text-base">
+              <p className="mx-auto mt-2 sm:mt-3 max-w-2xl text-xs sm:text-sm text-slate-200 lg:text-base">
                 {t("joinThousandsSuccessful")}
               </p>
-              <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
+              <div className="mt-4 sm:mt-6 flex flex-col items-center justify-center gap-2.5 sm:gap-3 sm:flex-row">
                 <Button
                     size="lg"
                     onClick={() => setShowRegister(true)}
-                    className="min-w-[200px] bg-gradient-to-r from-purple-500 via-fuchsia-500 to-indigo-500 text-sm font-semibold hover:brightness-110"
+                    className="min-w-[180px] sm:min-w-[200px] bg-gradient-to-r from-purple-500 via-fuchsia-500 to-indigo-500 text-xs sm:text-sm font-semibold hover:brightness-110"
                 >
                   {t("createFreeAccount")}
-                  <ArrowRight className="ml-2 h-5 w-5" />
+                  <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5" />
                 </Button>
                 <Button
                     size="lg"
                     variant="outline"
                     onClick={() => setShowLogin(true)}
-                    className="min-w-[200px] border-slate-500/60 bg-slate-900/80 text-sm text-slate-100 hover:border-purple-400 hover:bg-slate-900"
+                    className="min-w-[180px] sm:min-w-[200px] border-slate-500/60 bg-slate-900/80 text-xs sm:text-sm text-slate-100 hover:border-purple-400 hover:bg-slate-900"
                 >
                   {t("signIn")}
                 </Button>
@@ -697,10 +706,10 @@ export default function WelcomePage({
             </motion.section>
 
             {/* FOOTER */}
-            <footer className="mt-auto border-t border-slate-800/70 pt-4">
-              <div className="flex flex-col items-center justify-between gap-4 text-xs text-slate-400 sm:flex-row sm:text-[13px]">
+            <footer className="mt-auto border-t border-slate-800/70 pt-3 sm:pt-4">
+              <div className="flex flex-col items-center justify-between gap-3 sm:gap-4 text-[10px] sm:text-xs text-slate-400 sm:flex-row lg:text-[13px]">
                 <div>{t("allRightsReserved")}</div>
-                <div className="flex flex-wrap items-center gap-4">
+                <div className="flex flex-wrap items-center gap-3 sm:gap-4">
                   <a
                       href="/AragonTrade_Terms&Conditions.pdf"
                       target="_blank"

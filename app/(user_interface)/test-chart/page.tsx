@@ -392,7 +392,7 @@ const TestChart: React.FC = () => {
       console.error("Failed to toggle favorite", e)
     }
   }
-  // Active trades
+  // Active trades - use Pusher instead of polling
   useEffect(() => {
     const fetchActiveTrades = async () => {
       try {
@@ -406,9 +406,12 @@ const TestChart: React.FC = () => {
       }
     }
 
+    // Initial fetch
     fetchActiveTrades()
-    const interval = setInterval(fetchActiveTrades, 10000)
-    return () => clearInterval(interval)
+    
+    // Use Pusher for updates instead of polling (commented out old polling)
+    // const interval = setInterval(fetchActiveTrades, 10000)
+    // return () => clearInterval(interval)
   }, [])
   useEffect(() => {
     if (typeof window === "undefined") return

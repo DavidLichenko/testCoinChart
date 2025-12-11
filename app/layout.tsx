@@ -9,7 +9,7 @@ import localFont from "next/font/local";
 import {Toaster} from "react-hot-toast";
 import {Footer} from "@/components/footer";
 import { AuthProvider } from "@/components/auth-provider";
-import Header from "@/components/header";
+import { LayoutContent } from "@/components/layout-content";
 
 const geistSans = localFont({
     src: "./../public/fonts/Geist[wght].woff2",
@@ -69,14 +69,8 @@ export default function RootLayout({
             enableSystem={false}
             forcedTheme={'dark'}
         >
-            <Header/>
             <I18nProvider>
-                <div className="flex flex-col min-h-screen">
-                    <main className="flex-grow">
-                        {children}
-                    </main>
-                    <Footer />
-                </div>
+                <LayoutContent>{children}</LayoutContent>
                 <Toaster
                     position="bottom-right"
                     toastOptions={{

@@ -60,8 +60,7 @@ type WalletBalanceDto = {
   id: string;
   assetSymbol: string;
   ownBalance: number;
-  creditLimit: number;
-  creditUsed: number;
+  creditBalance: number;
   locked: number;
   createdAt?: string;
 };
@@ -462,11 +461,11 @@ export default function WalletsManagement() {
                   )}
 
                   {/* Credit info */}
-                  {user.walletBalances.some((w) => w.creditLimit > 0) ? (
+                  {user.walletBalances.some((w) => w.creditBalance > 0) ? (
                     <div className="mt-2 rounded-lg bg-slate-900/80 px-2 py-1.5 text-[11px] space-y-0.5 border border-slate-800/80">
                       <div className="text-slate-300 font-medium mb-1">Credit Balances</div>
                       {user.walletBalances
-                        .filter((w) => w.creditLimit > 0)
+                        .filter((w) => w.creditBalance > 0)
                         .slice(0, 2)
                         .map((w) => (
                           <div
@@ -476,15 +475,14 @@ export default function WalletsManagement() {
                             <span className="text-slate-400">
                               Credit {w.assetSymbol}
                             </span>
-                            <span className="text-slate-100">
-                              {formatMoney(w.creditUsed)} /{" "}
-                              {formatMoney(w.creditLimit)}
+                            <span className="text-purple-300">
+                              {formatMoney(w.creditBalance)}
                             </span>
                           </div>
                         ))}
-                      {user.walletBalances.filter((w) => w.creditLimit > 0).length > 2 && (
+                      {user.walletBalances.filter((w) => w.creditBalance > 0).length > 2 && (
                         <div className="text-slate-400 text-center text-[10px] mt-1">
-                          +{user.walletBalances.filter((w) => w.creditLimit > 0).length - 2} more
+                          +{user.walletBalances.filter((w) => w.creditBalance > 0).length - 2} more
                         </div>
                       )}
                     </div>
@@ -593,8 +591,7 @@ function UserWalletEdit({
   // State for wallet adjustments
   const [assetSymbol, setAssetSymbol] = useState(defaultAsset);
   const [balanceDelta, setBalanceDelta] = useState<string>("");
-  const [creditLimit, setCreditLimit] = useState<string>("");
-  const [creditUsed, setCreditUsed] = useState<string>("");
+  const [creditBalance, setCreditBalance] = useState<string>("");
   const [lockedDelta, setLockedDelta] = useState<string>("");
   
   // State for user settings
@@ -678,7 +675,7 @@ function UserWalletEdit({
     }
 
     // Check if at least one field is filled
-    const hasChanges = balanceDelta || creditLimit || creditUsed || lockedDelta;
+    const hasChanges = balanceDelta || creditBalance || lockedDelta;
     if (!hasChanges) {
       toast.error("Nothing to save – fill at least one field");
       return;
@@ -698,11 +695,8 @@ function UserWalletEdit({
       if (lockedDelta !== "") {
         body.lockedDelta = Number(lockedDelta);
       }
-      if (creditLimit !== "") {
-        body.creditLimit = Number(creditLimit);
-      }
-      if (creditUsed !== "") {
-        body.creditUsed = Number(creditUsed);
+      if (creditBalance !== "") {
+        body.creditBalance = Number(creditBalance);
       }
 
       const res = await fetch("/api/admin/wallets/adjust", {
@@ -719,8 +713,7 @@ function UserWalletEdit({
       toast.success("Wallet updated successfully");
       setBalanceDelta("");
       setLockedDelta("");
-      setCreditLimit("");
-      setCreditUsed("");
+      setCreditBalance("");
       onUpdated();
     } catch (err: any) {
       console.error(err);
@@ -868,42 +861,22 @@ function UserWalletEdit({
 
               <div>
                 <Label className="mb-1 block text-[11px] text-slate-400">
-                  Credit Limit
+                  Credit Balance
                 </Label>
                 <div className="relative">
                   <Input
                     type="number"
                     step="0.01"
-                    placeholder="New limit"
-                    value={creditLimit}
-                    onChange={(e) => setCreditLimit(e.target.value)}
+                    placeholder="Credit balance"
+                    value={creditBalance}
+                    onChange={(e) => setCreditBalance(e.target.value)}
                     className="h-8 text-xs pl-8"
                   />
                   <div className="absolute left-2 top-1.5 flex items-center">
-                    <CreditCard className="h-3 w-3 text-blue-500" />
+                    <CreditCard className="h-3 w-3 text-purple-500" />
                   </div>
                 </div>
-                <p className="text-[10px] text-slate-500 mt-1">Maximum credit available to user</p>
-              </div>
-
-              <div>
-                <Label className="mb-1 block text-[11px] text-slate-400">
-                  Credit Used
-                </Label>
-                <div className="relative">
-                  <Input
-                    type="number"
-                    step="0.01"
-                    placeholder="Amount used"
-                    value={creditUsed}
-                    onChange={(e) => setCreditUsed(e.target.value)}
-                    className="h-8 text-xs pl-8"
-                  />
-                  <div className="absolute left-2 top-1.5 flex items-center">
-                    <TrendingUp className="h-3 w-3 text-purple-500" />
-                  </div>
-                </div>
-                <p className="text-[10px] text-slate-500 mt-1">Currently borrowed funds</p>
+                <p className="text-[10px] text-slate-500 mt-1">Credit money (like a balance)</p>
               </div>
             </div>
 
@@ -913,8 +886,7 @@ function UserWalletEdit({
                 <div>
                   <p className="font-medium text-amber-200">Important Notes</p>
                   <ul className="list-disc pl-4 mt-1 space-y-1 text-slate-400">
-                    <li>Credit limit adds borrowing capacity to user's account</li>
-                    <li>Credit used tracks how much of the limit is currently borrowed</li>
+                    <li>Credit balance is like a separate balance for trading</li>
                     <li>Changes are applied instantly and user sees updates in real-time</li>
                   </ul>
                 </div>

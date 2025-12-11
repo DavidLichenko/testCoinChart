@@ -163,7 +163,7 @@ model User {
   // Новые поля/связи:
   aiTrading    Boolean      @default(false)
   mobileNumber String?
-  baseCurrency FiatCurrency @default(EUR) // базовая валюта отображения (USD/EUR)
+  baseCurrency FiatCurrency @default(USD) // базовая валюта отображения (USD/EUR)
 
   favoriteTickers         FavoriteTicker[]
   favoriteClientsAsAgent  FavoriteClient[]    @relation("AgentFavorites")
@@ -515,10 +515,9 @@ model WalletBalance {
   userId      String
   assetSymbol String
 
-  ownBalance  Float @default(0)
-  creditLimit Float @default(0)
-  creditUsed  Float @default(0)
-  locked      Float @default(0)
+  ownBalance    Float @default(0)
+  creditBalance Float @default(0)
+  locked        Float @default(0)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

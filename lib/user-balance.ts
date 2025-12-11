@@ -10,8 +10,7 @@ export async function getUserBalanceData(userId: string) {
                 select: {
                     assetSymbol: true,
                     ownBalance: true,
-                    creditLimit: true,
-                    creditUsed: true,
+                    creditBalance: true,
                     locked: true,
                 },
             },
@@ -30,19 +29,16 @@ export async function getUserBalanceData(userId: string) {
         ) ?? {
             assetSymbol: baseCurrency,
             ownBalance: 0,
-            creditLimit: 0,
-            creditUsed: 0,
+            creditBalance: 0,
             locked: 0,
         };
 
     const ownBalance = tradingWallet.ownBalance;
-    const creditLimit = tradingWallet.creditLimit;
-    const creditUsed = tradingWallet.creditUsed;
-    const creditAvailable = Math.max(0, creditLimit - creditUsed);
+    const creditBalance = tradingWallet.creditBalance;
     const lockedTrading = tradingWallet.locked;
     
-    // Trading balance includes own balance + available credit
-    const tradingBalance = ownBalance + creditAvailable;
+    // Trading balance includes own balance + credit balance
+    const tradingBalance = ownBalance + creditBalance;
 
     // OPEN TRADES
     const openTrades = await prisma.trade_Transaction.findMany({
@@ -257,9 +253,7 @@ export async function getUserBalanceData(userId: string) {
         }
     }
 
-    // Свободно для трейда:
-    // свои средства − маржа в сделках − pending выводы − locked + доступный кредит
-    // tradingBalance already includes creditAvailable, so we don't double count it
+    // Available for trade: own + credit - in trade - locked - pending withdraws
     const availableToTrade = Math.max(
         0,
         tradingBalance -
@@ -335,9 +329,7 @@ export async function getUserBalanceData(userId: string) {
             lockedTrading,
             walletTotal: walletTotalUsd,  // Internal value in USD
             stakingTotal: stakingTotalUsd,  // Internal value in USD
-            creditLimit,
-            creditUsed,
-            creditAvailable,
+            creditBalance,
             availableToTrade,
             ...(approxUsd !== undefined ? { approxUsd } : {}),
             ...(eurUsdRate !== undefined ? { eurUsdRate } : {}),

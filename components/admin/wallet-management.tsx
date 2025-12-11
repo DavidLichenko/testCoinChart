@@ -31,8 +31,7 @@ export function WalletManagement({ userId, walletBalances, onRefresh, baseCurren
   
   // Credit states
   const [enableCredit, setEnableCredit] = useState(false);
-  const [creditLimitValue, setCreditLimitValue] = useState("");
-  const [creditUsedValue, setCreditUsedValue] = useState("");
+  const [creditBalanceValue, setCreditBalanceValue] = useState("");
   
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -49,14 +48,12 @@ export function WalletManagement({ userId, walletBalances, onRefresh, baseCurren
   useEffect(() => {
     if (selectedBalance) {
       setBalanceValue(selectedBalance.ownBalance.toString());
-      if (selectedBalance.creditLimit > 0) {
+      if (selectedBalance.creditBalance > 0) {
         setEnableCredit(true);
-        setCreditLimitValue(selectedBalance.creditLimit.toString());
-        setCreditUsedValue(selectedBalance.creditUsed.toString());
+        setCreditBalanceValue(selectedBalance.creditBalance.toString());
       } else {
         setEnableCredit(false);
-        setCreditLimitValue("");
-        setCreditUsedValue("");
+        setCreditBalanceValue("");
       }
     }
   }, [selectedBalance]);
@@ -80,10 +77,10 @@ export function WalletManagement({ userId, walletBalances, onRefresh, baseCurren
       return;
     }
 
-    if (enableCredit && !creditLimitValue) {
+    if (enableCredit && !creditBalanceValue) {
       toast({
         title: t("error") || "Error",
-        description: t("pleaseEnterCreditLimit") || "Please enter a credit limit",
+        description: t("pleaseEnterCreditBalance") || "Please enter a credit balance",
         variant: "destructive",
       });
       return;
@@ -123,8 +120,7 @@ export function WalletManagement({ userId, walletBalances, onRefresh, baseCurren
           userId,
           assetSymbol: selectedAsset,
           balanceDelta,
-          creditLimit: enableCredit && creditLimitValue ? parseFloat(creditLimitValue) : undefined,
-          creditUsed: enableCredit && creditUsedValue ? parseFloat(creditUsedValue) : undefined,
+          creditBalance: enableCredit && creditBalanceValue ? parseFloat(creditBalanceValue) : undefined,
         }),
       });
 
@@ -137,8 +133,7 @@ export function WalletManagement({ userId, walletBalances, onRefresh, baseCurren
         setBalanceValue("");
         setBalanceOperation("set");
         setShowBalanceInput(false);
-        setCreditLimitValue("");
-        setCreditUsedValue("");
+        setCreditBalanceValue("");
         setEnableCredit(false);
         // Refresh data
         onRefresh();
@@ -313,29 +308,16 @@ export function WalletManagement({ userId, walletBalances, onRefresh, baseCurren
         </div>
 
         {enableCredit && (
-          <div className="space-y-3 pt-2">
-            <div className="space-y-2">
-              <Label className="text-xs text-slate-400">{t("creditLimit")}</Label>
-              <Input
-                type="number"
-                value={creditLimitValue}
-                onChange={(e) => setCreditLimitValue(e.target.value)}
-                placeholder={t("enterCreditLimit")}
-                className="h-10 rounded-lg border-slate-800 bg-slate-900 text-sm"
-                step="0.01"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label className="text-xs text-slate-400">{t("creditUsed")}</Label>
-              <Input
-                type="number"
-                value={creditUsedValue}
-                onChange={(e) => setCreditUsedValue(e.target.value)}
-                placeholder="Enter credit used"
-                className="h-10 rounded-lg border-slate-800 bg-slate-900 text-sm"
-                step="0.01"
-              />
-            </div>
+          <div className="space-y-2 pt-2">
+            <Label className="text-xs text-slate-400">{t("creditBalance")}</Label>
+            <Input
+              type="number"
+              value={creditBalanceValue}
+              onChange={(e) => setCreditBalanceValue(e.target.value)}
+              placeholder={t("enterCreditBalance") || "Enter credit balance"}
+              className="h-10 rounded-lg border-slate-800 bg-slate-900 text-sm"
+              step="0.01"
+            />
           </div>
         )}
       </div>

@@ -30,6 +30,7 @@ import {
     Loader2,
     Phone,
     Copy,
+    Brain,
 } from "lucide-react"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -74,6 +75,7 @@ interface AdminUser {
     isFavorite?: boolean
     baseCurrency: "USD" | "EUR"
     mobileNumber?: string | null
+    aiTrading: boolean
 }
 
 interface WalletSummary {
@@ -82,8 +84,7 @@ interface WalletSummary {
     tradingInTrade: number
     walletTotal: number
     stakingTotal: number
-    creditLimit: number
-    creditUsed: number
+    creditBalance: number
     availableForWithdraw: number
     availableForTrade: number
 }
@@ -92,8 +93,7 @@ interface WalletBalance {
     id: string
     assetSymbol: string
     ownBalance: number
-    creditLimit: number
-    creditUsed: number
+    creditBalance: number
     locked: number
     asset: {
         name: string
@@ -311,6 +311,7 @@ export default function AdminUserPage() {
     const [isVerif, setIsVerif] = useState(false)
     const [canWithdraw, setCanWithdraw] = useState(false)
     const [baseCurrency, setBaseCurrency] = useState<"USD" | "EUR">("USD")
+    const [aiTrading, setAiTrading] = useState(false)
 
     useEffect(() => {
         if (!userId) return
@@ -331,6 +332,7 @@ export default function AdminUserPage() {
                     setCanWithdraw(data.can_withdraw)
                     setBaseCurrency(data.baseCurrency)
                     setIsFavorite(data.isFavorite || false)
+                    setAiTrading(data.aiTrading || false)
                 }
 
                 const tradesRes = await fetch(`/api/admin/trades?userId=${userId}`)
@@ -392,7 +394,8 @@ export default function AdminUserPage() {
                     blocked,
                     isVerif,
                     can_withdraw: canWithdraw,
-                    baseCurrency
+                    baseCurrency,
+                    aiTrading
                 }),
             })
             
@@ -1334,6 +1337,20 @@ export default function AdminUserPage() {
                                             className="data-[state=checked]:bg-blue-600"
                                         />
                                     </div>
+                                    <div className="flex items-center justify-between h-8 px-2 bg-slate-950 border border-slate-800">
+                                        <div className="flex items-center gap-2">
+                                            <Brain className="h-3.5 w-3.5 text-purple-400" />
+                                            <Label htmlFor="ai_trading" className="text-xs text-slate-300 cursor-pointer">
+                                                AI Trading
+                                            </Label>
+                                        </div>
+                                        <Switch
+                                            id="ai_trading"
+                                            checked={aiTrading}
+                                            onCheckedChange={(v) => setAiTrading(!!v)}
+                                            className="data-[state=checked]:bg-purple-600"
+                                        />
+                                    </div>
                                 </div>
                                 <Button
                                     onClick={handleSave}
@@ -1392,13 +1409,13 @@ export default function AdminUserPage() {
                                             <div className="flex items-center justify-between mb-2">
                                                 <div className="text-xs text-slate-400">Credit Utilization</div>
                                                 <div className="text-xs text-slate-400">
-                                                    {walletSummary.creditUsed.toFixed(2)} / {walletSummary.creditLimit.toFixed(2)}
+                                                    {walletSummary.creditBalance.toFixed(2)}
                                                 </div>
                                             </div>
                                             <div className="w-full h-1.5 bg-slate-800">
                                                 <div 
                                                     className="h-full bg-slate-600" 
-                                                    style={{ width: `${walletSummary.creditLimit > 0 ? (walletSummary.creditUsed / walletSummary.creditLimit) * 100 : 0}%` }}
+                                                    style={{ width: `${walletSummary.creditBalance > 0 ? 100 : 0}%` }}
                                                 ></div>
                                             </div>
                                         </div>
