@@ -19,6 +19,7 @@ import {
 
 interface StakingPlan {
   id: string;
+  name: string;
   assetSymbol: string | null;
   durationDays: number;
   apr: number;
@@ -35,6 +36,7 @@ export default function StakingSettingsPage() {
   const [submitting, setSubmitting] = useState(false);
 
   const [formData, setFormData] = useState({
+    name: "",
     assetSymbol: "",
     durationDays: "30",
     apr: "5",
@@ -66,8 +68,9 @@ export default function StakingSettingsPage() {
 
     try {
       const payload = {
+        name: formData.name || `${formData.assetSymbol || "All Assets"} - ${formData.durationDays} days`,
         assetSymbol: formData.assetSymbol || null,
-        durationDays: parseInt(formData.durationDays),
+        duration: parseInt(formData.durationDays),
         apr: parseFloat(formData.apr),
         minAmount: parseFloat(formData.minAmount),
         isActive: formData.isActive,
@@ -92,6 +95,7 @@ export default function StakingSettingsPage() {
         setIsDialogOpen(false);
         setEditingPlan(null);
         setFormData({
+          name: "",
           assetSymbol: "",
           durationDays: "30",
           apr: "5",
@@ -116,6 +120,7 @@ export default function StakingSettingsPage() {
   const handleEdit = (plan: StakingPlan) => {
     setEditingPlan(plan);
     setFormData({
+      name: plan.name || "",
       assetSymbol: plan.assetSymbol || "",
       durationDays: plan.durationDays.toString(),
       apr: plan.apr.toString(),
@@ -164,6 +169,7 @@ export default function StakingSettingsPage() {
                 onClick={() => {
                   setEditingPlan(null);
                   setFormData({
+                    name: "",
                     assetSymbol: "",
                     durationDays: "30",
                     apr: "5",
@@ -184,6 +190,22 @@ export default function StakingSettingsPage() {
                 </DialogTitle>
               </DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="name">Plan Name (optional)</Label>
+                  <Input
+                    id="name"
+                    placeholder="e.g., BTC 30-day Staking"
+                    value={formData.name}
+                    onChange={(e) =>
+                      setFormData({ ...formData, name: e.target.value })
+                    }
+                    className="bg-[#1a1a2e] border-purple-500/30"
+                  />
+                  <p className="text-xs text-slate-500">
+                    If empty, will auto-generate from asset and duration
+                  </p>
+                </div>
+
                 <div className="space-y-2">
                   <Label htmlFor="assetSymbol">Asset Symbol (leave empty for all assets)</Label>
                   <Input

@@ -304,42 +304,44 @@ export default function WelcomePage({
           </div>
 
           <div className="relative z-10 mx-auto flex min-h-screen max-w-screen-2xl flex-col px-3 sm:px-4 pb-8 sm:pb-12 pt-4 sm:pt-6 lg:px-8 lg:pt-8">
-            {/* HEADER + компактный верх */}
-            <motion.header
-                {...fadeUp(0)}
-                className="mb-6 sm:mb-8 flex flex-col items-center justify-between gap-4 md:flex-row md:items-center md:justify-between"
-            >
-              <div className="flex items-center gap-0 flex-col md:items-start">
-                <div className="mb-2 sm:mb-4 flex items-center gap-2">
-                  <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center">
-                    <img src={'/logo.png'} className="h-12 w-12 sm:h-14 sm:w-14 text-white"/>
+            {/* HEADER + компактный верх - скрываем когда пользователь аутентифицирован */}
+            {!user && (
+              <motion.header
+                  {...fadeUp(0)}
+                  className="mb-6 sm:mb-8 flex flex-col items-center justify-between gap-4 md:flex-row md:items-center md:justify-between"
+              >
+                <div className="flex items-center gap-0 flex-col md:items-start">
+                  <div className="mb-2 sm:mb-4 flex items-center gap-2">
+                    <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center">
+                      <img src={'/logo.png'} className="h-12 w-12 sm:h-14 sm:w-14 text-white"/>
+                    </div>
+                    <span className="text-[10px] sm:text-xs font-semibold tracking-[0.18em] text-slate-300">
+                    ARAGON<br/>TRADE
+                  </span>
                   </div>
-                  <span className="text-[10px] sm:text-xs font-semibold tracking-[0.18em] text-slate-300">
-                  ARAGON<br/>TRADE
-                </span>
+                  <div className="flex flex-col leading-tight">
+                    <span className="hidden md:block md:text-[11px] text-slate-200/80">
+                    {t("institutionalTag")}
+                  </span>
+                  </div>
                 </div>
-                <div className="flex flex-col leading-tight">
-                  <span className="hidden md:block md:text-[11px] text-slate-200/80">
-                  {t("institutionalTag")}
-                </span>
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <Button
+                      variant="outline"
+                      onClick={() => setShowLogin(true)}
+                      className="border-slate-500/60 bg-slate-900/60 text-[11px] sm:text-xs font-medium text-slate-100 hover:border-purple-400 hover:bg-slate-900 px-3 sm:px-4"
+                  >
+                    {t("signIn")}
+                  </Button>
+                  <Button
+                      onClick={() => setShowRegister(true)}
+                      className="bg-gradient-to-r from-purple-500 via-fuchsia-500 to-indigo-500 px-4 sm:px-5 text-[11px] sm:text-xs font-semibold shadow-md shadow-purple-500/40 hover:brightness-110"
+                  >
+                    {t("signUp")}
+                  </Button>
                 </div>
-              </div>
-              <div className="flex items-center gap-2 sm:gap-3">
-                <Button
-                    variant="outline"
-                    onClick={() => setShowLogin(true)}
-                    className="border-slate-500/60 bg-slate-900/60 text-[11px] sm:text-xs font-medium text-slate-100 hover:border-purple-400 hover:bg-slate-900 px-3 sm:px-4"
-                >
-                  {t("signIn")}
-                </Button>
-                <Button
-                    onClick={() => setShowRegister(true)}
-                    className="bg-gradient-to-r from-purple-500 via-fuchsia-500 to-indigo-500 px-4 sm:px-5 text-[11px] sm:text-xs font-semibold shadow-md shadow-purple-500/40 hover:brightness-110"
-                >
-                  {t("signUp")}
-                </Button>
-              </div>
-            </motion.header>
+              </motion.header>
+            )}
 
             {/* HERO БЛОК: две колонки, более светлый центр */}
             <motion.section

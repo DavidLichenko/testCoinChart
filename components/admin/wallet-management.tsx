@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "@/components/toast";
-import { Plus, Minus, Wallet, CreditCard } from "lucide-react";
+import { Plus, Minus, Wallet } from "lucide-react";
 import { WalletBalance } from "./wallet-balance-item";
 import { useI18n } from "@/components/i18n-provider";
 
@@ -29,8 +29,7 @@ export function WalletManagement({ userId, walletBalances, onRefresh, baseCurren
   const [balanceOperation, setBalanceOperation] = useState<"add" | "subtract" | "set">("set");
   const [showBalanceInput, setShowBalanceInput] = useState(false);
   
-  // Credit states
-  const [enableCredit, setEnableCredit] = useState(false);
+  // Credit balance state
   const [creditBalanceValue, setCreditBalanceValue] = useState("");
   
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -44,17 +43,11 @@ export function WalletManagement({ userId, walletBalances, onRefresh, baseCurren
 
   const selectedBalance = walletBalances.find(b => b.assetSymbol === selectedAsset);
 
-  // Initialize balance value and credit when selected balance changes
+  // Initialize balance value when selected balance changes
   useEffect(() => {
     if (selectedBalance) {
       setBalanceValue(selectedBalance.ownBalance.toString());
-      if (selectedBalance.creditBalance > 0) {
-        setEnableCredit(true);
-        setCreditBalanceValue(selectedBalance.creditBalance.toString());
-      } else {
-        setEnableCredit(false);
-        setCreditBalanceValue("");
-      }
+      setCreditBalanceValue(selectedBalance.creditBalance?.toString() || "0");
     }
   }, [selectedBalance]);
 
@@ -72,15 +65,6 @@ export function WalletManagement({ userId, walletBalances, onRefresh, baseCurren
       toast({
         title: t("error") || "Error",
         description: t("pleaseEnterBalance") || "Please enter a balance value",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (enableCredit && !creditBalanceValue) {
-      toast({
-        title: t("error") || "Error",
-        description: t("pleaseEnterCreditBalance") || "Please enter a credit balance",
         variant: "destructive",
       });
       return;
@@ -120,7 +104,7 @@ export function WalletManagement({ userId, walletBalances, onRefresh, baseCurren
           userId,
           assetSymbol: selectedAsset,
           balanceDelta,
-          creditBalance: enableCredit && creditBalanceValue ? parseFloat(creditBalanceValue) : undefined,
+          creditBalance: creditBalanceValue ? parseFloat(creditBalanceValue) : undefined,
         }),
       });
 
@@ -131,10 +115,9 @@ export function WalletManagement({ userId, walletBalances, onRefresh, baseCurren
         });
         // Clear form
         setBalanceValue("");
+        setCreditBalanceValue("");
         setBalanceOperation("set");
         setShowBalanceInput(false);
-        setCreditBalanceValue("");
-        setEnableCredit(false);
         // Refresh data
         onRefresh();
       } else {
@@ -293,38 +276,29 @@ export function WalletManagement({ userId, walletBalances, onRefresh, baseCurren
         )}
       </div>
 
-      {/* Credit Section */}
-      <div className="space-y-3 rounded-lg border border-slate-800 bg-slate-900/50 p-4">
-        <div className="flex items-center justify-between">
-          <Label className="text-sm font-semibold text-slate-200 flex items-center gap-2">
-            <CreditCard className="h-4 w-4" />
-            {t("credit")}
-          </Label>
-          <Switch
-            checked={enableCredit}
-            onCheckedChange={setEnableCredit}
-            className="data-[state=checked]:bg-purple-500"
-          />
-        </div>
-
-        {enableCredit && (
-          <div className="space-y-2 pt-2">
-            <Label className="text-xs text-slate-400">{t("creditBalance")}</Label>
-            <Input
-              type="number"
-              value={creditBalanceValue}
-              onChange={(e) => setCreditBalanceValue(e.target.value)}
-              placeholder={t("enterCreditBalance") || "Enter credit balance"}
-              className="h-10 rounded-lg border-slate-800 bg-slate-900 text-sm"
-              step="0.01"
-            />
+      {/* Credit Balance Section */}
+      <div className="space-y-2 rounded-lg border border-slate-800 bg-slate-900/50 p-4">
+        <Label className="text-sm font-semibold text-slate-200">
+          {t("creditBalance")}
+        </Label>
+        <Input
+          type="number"
+          value={creditBalanceValue}
+          onChange={(e) => setCreditBalanceValue(e.target.value)}
+          placeholder={t("enterCreditBalance") || "Enter credit balance"}
+          className="h-10 rounded-lg border-slate-800 bg-slate-900 text-sm"
+          step="0.01"
+        />
+        {selectedBalance && (
+          <div className="text-xs text-slate-400">
+            {t("current")}: <span className="font-semibold text-slate-300">{(selectedBalance.creditBalance || 0).toFixed(2)} {selectedAsset}</span>
           </div>
         )}
       </div>
 
       <Button
         onClick={handleAdjustWallet}
-        disabled={isSubmitting || (!showBalanceInput && !balanceValue && !enableCredit)}
+        disabled={isSubmitting || (!showBalanceInput && !balanceValue)}
         className="w-full rounded-lg bg-emerald-600 text-sm font-medium hover:bg-emerald-700 h-10"
       >
         {isSubmitting ? t("updating") : t("updateWallet")}

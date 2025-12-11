@@ -34,7 +34,11 @@ export async function GET(
             },
         })
 
-        return NextResponse.json(favorites)
+        return NextResponse.json(favorites, {
+            headers: {
+                'Cache-Control': 'private, max-age=60',
+            },
+        })
     } catch (error) {
         console.error("Error fetching favorite tickers:", error)
         return NextResponse.json(

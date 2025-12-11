@@ -859,7 +859,7 @@ export default function AdminUserPage() {
     }
 
     return (
-        <div className="min-h-screen bg-slate-950 text-slate-100">
+        <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-950 to-slate-900 text-slate-100">
             <div className="max-w-[1920px] mx-auto px-4 py-6">
                 {/* Compact Header */}
                 <div className="mb-6">
@@ -995,20 +995,20 @@ export default function AdminUserPage() {
                 </div>
 
                 {/* Main Content Grid */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 mb-3">
                     {/* Left: Balance Management */}
                     <div className="lg:col-span-1">
-                        <Card className="border border-slate-800 bg-slate-900/50">
-                            <CardHeader className="pb-3 border-b border-slate-800">
-                                <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                                    <DollarSign className="h-4 w-4 text-slate-400" />
+                        <Card className="border-slate-800/60 bg-slate-900/30">
+                            <CardHeader className="pb-2 border-b border-slate-800/60">
+                                <CardTitle className="text-xs font-semibold flex items-center gap-2 text-slate-300">
+                                    <DollarSign className="h-3.5 w-3.5 text-slate-500" />
                                     {t("balanceManagement")}
                                 </CardTitle>
                             </CardHeader>
-                            <CardContent className="pt-4">
+                            <CardContent className="pt-3">
                                 {loadingWallet ? (
-                                    <div className="flex items-center justify-center py-8">
-                                        <div className="h-5 w-5 animate-spin border-2 border-slate-700 border-t-slate-400"></div>
+                                    <div className="flex items-center justify-center py-6">
+                                        <div className="h-4 w-4 animate-spin border-2 border-slate-700 border-t-slate-500"></div>
                                     </div>
                                 ) : walletSummary && walletBalances ? (
                                     <WalletManagement 
@@ -1028,28 +1028,28 @@ export default function AdminUserPage() {
 
                     {/* Center: Trades */}
                     <div className="lg:col-span-1">
-                        <Card className="border border-slate-800 bg-slate-900/50">
-                            <CardHeader className="pb-3 border-b border-slate-800">
+                        <Card className="border-slate-800/60 bg-slate-900/30">
+                            <CardHeader className="pb-2 border-b border-slate-800/60">
                                 <div className="flex items-center justify-between">
-                                    <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                                        <TrendingUp className="h-4 w-4 text-slate-400" />
+                                    <CardTitle className="text-xs font-semibold flex items-center gap-2 text-slate-300">
+                                        <TrendingUp className="h-3.5 w-3.5 text-slate-500" />
                                         {t("trades")}
                                     </CardTitle>
-                                    <div className="flex items-center gap-2">
-                                        <Badge variant="outline" className="border-slate-700 bg-slate-900 text-xs px-2 py-0.5">
+                                    <div className="flex items-center gap-1.5">
+                                        <Badge variant="outline" className="border-slate-700/60 bg-slate-800/30 text-[10px] px-1.5 py-0">
                                             {trades.length}
                                         </Badge>
                                         <Button
                                             size="sm"
                                             onClick={() => setIsTradeDialogOpen(true)}
-                                            className="h-7 px-2 text-xs bg-slate-800 border border-slate-700 hover:bg-slate-700"
+                                            className="h-6 px-1.5 text-xs bg-slate-800/50 border border-slate-700/50 hover:bg-slate-700/50"
                                         >
                                             <Plus className="h-3 w-3" />
                                         </Button>
                                     </div>
                                 </div>
                             </CardHeader>
-                            <CardContent className="pt-4">
+                            <CardContent className="pt-2 px-2">
                                 <div className="space-y-2">
                                     {loadingRelations ? (
                                         <div className="space-y-2">
@@ -1058,12 +1058,12 @@ export default function AdminUserPage() {
                                             ))}
                                         </div>
                                     ) : trades.length === 0 ? (
-                                        <div className="py-8 text-center text-xs text-slate-500">
+                                        <div className="py-6 text-center text-xs text-slate-500">
                                             {t("noTradesYet")}
                                         </div>
                                     ) : (
                                         <>
-                                            <div className="space-y-2 max-h-[600px] overflow-y-auto">
+                                            <div className="space-y-0 max-h-[600px] overflow-y-auto custom-scrollbar">
                                                 {trades
                                                     .slice((tradesPage - 1) * ITEMS_PER_PAGE, tradesPage * ITEMS_PER_PAGE)
                                                     .map((t) => (
@@ -1092,21 +1092,21 @@ export default function AdminUserPage() {
                                                 }
                                             </div>
                                             {trades.length > ITEMS_PER_PAGE && (
-                                                <div className="flex items-center justify-between pt-2 border-t border-slate-800">
+                                                <div className="flex items-center justify-between pt-2 px-2 border-t border-slate-800/60">
                                                     <button
                                                         onClick={() => setTradesPage(p => Math.max(1, p - 1))}
                                                         disabled={tradesPage === 1}
-                                                        className="px-3 py-1 text-xs bg-slate-800 border border-slate-700 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-700"
+                                                        className="px-2.5 py-1 text-[10px] bg-slate-800/50 border border-slate-700/50 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-700/50"
                                                     >
                                                         Previous
                                                     </button>
-                                                    <span className="text-xs text-slate-400">
+                                                    <span className="text-[10px] text-slate-500">
                                                         Page {tradesPage} of {Math.ceil(trades.length / ITEMS_PER_PAGE)}
                                                     </span>
                                                     <button
                                                         onClick={() => setTradesPage(p => Math.min(Math.ceil(trades.length / ITEMS_PER_PAGE), p + 1))}
                                                         disabled={tradesPage >= Math.ceil(trades.length / ITEMS_PER_PAGE)}
-                                                        className="px-3 py-1 text-xs bg-slate-800 border border-slate-700 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-700"
+                                                        className="px-2.5 py-1 text-[10px] bg-slate-800/50 border border-slate-700/50 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-700/50"
                                                     >
                                                         Next
                                                     </button>
@@ -1121,28 +1121,28 @@ export default function AdminUserPage() {
 
                     {/* Right: Orders */}
                     <div className="lg:col-span-1">
-                        <Card className="border border-slate-800 bg-slate-900/50">
-                            <CardHeader className="pb-3 border-b border-slate-800">
+                        <Card className="border-slate-800/60 bg-slate-900/30">
+                            <CardHeader className="pb-2 border-b border-slate-800/60">
                                 <div className="flex items-center justify-between">
-                                    <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                                        <CreditCard className="h-4 w-4 text-slate-400" />
+                                    <CardTitle className="text-xs font-semibold flex items-center gap-2 text-slate-300">
+                                        <CreditCard className="h-3.5 w-3.5 text-slate-500" />
                                         {t("orders")}
                                     </CardTitle>
-                                    <div className="flex items-center gap-2">
-                                        <Badge variant="outline" className="border-slate-700 bg-slate-900 text-xs px-2 py-0.5">
+                                    <div className="flex items-center gap-1.5">
+                                        <Badge variant="outline" className="border-slate-700/60 bg-slate-800/30 text-[10px] px-1.5 py-0">
                                             {orders.length}
                                         </Badge>
                                         <Button
                                             size="sm"
                                             onClick={() => setIsOrderDialogOpen(true)}
-                                            className="h-7 px-2 text-xs bg-slate-800 border border-slate-700 hover:bg-slate-700"
+                                            className="h-6 px-1.5 text-xs bg-slate-800/50 border border-slate-700/50 hover:bg-slate-700/50"
                                         >
                                             <Plus className="h-3 w-3" />
                                         </Button>
                                     </div>
                                 </div>
                             </CardHeader>
-                            <CardContent className="pt-4">
+                            <CardContent className="pt-3">
                                 <div className="space-y-2">
                                     {loadingRelations ? (
                                         <div className="space-y-2">
@@ -1387,6 +1387,12 @@ export default function AdminUserPage() {
                                                 </div>
                                             </div>
                                             <div className="p-3 bg-slate-950 border border-slate-800">
+                                                <div className="text-xs text-slate-400 mb-1">Credit Balance</div>
+                                                <div className="text-sm font-semibold text-purple-400">
+                                                    {(walletSummary.creditBalance || 0).toFixed(2)} {walletSummary.baseCurrency}
+                                                </div>
+                                            </div>
+                                            <div className="p-3 bg-slate-950 border border-slate-800">
                                                 <div className="text-xs text-slate-400 mb-1">Available to Trade</div>
                                                 <div className="text-sm font-semibold">
                                                     {walletSummary.availableForTrade.toFixed(2)} {walletSummary.baseCurrency}
@@ -1397,26 +1403,6 @@ export default function AdminUserPage() {
                                                 <div className="text-sm font-semibold text-amber-400">
                                                     {walletSummary.tradingInTrade.toFixed(2)} {walletSummary.baseCurrency}
                                                 </div>
-                                            </div>
-                                            <div className="p-3 bg-slate-950 border border-slate-800">
-                                                <div className="text-xs text-slate-400 mb-1">Available to Withdraw</div>
-                                                <div className="text-sm font-semibold text-blue-400">
-                                                    {walletSummary.availableForWithdraw.toFixed(2)} {walletSummary.baseCurrency}
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div className="p-3 bg-slate-950 border border-slate-800">
-                                            <div className="flex items-center justify-between mb-2">
-                                                <div className="text-xs text-slate-400">Credit Utilization</div>
-                                                <div className="text-xs text-slate-400">
-                                                    {walletSummary.creditBalance.toFixed(2)}
-                                                </div>
-                                            </div>
-                                            <div className="w-full h-1.5 bg-slate-800">
-                                                <div 
-                                                    className="h-full bg-slate-600" 
-                                                    style={{ width: `${walletSummary.creditBalance > 0 ? 100 : 0}%` }}
-                                                ></div>
                                             </div>
                                         </div>
                                     </div>

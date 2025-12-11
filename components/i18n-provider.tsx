@@ -359,6 +359,7 @@ const en: Messages = {
   copyLink: "Copy Link",
   share: "Share",
   openWallet: "Open Wallet",
+  checkStatus: "Check Status",
   verifyAccount: "Verify Account",
   startTrading: "Start Trading",
   shareLink: "Share Link",
@@ -2247,6 +2248,7 @@ const es: Messages = {
   // Admin
   admin: {
     back: "Atrás",
+    baseCurrency: "Base Currency",
     userNotFound: "Usuario no encontrado",
     noName: "Sin nombre",
     blocked: "Bloqueado",

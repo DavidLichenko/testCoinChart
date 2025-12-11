@@ -118,8 +118,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             s.key === "dashboard" ? pathname === "/admin" : pathname.startsWith(s.href)
         ) ?? sections[0];
 
-    const [sidebarVisible, setSidebarVisible] = useState(true);
-    const [sidebarPinned, setSidebarPinned] = useState(true);
+    const [sidebarVisible, setSidebarVisible] = useState(false);
+    const [sidebarPinned, setSidebarPinned] = useState(false);
     const [showHint, setShowHint] = useState(false);
     const [isMouseInSidebar, setIsMouseInSidebar] = useState(false);
     const [isMouseInTrigger, setIsMouseInTrigger] = useState(false);
