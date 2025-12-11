@@ -17,7 +17,7 @@ export function DepositModal() {
     const { t } = useI18n("wallet.modals.deposit");
 
     const baseCurrency = summary?.baseCurrency ?? "USD";
-    const available = summary?.availableToTrade ?? 0;
+    const available = summary?.ownFunds ?? 0; // Changed from availableToTrade to ownFunds
 
     const [amount, setAmount] = useState("");
     const [loading, setLoading] = useState(false);
@@ -171,8 +171,7 @@ export function DepositModal() {
               </span>
                         </div>
                         <p className="mt-1 text-[11px] text-white/40">
-                            This is your free main balance (not in trades, not locked, not in
-                            pending withdrawals).
+                            This is your own funds balance (can be used to buy crypto).
                         </p>
                     </div>
 

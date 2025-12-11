@@ -13,9 +13,17 @@ import {useBalance} from "@/hooks/useBalance";
 
 export function ExchangeModal() {
     const { exchangeOpen, closeAll, activeAssetSymbol } = useWalletModals();
-    const { assets, refreshAll } = useWallet();
+    const { assets, refreshAll, summary } = useWallet();
     const { t } = useI18n("wallet.modals.exchange")
     const { details, refetchBalance } = useBalance();
+
+    const baseCurrency = summary?.baseCurrency ?? "USD";
+    
+    // Filter out base currency - only allow crypto-to-crypto exchanges
+    const cryptoAssets = useMemo(() => {
+        if (!assets) return [];
+        return assets.filter(a => a.symbol !== baseCurrency);
+    }, [assets, baseCurrency]);
 
     const [fromSymbol, setFromSymbol] = useState<string | undefined>();
     const [toSymbol, setToSymbol] = useState<string | undefined>();
@@ -24,13 +32,13 @@ export function ExchangeModal() {
 
     // Get the selected asset for displaying currency info
     const selectedAsset = useMemo(() => {
-        if (!fromSymbol || !assets) return null;
-        return assets.find(a => a.symbol === fromSymbol);
-    }, [fromSymbol, assets]);
+        if (!fromSymbol || !cryptoAssets) return null;
+        return cryptoAssets.find(a => a.symbol === fromSymbol);
+    }, [fromSymbol, cryptoAssets]);
 
     // Calculate estimated receive amount
     useEffect(() => {
-        if (!fromSymbol || !toSymbol || !amount || !assets) {
+        if (!fromSymbol || !toSymbol || !amount || !cryptoAssets) {
             setEstimatedReceive(null);
             return;
         }
@@ -42,8 +50,8 @@ export function ExchangeModal() {
         }
 
         // Get asset prices
-        const fromAsset = assets.find(a => a.symbol === fromSymbol);
-        const toAsset = assets.find(a => a.symbol === toSymbol);
+        const fromAsset = cryptoAssets.find(a => a.symbol === fromSymbol);
+        const toAsset = cryptoAssets.find(a => a.symbol === toSymbol);
         
         if (!fromAsset || !toAsset || !fromAsset.price || !toAsset.price) {
             setEstimatedReceive(null);
@@ -55,33 +63,25 @@ export function ExchangeModal() {
         const receiveAmount = valueInUSDT / toAsset.price;
         
         setEstimatedReceive(receiveAmount);
-    }, [fromSymbol, toSymbol, amount, assets]);
+    }, [fromSymbol, toSymbol, amount, cryptoAssets]);
 
-    // Get max amount for the selected asset
+    // Get max amount for the selected asset (ownBalance only)
     const maxAmount = useMemo(() => {
-        if (!fromSymbol || !assets) return 0;
-        const asset = assets.find(a => a.symbol === fromSymbol);
-        
-        if (!asset) return 0;
-        
-        // For base currency, use availableToTrade
-        if (details && fromSymbol === details.baseCurrency) {
-            return details.availableToTrade;
-        }
-        
-        // For other assets, use ownBalance
-        return asset.ownBalance || 0;
-    }, [fromSymbol, assets, details]);
+        if (!fromSymbol || !cryptoAssets) return 0;
+        const asset = cryptoAssets.find(a => a.symbol === fromSymbol);
+        return asset?.ownBalance || 0;
+    }, [fromSymbol, cryptoAssets]);
 
     useEffect(() => {
-        if (assets && assets.length > 0) {
-            setFromSymbol(activeAssetSymbol ?? assets[0].symbol);
-            const firstOther = assets.find(
-                (a) => a.symbol !== (activeAssetSymbol ?? assets[0].symbol)
+        if (cryptoAssets && cryptoAssets.length > 0) {
+            const activeAsset = activeAssetSymbol ? cryptoAssets.find(a => a.symbol === activeAssetSymbol) : undefined;
+            setFromSymbol(activeAsset ? activeAsset.symbol : cryptoAssets[0].symbol);
+            const firstOther = cryptoAssets.find(
+                (a) => a.symbol !== (activeAsset ? activeAsset.symbol : cryptoAssets[0].symbol)
             );
             setToSymbol(firstOther?.symbol ?? undefined);
         }
-    }, [activeAssetSymbol, assets]);
+    }, [activeAssetSymbol, cryptoAssets]);
 
     const handleClose = () => {
         closeAll();
@@ -110,17 +110,17 @@ export function ExchangeModal() {
         handleClose();
     };
 
-    const availableToSymbol = assets?.filter((a) => a.symbol !== fromSymbol) ?? [];
+    const availableToSymbol = cryptoAssets?.filter((a) => a.symbol !== fromSymbol) ?? [];
 
     return (
         <Dialog open={exchangeOpen} onOpenChange={handleClose}>
             <DialogContent className="bg-[#090b1a] border border-[#121426] rounded-3xl max-w-md">
                 <DialogHeader>
                     <DialogTitle className="text-white text-lg">
-                        {t("title") /* en: "Exchange assets", es: "Intercambiar activos" */}
+                        {t("title") /* en: "Exchange crypto", es: "Intercambiar cripto" */}
                     </DialogTitle>
                     <DialogDescription className="text-xs text-white/50">
-                        {t("description") /* en: "Swap one crypto asset to another at market price.", es: "Cambia un activo cripto por otro al precio de mercado." */}
+                        {t("description") /* en: "Swap one crypto to another at market price.", es: "Cambia una cripto por otra al precio de mercado." */}
                     </DialogDescription>
                 </DialogHeader>
 
@@ -135,7 +135,7 @@ export function ExchangeModal() {
                                 <SelectValue />
                             </SelectTrigger>
                             <SelectContent className="bg-[#0f1126] border-[#121426] rounded-2xl">
-                                {assets?.map((a) => (
+                                {cryptoAssets?.map((a) => (
                                     <SelectItem key={a.symbol} value={a.symbol}>
                                         {a.symbol}
                                     </SelectItem>
@@ -184,21 +184,11 @@ export function ExchangeModal() {
                         {selectedAsset && (
                             <div className="text-[10px] text-white/50 mt-1">
                                 Available: {maxAmount.toFixed(8)} {selectedAsset.symbol}
-                                {details?.baseCurrency === "EUR" && details?.eurUsdRate && selectedAsset.symbol === details.baseCurrency && (
-                                    <span className="block">
-                                        ≈ {(maxAmount * details.eurUsdRate).toFixed(2)} USD
-                                    </span>
-                                )}
                             </div>
                         )}
                         {estimatedReceive !== null && toSymbol && (
                             <div className="text-[10px] text-white/50 mt-1">
                                 You will receive: {estimatedReceive.toFixed(8)} {toSymbol}
-                                {details?.baseCurrency === "EUR" && details?.eurUsdRate && toSymbol === details.baseCurrency && (
-                                    <span className="block">
-                                        ≈ {(estimatedReceive * details.eurUsdRate).toFixed(2)} USD
-                                    </span>
-                                )}
                             </div>
                         )}
 
