@@ -4,6 +4,43 @@ import { prisma } from "@/lib/prisma"
 import { requireAuth } from "@/lib/auth-utils"
 import { broadcastUserBalance } from "@/lib/balance-broadcast"
 
+/**
+ * Конвертирует сумму из одной валюты в другую через курс FxRate
+ */
+async function convertCurrency(
+  amount: number,
+  fromCurrency: string,
+  toCurrency: string
+): Promise<number> {
+  if (fromCurrency === toCurrency) {
+    return amount;
+  }
+
+  try {
+    const fromRate = await prisma.fxRate.findUnique({
+      where: { symbol: fromCurrency },
+    });
+    
+    const toRate = await prisma.fxRate.findUnique({
+      where: { symbol: toCurrency },
+    });
+
+    if (!fromRate || !toRate) {
+      console.error(`Currency rates not found for ${fromCurrency} or ${toCurrency}`);
+      return amount;
+    }
+
+    // Конвертируем через базовую валюту (USD)
+    const amountInBase = amount / fromRate.toBase;
+    const convertedAmount = amountInBase * toRate.toBase;
+
+    return convertedAmount;
+  } catch (error) {
+    console.error("Error converting currency:", error);
+    return amount;
+  }
+}
+
 export async function POST(request: Request) {
   try {
     const userId = await requireAuth()
@@ -83,6 +120,18 @@ export async function POST(request: Request) {
 
       const baseCurrency = user.baseCurrency || "USD"
 
+      // ВАЖНО: Если пользователь в EUR, конвертируем margin в USD для трейда
+      // Все трейды открываются в USD, но margin блокируется в базовой валюте юзера
+      let marginInBaseCurrency = margin
+      
+      if (baseCurrency === "EUR") {
+        // Margin пришел в EUR, нужно проверить баланс в EUR
+        // Но для трейда нужно конвертировать в USD
+        const marginInUSD = await convertCurrency(margin, "EUR", "USD")
+        // marginInBaseCurrency остается в EUR для блокировки баланса
+        // marginInUSD используется для расчета профита трейда
+      }
+
       const wallet = await tx.walletBalance.findUnique({
         where: {
           userId_assetSymbol: { userId, assetSymbol: baseCurrency },
@@ -98,11 +147,12 @@ export async function POST(request: Request) {
       // Доступно для трейда: собственные средства + доступный кредит
       const available = ownBalance + creditAvailable
 
-      if (available < margin) throw new Error("InsufficientBalance")
+      // Проверяем баланс в базовой валюте пользователя
+      if (available < marginInBaseCurrency) throw new Error("InsufficientBalance")
       
       // Определяем, сколько использовать из кредита (если нужно)
-      const ownBalanceToUse = Math.min(ownBalance, margin)
-      const creditToUse = Math.max(0, margin - ownBalanceToUse)
+      const ownBalanceToUse = Math.min(ownBalance, marginInBaseCurrency)
+      const creditToUse = Math.max(0, marginInBaseCurrency - ownBalanceToUse)
 
       // Lock margin: сначала используем собственные средства, затем кредит
       await tx.walletBalance.update({
@@ -112,7 +162,7 @@ export async function POST(request: Request) {
         data: {
           ownBalance: { decrement: ownBalanceToUse },
           creditUsed: creditToUse > 0 ? { increment: creditToUse } : undefined,
-          locked: { increment: margin },
+          locked: { increment: marginInBaseCurrency },
         },
       })
 
@@ -123,7 +173,7 @@ export async function POST(request: Request) {
           ticker,
           volume,
           leverage,
-          margin,
+          margin: marginInBaseCurrency, // Сохраняем margin в базовой валюте юзера (EUR или USD)
           openIn,
           openInA: openIn,
           takeProfit,

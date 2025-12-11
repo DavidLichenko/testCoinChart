@@ -20,12 +20,12 @@ export function Footer() {
   }
 
   return (
-      <footer className="pt-10 z-20 border-t border-[#17172b] bg-app-bgDeep text-slate-300">
+      <footer className="pt-10 z-20 border-t border-[#121426] bg-app-bgDeep text-slate-300 rounded-t-2xl">
         <div className="mx-auto flex max-w-screen-2xl flex-col gap-8 px-3 py-8 sm:px-4 sm:py-10 md:px-6 lg:px-8 lg:py-12">
           {/* TOP: logo + short nav */}
           <div className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center ">
             <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-sm bg-[#11111f]">
+              <div className="flex h-9 w-9 items-center justify-center rounded-sm bg-[#090b1a]">
                 {/* твой логотип */}
                 <img
                     src="/logo.png"
@@ -72,7 +72,7 @@ export function Footer() {
                           setIsCollapse(!collapse)
                         }
                       }}
-                      className={'absolute left-0 md:left-auto md:right-0 flex gap-2 rounded-sm p-2 justify-start items-center w-36 bg-[#11111f] uppercase font-bold text-[12px] hover:cursor-pointer z-10'}>
+                      className={'absolute left-0 md:left-auto md:right-0 flex gap-2 rounded-sm p-2 justify-start items-center w-36 bg-[#090b1a] uppercase font-bold text-[12px] hover:cursor-pointer z-10'}>
                     <ES className={'w-5 h-5 shrink-0'}/>
                     <span className="truncate">{t('spanish')}</span>
                   </motion.div>
@@ -88,7 +88,7 @@ export function Footer() {
                           setIsCollapse(!collapse)
                         }
                       }}
-                      className={'absolute left-0 md:left-auto md:right-0 flex gap-2 rounded-sm p-2 justify-start w-36 items-center bg-[#11111f] uppercase font-bold text-[12px] hover:cursor-pointer z-10'}>
+                      className={'absolute left-0 md:left-auto md:right-0 flex gap-2 rounded-sm p-2 justify-start w-36 items-center bg-[#090b1a] uppercase font-bold text-[12px] hover:cursor-pointer z-10'}>
                     <US className={'w-5 h-5 shrink-0'}/>
                     <span className="truncate">{t('english')}</span>
                   </motion.div>
@@ -100,7 +100,7 @@ export function Footer() {
 
 
           {/* LINK COLUMNS */}
-          <div className="grid grid-cols-2 gap-6 border-t border-[#17172b] pt-6 text-[11px] text-slate-400 md:grid-cols-[2fr_1fr_1fr_1fr]">
+          <div className="grid grid-cols-2 gap-6 border-t border-[#121426] pt-6 text-[11px] text-slate-400 md:grid-cols-[2fr_1fr_1fr_1fr]">
             {/* About + socials */}
             <div className="space-y-3">
               <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
@@ -162,7 +162,7 @@ export function Footer() {
           </div>
 
           {/* BOTTOM STRIP */}
-          <div className="flex flex-col gap-3 border-t border-[#17172b] pt-4 text-[10px] text-slate-500 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-col gap-3 border-t border-[#121426] pt-4 text-[10px] text-slate-500 sm:flex-row sm:items-center sm:justify-between">
             <p className="max-w-2xl leading-relaxed">
               {t("footer.riskWarning") || "Trading CFDs and other leveraged products involves a high level of risk and may not be suitable for all investors. You can lose more than your initial investment. Do not trade with funds you cannot afford to lose."}
             </p>

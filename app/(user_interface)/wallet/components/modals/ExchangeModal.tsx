@@ -114,7 +114,7 @@ export function ExchangeModal() {
 
     return (
         <Dialog open={exchangeOpen} onOpenChange={handleClose}>
-            <DialogContent className="bg-[#11111f] border border-white/10 rounded-2xl max-w-md">
+            <DialogContent className="bg-[#090b1a] border border-[#121426] rounded-3xl max-w-md">
                 <DialogHeader>
                     <DialogTitle className="text-white text-lg">
                         {t("title") /* en: "Exchange assets", es: "Intercambiar activos" */}
@@ -131,10 +131,10 @@ export function ExchangeModal() {
                             value={fromSymbol}
                             onValueChange={(val) => setFromSymbol(val)}
                         >
-                            <SelectTrigger className="bg-[#181827] border-white/10 text-white">
+                            <SelectTrigger className="bg-[#0f1126] border-[#121426] text-white rounded-2xl">
                                 <SelectValue />
                             </SelectTrigger>
-                            <SelectContent className="bg-[#181827] border-white/10">
+                            <SelectContent className="bg-[#0f1126] border-[#121426] rounded-2xl">
                                 {assets?.map((a) => (
                                     <SelectItem key={a.symbol} value={a.symbol}>
                                         {a.symbol}
@@ -150,10 +150,10 @@ export function ExchangeModal() {
                             value={toSymbol}
                             onValueChange={(val) => setToSymbol(val)}
                         >
-                            <SelectTrigger className="bg-[#181827] border-white/10 text-white">
+                            <SelectTrigger className="bg-[#0f1126] border-[#121426] text-white rounded-2xl">
                                 <SelectValue />
                             </SelectTrigger>
-                            <SelectContent className="bg-[#181827] border-white/10">
+                            <SelectContent className="bg-[#0f1126] border-[#121426] rounded-2xl">
                                 {availableToSymbol.map((a) => (
                                     <SelectItem key={a.symbol} value={a.symbol}>
                                         {a.symbol}
@@ -170,12 +170,12 @@ export function ExchangeModal() {
                                 value={amount}
                                 onChange={(e) => setAmount(e.target.value)}
                                 placeholder="0.00"
-                                className="bg-[#181827] border-white/10 text-white pr-16"
+                                className="bg-[#0f1126] border-[#121426] text-white pr-16 rounded-2xl"
                             />
                             <Button
                                 type="button"
                                 variant="ghost"
-                                className="absolute right-1 top-1/2 -translate-y-1/2 h-6 rounded bg-[#252536] px-2 text-[10px] text-white hover:bg-[#2d2d42]"
+                                className="absolute right-1 top-1/2 -translate-y-1/2 h-6 rounded bg-[#0f1126] px-2 text-[10px] text-white hover:bg-[#090b1a]"
                                 onClick={() => setAmount(maxAmount.toString())}
                             >
                                 MAX
@@ -205,7 +205,7 @@ export function ExchangeModal() {
                     </div>
 
                     <Button
-                        className="w-full mt-2 bg-gradient-to-r from-[#7a3cff] via-[#2BFFDA] to-[#a94dff] text-[#050510] rounded-xl"
+                        className="w-full mt-2 bg-gradient-to-r from-[#8b5cf6] to-[#7e22ce] text-white rounded-2xl"
                         onClick={onSubmit}
                     >
                         {t("submit") /* en: "Confirm exchange", es: "Confirmar intercambio" */}

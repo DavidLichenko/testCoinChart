@@ -26,6 +26,10 @@ import {
     X,
     Calendar,
     Wallet,
+    Gift,
+    Loader2,
+    Phone,
+    Copy,
 } from "lucide-react"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -69,6 +73,7 @@ interface AdminUser {
     assignedTo: string | null
     isFavorite?: boolean
     baseCurrency: "USD" | "EUR"
+    mobileNumber?: string | null
 }
 
 interface WalletSummary {
@@ -179,9 +184,14 @@ export default function AdminUserPage() {
     const [loading, setLoading] = useState(true)
     const [saving, setSaving] = useState(false)
 
-    const [trades, setTrades] = useState<UserTrade[]>([])
-    const [orders, setOrders] = useState<UserOrder[]>([])
-    const [loadingRelations, setLoadingRelations] = useState(true)
+    const [trades, setTrades] = useState<UserTrade[]>([]);
+    const [orders, setOrders] = useState<UserOrder[]>([]);
+    const [loadingRelations, setLoadingRelations] = useState(true);
+        
+    // Pagination for trades and orders
+    const [tradesPage, setTradesPage] = useState(1);
+    const [ordersPage, setOrdersPage] = useState(1);
+    const ITEMS_PER_PAGE = 10;
     
     const [walletSummary, setWalletSummary] = useState<WalletSummary | null>(null)
     const [walletBalances, setWalletBalances] = useState<WalletBalance[]>([])
@@ -194,6 +204,7 @@ export default function AdminUserPage() {
     const [isChatDialogOpen, setIsChatDialogOpen] = useState(false)
     const [isCommentsDialogOpen, setIsCommentsDialogOpen] = useState(false)
     const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false)
+    const [isReferralRewardDialogOpen, setIsReferralRewardDialogOpen] = useState(false)
     
     const [newTrade, setNewTrade] = useState<NewTrade>({
         type: "BUY",
@@ -237,6 +248,11 @@ export default function AdminUserPage() {
     const [teamMembers, setTeamMembers] = useState<TeamMember[]>([])
     const [selectedWorker, setSelectedWorker] = useState<string>("")
     const [isFavorite, setIsFavorite] = useState(false)
+
+    // Referral reward state
+    const [referralRewardAmount, setReferralRewardAmount] = useState("10")
+    const [referralRewardDescription, setReferralRewardDescription] = useState("")
+    const [addingReferralReward, setAddingReferralReward] = useState(false)
 
     const [searchTerm, setSearchTerm] = useState("")
     const { tickers } = useTickers()
@@ -726,12 +742,109 @@ export default function AdminUserPage() {
         fetchTeamMembers()
     }, [])
 
+    const handleAddReferralReward = async () => {
+        const amount = parseFloat(referralRewardAmount)
+        if (isNaN(amount) || amount <= 0) {
+            toast({
+                title: "Error",
+                description: "Please enter a valid reward amount",
+                variant: "destructive",
+            })
+            return
+        }
+
+        setAddingReferralReward(true)
+        try {
+            const res = await fetch(`/api/admin/users/${userId}/add-referral-reward`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    referredUserId: null, // Manual reward without specific referral
+                    rewardAmount: amount,
+                    description: referralRewardDescription || "Manual referral reward",
+                }),
+            })
+
+            if (res.ok) {
+                setIsReferralRewardDialogOpen(false)
+                setReferralRewardAmount("10")
+                setReferralRewardDescription("")
+                await refreshWalletData()
+                toast({
+                    title: "Success",
+                    description: `Referral reward of $${amount} added successfully`,
+                })
+            } else {
+                const errorData = await res.json()
+                toast({
+                    title: "Error",
+                    description: errorData.error || "Failed to add referral reward",
+                    variant: "destructive",
+                })
+            }
+        } catch (e) {
+            console.error("Error adding referral reward:", e)
+            toast({
+                title: "Error",
+                description: "Failed to add referral reward",
+                variant: "destructive",
+            })
+        } finally {
+            setAddingReferralReward(false)
+        }
+    }
+
     if (loading) {
         return (
-            <div className="flex items-center justify-center min-h-screen bg-slate-950">
-                <div className="h-8 w-8 animate-spin border-2 border-slate-700 border-t-slate-400"></div>
+            <div className="min-h-screen bg-slate-950 text-slate-100">
+                <div className="max-w-[1920px] mx-auto px-4 py-6">
+                    {/* Header Skeleton */}
+                    <div className="mb-6">
+                        <div className="flex items-center gap-4 mb-4">
+                            <div className="h-8 w-20 bg-slate-800 animate-pulse rounded"></div>
+                            <div className="h-10 w-10 bg-slate-800 animate-pulse rounded"></div>
+                            <div className="space-y-2">
+                                <div className="h-5 w-32 bg-slate-800 animate-pulse rounded"></div>
+                                <div className="h-3 w-48 bg-slate-800 animate-pulse rounded"></div>
+                            </div>
+                        </div>
+                        <div className="flex gap-2">
+                            {[...Array(6)].map((_, i) => (
+                                <div key={i} className="h-8 w-24 bg-slate-800 animate-pulse rounded"></div>
+                            ))}
+                        </div>
+                    </div>
+                        
+                    {/* Content Grid Skeleton */}
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
+                        {[...Array(3)].map((_, i) => (
+                            <div key={i} className="border border-slate-800 bg-slate-900/50 rounded-lg p-4">
+                                <div className="h-4 w-24 bg-slate-800 animate-pulse rounded mb-4"></div>
+                                <div className="space-y-3">
+                                    {[...Array(4)].map((_, j) => (
+                                        <div key={j} className="h-16 bg-slate-800 animate-pulse rounded"></div>
+                                    ))}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                        
+                    {/* Bottom Grid Skeleton */}
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                        {[...Array(3)].map((_, i) => (
+                            <div key={i} className="border border-slate-800 bg-slate-900/50 rounded-lg p-4">
+                                <div className="h-4 w-32 bg-slate-800 animate-pulse rounded mb-4"></div>
+                                <div className="space-y-2">
+                                    {[...Array(3)].map((_, j) => (
+                                        <div key={j} className="h-12 bg-slate-800 animate-pulse rounded"></div>
+                                    ))}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
             </div>
-        )
+        );
     }
 
     if (!user) {
@@ -772,6 +885,21 @@ export default function AdminUserPage() {
                                         <span className="text-slate-600">•</span>
                                         <span className="font-mono">{user.id.slice(0, 8)}...</span>
                                     </div>
+                                    {user.mobileNumber && (
+                                        <div className="flex items-center gap-2 text-xs text-slate-400 mt-1">
+                                            <Phone className="h-3 w-3" />
+                                            <span>{user.mobileNumber}</span>
+                                            <button
+                                                onClick={() => {
+                                                    navigator.clipboard.writeText(user.mobileNumber!)
+                                                    toast({ title: "Copied!", description: "Phone number copied to clipboard" })
+                                                }}
+                                                className="ml-1 p-1 hover:bg-slate-800 rounded transition-colors"
+                                            >
+                                                <Copy className="h-3 w-3" />
+                                            </button>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -818,6 +946,14 @@ export default function AdminUserPage() {
                         >
                             <CreditCard className="h-3.5 w-3.5 mr-1.5" />
                             {t("createOrder")}
+                        </Button>
+                        <Button
+                            size="sm"
+                            onClick={() => setIsReferralRewardDialogOpen(true)}
+                            className="h-8 px-3 text-xs bg-purple-900/50 border border-purple-700/50 hover:bg-purple-800/50 text-purple-200"
+                        >
+                            <Gift className="h-3.5 w-3.5 mr-1.5" />
+                            Add Referral Reward
                         </Button>
                         <Button
                             size="sm"
@@ -911,39 +1047,69 @@ export default function AdminUserPage() {
                                 </div>
                             </CardHeader>
                             <CardContent className="pt-4">
-                                <div className="space-y-2 max-h-[600px] overflow-y-auto">
+                                <div className="space-y-2">
                                     {loadingRelations ? (
-                                        <div className="py-8 text-center text-xs text-slate-500">
-                                            {t("loadingTrades")}
+                                        <div className="space-y-2">
+                                            {[...Array(5)].map((_, i) => (
+                                                <div key={i} className="h-20 bg-slate-800 animate-pulse rounded-xl"></div>
+                                            ))}
                                         </div>
                                     ) : trades.length === 0 ? (
                                         <div className="py-8 text-center text-xs text-slate-500">
                                             {t("noTradesYet")}
                                         </div>
                                     ) : (
-                                        trades.map((t) => (
-                                            <UserTradeItem 
-                                                key={t.id} 
-                                                trade={t} 
-                                                onEdit={openEditTradeDialog}
-                                                onProfitUpdate={async (tradeId, newProfit) => {
-                                                    try {
-                                                        const res = await fetch(`/api/admin/trades/${tradeId}`, {
-                                                            method: "PATCH",
-                                                            headers: { "Content-Type": "application/json" },
-                                                            body: JSON.stringify({ profit: newProfit }),
-                                                        })
-                                                        if (res.ok) {
-                                                            const updated = await res.json()
-                                                            setTrades(prev => prev.map(t => t.id === tradeId ? { ...t, profit: updated.profit } : t))
-                                                        }
-                                                    } catch (e) {
-                                                        console.error("Error updating profit:", e)
-                                                    }
-                                                }}
-                                                baseCurrency={walletSummary?.baseCurrency || "USD"}
-                                            />
-                                        ))
+                                        <>
+                                            <div className="space-y-2 max-h-[600px] overflow-y-auto">
+                                                {trades
+                                                    .slice((tradesPage - 1) * ITEMS_PER_PAGE, tradesPage * ITEMS_PER_PAGE)
+                                                    .map((t) => (
+                                                        <UserTradeItem 
+                                                            key={t.id} 
+                                                            trade={t} 
+                                                            onEdit={openEditTradeDialog}
+                                                            onProfitUpdate={async (tradeId, newProfit) => {
+                                                                try {
+                                                                    const res = await fetch(`/api/admin/trades/${tradeId}`, {
+                                                                        method: "PATCH",
+                                                                        headers: { "Content-Type": "application/json" },
+                                                                        body: JSON.stringify({ profit: newProfit }),
+                                                                    })
+                                                                    if (res.ok) {
+                                                                        const updated = await res.json()
+                                                                        setTrades(prev => prev.map(t => t.id === tradeId ? { ...t, profit: updated.profit } : t))
+                                                                    }
+                                                                } catch (e) {
+                                                                    console.error("Error updating profit:", e)
+                                                                }
+                                                            }}
+                                                            baseCurrency={walletSummary?.baseCurrency || "USD"}
+                                                        />
+                                                    ))
+                                                }
+                                            </div>
+                                            {trades.length > ITEMS_PER_PAGE && (
+                                                <div className="flex items-center justify-between pt-2 border-t border-slate-800">
+                                                    <button
+                                                        onClick={() => setTradesPage(p => Math.max(1, p - 1))}
+                                                        disabled={tradesPage === 1}
+                                                        className="px-3 py-1 text-xs bg-slate-800 border border-slate-700 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-700"
+                                                    >
+                                                        Previous
+                                                    </button>
+                                                    <span className="text-xs text-slate-400">
+                                                        Page {tradesPage} of {Math.ceil(trades.length / ITEMS_PER_PAGE)}
+                                                    </span>
+                                                    <button
+                                                        onClick={() => setTradesPage(p => Math.min(Math.ceil(trades.length / ITEMS_PER_PAGE), p + 1))}
+                                                        disabled={tradesPage >= Math.ceil(trades.length / ITEMS_PER_PAGE)}
+                                                        className="px-3 py-1 text-xs bg-slate-800 border border-slate-700 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-700"
+                                                    >
+                                                        Next
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </>
                                     )}
                                 </div>
                             </CardContent>
@@ -974,23 +1140,53 @@ export default function AdminUserPage() {
                                 </div>
                             </CardHeader>
                             <CardContent className="pt-4">
-                                <div className="space-y-2 max-h-[600px] overflow-y-auto">
+                                <div className="space-y-2">
                                     {loadingRelations ? (
-                                        <div className="py-8 text-center text-xs text-slate-500">
-                                            {t("loadingOrders")}
+                                        <div className="space-y-2">
+                                            {[...Array(5)].map((_, i) => (
+                                                <div key={i} className="h-16 bg-slate-800 animate-pulse rounded-xl"></div>
+                                            ))}
                                         </div>
                                     ) : orders.length === 0 ? (
                                         <div className="py-8 text-center text-xs text-slate-500">
                                             {t("noOrdersYet")}
                                         </div>
                                     ) : (
-                                        orders.map((o) => (
-                                            <UserOrderItem 
-                                                key={o.id} 
-                                                order={o} 
-                                                onEdit={openEditOrderDialog} 
-                                            />
-                                        ))
+                                        <>
+                                            <div className="space-y-2 max-h-[600px] overflow-y-auto">
+                                                {orders
+                                                    .slice((ordersPage - 1) * ITEMS_PER_PAGE, ordersPage * ITEMS_PER_PAGE)
+                                                    .map((o) => (
+                                                        <UserOrderItem 
+                                                            key={o.id} 
+                                                            order={o} 
+                                                            onEdit={openEditOrderDialog} 
+                                                        />
+                                                    ))
+                                                }
+                                            </div>
+                                            {orders.length > ITEMS_PER_PAGE && (
+                                                <div className="flex items-center justify-between pt-2 border-t border-slate-800">
+                                                    <button
+                                                        onClick={() => setOrdersPage(p => Math.max(1, p - 1))}
+                                                        disabled={ordersPage === 1}
+                                                        className="px-3 py-1 text-xs bg-slate-800 border border-slate-700 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-700"
+                                                    >
+                                                        Previous
+                                                    </button>
+                                                    <span className="text-xs text-slate-400">
+                                                        Page {ordersPage} of {Math.ceil(orders.length / ITEMS_PER_PAGE)}
+                                                    </span>
+                                                    <button
+                                                        onClick={() => setOrdersPage(p => Math.min(Math.ceil(orders.length / ITEMS_PER_PAGE), p + 1))}
+                                                        disabled={ordersPage >= Math.ceil(orders.length / ITEMS_PER_PAGE)}
+                                                        className="px-3 py-1 text-xs bg-slate-800 border border-slate-700 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-700"
+                                                    >
+                                                        Next
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </>
                                     )}
                                 </div>
                             </CardContent>
@@ -1790,6 +1986,74 @@ export default function AdminUserPage() {
                                 className="h-8 px-3 text-xs bg-slate-800 border border-slate-700 hover:bg-slate-700"
                             >
                                 Assign User
+                            </Button>
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
+
+            {/* Add Referral Reward Dialog */}
+            <Dialog open={isReferralRewardDialogOpen} onOpenChange={setIsReferralRewardDialogOpen}>
+                <DialogContent className="w-[95vw] max-w-md border border-purple-800/50 bg-slate-900">
+                    <DialogHeader>
+                        <DialogTitle className="text-base font-semibold flex items-center gap-2">
+                            <Gift className="h-4 w-4 text-purple-400" />
+                            Add Referral Reward
+                        </DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                        <div className="text-xs text-slate-400 bg-purple-950/30 border border-purple-800/30 rounded-lg p-3">
+                            💡 This will add a referral reward to the user's balance and create a record in their referral list.
+                        </div>
+                        <div>
+                            <Label className="text-xs text-slate-400 mb-1 block">Reward Amount ($)</Label>
+                            <Input
+                                type="number"
+                                value={referralRewardAmount}
+                                onChange={(e) => setReferralRewardAmount(e.target.value)}
+                                placeholder="10.00"
+                                className="h-9 text-sm border-slate-800 bg-slate-950"
+                                step="0.01"
+                                min="0"
+                            />
+                        </div>
+                        <div>
+                            <Label className="text-xs text-slate-400 mb-1 block">Description (Optional)</Label>
+                            <Input
+                                value={referralRewardDescription}
+                                onChange={(e) => setReferralRewardDescription(e.target.value)}
+                                placeholder="e.g., Manual bonus reward"
+                                className="h-9 text-sm border-slate-800 bg-slate-950"
+                            />
+                        </div>
+                        <div className="flex justify-end gap-2 pt-2">
+                            <Button
+                                variant="outline"
+                                onClick={() => {
+                                    setIsReferralRewardDialogOpen(false)
+                                    setReferralRewardAmount("10")
+                                    setReferralRewardDescription("")
+                                }}
+                                className="h-8 px-3 text-xs border-slate-800 bg-slate-950 hover:bg-slate-900"
+                            >
+                                Cancel
+                            </Button>
+                            <Button
+                                onClick={handleAddReferralReward}
+                                disabled={addingReferralReward}
+                                className="h-8 px-3 text-xs bg-purple-600 hover:bg-purple-700 text-white"
+                            >
+                                {addingReferralReward ? (
+                                    <>
+                                        <Loader2 className="h-3 w-3 mr-1.5 animate-spin" />
+                                        Adding...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Gift className="h-3 w-3 mr-1.5" />
+                                        Add Reward
+                                    </>
+                                )}
                             </Button>
                         </div>
                     </div>

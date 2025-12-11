@@ -179,14 +179,59 @@ export default function ProfileTransactionsPage() {
 
   if (loading) {
     return (
-        <div className="flex min-h-[50vh] items-center justify-center">
-          <div className="text-center">
-            <div className="mx-auto h-8 w-8 animate-spin rounded-full border-b-2 border-indigo-500" />
-            <p className="mt-3 text-xs text-slate-400">
-              {t("loadingTransactions")}...
-            </p>
+      <div className="mx-auto flex w-full max-w-full flex-col gap-6 px-3 py-6 sm:px-4 sm:py-8 lg:px-0 lg:py-0">
+        {/* Header skeleton */}
+        <header className="space-y-4">
+          <div className="flex items-center gap-2">
+            <div className="h-7 w-7 bg-slate-800/50 rounded-full animate-pulse" />
+            <div className="h-5 w-32 bg-slate-800/50 rounded animate-pulse" />
           </div>
+          <div className="space-y-2">
+            <div className="h-8 w-48 bg-slate-800/50 rounded animate-pulse" />
+            <div className="h-4 w-96 bg-slate-800/50 rounded animate-pulse" />
+          </div>
+        </header>
+
+        {/* Filters skeleton */}
+        <Card className="rounded-sm border border-[#17172b] bg-[#060615]/90 shadow-[0_18px_45px_rgba(0,0,0,0.85)]">
+          <CardContent className="p-4 sm:p-5">
+            <div className="flex flex-col gap-4">
+              <div className="grid gap-3 sm:grid-cols-3">
+                <div className="h-10 bg-slate-800/50 rounded-xl animate-pulse" />
+                <div className="h-10 bg-slate-800/50 rounded-xl animate-pulse" />
+                <div className="h-10 bg-slate-800/50 rounded-xl animate-pulse" />
+              </div>
+              <div className="flex gap-2">
+                <div className="h-9 w-24 bg-slate-800/50 rounded-xl animate-pulse" />
+                <div className="h-9 w-24 bg-slate-800/50 rounded-xl animate-pulse" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Transactions skeleton */}
+        <div className="space-y-3">
+          {[...Array(5)].map((_, i) => (
+            <Card key={i} className="rounded-sm border border-[#17172b] bg-[#060615]/90 shadow-[0_8px_20px_rgba(0,0,0,0.65)]">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3 flex-1">
+                    <div className="h-10 w-10 bg-slate-800/50 rounded-full animate-pulse" />
+                    <div className="space-y-2 flex-1">
+                      <div className="h-4 w-32 bg-slate-800/50 rounded animate-pulse" />
+                      <div className="h-3 w-48 bg-slate-800/50 rounded animate-pulse" />
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="h-5 w-20 bg-slate-800/50 rounded animate-pulse" />
+                    <div className="h-6 w-16 bg-slate-800/50 rounded-full animate-pulse" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
         </div>
+      </div>
     );
   }
 
@@ -194,7 +239,7 @@ export default function ProfileTransactionsPage() {
       <div className="mx-auto flex w-full max-w-full flex-col gap-6 px-3 py-6 sm:px-4 sm:py-8 lg:px-0 lg:py-0">
         {/* Header */}
         <header className="space-y-4">
-          <div className="inline-flex items-center gap-2 rounded-sm border border-slate-900 bg-slate-950/80 px-3 py-1.5">
+          <div className="inline-flex items-center gap-2 rounded-2xl border border-[#121426] bg-[#090b1a] px-3 py-1.5">
             <FileText className="h-3.5 w-3.5 text-indigo-400" />
             <span className="text-[11px] font-medium uppercase tracking-[0.16em] text-slate-400">
             {t("transactions")}
@@ -211,7 +256,7 @@ export default function ProfileTransactionsPage() {
         </header>
 
         {/* Filters + content */}
-        <Card className="rounded-sm border border-slate-900 bg-[#050511] shadow-[0_22px_60px_rgba(0,0,0,0.85)]">
+        <Card className="rounded-2xl border border-[#121426] bg-[#090b1a] shadow-[0_22px_60px_rgba(107,33,168,0.25)]">
           <CardContent className="space-y-6 p-4 sm:p-6 lg:p-7">
             {/* Filters row */}
             <div className="flex flex-col gap-4 border-b border-slate-900 pb-5 md:flex-row md:items-center md:justify-between">
@@ -220,7 +265,7 @@ export default function ProfileTransactionsPage() {
                   <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
                   <Input
                       placeholder={t("searchTransactions")}
-                      className="h-10 rounded-sm border-slate-800 bg-slate-950/90 pl-9 text-xs text-slate-50 placeholder:text-slate-500"
+                      className="h-10 rounded-2xl border-[#121426] bg-[#0f1126] pl-9 text-xs text-slate-50 placeholder:text-slate-400"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                   />
@@ -229,10 +274,10 @@ export default function ProfileTransactionsPage() {
 
               <div className="flex flex-wrap gap-2 md:justify-end">
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="h-9 w-[130px] rounded-sm border-slate-800 bg-slate-950/90 text-xs text-slate-100">
+                  <SelectTrigger className="h-9 w-[130px] rounded-2xl border-[#121426] bg-[#0f1126] text-xs text-slate-100">
                     <SelectValue placeholder={t("status")} />
                   </SelectTrigger>
-                  <SelectContent className="rounded-sm border-slate-800 bg-slate-950 text-xs text-slate-50">
+                  <SelectContent className="rounded-2xl border-[#121426] bg-[#0f1126] text-xs text-slate-50">
                     <SelectItem value="ALL">{t("all")}</SelectItem>
                     <SelectItem value="SUCCESSFUL">{t("successful")}</SelectItem>
                     <SelectItem value="PENDING">{t("pending")}</SelectItem>
@@ -242,10 +287,10 @@ export default function ProfileTransactionsPage() {
                 </Select>
 
                 <Select value={typeFilter} onValueChange={setTypeFilter}>
-                  <SelectTrigger className="h-9 w-[130px] rounded-sm border-slate-800 bg-slate-950/90 text-xs text-slate-100">
+                  <SelectTrigger className="h-9 w-[130px] rounded-2xl border-[#121426] bg-[#0f1126] text-xs text-slate-100">
                     <SelectValue placeholder={t("type")} />
                   </SelectTrigger>
-                  <SelectContent className="rounded-sm border-slate-800 bg-slate-950 text-xs text-slate-50">
+                  <SelectContent className="rounded-2xl border-[#121426] bg-[#0f1126] text-xs text-slate-50">
                     <SelectItem value="ALL">{t("all")}</SelectItem>
                     <SelectItem value="DEPOSIT">{t("deposit")}</SelectItem>
                     <SelectItem value="WITHDRAW">{t("withdraw")}</SelectItem>
@@ -258,7 +303,7 @@ export default function ProfileTransactionsPage() {
                     type="button"
                     variant="ghost"
                     size="sm"
-                    className="h-9 rounded-sm border border-slate-800 bg-slate-950/70 px-3 text-[11px] font-medium text-slate-300 hover:bg-slate-900"
+                    className="h-9 rounded-2xl border-[#121426] bg-[#0f1126] px-3 text-[11px] font-medium text-slate-300 hover:bg-[#090b1a]"
                     onClick={resetFilters}
                 >
                   {t("reset") ?? "Reset"}
@@ -276,10 +321,10 @@ export default function ProfileTransactionsPage() {
                       return (
                           <div
                               key={tx.id}
-                              className={`rounded-sm border px-3 py-3.5 text-xs ${
+                              className={`rounded-2xl border px-3 py-3.5 text-xs ${
                                 tx.type === "TRADE" && tx.aiEnabled
-                                  ? "border-purple-500/50 bg-gradient-to-br from-purple-950/40 to-purple-900/20 text-slate-100 shadow-[0_0_12px_rgba(139,92,246,0.2)]"
-                                  : "border-slate-900 bg-slate-950/90 text-slate-100"
+                                  ? "border-purple-500/50 bg-gradient-to-br from-[#0f1126] to-[#090b1a] text-slate-100 shadow-[0_0_12px_rgba(107,33,168,0.2)]"
+                                  : "border-[#121426] bg-[#090b1a] text-slate-100"
                               }`}
                           >
                             {/* верхняя строка: дата + статус */}
@@ -339,7 +384,7 @@ export default function ProfileTransactionsPage() {
                   </div>
 
                   {/* Desktop: таблица */}
-                  <div className="hidden max-h-[540px] overflow-hidden rounded-sm border border-slate-900 bg-slate-950/70 md:block">
+                  <div className="hidden max-h-[540px] overflow-hidden rounded-2xl border border-[#121426] bg-[#090b1a] md:block">
                     <div className="max-h-[540px] overflow-y-auto">
                       <table className="w-full text-xs">
                         <thead className="sticky top-0 z-10 bg-slate-950/95">
@@ -376,12 +421,12 @@ export default function ProfileTransactionsPage() {
                           return (
                               <tr
                                   key={tx.id}
-                                  className={`border-t text-slate-200 transition-colors hover:bg-slate-900/75 ${
+                                  className={`border-t text-slate-200 transition-colors hover:bg-[#2e1a5e] ${
                                       tx.type === "TRADE" && tx.aiEnabled
-                                          ? "border-purple-500/50 bg-gradient-to-br from-purple-950/40 to-purple-900/20 shadow-[0_0_12px_rgba(139,92,246,0.2)]"
+                                          ? "border-purple-500/50 bg-gradient-to-br from-[#0f1126] to-[#090b1a] shadow-[0_0_12px_rgba(107,33,168,0.2)]"
                                           : idx % 2 === 0
-                                          ? "border-slate-900/80 bg-slate-950/80"
-                                          : "border-slate-900/80 bg-slate-950/60"
+                                          ? "border-[#121426] bg-[#090b1a]"
+                                          : "border-[#121426] bg-[#0f1126]"
                                   }`}
                               >
                                 {/* DATE */}

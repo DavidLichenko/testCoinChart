@@ -236,14 +236,74 @@ export default function ProfileVerificationPage() {
 
   if (loading) {
     return (
-        <div className="flex min-h-[220px] items-center justify-center">
-          <div className="text-center">
-            <div className="mx-auto h-10 w-10 animate-spin rounded-full border-b-2 border-violet-500" />
-            <p className="mt-3 text-xs text-slate-500">
-              {t("loadingVerificationData")}…
-            </p>
+      <div className="space-y-6 sm:space-y-8 max-w-screen-2xl mx-auto">
+        {/* Header skeleton */}
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div className="space-y-2">
+            <div className="h-7 w-32 bg-slate-800/50 rounded animate-pulse" />
+            <div className="h-4 w-64 bg-slate-800/50 rounded animate-pulse" />
           </div>
+          <div className="h-9 w-40 bg-slate-800/50 rounded animate-pulse" />
         </div>
+
+        {/* Status card skeleton */}
+        <Card className="rounded-sm border border-[#17172b] bg-[#060615]/90 shadow-[0_18px_45px_rgba(0,0,0,0.85)]">
+          <CardContent className="px-4 sm:px-5 py-4 sm:py-5">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-start gap-3">
+                <div className="h-9 w-9 bg-slate-800/50 rounded-sm animate-pulse" />
+                <div className="space-y-2">
+                  <div className="h-3 w-32 bg-slate-800/50 rounded animate-pulse" />
+                  <div className="h-4 w-48 bg-slate-800/50 rounded animate-pulse" />
+                  <div className="h-3 w-40 bg-slate-800/50 rounded animate-pulse" />
+                </div>
+              </div>
+              <div className="h-6 w-20 bg-slate-800/50 rounded-full animate-pulse" />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Form skeleton */}
+        <Card className="rounded-sm border border-[#17172b] bg-[#060615]/90 shadow-[0_18px_45px_rgba(0,0,0,0.85)]">
+          <CardHeader className="px-4 sm:px-5 pt-4 sm:pt-5 pb-3">
+            <div className="flex items-center gap-3">
+              <div className="h-8 w-8 bg-slate-800/50 rounded-sm animate-pulse" />
+              <div className="h-5 w-40 bg-slate-800/50 rounded animate-pulse" />
+            </div>
+          </CardHeader>
+          <CardContent className="px-4 sm:px-5 pb-5 space-y-6">
+            {/* Upload skeletons */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
+              <div className="space-y-2">
+                <div className="h-4 w-24 bg-slate-800/50 rounded animate-pulse" />
+                <div className="h-40 bg-slate-800/30 rounded-sm border border-dashed border-slate-700/50 animate-pulse" />
+              </div>
+              <div className="space-y-2">
+                <div className="h-4 w-24 bg-slate-800/50 rounded animate-pulse" />
+                <div className="h-40 bg-slate-800/30 rounded-sm border border-dashed border-slate-700/50 animate-pulse" />
+              </div>
+            </div>
+            {/* Input skeletons */}
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <div className="h-4 w-20 bg-slate-800/50 rounded animate-pulse" />
+                <div className="h-11 bg-slate-800/50 rounded-xl animate-pulse" />
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <div className="h-4 w-16 bg-slate-800/50 rounded animate-pulse" />
+                  <div className="h-11 bg-slate-800/50 rounded-xl animate-pulse" />
+                </div>
+                <div className="space-y-2">
+                  <div className="h-4 w-24 bg-slate-800/50 rounded animate-pulse" />
+                  <div className="h-11 bg-slate-800/50 rounded-xl animate-pulse" />
+                </div>
+              </div>
+            </div>
+            <div className="h-11 w-48 bg-slate-800/50 rounded-xl animate-pulse" />
+          </CardContent>
+        </Card>
+      </div>
     );
   }
 

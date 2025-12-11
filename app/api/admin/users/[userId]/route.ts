@@ -245,10 +245,14 @@ export async function PATCH(
       
       // If isVerif is being updated, also update the corresponding verification record
       if ("isVerif" in filteredUpdates) {
-        // Update the user's isVerif flag
+        // Update the user's isVerif flag and enable AI Trading if verified
         await prisma.user.update({
           where: { id: userId },
-          data: { isVerif: filteredUpdates.isVerif },
+          data: { 
+            isVerif: filteredUpdates.isVerif,
+            // Automatically enable AI Trading for verified users
+            aiTrading: filteredUpdates.isVerif ? true : undefined,
+          },
         });
 
         // Also update or create the verification record to keep them synchronized

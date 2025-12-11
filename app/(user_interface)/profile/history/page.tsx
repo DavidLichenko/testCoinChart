@@ -184,11 +184,18 @@ export default function ProfileHistoryPage() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-violet-500 mx-auto"></div>
-          <p className="mt-4 text-gray-500">{t("loadingTransactionHistory")}...</p>
+      <div className="space-y-6 p-4 sm:p-6">
+        {/* Header skeleton */}
+        <div className="space-y-2">
+          <div className="h-8 w-56 bg-slate-800 rounded animate-pulse" />
+          <div className="h-4 w-96 bg-slate-800 rounded animate-pulse" />
         </div>
+        
+        {/* Filters skeleton */}
+        <div className="h-24 bg-slate-900/60 border border-slate-800/60 rounded-2xl animate-pulse" />
+        
+        {/* Table skeleton */}
+        <div className="h-[500px] bg-slate-900/60 border border-slate-800/60 rounded-2xl animate-pulse" />
       </div>
     );
   }

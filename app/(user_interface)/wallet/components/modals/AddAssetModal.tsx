@@ -53,7 +53,7 @@ export function AddAssetModal() {
 
     return (
         <Dialog open={addAssetOpen} onOpenChange={handleClose}>
-            <DialogContent className="bg-[#11111f] border border-white/10 rounded-2xl max-w-md">
+            <DialogContent className="bg-[#090b1a] border border-[#121426] rounded-3xl max-w-md">
                 <DialogHeader>
                     <DialogTitle className="text-white text-lg">
                         {t("title") /* en: "Add new asset", es: "Agregar nuevo activo" */}
@@ -81,7 +81,7 @@ export function AddAssetModal() {
                         availableAssets.map((a) => (
                             <div
                                 key={a.symbol}
-                                className="flex items-center justify-between gap-2 bg-[#181827] rounded-xl p-3 border border-white/10"
+                                className="flex items-center justify-between gap-2 bg-[#2e1a5e] rounded-2xl p-3 border border-[#17172b]"
                             >
                                 <div>
                                     <p className="text-sm font-semibold text-white">
@@ -98,7 +98,7 @@ export function AddAssetModal() {
                                 <Button
                                     disabled={!!submitting}
                                     size="sm"
-                                    className="rounded-xl bg-gradient-to-r from-[#7a3cff] to-[#a94dff] text-white"
+                                    className="rounded-2xl bg-gradient-to-r from-[#8b5cf6] to-[#7e22ce] text-white"
                                     onClick={() => handleAdd(a.symbol)}
                                 >
                                     {submitting === a.symbol

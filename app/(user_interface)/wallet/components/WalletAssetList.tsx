@@ -92,12 +92,12 @@ export function WalletAssetList({ selectedSymbol, onSelectSymbol }: Props) {
                         placeholder={t("searchPlaceholder")}
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
-                        className="h-9 bg-[#11111f] border-white/10 text-xs"
+                        className="h-9 bg-[#090b1a] border-[#121426] text-xs"
                     />
                 </div>
             </div>
 
-            <div className="bg-[#090914]/95 rounded-2xl border border-white/5 overflow-hidden">
+            <div className="bg-[#090b1a]/95 rounded-2xl border border-[#121426] overflow-hidden">
                 {/* header - responsive grid */}
                 <div className="hidden md:grid grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.5fr)] gap-2 px-4 py-3 text-[11px] text-white/50 uppercase tracking-wide">
                     <div>{t("columnAsset")}</div>
@@ -130,14 +130,14 @@ export function WalletAssetList({ selectedSymbol, onSelectSymbol }: Props) {
                                 key={c.symbol}
                                 className={`w-full grid md:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.5fr)] grid-cols-3 gap-2 px-4 py-3 text-sm items-center transition ${
                                     selectedSymbol === c.symbol
-                                        ? "bg-[#18182a]"
-                                        : "hover:bg-[#121223]"
+                                        ? "bg-[#0f1126]"
+                                        : "hover:bg-[#090b1a]"
                                 }`}
                                 onClick={() => onSelectSymbol(c.symbol)}
                             >
                                 {/* asset + icon (mobile and desktop) */}
                                 <div className="flex items-center gap-3 text-left col-span-2 md:col-span-1">
-                                    <div className="w-8 h-8 rounded-full bg-[#141428] flex items-center justify-center overflow-hidden flex-shrink-0">
+                                    <div className="w-8 h-8 rounded-full bg-[#090b1a] flex items-center justify-center overflow-hidden flex-shrink-0">
                                         <img
                                             src={`/icons/crypto_icons/${c.symbol}.png`}
                                             alt={c.symbol}
@@ -199,7 +199,7 @@ export function WalletAssetList({ selectedSymbol, onSelectSymbol }: Props) {
                                 >
                                     <Button
                                         size="sm"
-                                        className="rounded-lg bg-gradient-to-r from-[#2BFFDA] to-[#7a3cff] text-[11px] text-[#050550] font-bold px-3 py-1 h-8 min-w-[70px]"
+                                        className="rounded-lg bg-gradient-to-r from-[#8b5cf6] to-[#7e22ce] text-white text-[11px] font-bold px-3 py-1 h-8 min-w-[70px]"
                                         onClick={() => openDeposit(c.symbol)}
                                     >
                                         {t("actionBuy")}
@@ -234,7 +234,7 @@ export function WalletAssetList({ selectedSymbol, onSelectSymbol }: Props) {
                                 >
                                     <Button
                                         size="sm"
-                                        className="rounded-lg bg-gradient-to-r from-[#2BFFDA] to-[#7a3cff] text-[10px] text-[#050550] font-bold px-2 py-1 h-7 min-w-[60px]"
+                                        className="rounded-lg bg-gradient-to-r from-[#8b5cf6] to-[#7e22ce] text-white text-[10px] font-bold px-2 py-1 h-7 min-w-[60px]"
                                         onClick={() => openDeposit(c.symbol)}
                                     >
                                         {t("actionBuy")}

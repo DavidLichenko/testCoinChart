@@ -62,8 +62,8 @@ const TickerRow = memo<{
                     }}
                     className={`flex w-full items-center justify-between rounded-2xl border px-3 py-2 cursor-pointer ${
                         isSelected
-                            ? "border-purple-500/70 bg-purple-950/40"
-                            : "border-slate-800/70 bg-slate-900/70 hover:bg-slate-900"
+                            ? "border-purple-500/70 bg-[#0f1126]"
+                            : "border-[#121426] bg-[#090b1a] hover:bg-[#0f1126]"
                     }`}
                 >
                     <div className="flex min-w-0 items-center gap-3">

@@ -1,9 +1,9 @@
 "use client";
 
-import { motion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Edit3 } from "lucide-react";
+import { Edit3, Copy } from "lucide-react";
+import { toast } from "@/components/toast";
 
 interface UserOrder {
   id: string;
@@ -11,6 +11,9 @@ interface UserOrder {
   status: string;
   amount: number;
   createdAt: string;
+  cryptoAddress?: string;
+  cryptoNetwork?: string;
+  cryptoAsset?: string;
 }
 
 interface UserOrderItemProps {
@@ -19,13 +22,21 @@ interface UserOrderItemProps {
 }
 
 export function UserOrderItem({ order, onEdit }: UserOrderItemProps) {
+  const isCryptoWithdraw = order.type === "WITHDRAW" && order.cryptoAddress;
+
+  const handleCopyAddress = () => {
+    if (order.cryptoAddress) {
+      navigator.clipboard.writeText(order.cryptoAddress);
+      toast({ 
+        title: "Copied!", 
+        description: "Crypto address copied to clipboard" 
+      });
+    }
+  };
+
   return (
-    <motion.div
-      initial={{ opacity: 0, x: -10 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: 10 }}
-      whileHover={{ scale: 1.01 }}
-      className="flex items-center justify-between rounded-xl bg-slate-900/80 px-3 py-2.5 hover:bg-slate-900 transition-colors"
+    <div
+      className="flex items-center justify-between rounded-xl bg-slate-900/80 px-3 py-2.5 hover:bg-slate-900 transition-colors cursor-pointer"
     >
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
@@ -48,6 +59,33 @@ export function UserOrderItem({ order, onEdit }: UserOrderItemProps) {
         <div className="mt-0.5 text-[11px] text-slate-400">
           {new Date(order.createdAt).toLocaleString()}
         </div>
+        {isCryptoWithdraw && (
+          <div className="mt-1 text-[10px] text-slate-500 space-y-0.5">
+            {order.cryptoAsset && (
+              <div>Asset: <span className="text-slate-400">{order.cryptoAsset}</span></div>
+            )}
+            {order.cryptoNetwork && (
+              <div>Network: <span className="text-slate-400">{order.cryptoNetwork}</span></div>
+            )}
+            {order.cryptoAddress && (
+              <div className="flex items-center gap-1">
+                <span>Address:</span>
+                <span className="text-slate-400 font-mono truncate max-w-[120px]">
+                  {order.cryptoAddress}
+                </span>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleCopyAddress();
+                  }}
+                  className="p-0.5 hover:bg-slate-800 rounded transition-colors"
+                >
+                  <Copy className="h-2.5 w-2.5 text-slate-400" />
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
       <div className="ml-3 flex items-center gap-2">
         <div className="text-right">
@@ -64,6 +102,6 @@ export function UserOrderItem({ order, onEdit }: UserOrderItemProps) {
           <Edit3 className="h-3.5 w-3.5" />
         </Button>
       </div>
-    </motion.div>
+    </div>
   );
 }

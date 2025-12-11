@@ -120,7 +120,7 @@ export function DepositModal() {
 
     return (
         <Dialog open={depositOpen} onOpenChange={handleClose}>
-            <DialogContent className="bg-[#050510] border border-white/15 rounded-3xl max-w-md">
+            <DialogContent className="bg-[#090b1a] border border-[#121426] rounded-3xl max-w-md">
                 <DialogHeader className="flex flex-row items-center justify-between gap-4">
                     <div>
                         {/* ВАЖНО: есть DialogTitle → больше нет ошибки от Radix */}
@@ -136,8 +136,8 @@ export function DepositModal() {
 
                     {/* pill с выбранным активом */}
                     {assetSymbol && (
-                        <div className="flex items-center gap-2 bg-[#11111f] rounded-full px-3 py-1 border border-white/10">
-                            <div className="w-6 h-6 rounded-full bg-[#141428] flex items-center justify-center overflow-hidden">
+                        <div className="flex items-center gap-2 bg-[#0f1126] rounded-full px-3 py-1 border border-[#121426]">
+                            <div className="w-6 h-6 rounded-full bg-[#090b1a] flex items-center justify-center overflow-hidden">
                                 <img
                                     src={`/icons/crypto_icons/${assetSymbol}.png`}
                                     alt={assetSymbol}
@@ -157,13 +157,13 @@ export function DepositModal() {
                 <div className="mt-4 space-y-4">
                     {/* Ошибка */}
                     {error && (
-                        <div className="rounded-xl border border-red-500/40 bg-red-900/20 px-3 py-2 text-xs text-red-300">
+                        <div className="rounded-2xl border border-red-500/40 bg-red-900/20 px-3 py-2 text-xs text-red-300">
                             {error}
                         </div>
                     )}
 
                     {/* Доступный баланс */}
-                    <div className="rounded-2xl bg-[#0b0b18] border border-white/10 px-3 py-2.5 text-xs">
+                    <div className="rounded-2xl bg-[#0f1126] border border-[#121426] px-3 py-2.5 text-xs">
                         <div className="flex items-center justify-between">
                             <span className="text-white/60">Available to spend</span>
                             <span className="font-semibold text-white">
@@ -185,7 +185,7 @@ export function DepositModal() {
                             placeholder="0.00"
                             value={amount}
                             onChange={(e) => setAmount(e.target.value)}
-                            className="bg-[#11111f] border-white/15 text-white rounded-xl h-10 text-sm"
+                            className="bg-[#0f1126] border-[#121426] text-white rounded-2xl h-10 text-sm"
                         />
                         <p className="text-[11px] text-white/40">
                             Enter how much {assetSymbol} you want to buy.
@@ -193,7 +193,7 @@ export function DepositModal() {
                     </div>
 
                     {/* Подсказка по цене */}
-                    <div className="rounded-xl bg-[#0b0b18] border border-white/10 px-3 py-2 text-[11px] text-white/70 space-y-1">
+                    <div className="rounded-2xl bg-[#0f1126] border border-[#121426] px-3 py-2 text-[11px] text-white/70 space-y-1">
                         <div className="flex items-center justify-between">
                             <span>Market price</span>
                             <span className="font-semibold">
@@ -215,7 +215,7 @@ export function DepositModal() {
                     </div>
 
                     <Button
-                        className="w-full mt-1 bg-gradient-to-r from-[#2BFFDA] via-[#7a3cff] to-[#a94dff] text-[#050510] rounded-xl h-10 text-sm font-semibold"
+                        className="w-full mt-1 bg-gradient-to-r from-[#8b5cf6] to-[#7e22ce] text-white rounded-2xl h-10 text-sm font-semibold"
                         onClick={onSubmit}
                         disabled={loading}
                     >

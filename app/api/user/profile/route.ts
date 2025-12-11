@@ -43,7 +43,8 @@ export async function GET(request: Request) {
       status: user.status,
       createdAt: user.createdAt,
       verification: user.verification[0] || null,
-      referralCode: user.referralCode, // 👈 Add referral code
+      referralCode: user.referralCode,
+      mobileNumber: user.mobileNumber,
     })
   } catch (error) {
     console.error("Error fetching user profile:", error)
@@ -58,7 +59,7 @@ export async function PUT(request: Request) {
   try {
     const userId = await requireAuth()
     const body = await request.json()
-    const { name, email, image, baseCurrency } = body
+    const { name, email, image, baseCurrency, mobileNumber } = body
 
     // Get current user to check old baseCurrency
     const currentUser = await prisma.user.findUnique({
@@ -68,24 +69,27 @@ export async function PUT(request: Request) {
 
     const updates: any = { name, email, image }
     
+    // Add mobileNumber if provided
+    if (mobileNumber !== undefined) {
+      updates.mobileNumber = mobileNumber
+    }
+    
     // Handle baseCurrency change with balance conversion
     if (baseCurrency && currentUser && baseCurrency !== currentUser.baseCurrency) {
       const oldBaseCurrency = currentUser.baseCurrency || "USD"
       const newBaseCurrency = baseCurrency
       
-      // Get current EUR/USD rate
-      let eurUsdRate = 1
+      // Get EUR/USD rate from FxRate database
+      let eurUsdRate = 1.0
       try {
-        const eurUsdRes = await fetch(
-          "https://api.binance.com/api/v3/ticker/price?symbol=EURUSDT",
-          { cache: "no-store" }
-        )
-        if (eurUsdRes.ok) {
-          const eurUsdData = await eurUsdRes.json()
-          eurUsdRate = parseFloat(eurUsdData.price) || 1
+        const fxRate = await prisma.fxRate.findUnique({
+          where: { symbol: "EUR" },
+        })
+        if (fxRate && fxRate.toBase) {
+          eurUsdRate = fxRate.toBase // EUR to USD rate
         }
       } catch (error) {
-        console.warn("Failed to fetch EUR/USD rate, using fallback:", error)
+        console.warn("Failed to fetch EUR/USD rate from database, using fallback:", error)
       }
       
       // Get old base currency balance

@@ -96,7 +96,7 @@ const BalanceSkeleton = () => (
 export default function Header({homepage=false}) {
     const { balance, liveProfit, details, assets } = useBalance();
     const { user, logout, loading: authLoading } = useAuth();
-    const { t } = useI18n("header");
+    const { t } = useI18n();
     const isMobile = useIsMobile();
     const router = useRouter();
     const [depositModalOpen, setDepositModalOpen] = useState(false);
@@ -105,7 +105,7 @@ export default function Header({homepage=false}) {
     // If not authenticated, show simple header with login/register
     if (!authLoading && !user) {
         return (
-            <header className="sticky top-0 z-[60] h-16 !bg-app-bgDeep border-b border-gray-600/10 backdrop-blur-2xl">
+            <header className="sticky top-0 z-[60] h-16 !bg-app-bgDeep border-b border-[#121426] backdrop-blur-2xl">
                 <div className="max-w-screen-2xl mx-auto h-full flex items-center justify-between px-4">
                     <Link href="/" className="flex items-center gap-2">
                         <img
@@ -122,15 +122,15 @@ export default function Header({homepage=false}) {
                         <Button
                             variant="outline"
                             onClick={() => router.push("/login")}
-                            className="border-slate-700 text-white hover:bg-slate-800"
+                            className="border-[#121426] text-white hover:bg-[#090b1a]"
                         >
-                            {t("signIn") || "Sign In"}
+                            {t("header.signIn") || "Sign In"}
                         </Button>
                         <Button
                             onClick={() => router.push("/register")}
                             className="bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:opacity-90"
                         >
-                            {t("signUp") || "Sign Up"}
+                            {t("header.signUp") || "Sign Up"}
                         </Button>
                     </div>
                 </div>
@@ -319,24 +319,24 @@ export default function Header({homepage=false}) {
 
         const renderSkeleton = () => (
             <div className="space-y-3">
-                <div className="rounded-lg bg-[#050510] border border-[#1f2937] px-3 py-2 animate-pulse">
-                    <div className="h-3 w-24 rounded bg-[#111827]" />
-                    <div className="mt-2 h-4 w-32 rounded bg-[#111827]" />
+                <div className="rounded-lg bg-[#090b1a] border border-[#121426] px-3 py-2 animate-pulse">
+                    <div className="h-3 w-24 rounded bg-[#0f1126]" />
+                    <div className="mt-2 h-4 w-32 rounded bg-[#0f1126]" />
                 </div>
                 <div className="grid grid-cols-2 gap-2">
-                    <div className="rounded-lg bg-[#050510] border border-[#111827] px-3 py-3 animate-pulse">
-                        <div className="h-3 w-20 rounded bg-[#111827]" />
-                        <div className="mt-2 h-4 w-16 rounded bg-[#111827]" />
+                    <div className="rounded-lg bg-[#090b1a] border border-[#121426] px-3 py-3 animate-pulse">
+                        <div className="h-3 w-20 rounded bg-[#0f1126]" />
+                        <div className="mt-2 h-4 w-16 rounded bg-[#0f1126]" />
                     </div>
-                    <div className="rounded-lg bg-[#050510] border border-[#111827] px-3 py-3 animate-pulse">
-                        <div className="h-3 w-24 rounded bg-[#111827]" />
-                        <div className="mt-2 h-4 w-14 rounded bg-[#111827]" />
+                    <div className="rounded-lg bg-[#090b1a] border border-[#121426] px-3 py-3 animate-pulse">
+                        <div className="h-3 w-24 rounded bg-[#0f1126]" />
+                        <div className="mt-2 h-4 w-14 rounded bg-[#0f1126]" />
                     </div>
                 </div>
                 <div className="space-y-2">
-                    <div className="h-3 w-40 rounded bg-[#111827] animate-pulse" />
-                    <div className="h-3 w-32 rounded bg-[#111827] animate-pulse" />
-                    <div className="h-3 w-28 rounded bg-[#111827] animate-pulse" />
+                    <div className="h-3 w-40 rounded bg-[#0f1126] animate-pulse" />
+                    <div className="h-3 w-32 rounded bg-[#0f1126] animate-pulse" />
+                    <div className="h-3 w-28 rounded bg-[#0f1126] animate-pulse" />
                 </div>
             </div>
         );
@@ -349,154 +349,179 @@ export default function Header({homepage=false}) {
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -6 }}
                         transition={{ duration: 0.16 }}
-                        className="absolute top-14 left-3 right-3 md:left-auto md:right-0 md:w-[420px] rounded-lg bg-[#050510] border border-[#1f2937] p-4 z-[80] shadow-[0_18px_50px_rgba(0,0,0,0.7)] max-h-[85vh] overflow-y-auto"
+                        className="absolute top-14 right-0 min-w-[480px] max-w-[480px] rounded-2xl bg-gradient-to-br from-[#090b1a] via-[#0f1126] to-[#1a0b2e] border border-[#121426] p-5 z-[80] shadow-[0_18px_50px_rgba(0,0,0,0.9)] max-h-[85vh] overflow-y-auto"
                     >
                         {!hasDetails ? (
                             renderSkeleton()
                         ) : (
                             <>
                                 {/* Total balance / equity */}
-                                <div className="mb-3 rounded-lg bg-[#050510] border border-[#1f2937] px-3 py-2">
-                                    <div className="flex items-center justify-between gap-2">
-                                        <div className="flex flex-col gap-0.5">
-                    <span className="text-[11px] uppercase tracking-[0.16em] text-[#6b7280] flex items-center gap-1">
-                      <Wallet className="w-3 h-3" />
-                        {t("totalBalance") ?? "Total balance"}
-                    </span>
-                                            <span className="text-[15px] font-semibold text-[#f9fafb]">
-                      {formatMoney(totalEquityDisplay)} {baseCurrency}
-                    </span>
-                                        </div>
-                                        <div className="flex items-center justify-center rounded-md bg-[#0b1120] px-2 py-1 text-[10px] text-[#9ca3af]">
-                                            {t("balanceShortDescription") ??
-                                                "Trading account overview"}
+                                <div className="mb-4 rounded-xl bg-gradient-to-r from-purple-600 to-purple-500 p-[1px]">
+                                    <div className="rounded-xl bg-[#0a0a14] px-4 py-3">
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-600 to-purple-500 flex items-center justify-center">
+                                                    <Wallet className="w-6 h-6 text-white" />
+                                                </div>
+                                                <div className="flex flex-col">
+                                                    <span className="text-[10px] uppercase tracking-wider text-slate-400">
+                                                        {t("totalBalance") ?? "Total balance"}
+                                                    </span>
+                                                    <span className="text-2xl font-bold text-white">
+                                                        {formatMoney(totalEquityDisplay)} {baseCurrency}
+                                                    </span>
+                                                    {baseCurrency === "EUR" && approxUsd && (
+                                                        <span className="text-xs text-slate-500">
+                                                            ≈ {formatMoney(approxUsd)} USD
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
-                                    {baseCurrency === "EUR" && approxUsd && (
-                                        <div className="mt-1 text-[11px] text-[#6b7280] text-right">
-                                            ≈ {formatMoney(approxUsd)} USD
-                                        </div>
-                                    )}
                                 </div>
 
                                 {/* Main actions: available to withdraw / trade */}
-                                <div className="grid grid-cols-2 gap-2 mb-3">
+                                <div className="grid grid-cols-2 gap-3 mb-4">
                                     <button
                                         type="button"
                                         onClick={handleGoWithdraw}
-                                        className="rounded-lg bg-[#050510] border border-[#111827] px-3 py-2.5 text-left hover:border-[#16a34a]/60 hover:bg-[#041008] transition-colors"
+                                        className="group rounded-xl bg-[#090b1a] border border-[#121426] p-4 text-left hover:border-emerald-500/60 hover:bg-emerald-950/20 transition-all"
                                     >
-                                        <div className="flex items-center gap-1.5 text-[11px] text-[#9ca3af]">
-                                            <span className="inline-block h-1.5 w-1.5 rounded-full bg-[#22c55e]" />
-                                            {t("availableToWithdraw") ?? "Available to withdraw"}
+                                        <div className="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center mb-2 group-hover:bg-emerald-500/20 transition-colors">
+                                            <CreditCard className="w-5 h-5 text-emerald-400" />
                                         </div>
-                                        <div className="mt-1 text-[13px] font-semibold text-[#e5e7eb]">
-                                            {formatMoney(availableToWithdraw)} {baseCurrency}
+                                        <div className="text-xs text-slate-400 mb-1">
+                                            {t("availableToWithdraw") ?? "Available"}
                                         </div>
-                                        <div className="mt-0.5 text-[10px] text-[#6b7280] flex items-center gap-1">
+                                        <div className="text-lg font-bold text-white">
+                                            {formatMoney(availableToWithdraw)}
+                                        </div>
+                                        <div className="text-xs text-emerald-400 mt-1 flex items-center gap-1">
                                             {t("withdraw") ?? "Withdraw"}
-                                            <ArrowRight className="w-2.5 h-2.5" />
+                                            <ArrowRight className="w-3 h-3" />
                                         </div>
                                     </button>
 
                                     <button
                                         type="button"
                                         onClick={handleGoTrade}
-                                        className="rounded-lg bg-[#050510] border border-[#111827] px-3 py-2.5 text-left hover:border-[#6366f1]/60 hover:bg-[#07071a] transition-colors"
+                                        className="group rounded-xl bg-[#090b1a] border border-[#121426] p-4 text-left hover:border-purple-500/60 hover:bg-purple-950/20 transition-all"
                                     >
-                                        <div className="flex items-center gap-1.5 text-[11px] text-[#9ca3af]">
-                                            <span className="inline-block h-1.5 w-1.5 rounded-full bg-[#6366f1]" />
-                                            {t("availableToTrade") ?? "Available to trade"}
+                                        <div className="w-10 h-10 rounded-lg bg-purple-500/10 flex items-center justify-center mb-2 group-hover:bg-purple-500/20 transition-colors">
+                                            <TrendingUp className="w-5 h-5 text-purple-400" />
                                         </div>
-                                        <div className="mt-1 text-[13px] font-semibold text-[#e5e7eb]">
-                                            {formatMoney(availableToTrade)} {baseCurrency}
+                                        <div className="text-xs text-slate-400 mb-1">
+                                            {t("availableToTrade") ?? "To Trade"}
                                         </div>
-                                        <div className="mt-0.5 text-[10px] text-[#6b7280] flex items-center gap-1">
-                                            {t("inTrade") ?? "In trade"}:{" "}
-                                            <span className="font-medium text-[#e5e7eb]">
-                      {formatMoney(tradingInTrade)} {baseCurrency}
-                    </span>
+                                        <div className="text-lg font-bold text-white">
+                                            {formatMoney(availableToTrade)}
+                                        </div>
+                                        <div className="text-xs text-slate-500 mt-1">
+                                            {t("inTrade") ?? "In trade"}: <span className="text-white">{formatMoney(tradingInTrade)}</span>
                                         </div>
                                     </button>
                                 </div>
 
                                 {/* Breakdown */}
-                                <div className="space-y-2 rounded-lg bg-[#050510] border border-[#111827] px-3 py-2.5">
-                                    <div className="text-[11px] font-semibold text-[#9ca3af] mb-1.5 flex items-center gap-1.5">
-                                        <Activity className="w-3 h-3" />
+                                <div className="space-y-2.5 rounded-xl bg-[#090b1a] border border-[#121426] px-4 py-3">
+                                    <div className="text-xs font-semibold text-slate-400 mb-2 flex items-center gap-2">
+                                        <Activity className="w-4 h-4" />
                                         {t("breakdown") ?? "Breakdown"}
                                     </div>
 
-                                    <div className="flex items-center justify-between text-[11px] text-[#9ca3af]">
-                                        <span className="flex items-center gap-1.5">
-                                            <TrendingUp className="w-3 h-3" />
+                                    <div className="flex items-center justify-between text-xs">
+                                        <span className="flex items-center gap-2 text-slate-400">
+                                            <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center">
+                                                <TrendingUp className="w-4 h-4 text-blue-400" />
+                                            </div>
                                             {t("inTrade") ?? "In trade"}
                                         </span>
-                                        <span className="font-semibold text-[#e5e7eb]">
-                    {formatMoney(tradingInTrade)} {baseCurrency}
-                  </span>
+                                        <span className="font-semibold text-white">
+                                            {formatMoney(tradingInTrade)} {baseCurrency}
+                                        </span>
                                     </div>
 
-                                    <div className="flex items-center justify-between text-[11px] text-[#9ca3af]">
-                                        <span className="flex items-center gap-1.5">
-                                            <Coins className="w-3 h-3" />
+                                    <div className="flex items-center justify-between text-xs">
+                                        <span className="flex items-center gap-2 text-slate-400">
+                                            <div className="w-8 h-8 rounded-lg bg-yellow-500/10 flex items-center justify-center">
+                                                <Coins className="w-4 h-4 text-yellow-400" />
+                                            </div>
                                             {t("inCrypto") ?? "In crypto"}
                                         </span>
-                                        <span className="font-semibold text-[#e5e7eb]">
-                    {formatMoney(cryptoBalanceDisplay)} {baseCurrency}
-                  </span>
+                                        <span className="font-semibold text-white">
+                                            {formatMoney(cryptoBalanceDisplay)} {baseCurrency}
+                                        </span>
                                     </div>
 
-                                    <div className="flex items-center justify-between text-[11px] text-[#9ca3af]">
-                                        <span className="flex items-center gap-1.5">
-                                            <Wallet className="w-3 h-3" />
+                                    <div className="flex items-center justify-between text-xs">
+                                        <span className="flex items-center gap-2 text-slate-400">
+                                            <div className="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center">
+                                                <Wallet className="w-4 h-4 text-purple-400" />
+                                            </div>
                                             {t("inStaking") ?? "In staking"}
                                         </span>
-                                        <span className="font-semibold text-[#e5e7eb]">
-                    {formatMoney(stakingTotalUsd)} {baseCurrency}
-                  </span>
+                                        <span className="font-semibold text-white">
+                                            {formatMoney(stakingTotalUsd)} {baseCurrency}
+                                        </span>
                                     </div>
 
-                                    <div className="flex items-center justify-between text-[11px] text-[#9ca3af]">
-                                        <span className="flex items-center gap-1.5">
-                                            <AlertCircle className="w-3 h-3" />
-                                            {t("pendingWithdrawals") ?? "Pending withdrawals"}
+                                    <div className="flex items-center justify-between text-xs">
+                                        <span className="flex items-center gap-2 text-slate-400">
+                                            <div className="w-8 h-8 rounded-lg bg-orange-500/10 flex items-center justify-center">
+                                                <AlertCircle className="w-4 h-4 text-orange-400" />
+                                            </div>
+                                            {t("pendingWithdrawals") ?? "Pending"}
                                         </span>
-                                        <span className="font-semibold text-[#e5e7eb]">
-                    {formatMoney(pendingWithdrawAmount)} {baseCurrency}
-                  </span>
+                                        <span className="font-semibold text-white">
+                                            {formatMoney(pendingWithdrawAmount)} {baseCurrency}
+                                        </span>
                                     </div>
                                 </div>
 
                                 {/* Credit block (only if credit exists) */}
                                 {hasCredit && (
-                                    <div className="mt-3 rounded-lg bg-[#050510] border border-[#4c1d95]/60 px-3 py-2.5">
-                                        <div className="flex items-center justify-between text-[11px] text-[#9ca3af] mb-1">
+                                    <div className="mt-3 rounded-xl bg-red-500/5 border border-red-500/20 px-4 py-3">
+                                        <div className="flex items-center justify-between text-xs text-slate-400 mb-1">
                                             <span>{t("creditUsed") ?? "Credit used"}</span>
-                                            <span className="font-semibold text-[#f97373]">
-                      {formatMoney(creditUsed)} {baseCurrency}
-                    </span>
+                                            <span className="font-semibold text-red-400">
+                                                {formatMoney(creditUsed)} {baseCurrency}
+                                            </span>
                                         </div>
-                                        <div className="flex items-center justify-between text-[10px] text-[#a5b4fc]">
-                    <span>
-                      {t("creditLimit") ?? "Limit"}:{" "}
-                        {formatMoney(creditLimit)} {baseCurrency}
-                    </span>
+                                        <div className="flex items-center justify-between text-xs text-purple-300">
                                             <span>
-                      {t("creditAvailable") ?? "Available"}:{" "}
-                                                {formatMoney(creditAvailable)} {baseCurrency}
-                    </span>
+                                                {t("creditLimit") ?? "Limit"}: {formatMoney(creditLimit)} {baseCurrency}
+                                            </span>
+                                            <span>
+                                                {t("creditAvailable") ?? "Available"}: {formatMoney(creditAvailable)} {baseCurrency}
+                                            </span>
                                         </div>
                                         <button
                                             type="button"
                                             onClick={handleGoWallet}
-                                            className="mt-1.5 text-[10px] text-[#a855f7] hover:text-[#c4b5fd] flex items-center gap-1"
+                                            className="mt-2 text-xs text-purple-400 hover:text-purple-300 flex items-center gap-1 font-medium"
                                         >
                                             {t("wallet") ?? "Wallet"}
-                                            <ArrowRight className="w-2.5 h-2.5" />
+                                            <ArrowRight className="w-3 h-3" />
                                         </button>
                                     </div>
                                 )}
+
+                                {/* Action buttons */}
+                                <div className="mt-4 pt-4 border-t border-[#121426] flex gap-2">
+                                    <button
+                                        onClick={handleGoWallet}
+                                        className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-purple-500 text-white text-sm font-medium hover:opacity-90 transition-opacity"
+                                    >
+                                        {t("wallet") ?? "Wallet"}
+                                    </button>
+                                    <button
+                                        onClick={() => { closeBalanceMenu(); setDepositModalOpen(true); }}
+                                        className="flex-1 py-2.5 rounded-xl bg-[#090b1a] border border-purple-500/30 text-purple-300 text-sm font-medium hover:bg-purple-950/20 transition-colors"
+                                    >
+                                        {t("deposit") ?? "Deposit"}
+                                    </button>
+                                </div>
                             </>
                         )}
                     </motion.div>
@@ -510,7 +535,7 @@ export default function Header({homepage=false}) {
     if (isMobile) {
         return (
             <>
-                <header className="sticky top-0 z-[60] h-16 bg-[#050510] border-b border-white/10 backdrop-blur-xl px-4 flex items-center justify-between">
+                <header className="sticky top-0 z-[60] h-16 bg-[#030308] border-b border-[#121426] backdrop-blur-xl px-4 flex items-center justify-between rounded-b-2xl">
                     {/* LEFT: burger + logo */}
                     <div className="flex items-center gap-3">
                         <button
@@ -595,7 +620,7 @@ export default function Header({homepage=false}) {
                             >
                                 {/* top bar */}
                                 <div
-                                    className={"transition sticky top-0 z-[60] h-16 bg-[#050510] border-b border-white/10 backdrop-blur-xl px-4 w-full inline-flex justify-between"}>
+                                    className={"transition sticky top-0 z-[60] h-16 bg-[#030308] border-b border-[#121426] backdrop-blur-xl px-4 w-full inline-flex justify-between"}>
                                     <div className="inline-flex items-center justify-between w-full  gap-3">
                                         <div className={'inline-flex gap-3'}>
                                             <button
@@ -680,7 +705,7 @@ export default function Header({homepage=false}) {
 
                                             <button
                                                 onClick={logout}
-                                                className="flex flex-col items-start justify-between  p-3 gap-1 text-[11px] text-red-400 rounded-xl bg-app-bgSurface hover:bg-[#17172b]"
+                                                className="flex flex-col items-start justify-between  p-3 gap-1 text-[11px] text-red-400 rounded-xl bg-app-bgSurface hover:bg-[#0f1126]"
                                             >
                                                 <LogOut className="h-4 w-4 text-app-danger"/>
                                                 {t("logout")}
@@ -731,7 +756,7 @@ export default function Header({homepage=false}) {
     // (оставил как у тебя сейчас)
     return (
         <>
-            <header className="sticky top-0 z-[60] h-16  !bg-app-bgDeep  border-b border-gray-600/10 backdrop-blur-2xl">
+            <header className="sticky top-0 z-[60] h-16  !bg-app-bgDeep  border-b border-[#121426] backdrop-blur-2xl rounded-b-2xl">
                 <div className="max-w-screen-2xl mx-auto h-full flex items-center justify-between">
                     {/* LEFT: logo + nav */}
                     <div className="flex items-center gap-6 ">

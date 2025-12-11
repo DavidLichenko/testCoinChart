@@ -2,32 +2,46 @@
 import React from "react";
 import Link from "next/link";
 import {usePathname} from "next/navigation";
-import {AnimatePresence} from "framer-motion";
+import {motion} from "framer-motion";
 
 const LinkBox = ({ href = "", name = "" , color="", bg="",icon = <></>}) => {
     const pathname = usePathname();
 
     const isActive = pathname.toLowerCase() === href.toLowerCase();
-    // console.log(href.toLowerCase())
+    
     return (
-        <AnimatePresence mode="wait">
-            <Link
-                href={href}
+        <Link href={href} className="relative">
+            <motion.div
                 className={`
-          relative px-5 py-2.5 rounded-sm group inline-flex gap-2 items-center bg-background font-bold bounce text-[13px] ${color} ${isActive ? "" : {color}} transition
-          ${
-                    isActive
-                        ? `text-white ${bg} hover:${bg}`
-                        : `text-gray-300 hover:text-white `
-                }
-        `}
+                    relative px-5 py-3 rounded-xl inline-flex gap-2.5 items-center font-semibold text-sm transition-all duration-200
+                    ${
+                        isActive
+                            ? "bg-gradient-to-r from-purple-600 to-purple-500 text-white shadow-lg shadow-purple-500/30"
+                            : "bg-[#0b0b14] text-gray-300 hover:text-white hover:bg-purple-600/10 hover:border-purple-500/30 border border-transparent"
+                    }
+                `}
+                layout
+                transition={{ type: "spring", stiffness: 300, damping: 30 }}
             >
-                <div className={`group-hover:-rotate-[5deg] ${isActive ? "text-white" : "text-gray-400"}  group-hover:scale-110 group-hover:text-white  transition`}>{icon}</div>
+                <div 
+                    className={`transition-all duration-200 ${
+                        isActive ? "text-white" : "text-gray-400 group-hover:text-purple-400"
+                    }`}
+                >
+                    {icon}
+                </div>
                 <span className="relative z-10">{name}</span>
-
-
-            </Link>
-        </AnimatePresence>
+                
+                {isActive && (
+                    <motion.div
+                        layoutId="activeNavIndicator"
+                        className="absolute inset-0 bg-gradient-to-r from-purple-600 to-purple-500 rounded-xl"
+                        style={{ zIndex: -1 }}
+                        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                    />
+                )}
+            </motion.div>
+        </Link>
     );
 };
 

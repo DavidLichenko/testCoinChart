@@ -99,7 +99,7 @@ export function StakeModal() {
 
     return (
         <Dialog open={stakeOpen} onOpenChange={handleClose}>
-            <DialogContent className="bg-[#11111f] border border-white/10 rounded-2xl max-w-md">
+            <DialogContent className="bg-[#090b1a] border border-[#121426] rounded-3xl max-w-md">
                 <DialogHeader>
                     <DialogTitle className="text-white text-lg">
                         {t("title") /* en: "Stake your assets", es: "Haz staking de tus activos" */}
@@ -119,10 +119,10 @@ export function StakeModal() {
                                 setLocalError(null);
                             }}
                         >
-                            <SelectTrigger className="bg-[#181827] border-white/10 text-white">
+                            <SelectTrigger className="bg-[#0f1126] border-[#121426] text-white rounded-2xl">
                                 <SelectValue />
                             </SelectTrigger>
-                            <SelectContent className="bg-[#181827] border-white/10">
+                            <SelectContent className="bg-[#0f1126] border-[#121426] rounded-2xl">
                                 {assets?.map((a) => (
                                     <SelectItem key={a.symbol} value={a.symbol}>
                                         {a.symbol}
@@ -148,10 +148,10 @@ export function StakeModal() {
                                 setLocalError(null);
                             }}
                         >
-                            <SelectTrigger className="bg-[#181827] border-white/10 text-white">
+                            <SelectTrigger className="bg-[#0f1126] border-[#121426] text-white rounded-2xl">
                                 <SelectValue />
                             </SelectTrigger>
-                            <SelectContent className="bg-[#181827] border-white/10">
+                            <SelectContent className="bg-[#0f1126] border-[#121426] rounded-2xl">
                                 {plansForAsset.map((p) => (
                                     <SelectItem key={p.id} value={p.id}>
                                         {p.name} • {p.duration}d • {p.apr}% APR
@@ -175,7 +175,7 @@ export function StakeModal() {
                                 setLocalError(null);
                             }}
                             placeholder="0.00"
-                            className="bg-[#181827] border-white/10 text-white"
+                            className="bg-[#0f1126] border-[#121426] text-white rounded-2xl"
                         />
                     </div>
 
@@ -187,7 +187,7 @@ export function StakeModal() {
 
                     <Button
                         disabled={isSubmitDisabled}
-                        className="w-full mt-2 bg-gradient-to-r from-[#2BFFDA] to-[#a94dff] text-[#050510] rounded-xl disabled:opacity-40"
+                        className="w-full mt-2 bg-gradient-to-r from-[#8b5cf6] to-[#7e22ce] text-white rounded-2xl disabled:opacity-40"
                         onClick={onSubmit}
                     >
                         {mutating

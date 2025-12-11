@@ -1,12 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Edit3, Plus, Minus, Check, X, Cpu } from "lucide-react";
 import { toast } from "@/components/toast";
+import { TickerAvatar } from "@/components/ticker-avatar";
 
 interface UserTrade {
   id: string;
@@ -79,26 +79,10 @@ export function UserTradeItem({ trade, onEdit, onProfitUpdate, baseCurrency = "U
       setSaving(false);
     }
   };
-  
-  // Get asset icon based on ticker
-  const getAssetIcon = (ticker: string) => {
-    const symbol = ticker.split(".")[0].toUpperCase();
-    if (symbol.startsWith("BTC")) return "₿";
-    if (symbol.startsWith("ETH")) return "Ξ";
-    if (symbol.startsWith("USDT") || symbol.startsWith("USDC")) return "$";
-    if (symbol.startsWith("EUR")) return "€";
-    if (symbol.startsWith("GBP")) return "£";
-    if (symbol.startsWith("JPY")) return "¥";
-    return symbol.substring(0, 2);
-  };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, x: -10 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: 10 }}
-      whileHover={{ scale: 1.01 }}
-      className={`flex items-center justify-between rounded-xl px-3 py-2.5 hover:bg-slate-900 transition-colors ${
+    <div
+      className={`flex items-center justify-between rounded-xl px-3 py-2.5 hover:bg-slate-900 transition-colors cursor-pointer ${
         trade.aiEnabled 
           ? "bg-gradient-to-br from-purple-950/40 to-purple-900/20 border border-purple-500/50 shadow-[0_0_12px_rgba(139,92,246,0.2)]" 
           : "bg-slate-900/80"
@@ -111,9 +95,11 @@ export function UserTradeItem({ trade, onEdit, onProfitUpdate, baseCurrency = "U
               <Cpu className="h-3.5 w-3.5" />
             </div>
           ) : (
-            <div className="flex h-6 w-6 items-center justify-center rounded-full bg-slate-800 text-xs font-medium">
-              {getAssetIcon(trade.ticker)}
-            </div>
+            <TickerAvatar 
+              symbol={trade.ticker}
+              category="stocks"
+              size={24}
+            />
           )}
           <span className="font-mono text-xs font-semibold text-slate-100 sm:text-sm">
             {trade.ticker}
@@ -234,6 +220,6 @@ export function UserTradeItem({ trade, onEdit, onProfitUpdate, baseCurrency = "U
           </>
         )}
       </div>
-    </motion.div>
+    </div>
   );
 }

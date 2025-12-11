@@ -61,20 +61,20 @@
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
     /* ---- Background hierarchy ---- */
-    --app-bg-deep: #03030a;     /* шапка, подложка за всем */
-    --app-bg-page: #050510;     /* основной фон страницы (как сейчас) */
-    --app-bg-surface: #08091a;  /* крупные панели/секции */
-    --app-bg-tile: #0d1024;     /* карточки, карточки сайдбара, инпуты */
-    --app-bg-tile-soft: #141632;/* hover состояний, выделение */
+    --app-bg-deep: #010105;     /* шапка, подложка за всем */
+    --app-bg-page: #030308;     /* основной фон страницы (как сейчас) */
+    --app-bg-surface: #050612;  /* крупные панели/секции */
+    --app-bg-tile: #090b1a;     /* карточки, карточки сайдбара, инпуты */
+    --app-bg-tile-soft: #0f1126;/* hover состояний, выделение */
 
     /* ---- Borders ---- */
-    --app-border-subtle: #181a33;
-    --app-border-strong: #262a4e;
+    --app-border-subtle: #121426;
+    --app-border-strong: #1d203a;
 
     /* ---- Accent / brand ---- */
-    --app-accent: #8b5cf6;        /* основной фиолетовый */
-    --app-accent-soft: #2b214e;   /* фон под accent */
-    --app-accent-strong: #a855f7; /* яркий для градиентов/иконок */
+    --app-accent: #6b21a8;        /* тёмно-фиолетовый */
+    --app-accent-soft: #1c193f;   /* фон под accent */
+    --app-accent-strong: #8b5cf6; /* яркий для градиентов/иконок */
 
     /* ---- Status colors ---- */
     --app-success: #22c55e;
@@ -90,7 +90,7 @@
     --app-text-muted: #6b7280;
 
     /* лёгкий фиолетовый подсвет */
-    --app-glow-violet: 0 18px 45px rgba(139, 92, 246, 0.35);
+    --app-glow-violet: 0 18px 45px rgba(107, 33, 168, 0.35);
   }
 
   .dark {
@@ -119,20 +119,20 @@
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
     /* ---- Background hierarchy ---- */
-    --app-bg-deep: #03030a;     /* шапка, подложка за всем */
-    --app-bg-page: #050510;     /* основной фон страницы (как сейчас) */
-    --app-bg-surface: #08091a;  /* крупные панели/секции */
-    --app-bg-tile: #0d1024;     /* карточки, карточки сайдбара, инпуты */
-    --app-bg-tile-soft: #141632;/* hover состояний, выделение */
+    --app-bg-deep: #010105;     /* шапка, подложка за всем */
+    --app-bg-page: #030308;     /* основной фон страницы (как сейчас) */
+    --app-bg-surface: #050612;  /* крупные панели/секции */
+    --app-bg-tile: #090b1a;     /* карточки, карточки сайдбара, инпуты */
+    --app-bg-tile-soft: #0f1126;/* hover состояний, выделение */
 
     /* ---- Borders ---- */
-    --app-border-subtle: #181a33;
-    --app-border-strong: #262a4e;
+    --app-border-subtle: #121426;
+    --app-border-strong: #1d203a;
 
     /* ---- Accent / brand ---- */
-    --app-accent: #8b5cf6;        /* основной фиолетовый */
-    --app-accent-soft: #2b214e;   /* фон под accent */
-    --app-accent-strong: #a855f7; /* яркий для градиентов/иконок */
+    --app-accent: #6b21a8;        /* тёмно-фиолетовый */
+    --app-accent-soft: #1c193f;   /* фон под accent */
+    --app-accent-strong: #8b5cf6; /* яркий для градиентов/иконок */
 
     /* ---- Status colors ---- */
     --app-success: #22c55e;
@@ -148,7 +148,7 @@
     --app-text-muted: #6b7280;
 
     /* лёгкий фиолетовый подсвет */
-    --app-glow-violet: 0 18px 45px rgba(139, 92, 246, 0.35);
+    --app-glow-violet: 0 18px 45px rgba(107, 33, 168, 0.35);
   }
 }
 

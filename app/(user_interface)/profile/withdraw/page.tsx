@@ -270,12 +270,26 @@ export default function ProfileWithdrawPage() {
 
   if (loading) {
     return (
-        <div className="flex min-h-screen items-center justify-center">
-          <div className="text-center">
-          <Loader2 className="h-12 w-12 animate-spin text-violet-500 mx-auto" />
-          <p className="mt-4 text-gray-500">{t("loadingWithdrawalOptions")}</p>
+      <div className="space-y-6 p-4 sm:p-6">
+        {/* Header skeleton */}
+        <div className="space-y-2">
+          <div className="h-7 w-48 bg-slate-800 rounded animate-pulse" />
+          <div className="h-4 w-64 bg-slate-800 rounded animate-pulse" />
+        </div>
+        
+        <div className="grid gap-4 lg:grid-cols-3">
+          {/* Form skeleton */}
+          <div className="lg:col-span-2">
+            <div className="h-96 bg-slate-900/60 border border-slate-800/60 rounded-2xl animate-pulse" />
+          </div>
+          
+          {/* Sidebar skeleton */}
+          <div className="space-y-4">
+            <div className="h-48 bg-slate-900/60 border border-slate-800/60 rounded-2xl animate-pulse" />
+            <div className="h-32 bg-slate-900/60 border border-slate-800/60 rounded-2xl animate-pulse" />
           </div>
         </div>
+      </div>
     );
   }
 
@@ -541,7 +555,7 @@ export default function ProfileWithdrawPage() {
                   <Button
                       onClick={handleSubmit}
                 disabled={isSubmitting || !selectedMethod || !amount}
-                className="w-full rounded-lg bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white h-11"
+                className="w-full rounded-lg bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-500 hover:to-purple-600 text-white h-11"
                   >
                     {isSubmitting ? (
                         <>

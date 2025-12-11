@@ -87,7 +87,7 @@ export function TransferModal({ transferOpen, closeAll, activeAssetSymbol }: Tra
 
     return (
         <Dialog open={transferOpen} onOpenChange={handleClose}>
-            <DialogContent className="bg-[#11111f] border border-white/10 rounded-2xl max-w-md">
+            <DialogContent className="bg-[#090b1a] border border-[#121426] rounded-3xl max-w-md">
                 <DialogHeader>
                     <DialogTitle className="text-white text-lg">
                         {t("title") /* en: "Transfer to user", es: "Transferir a usuario" */}
@@ -107,10 +107,10 @@ export function TransferModal({ transferOpen, closeAll, activeAssetSymbol }: Tra
                                     setTransferType("balance");
                                     setToEmail("");
                                 }}
-                                className={`flex flex-col items-center gap-2 rounded-xl border p-4 transition-all ${
+                                className={`flex flex-col items-center gap-2 rounded-2xl border p-4 transition-all ${
                                     transferType === "balance"
-                                        ? "border-[#2BFFDA] bg-[#2BFFDA]/10"
-                                        : "border-white/10 bg-[#181827]"
+                                        ? "border-[#8b5cf6] bg-[#8b5cf6]/10"
+                                        : "border-[#121426] bg-[#0f1126]"
                                 }`}
                             >
                                 <Wallet className="h-5 w-5 text-white/70" />
@@ -119,10 +119,10 @@ export function TransferModal({ transferOpen, closeAll, activeAssetSymbol }: Tra
                             <button
                                 type="button"
                                 onClick={() => setTransferType("user")}
-                                className={`flex flex-col items-center gap-2 rounded-xl border p-4 transition-all ${
+                                className={`flex flex-col items-center gap-2 rounded-2xl border p-4 transition-all ${
                                     transferType === "user"
-                                        ? "border-[#2BFFDA] bg-[#2BFFDA]/10"
-                                        : "border-white/10 bg-[#181827]"
+                                        ? "border-[#8b5cf6] bg-[#8b5cf6]/10"
+                                        : "border-[#121426] bg-[#0f1126]"
                                 }`}
                             >
                                 <User className="h-5 w-5 text-white/70" />
@@ -138,7 +138,7 @@ export function TransferModal({ transferOpen, closeAll, activeAssetSymbol }: Tra
                                 value={toEmail}
                                 onChange={(e) => setToEmail(e.target.value)}
                                 placeholder="user@example.com"
-                                className="bg-[#181827] border-white/10 text-white"
+                                className="bg-[#0f1126] border-[#121426] text-white rounded-2xl"
                             />
                         </div>
                     )}
@@ -149,10 +149,10 @@ export function TransferModal({ transferOpen, closeAll, activeAssetSymbol }: Tra
                             value={assetSymbol}
                             onValueChange={(val) => setAssetSymbol(val)}
                         >
-                            <SelectTrigger className="bg-[#181827] border-white/10 text-white">
+                            <SelectTrigger className="bg-[#0f1126] border-[#121426] text-white rounded-2xl">
                                 <SelectValue />
                             </SelectTrigger>
-                            <SelectContent className="bg-[#181827] border-white/10">
+                            <SelectContent className="bg-[#0f1126] border-[#121426] rounded-2xl">
                                 {assets?.map((a) => (
                                     <SelectItem key={a.symbol} value={a.symbol}>
                                         {a.symbol}
@@ -169,12 +169,12 @@ export function TransferModal({ transferOpen, closeAll, activeAssetSymbol }: Tra
                                 value={amount}
                                 onChange={(e) => setAmount(e.target.value)}
                                 placeholder="0.00"
-                                className="bg-[#181827] border-white/10 text-white pr-16"
+                                className="bg-[#0f1126] border-[#121426] text-white pr-16 rounded-2xl"
                             />
                             <Button
                                 type="button"
                                 variant="ghost"
-                                className="absolute right-1 top-1/2 -translate-y-1/2 h-6 rounded bg-[#252536] px-2 text-[10px] text-white hover:bg-[#2d2d42]"
+                                className="absolute right-1 top-1/2 -translate-y-1/2 h-6 rounded bg-[#0f1126] px-2 text-[10px] text-white hover:bg-[#090b1a]"
                                 onClick={() => setAmount(maxAmount.toString())}
                             >
                                 MAX
@@ -193,7 +193,7 @@ export function TransferModal({ transferOpen, closeAll, activeAssetSymbol }: Tra
                     </div>
 
                     <Button
-                        className="w-full mt-2 bg-gradient-to-r from-[#2BFFDA] to-[#7a3cff] text-[#050510] rounded-xl"
+                        className="w-full mt-2 bg-gradient-to-r from-[#8b5cf6] to-[#7e22ce] text-white rounded-2xl"
                         onClick={onSubmit}
                     >
                         {t("submit") /* en: "Send transfer", es: "Enviar transferencia" */}

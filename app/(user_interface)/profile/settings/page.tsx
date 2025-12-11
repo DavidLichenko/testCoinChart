@@ -5,11 +5,9 @@ import { motion } from "framer-motion";
 import { useAuth } from "@/components/auth-provider";
 import { useI18n } from "@/components/i18n-provider";
 import {
-  Bell,
-  Globe,
   Lock,
-  Mail,
   User,
+  Phone,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,8 +20,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
 import { toast } from "@/components/toast";
+import { PhoneInput } from "react-international-phone";
+import "react-international-phone/style.css";
 
 interface UserProfile {
   id: string;
@@ -43,13 +42,9 @@ export default function ProfileSettingsPage() {
   // Profile form states
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [mobileNumber, setMobileNumber] = useState("");
   const [baseCurrency, setBaseCurrency] = useState<"USD" | "EUR">("USD");
   const [selectedLanguage, setSelectedLanguage] = useState<"en" | "es">(lang as "en" | "es");
-
-  // Settings states
-  const [notifications, setNotifications] = useState(true);
-  const [emailNotifications, setEmailNotifications] = useState(true);
-  const [soundNotifications, setSoundNotifications] = useState(true);
 
   useEffect(() => {
     setSelectedLanguage(lang as "en" | "es");
@@ -87,7 +82,7 @@ export default function ProfileSettingsPage() {
       const response = await fetch("/api/user/profile", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, baseCurrency }),
+        body: JSON.stringify({ name, email, baseCurrency, mobileNumber }),
       });
 
       if (response.ok) {
@@ -125,28 +120,24 @@ export default function ProfileSettingsPage() {
     }
   };
 
-  const handleSaveSettings = async () => {
-    try {
-      // In a real implementation, this would save settings to the backend
-      toast({
-        title: "✅ " + t("success"),
-        description: t("settingsSaved"),
-      });
-    } catch (error) {
-      toast({
-        title: "❌ " + t("error"),
-        description: t("settingsSaveFailed"),
-        variant: "destructive" as any,
-      });
-    }
-  };
-
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-violet-500 mx-auto"></div>
-          <p className="mt-4 text-gray-500">{t("loadingSettings")}...</p>
+      <div className="space-y-6">
+        <div className="space-y-2">
+          <div className="h-8 w-32 bg-slate-800 rounded animate-pulse" />
+          <div className="h-4 w-64 bg-slate-800 rounded animate-pulse" />
+        </div>
+        <div className="grid gap-6 lg:grid-cols-3">
+          <div className="lg:col-span-2 space-y-6">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="h-64 bg-slate-900/60 border border-slate-800/60 rounded-2xl animate-pulse" />
+            ))}
+          </div>
+          <div className="space-y-6">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="h-32 bg-slate-900/60 border border-slate-800/60 rounded-2xl animate-pulse" />
+            ))}
+          </div>
         </div>
       </div>
     );
@@ -157,7 +148,7 @@ export default function ProfileSettingsPage() {
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35 }}
-      className="min-h-screen text-gray-50 p-4 sm:p-6"
+      className="text-gray-50"
     >
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-white">{t("settings")}</h1>
@@ -167,19 +158,19 @@ export default function ProfileSettingsPage() {
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Profile Settings */}
         <div className="lg:col-span-2 space-y-6">
-          <Card className="bg-gray-900/60 border-gray-800/60 rounded-2xl backdrop-blur-2xl shadow-lg">
-            <CardHeader className="pb-4">
+          <Card className="bg-gradient-to-br from-[#1a1a2d] to-[#16162a] border-purple-500/20 rounded-2xl shadow-[0_8px_20px_rgb(0,0,0,0.4),0_0_1px_rgb(139,92,246,0.2)]">
+            <CardHeader className="pb-4 border-b border-purple-500/10">
               <CardTitle className="flex items-center gap-3 text-lg font-bold">
-                <User className="h-5 w-5 text-violet-400" />
+                <User className="h-5 w-5 text-purple-400" />
                 {t("profileSettings")}
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-6 pt-6">
               <div className="grid gap-5 md:grid-cols-2">
                 <div className="space-y-2">
                   <Label
                     htmlFor="name"
-                    className="text-sm text-gray-400 font-medium"
+                    className="text-sm text-gray-300 font-medium"
                   >
                     {t("name")}
                   </Label>
@@ -187,13 +178,13 @@ export default function ProfileSettingsPage() {
                     id="name"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="h-11 rounded-xl border-gray-800 bg-gray-900/70 text-sm shadow-inner"
+                    className="h-11 rounded-xl border-purple-500/20 bg-[#13131f] text-sm focus:border-purple-500 focus:ring-purple-500/20 shadow-[inset_0_2px_4px_rgba(0,0,0,0.4)] focus:shadow-[inset_0_2px_4px_rgba(0,0,0,0.4),0_0_0_3px_rgba(168,85,247,0.15)]"
                   />
                 </div>
                 <div className="space-y-2">
                   <Label
                     htmlFor="email"
-                    className="text-sm text-gray-400 font-medium"
+                    className="text-sm text-gray-300 font-medium"
                   >
                     {t("email")}
                   </Label>
@@ -202,7 +193,30 @@ export default function ProfileSettingsPage() {
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="h-11 rounded-xl border-gray-800 bg-gray-900/70 text-sm shadow-inner"
+                    className="h-11 rounded-xl border-purple-500/20 bg-[#13131f] text-sm focus:border-purple-500 focus:ring-purple-500/20 shadow-[inset_0_2px_4px_rgba(0,0,0,0.4)] focus:shadow-[inset_0_2px_4px_rgba(0,0,0,0.4),0_0_0_3px_rgba(168,85,247,0.15)]"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label
+                  htmlFor="mobile"
+                  className="text-sm text-gray-300 font-medium flex items-center gap-2"
+                >
+                  <Phone className="h-4 w-4 text-purple-400" />
+                  {t("mobileNumber")}
+                </Label>
+                <div className="phone-input-wrapper">
+                  <PhoneInput
+                    defaultCountry="us"
+                    value={mobileNumber}
+                    onChange={(phone) => setMobileNumber(phone)}
+                    className="phone-input-custom"
+                    inputClassName="phone-input-field"
+                    countrySelectorStyleProps={{
+                      className: "phone-country-selector",
+                      buttonClassName: "phone-country-button",
+                    }}
                   />
                 </div>
               </div>
@@ -211,7 +225,7 @@ export default function ProfileSettingsPage() {
                 <div className="space-y-2">
                   <Label
                     htmlFor="language"
-                    className="text-sm text-gray-400 font-medium"
+                    className="text-sm text-gray-300 font-medium"
                   >
                     {t("language")}
                   </Label>
@@ -219,10 +233,10 @@ export default function ProfileSettingsPage() {
                     value={selectedLanguage}
                     onValueChange={(v) => setSelectedLanguage(v as "en" | "es")}
                   >
-                    <SelectTrigger className="h-11 rounded-xl border-gray-800 bg-gray-900/70 text-sm">
+                    <SelectTrigger className="h-11 rounded-xl border-purple-500/20 bg-[#13131f] text-sm focus:border-purple-500 focus:ring-purple-500/20 shadow-[inset_0_2px_4px_rgba(0,0,0,0.4)]">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="border-gray-800 bg-gray-900 rounded-xl">
+                    <SelectContent className="border-purple-500/20 bg-[#1a1a2d] rounded-xl shadow-[0_8px_20px_rgb(0,0,0,0.6)]">
                       <SelectItem value="en">
                         {t("english")}
                       </SelectItem>
@@ -236,15 +250,15 @@ export default function ProfileSettingsPage() {
                 <div className="space-y-2">
                   <Label
                     htmlFor="baseCurrency"
-                    className="text-sm text-gray-400 font-medium"
+                    className="text-sm text-gray-300 font-medium"
                   >
-                    {t("baseCurrency") || "Base Currency"}
+                    {t("baseCurrency")}
                   </Label>
                   <Select
                     value={baseCurrency}
                     onValueChange={(v: "USD" | "EUR") => setBaseCurrency(v)}
                   >
-                    <SelectTrigger className="h-11 rounded-xl border-gray-800 bg-gray-900/70 text-sm">
+                    <SelectTrigger className="h-11 rounded-xl border-purple-500/20 bg-[#13131f] text-sm focus:border-purple-500 focus:ring-purple-500/20 shadow-[inset_0_2px_4px_rgba(0,0,0,0.4)]">
                       <SelectValue>
                         <div className="flex items-center gap-2">
                           <img 
@@ -256,7 +270,7 @@ export default function ProfileSettingsPage() {
                         </div>
                       </SelectValue>
                     </SelectTrigger>
-                    <SelectContent className="border-gray-800 bg-gray-900 rounded-xl">
+                    <SelectContent className="border-purple-500/20 bg-[#1a1a2d] rounded-xl shadow-[0_8px_20px_rgb(0,0,0,0.6)]">
                       <SelectItem value="USD">
                         <div className="flex items-center gap-2">
                           <img src="/icons/forex_icons/USD.png" alt="USD" className="h-4 w-4" />
@@ -274,10 +288,10 @@ export default function ProfileSettingsPage() {
                 </div>
               </div>
 
-              <div className="flex flex-wrap gap-3 pt-2">
+              <div className="flex flex-wrap gap-3 pt-4">
                 <Button
                   onClick={handleUpdateProfile}
-                  className="rounded-xl bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white px-5 py-2 font-medium shadow-lg shadow-violet-500/30"
+                  className="rounded-xl bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-700 hover:to-violet-700 text-white px-6 py-2.5 font-medium shadow-[0_4px_14px_rgba(168,85,247,0.4)] hover:shadow-[0_6px_20px_rgba(168,85,247,0.6)] transition-all"
                 >
                   {t("updateProfile")}
                 </Button>
@@ -285,76 +299,17 @@ export default function ProfileSettingsPage() {
             </CardContent>
           </Card>
 
-          {/* Notification Settings */}
-          <Card className="bg-gray-900/60 border-gray-800/60 rounded-2xl backdrop-blur-2xl shadow-lg">
-            <CardHeader className="pb-4">
-              <CardTitle className="flex items-center gap-3 text-lg font-bold">
-                <Bell className="h-5 w-5 text-violet-400" />
-                {t("notificationSettings")}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-5">
-              <div className="flex items-center justify-between p-4 rounded-xl bg-gray-900/70 border border-gray-800/60">
-                <div>
-                  <div className="text-sm font-medium text-gray-300">
-                    {t("pushNotifications")}
-                  </div>
-                  <div className="text-xs text-gray-500 mt-1">
-                    {t("receivePushNotifications")}
-                  </div>
-                </div>
-                <Switch
-                  checked={notifications}
-                  onCheckedChange={setNotifications}
-                  className="data-[state=checked]:bg-violet-600"
-                />
-              </div>
-
-              <div className="flex items-center justify-between p-4 rounded-xl bg-gray-900/70 border border-gray-800/60">
-                <div>
-                  <div className="text-sm font-medium text-gray-300">
-                    {t("emailNotifications")}
-                  </div>
-                  <div className="text-xs text-gray-500 mt-1">
-                    {t("receiveEmailNotifications")}
-                  </div>
-                </div>
-                <Switch
-                  checked={emailNotifications}
-                  onCheckedChange={setEmailNotifications}
-                  className="data-[state=checked]:bg-violet-600"
-                />
-              </div>
-
-              <div className="flex items-center justify-between p-4 rounded-xl bg-gray-900/70 border border-gray-800/60">
-                <div>
-                  <div className="text-sm font-medium text-gray-300">
-                    {t("soundNotifications")}
-                  </div>
-                  <div className="text-xs text-gray-500 mt-1">
-                    {t("playSoundForNotifications")}
-                  </div>
-                </div>
-                <Switch
-                  checked={soundNotifications}
-                  onCheckedChange={setSoundNotifications}
-                  className="data-[state=checked]:bg-violet-600"
-                />
-              </div>
-            </CardContent>
-          </Card>
-
           {/* Security Settings */}
-          <Card className="bg-gray-900/60 border-gray-800/60 rounded-2xl backdrop-blur-2xl shadow-lg">
-            <CardHeader className="pb-4">
+          <Card className="bg-gradient-to-br from-[#1a1a2d] to-[#16162a] border-purple-500/20 rounded-2xl shadow-[0_8px_20px_rgb(0,0,0,0.4),0_0_1px_rgb(139,92,246,0.2)]">
+            <CardHeader className="pb-4 border-b border-purple-500/10">
               <CardTitle className="flex items-center gap-3 text-lg font-bold">
-                <Lock className="h-5 w-5 text-violet-400" />
+                <Lock className="h-5 w-5 text-purple-400" />
                 {t("securitySettings")}
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="pt-2">
-                <Button variant="outline" className="rounded-xl border-gray-800 bg-gray-900/70 text-sm text-gray-300 hover:border-violet-500/60 hover:bg-violet-500/20 h-10 px-4">
+            <CardContent className="space-y-4 pt-6">
+              <div className="">
+                <Button variant="outline" className="rounded-xl border-purple-500/30 bg-[#13131f] text-sm text-gray-300 hover:border-purple-500/60 hover:bg-purple-500/10 h-10 px-4 transition-colors shadow-[inset_0_1px_2px_rgba(0,0,0,0.3)]">
                   {t("changePassword")}
                 </Button>
               </div>
@@ -365,60 +320,88 @@ export default function ProfileSettingsPage() {
         {/* Sidebar */}
         <div className="space-y-6">
           {/* User Info Card */}
-          <Card className="bg-gray-900/60 border-gray-800/60 rounded-2xl backdrop-blur-2xl shadow-lg">
+          <Card className="bg-gradient-to-br from-[#1a1a2d] to-[#16162a] border-purple-500/20 rounded-2xl shadow-[0_8px_20px_rgb(0,0,0,0.4),0_0_1px_rgb(139,92,246,0.2)]">
             <CardContent className="p-5">
               <div className="flex items-center gap-4">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 via-purple-500 to-fuchsia-500 shadow-lg shadow-violet-500/30">
-                  <User className="h-6 w-6 text-white" />
+                <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-br from-purple-500 via-violet-500 to-fuchsia-500 shadow-[0_4px_14px_rgba(168,85,247,0.5)]">
+                  <User className="h-7 w-7 text-white" />
                 </div>
-                <div className="min-w-0">
+                <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-bold text-white">
                     {userProfile?.name || t("user")}
                   </p>
-                  <p className="truncate text-xs text-gray-500 mt-1">
+                  <p className="truncate text-xs text-gray-400 mt-1">
                     {userProfile?.email}
                   </p>
                 </div>
               </div>
             </CardContent>
           </Card>
-
-          {/* Quick Actions */}
-          <Card className="bg-gray-900/60 border-gray-800/60 rounded-2xl backdrop-blur-2xl shadow-lg">
-            <CardHeader className="pb-4">
-              <CardTitle className="text-sm font-medium text-gray-400">
-                {t("quickActions")}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <Button 
-                variant="outline" 
-                className="w-full justify-start rounded-xl border-gray-800 bg-gray-900/70 text-sm text-gray-300 hover:border-violet-500/60 hover:bg-violet-500/20 h-10"
-              >
-                <Mail className="h-4 w-4 mr-2" />
-                {t("contactSupport")}
-              </Button>
-              <Button 
-                variant="outline" 
-                className="w-full justify-start rounded-xl border-gray-800 bg-gray-900/70 text-sm text-gray-300 hover:border-violet-500/60 hover:bg-violet-500/20 h-10"
-              >
-                <Globe className="h-4 w-4 mr-2" />
-                {t("languagePreferences")}
-              </Button>
-            </CardContent>
-          </Card>
-
-          {/* Save Button */}
-          <div className="sticky top-6">
-            <Button 
-              onClick={handleSaveSettings}
-              className="w-full rounded-xl bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white px-5 py-2 font-medium shadow-lg shadow-violet-500/30"
-            >
-              {t("saveSettings")}
-            </Button>
-          </div>
         </div>
       </div>
+
+      <style jsx global>{`
+        .phone-input-wrapper .react-international-phone-input-container {
+          width: 100%;
+        }
+        
+        .phone-input-wrapper .react-international-phone-input {
+          height: 44px !important;
+          border-radius: 0.75rem !important;
+          border: 1px solid rgba(168, 85, 247, 0.2) !important;
+          background: #13131f !important;
+          font-size: 0.875rem !important;
+          color: white !important;
+          box-shadow: inset 0 2px 4px rgba(0,0,0,0.4) !important;
+        }
+
+        .phone-input-wrapper .react-international-phone-input:focus {
+          border-color: rgb(168 85 247) !important;
+          ring: 2px !important;
+          ring-color: rgb(168 85 247 / 0.2) !important;
+          box-shadow: inset 0 2px 4px rgba(0,0,0,0.4), 0 0 0 3px rgba(168,85,247,0.15) !important;
+        }
+
+        .phone-input-wrapper .react-international-phone-country-selector-button {
+          background: #13131f !important;
+          border: none !important;
+          border-right: 1px solid rgba(168, 85, 247, 0.2) !important;
+          border-radius: 0.75rem 0 0 0.75rem !important;
+          height: 44px !important;
+          padding: 0 12px !important;
+          box-shadow: inset 0 1px 2px rgba(0,0,0,0.3) !important;
+        }
+
+        .phone-input-wrapper .react-international-phone-country-selector-button:hover {
+          background: rgb(107 33 168 / 0.15) !important;
+        }
+
+        .phone-input-wrapper .react-international-phone-country-selector-dropdown {
+          background: #1a1a2d !important;
+          border: 1px solid rgba(168, 85, 247, 0.2) !important;
+          border-radius: 0.75rem !important;
+          max-height: 300px !important;
+          overflow-y: auto !important;
+          box-shadow: 0 8px 20px rgb(0,0,0,0.6) !important;
+        }
+
+        .phone-input-wrapper .react-international-phone-country-selector-dropdown__list-item {
+          color: white !important;
+          padding: 8px 12px !important;
+        }
+
+        .phone-input-wrapper .react-international-phone-country-selector-dropdown__list-item:hover {
+          background: rgb(107 33 168 / 0.15) !important;
+        }
+
+        .phone-input-wrapper .react-international-phone-country-selector-dropdown__list-item--selected {
+          background: rgb(107 33 168 / 0.25) !important;
+        }
+
+        .phone-input-wrapper .react-international-phone-country-selector-dropdown__list-item--focused {
+          background: rgb(107 33 168 / 0.2) !important;
+        }
+      `}</style>
     </motion.div>
   );
 }

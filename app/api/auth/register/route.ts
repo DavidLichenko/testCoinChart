@@ -78,7 +78,6 @@ export async function POST(request: Request) {
         status: "NEW",
         baseCurrency: normalizedCurrency, // 👈 enum FiatCurrency
         referralCode: null, // Will be generated below
-        referredById: referrerId, // 👈 Link to referrer if code was provided
       },
     })
 

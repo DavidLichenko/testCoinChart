@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { hasOwnerAccess } from "@/lib/admin-access"
-import { getCurrentUser } from "@/lib/auth-utils"
+import { getCurrentUser } from "@/lib/auth"
 
 export async function GET() {
   try {

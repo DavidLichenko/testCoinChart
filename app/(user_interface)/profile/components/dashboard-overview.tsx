@@ -86,12 +86,12 @@ export function DashboardOverview() {
   if (loading) {
     return (
         <div className="space-y-4 sm:space-y-6">
-          <div className="h-16 sm:h-20 rounded-sm bg-[#0b0b18] border border-[#17172b] animate-pulse" />
+          <div className="h-16 sm:h-20 rounded-2xl bg-[#090b1a] border border-[#121426] animate-pulse" />
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             {[...Array(4)].map((_, i) => (
                 <div
                     key={i}
-                    className="h-24 rounded-sm bg-[#0b0b18] border border-[#17172b] animate-pulse"
+                    className="h-24 rounded-2xl bg-[#090b1a] border border-[#121426] animate-pulse"
                 />
             ))}
           </div>
@@ -134,7 +134,7 @@ export function DashboardOverview() {
         {/* Primary stats row */}
         <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           {/* Total equity */}
-          <Card className="rounded-sm border border-[#17172b] bg-[#060615]/90 shadow-[0_18px_45px_rgba(0,0,0,0.85)]">
+          <Card className="rounded-2xl border border-[#121426] bg-[#090b1a]/90 shadow-[0_18px_45px_rgba(107,33,168,0.25)]">
             <CardContent className="px-4 sm:px-5 py-4 sm:py-5">
               <div className="flex items-start justify-between gap-3">
                 <div>
@@ -153,7 +153,7 @@ export function DashboardOverview() {
           </Card>
 
           {/* Realized PnL */}
-          <Card className="rounded-sm border border-[#17172b] bg-[#060615]/90 shadow-[0_18px_45px_rgba(0,0,0,0.85)]">
+          <Card className="rounded-2xl border border-[#121426] bg-[#090b1a]/90 shadow-[0_18px_45px_rgba(107,33,168,0.25)]">
             <CardContent className="px-4 sm:px-5 py-4 sm:py-5">
               <div className="flex items-start justify-between gap-3">
                 <div>
@@ -197,7 +197,7 @@ export function DashboardOverview() {
           </Card>
 
           {/* Active trades */}
-          <Card className="rounded-sm border border-[#17172b] bg-[#060615]/90 shadow-[0_18px_45px_rgba(0,0,0,0.85)]">
+          <Card className="rounded-2xl border border-[#121426] bg-[#090b1a]/90 shadow-[0_18px_45px_rgba(107,33,168,0.25)]">
             <CardContent className="px-4 sm:px-5 py-4 sm:py-5">
               <div className="flex items-start justify-between gap-3">
                 <div>
@@ -219,7 +219,7 @@ export function DashboardOverview() {
           </Card>
 
           {/* Win rate */}
-          <Card className="rounded-sm border border-[#17172b] bg-[#060615]/90 shadow-[0_18px_45px_rgba(0,0,0,0.85)]">
+          <Card className="rounded-2xl border border-[#121426] bg-[#090b1a]/90 shadow-[0_18px_45px_rgba(107,33,168,0.25)]">
             <CardContent className="px-4 sm:px-5 py-4 sm:py-5 space-y-3">
               <div className="flex items-start justify-between gap-3">
                 <div>
@@ -236,7 +236,7 @@ export function DashboardOverview() {
               </div>
               <Progress
                   value={winRate}
-                  className="h-1.5 bg-[#111122] [&>div]:bg-amber-400"
+                  className="h-1.5 bg-[#050612] [&>div]:bg-amber-400"
               />
             </CardContent>
           </Card>
@@ -245,7 +245,7 @@ export function DashboardOverview() {
         {/* Lower grid: wallet snapshot + account blocks */}
         <section className="grid grid-cols-1 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] gap-4 sm:gap-5">
           {/* Wallet snapshot */}
-          <Card className="rounded-sm border border-[#17172b] bg-[#060615]/90 shadow-[0_18px_45px_rgba(0,0,0,0.85)]">
+          <Card className="rounded-2xl border border-[#121426] bg-[#090b1a]/90 shadow-[0_18px_45px_rgba(107,33,168,0.25)]">
             <CardContent className="px-4 sm:px-5 py-4 sm:py-5 space-y-5">
               <div className="flex items-center justify-between gap-3">
                 <div>
@@ -263,7 +263,7 @@ export function DashboardOverview() {
 
               {walletSummary && (
                   <div className="space-y-4">
-                    <div className="rounded-sm border border-[#20203a] bg-[#080818]/80 px-3 sm:px-4 py-3 sm:py-3.5">
+                    <div className="rounded-2xl border border-[#20203a] bg-[#2e1a5e]/80 px-3 sm:px-4 py-3 sm:py-3.5">
                       <div className="flex items-baseline justify-between gap-3">
                         <div>
                           <p className="text-[11px] uppercase tracking-[0.16em] text-slate-500">
@@ -284,7 +284,7 @@ export function DashboardOverview() {
                     </div>
 
                     <div className="grid grid-cols-2 gap-3">
-                      <div className="rounded-sm border border-[#20203a] bg-[#080818]/80 px-3 py-3">
+                      <div className="rounded-2xl border border-[#20203a] bg-[#2e1a5e]/80 px-3 py-3">
                         <p className="text-[11px] uppercase tracking-[0.16em] text-slate-500">
                           {t("availableToTrade")}
                         </p>
@@ -294,7 +294,7 @@ export function DashboardOverview() {
                         </p>
                       </div>
 
-                      <div className="rounded-sm border border-[#20203a] bg-[#080818]/80 px-3 py-3">
+                      <div className="rounded-2xl border border-[#20203a] bg-[#2e1a5e]/80 px-3 py-3">
                         <p className="text-[11px] uppercase tracking-[0.16em] text-slate-500">
                           {t("creditLine") ?? "Credit line"}
                         </p>
@@ -330,7 +330,7 @@ export function DashboardOverview() {
           {/* Account status / referrals */}
           <div className="space-y-4 sm:space-y-5">
             {/* Account status */}
-            <Card className="rounded-sm border border-[#17172b] bg-[#060615]/90 shadow-[0_18px_45px_rgba(0,0,0,0.85)]">
+            <Card className="rounded-2xl border border-[#121426] bg-[#090b1a]/90 shadow-[0_18px_45px_rgba(107,33,168,0.25)]">
               <CardContent className="px-4 sm:px-5 py-4 sm:py-5 space-y-4">
                 <div className="flex items-center justify-between gap-3">
                   <div>
@@ -366,7 +366,7 @@ export function DashboardOverview() {
             </Card>
 
             {/* Referrals mini block */}
-            <Card className="rounded-sm border border-[#17172b] bg-[#060615]/90 shadow-[0_18px_45px_rgba(0,0,0,0.85)]">
+            <Card className="rounded-2xl border border-[#121426] bg-[#090b1a]/90 shadow-[0_18px_45px_rgba(107,33,168,0.25)]">
               <CardContent className="px-4 sm:px-5 py-4 sm:py-5 space-y-4">
                 <div className="flex items-center justify-between gap-3">
                   <div>

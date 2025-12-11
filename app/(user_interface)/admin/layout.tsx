@@ -118,8 +118,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             s.key === "dashboard" ? pathname === "/admin" : pathname.startsWith(s.href)
         ) ?? sections[0];
 
-    const [sidebarVisible, setSidebarVisible] = useState(false);
-    const [sidebarPinned, setSidebarPinned] = useState(false);
+    const [sidebarVisible, setSidebarVisible] = useState(true);
+    const [sidebarPinned, setSidebarPinned] = useState(true);
     const [showHint, setShowHint] = useState(false);
     const [isMouseInSidebar, setIsMouseInSidebar] = useState(false);
     const [isMouseInTrigger, setIsMouseInTrigger] = useState(false);
@@ -174,7 +174,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <motion.div
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.35 }}
+            transition={{ duration: 0.2 }}
             className={cn(
                 "admin-theme dark min-h-screen bg-background text-foreground",
                 plusJakarta.variable

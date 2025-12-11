@@ -31,7 +31,7 @@ const LinkBox: React.FC<LinkBoxProps> = ({
         <button
           onClick={onClick}
           className={`
-            relative px-5 py-2.5 rounded-md group inline-flex gap-2 items-center bg-background font-bold bounce text-[13px] ${!isActive && color} transition
+            relative px-5 py-2.5 rounded-2xl group inline-flex gap-2 items-center bg-[#090b1a] font-bold bounce text-[13px] ${!isActive && color} transition
             ${
               isActive
                 ? `text-white ${bg} hover:${bg}`
@@ -53,7 +53,7 @@ const LinkBox: React.FC<LinkBoxProps> = ({
       <Link
         href={href}
         className={`
-          relative px-5 py-2.5 rounded-md group inline-flex gap-2 items-center bg-background font-bold bounce text-[13px] ${!isActive && color} transition
+          relative px-5 py-2.5 rounded-2xl group inline-flex gap-2 items-center bg-[#090b1a] font-bold bounce text-[13px] ${!isActive && color} transition
           ${
             isActive
               ? `text-white ${bg} hover:${bg}`

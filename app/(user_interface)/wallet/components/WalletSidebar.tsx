@@ -51,7 +51,7 @@ export function WalletSidebar({ selectedSymbol }: Props) {
     return (
         <aside className="space-y-6">
             {/* Total balance + actions */}
-            <div className="bg-gradient-to-br from-[#17172b] via-[#181832] to-[#241642] rounded-2xl p-5 border border-white/10 shadow-lg">
+            <div className="bg-gradient-to-br from-[#090b1a] via-[#0f1126] to-[#6b21a8] rounded-2xl p-5 border border-[#121426] shadow-lg">
                 <p className="text-[11px] uppercase tracking-wide text-white/60">
                     {t("totalLabel")}
                 </p>
@@ -81,13 +81,13 @@ export function WalletSidebar({ selectedSymbol }: Props) {
 
                 <div className="mt-4 flex gap-2">
                     <Button
-                        className="flex-1 rounded-xl bg-gradient-to-r from-[#2BFFDA] to-[#7a3cff] text-[#050510] text-sm font-medium shadow-[0_0_18px_rgba(123,97,255,0.35)]"
+                        className="flex-1 rounded-xl bg-gradient-to-r from-[#8b5cf6] to-[#7e22ce] text-white text-sm font-medium shadow-[0_0_18px_rgba(126,34,206,0.35)]"
                         onClick={() => openDeposit(selectedSymbol ?? undefined)}
                     >
                         {t("deposit") /* тут уже логически Buy, но ключ можешь переименовать */}
                     </Button>
                     <Button
-                        className="flex-1 rounded-xl bg-[#0f0f1f] border border-white/15 text-sm font-medium hover:bg-[#17172b]"
+                        className="flex-1 rounded-xl bg-[#090b1a] border border-[#121426] text-sm font-medium hover:bg-[#0f1126]"
                         onClick={() => openWithdraw(selectedSymbol ?? undefined)}
                     >
                         {t("withdraw")}
@@ -96,7 +96,7 @@ export function WalletSidebar({ selectedSymbol }: Props) {
             </div>
 
             {/* Navigation */}
-            <nav className="bg-[#11111f] rounded-2xl p-4 border border-white/8 space-y-3 text-sm">
+            <nav className="bg-[#090b1a] rounded-2xl p-4 border border-[#121426] space-y-3 text-sm">
                 <p className="text-[11px] uppercase tracking-wide text-white/45">
                     {t("navigation")}
                 </p>
@@ -108,7 +108,7 @@ export function WalletSidebar({ selectedSymbol }: Props) {
                         className={
                             "block w-full rounded-2xl px-3 py-2.5 text-sm font-medium transition-all " +
                             (!isStaking
-                                ? "bg-[linear-gradient(135deg,#2BFFDA,#7a3cff)] text-[#050550] shadow-[0_0_22px_rgba(124,97,255,0.55)]"
+                                ? "bg-[linear-gradient(135deg,#8b5cf6,#7e22ce)] text-white shadow-[0_0_22px_rgba(126,34,206,0.55)]"
                                 : "text-white/70 hover:text-white hover:bg-white/5")
                         }
                     >
@@ -129,7 +129,7 @@ export function WalletSidebar({ selectedSymbol }: Props) {
                         className={
                             "block w-full rounded-2xl px-3 py-2.5 text-sm font-medium transition-all " +
                             (isStaking
-                                ? "bg-[linear-gradient(135deg,#7a3cff,#ff4fd1)] text-[#fff] shadow-[0_0_22px_rgba(255,79,209,0.55)]"
+                                ? "bg-[linear-gradient(135deg,#7e22ce,#a855f7)] text-white shadow-[0_0_22px_rgba(168,85,247,0.55)]"
                                 : "text-white/70 hover:text-white hover:bg-white/5")
                         }
                     >
@@ -155,8 +155,8 @@ export function WalletSidebar({ selectedSymbol }: Props) {
                 href="/wallet/history"
                 className={`block w-full rounded-2xl px-3 py-2.5 text-sm font-medium transition-all ${
                     isHistory
-                        ? "bg-[linear-gradient(135deg,#7a3cff,#ff4fd1)] text-[#fff] shadow-[0_0_22px_rgba(255,79,209,0.55)]"
-                        : "text-white/70 hover:text-white hover:bg-white/5 bg-[#11111f] border border-white/8"
+                        ? "bg-[linear-gradient(135deg,#7e22ce,#a855f7)] text-white shadow-[0_0_22px_rgba(168,85,247,0.55)]"
+                        : "text-white/70 hover:text-white hover:bg-white/5 bg-[#090b1a] border border-[#121426]"
                 }`}
             >
                 <div className="flex items-center gap-2">

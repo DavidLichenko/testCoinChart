@@ -604,9 +604,10 @@ model Referral {
 // Настройки наград за рефералов
 model ReferralReward {
   id             String   @id @default(cuid())
-  action         String // "SIGNUP", "FIRST_DEPOSIT", "DEPOSIT_THRESHOLD", "TRADE", etc.
-  actionLabel    String // "User signs up", "First deposit", "Deposit $500+", etc.
-  rewardAmount   Float    @default(0)
+  action         String // "SIGNUP", "FIRST_DEPOSIT", "DEPOSIT_THRESHOLD", "TRADE_PROFIT", etc.
+  actionLabel    String // "User signs up", "First deposit", "Deposit $500+", "Trade profit", etc.
+  rewardAmount   Float    @default(0) // Фиксированная сумма награды
+  rewardPercent  Float?   // Процент от профита (для TRADE_PROFIT)
   rewardCurrency String   @default("USD")
   threshold      Float? // Минимальная сумма для действия (для депозитов, трейдов)
   isActive       Boolean  @default(true)

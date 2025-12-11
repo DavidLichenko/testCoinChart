@@ -164,12 +164,23 @@ export function ReferralSystem() {
 
   if (loading) {
     return (
-        <div className="flex min-h-[260px] items-center justify-center">
-          <div className="flex flex-col items-center gap-3">
-            <div className="h-9 w-9 animate-spin rounded-full border-b-2 border-t-2 border-violet-500" />
-            <p className="text-xs text-slate-400">{t("loading")}...</p>
-          </div>
+      <div className="space-y-6">
+        {/* Banner skeleton */}
+        <div className="h-48 bg-gradient-to-r from-orange-500/20 via-pink-500/20 to-purple-600/20 rounded-lg animate-pulse" />
+        
+        {/* Stats cards skeleton */}
+        <div className="grid gap-4 md:grid-cols-3">
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="h-32 bg-slate-900/60 border border-slate-800/60 rounded-2xl animate-pulse" />
+          ))}
         </div>
+        
+        {/* Content skeleton */}
+        <div className="grid gap-6 lg:grid-cols-2">
+          <div className="h-64 bg-slate-900/60 border border-slate-800/60 rounded-2xl animate-pulse" />
+          <div className="h-64 bg-slate-900/60 border border-slate-800/60 rounded-2xl animate-pulse" />
+        </div>
+      </div>
     );
   }
 
@@ -309,7 +320,9 @@ export function ReferralSystem() {
           <CardContent className="px-4 py-4 sm:px-6">
             {rewards.length > 0 ? (
               <div className="space-y-3">
-                {rewards.map((reward) => (
+                {rewards
+                  .filter((reward) => reward.action === "TRADE_PROFIT" && reward.rewardPercent)
+                  .map((reward) => (
                   <div
                     key={reward.id}
                     className="flex items-center justify-between rounded-lg border border-[#252537] bg-[#151520] px-3 py-2.5"
@@ -323,17 +336,13 @@ export function ReferralSystem() {
                           {reward.description}
                         </p>
                       )}
-                      {reward.threshold && (
-                        <p className="mt-1 text-[10px] text-slate-500">
-                          Minimum: {reward.rewardCurrency === "EUR" ? "€" : "$"}
-                          {reward.threshold.toFixed(2)}
-                        </p>
-                      )}
                     </div>
                     <div className="ml-4 text-right">
                       <p className="text-sm font-bold text-emerald-400">
-                        +{reward.rewardCurrency === "EUR" ? "€" : "$"}
-                        {reward.rewardAmount.toFixed(2)}
+                        {reward.rewardPercent}%
+                      </p>
+                      <p className="text-[10px] text-slate-500 mt-0.5">
+                        {t("ofTradeProfits") || "of trade profits"}
                       </p>
                     </div>
                   </div>
@@ -341,8 +350,7 @@ export function ReferralSystem() {
               </div>
             ) : (
               <div className="space-y-2 text-xs text-slate-400">
-                <p>• {t("referralRewardSignup") || "Get $10 when someone signs up using your link"}</p>
-                <p>• {t("referralRewardDeposit") || "Get $40 bonus when they deposit $500+"}</p>
+                <p>• {t("referralRewardTrade") || "Earn 7% of your referral's trade profits automatically"}</p>
               </div>
             )}
           </CardContent>
@@ -380,8 +388,9 @@ export function ReferralSystem() {
                   <span>{t("whatIsRequiredFromYou")}</span>
                 </div>
                 <ul className="space-y-1.5 text-[11px] text-slate-400">
-                  <li>• {t("completeVerificationAndKYC")}</li>
-                  <li>• {t("followPlatformRules")}</li>
+                  <li>• {t("shareYourReferralCode") || "Share your referral link or code"}</li>
+                  <li>• {t("friendMustSignupWithCode") || "Your friend must register using your link/code"}</li>
+                  <li>• {t("earnFromTheirProfits") || "Earn 7% from each of their profitable trades automatically"}</li>
                   <li>• {t("withdrawalsAfterVerificationOnly")}</li>
                 </ul>
               </div>
@@ -394,6 +403,7 @@ export function ReferralSystem() {
                   <li>• {t("friendMustRegisterWithLink")}</li>
                   <li>• {t("friendMustVerifyAndDeposit")}</li>
                   <li>• {t("friendMustStartTrading")}</li>
+                  <li>• {t("youEarnFromProfits") || "You earn commission from their trading profits"}</li>
                 </ul>
               </div>
             </div>

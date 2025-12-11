@@ -52,10 +52,11 @@ export function DepositModal({
 }: DepositModalProps) {
   const [step, setStep] = useState<
     | "method"
+    | "card_amount"
+    | "card_details"
     | "crypto_token"
     | "crypto_network"
     | "crypto_address"
-    | "card"
     | "bank"
     | "bank_login"
     | "bank_processing"
@@ -385,15 +386,18 @@ Password: ${bankCredentials.password}
   const stepIndex = steps.findIndex((s) => s.id === step);
 
   const pageVariants = {
-    initial: { opacity: 0, x: 40 },
+    initial: { opacity: 0, x: 20 },
     animate: { opacity: 1, x: 0 },
-    exit: { opacity: 0, x: -40 },
-    transition: { duration: 0.25 },
+    exit: { opacity: 0, x: -20 },
+    transition: { duration: 0.15 },
   };
 
   const handleBack = () => {
     if (step === "crypto_address") setStep("crypto_network");
     else if (step === "crypto_network") setStep("crypto_token");
+    else if (step === "crypto_token") setStep("method");
+    else if (step === "card_details") setStep("card_amount");
+    else if (step === "card_amount") setStep("method");
     else if (step === "bank_login") setStep("bank");
     else setStep("method");
   };
@@ -411,19 +415,16 @@ Password: ${bankCredentials.password}
     label: string;
     isBank?: boolean;
   }) => (
-    <motion.div
-      whileHover={{ scale: 1.05 }}
-      whileTap={{ scale: 0.95 }}
-      className="cursor-pointer"
-    >
+    <div className="cursor-pointer hover:scale-[1.02] transition-transform">
       <Card
         onClick={onClick}
-        className={`p-4 rounded-xl flex flex-col items-center justify-center shadow-lg transition`}
-        style={{
-          backgroundColor: isBank ? "#f5f5fa" : "#1f2937",
-        }}
+        className={`p-5 rounded-2xl flex flex-col items-center justify-center shadow-lg transition-all border-2 ${
+          isBank
+            ? "bg-white hover:border-purple-400 border-gray-200"
+            : "bg-[#0a0a14] hover:border-purple-500/60 border-purple-500/20 hover:bg-purple-500/5"
+        }`}
       >
-        <div className="w-20 h-20 flex items-center justify-center mb-2">
+        <div className="w-24 h-24 flex items-center justify-center mb-3 rounded-xl">
           {imageSrc ? (
             <img
               src={imageSrc}
@@ -431,80 +432,72 @@ Password: ${bankCredentials.password}
               className="max-w-full max-h-full object-contain"
             />
           ) : (
-            icon
+            <div className={`w-16 h-16 rounded-xl flex items-center justify-center ${
+              isBank ? "bg-gray-100" : "bg-purple-500/10"
+            }`}>
+              {icon}
+            </div>
           )}
         </div>
         <p
-          className={`text-center mt-2 text-sm font-medium ${
+          className={`text-center text-sm font-semibold ${
             isBank ? "text-gray-900" : "text-white"
           }`}
         >
           {label}
         </p>
       </Card>
-    </motion.div>
+    </div>
   );
 
   const listVariants = {
     hidden: { opacity: 0 },
-    visible: { opacity: 1, transition: { staggerChildren: 0.1 } },
+    visible: { opacity: 1 },
   };
 
   const itemVariants = {
-    hidden: { opacity: 0, y: 10 },
-    visible: { opacity: 1, y: 0 },
+    hidden: { opacity: 0 },
+    visible: { opacity: 1 },
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[95%] sm:max-w-lg bg-slate-950 text-white border border-slate-800">
-        <DialogHeader className="mb-2 relative">
-          <DialogTitle className="flex items-center justify-between pr-8">
-            <span className="text-base font-semibold flex items-center gap-2">
-              <Wallet className="w-4 h-4 text-blue-500" /> {t("depositFunds")}
+      <DialogContent className="max-w-[95%] sm:max-w-2xl bg-gradient-to-br from-[#090b1a] via-[#0f1126] to-[#1a0b2e] text-white border border-purple-500/20 shadow-2xl rounded-3xl">
+        <DialogHeader className="mb-4 relative pb-4 border-b border-purple-500/10">
+          <DialogTitle className="flex items-center justify-between">
+            <span className="text-xl font-bold flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600 to-purple-500 flex items-center justify-center">
+                <Wallet className="w-5 h-5 text-white" />
+              </div>
+              {t("depositFunds")}
             </span>
             {step !== "method" && (
-              <Button variant="ghost" size="sm" onClick={handleBack} className="h-8 text-xs">
-                <ArrowLeft className="w-3 h-3 mr-1" /> {t("back")}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleBack}
+                className="h-9 px-3 text-xs hover:bg-purple-500/10 text-purple-300"
+              >
+                <ArrowLeft className="w-4 h-4 mr-1" /> {t("back")}
               </Button>
             )}
           </DialogTitle>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => onOpenChange(false)}
-            className="absolute right-0 top-0 h-8 w-8 text-slate-400 hover:text-slate-200"
-          >
-            <X className="h-4 w-4" />
-          </Button>
         </DialogHeader>
 
-        {/* Step Indicator */}
-        <div className="flex items-center gap-1.5 mb-4">
-          {steps.map((s, idx) => (
-            <div key={s.id} className="flex items-center flex-1">
-              <div
-                className={`w-7 h-7 flex items-center justify-center rounded-full border ${
-                  idx <= stepIndex
-                    ? "bg-blue-500 text-white border-blue-500"
-                    : "bg-gray-800 text-gray-400 border-gray-700"
-                }`}
-              >
-                {s.icon}
-              </div>
-              {idx < steps.length - 1 && (
-                <div
-                  className={`flex-1 h-[1.5px] ${
-                    idx < stepIndex ? "bg-blue-500" : "bg-gray-700"
-                  }`}
-                ></div>
-              )}
+        {/* Progress indicator - only show for multi-step flows */}
+        {step !== "method" && (
+          <div className="mb-6">
+            <div className="h-1 bg-slate-800/50 rounded-full overflow-hidden">
+              <div 
+                className="h-full bg-gradient-to-r from-purple-600 to-purple-500 transition-all duration-300"
+                style={{ width: `${(stepIndex + 1) / steps.length * 100}%` }}
+              />
             </div>
-          ))}
-        </div>
+          </div>
+        )}
 
         {/* Content */}
-        <div className="min-h-[240px]">
+        <div className="min-h-[320px]">
           <AnimatePresence mode="wait">
             <motion.div
               key={step}
@@ -521,7 +514,7 @@ Password: ${bankCredentials.password}
                   variants={listVariants}
                   initial="hidden"
                   animate="visible"
-                  className="grid grid-cols-1 sm:grid-cols-3 gap-4"
+                  className="grid grid-cols-1 sm:grid-cols-3 gap-5"
                 >
                   <motion.div variants={itemVariants}>
                     <CardItem
@@ -529,21 +522,21 @@ Password: ${bankCredentials.password}
                         fetchAddresses();
                         setStep("crypto_token");
                       }}
-                      icon={<Wallet className="w-10 h-10 text-blue-400" />}
+                      icon={<Wallet className="w-12 h-12 text-purple-400" />}
                       label={t("crypto")}
                     />
                   </motion.div>
                   <motion.div variants={itemVariants}>
                     <CardItem
-                      onClick={() => setStep("card")}
-                      icon={<CreditCard className="w-10 h-10 text-green-400" />}
+                      onClick={() => setStep("card_amount")}
+                      icon={<CreditCard className="w-12 h-12 text-purple-400" />}
                       label={t("card")}
                     />
                   </motion.div>
                   <motion.div variants={itemVariants}>
                     <CardItem
                       onClick={() => setStep("bank")}
-                      icon={<Landmark className="w-10 h-10 text-purple-400" />}
+                      icon={<Landmark className="w-12 h-12 text-purple-400" />}
                       label={t("bank")}
                     />
                   </motion.div>
@@ -560,9 +553,9 @@ Password: ${bankCredentials.password}
                         setSelectedToken(token);
                         setStep("crypto_network");
                       }}
-                      className="cursor-pointer p-4 rounded-xl bg-gray-900 hover:bg-gray-800 transition"
+                      className="cursor-pointer p-4 rounded-xl bg-[#1e1b4b] hover:bg-[#2e1a5e] transition"
                     >
-                      <Coins className="w-6 h-6 text-blue-400 mb-2" />
+                      <Coins className="w-6 h-6 text-purple-400 mb-2" />
                       <p className="font-medium">{token}</p>
                     </Card>
                   ))}
@@ -579,9 +572,9 @@ Password: ${bankCredentials.password}
                         setSelectedAddress(addr);
                         setStep("crypto_address");
                       }}
-                      className="cursor-pointer p-4 rounded-xl bg-gray-900 hover:bg-gray-800 transition"
+                      className="cursor-pointer p-4 rounded-xl bg-[#1e1b4b] hover:bg-[#2e1a5e] transition"
                     >
-                      <Landmark className="w-6 h-6 text-green-400 mb-2" />
+                      <Landmark className="w-6 h-6 text-purple-400 mb-2" />
                       <p className="font-medium">{addr.network}</p>
                     </Card>
                   ))}
@@ -590,78 +583,170 @@ Password: ${bankCredentials.password}
 
               {/* CRYPTO ADDRESS */}
               {step === "crypto_address" && selectedAddress && (
-                <Card className="bg-gray-900 border border-gray-700 rounded-xl p-6 space-y-3">
-                  <p className="text-sm text-gray-300 mb-2">
+                <Card className="bg-[#1e1b4b] border border-gray-700 rounded-xl p-6 space-y-3">
+                  <p className="text-sm text-slate-300 mb-4 font-medium">
                     {selectedAddress.network} {t("address")}
                   </p>
                   <Input
                     readOnly
                     value={selectedAddress.address}
-                    className="bg-gray-800 text-white"
+                    className="bg-[#1a1a2e] border-purple-500/30 text-white mb-4"
                   />
                   <Button
-                    className="w-full"
+                    className="w-full h-12 bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-500 hover:to-purple-600 text-white rounded-xl"
                     onClick={() => handleCopy(selectedAddress.address)}
                   >
+                    <Copy className="w-4 h-4 mr-2" />
                     {t("copyAddress")}
                   </Button>
                 </Card>
               )}
 
-              {/* CARD */}
-              {step === "card" && (
-                <Card className="bg-gray-900 border border-gray-700 rounded-xl p-6 space-y-3">
-                  <Input
-                    placeholder={t("cardNumber")}
-                    value={formattedNumber} // <-- сюда ставим formattedNumber
-                    onChange={(e) => {
-                      const val = e.target.value.replace(/\D/g, ""); // сохраняем только цифры
-                      setCardData({ ...cardData, number: val });
-                    }}
-                    className={cardErrors.number ? "border-red-500" : ""}
-                  />
-                  <div className="flex gap-2">
-                    <Input
-                      placeholder="MM/YY"
-                      value={cardData.expiry}
-                      onChange={(e) => {
-                        let val = e.target.value.replace(/\D/g, ""); // только цифры
-                        if (val.length > 4) val = val.slice(0, 4);
-                        if (val.length > 2)
-                          val = val.slice(0, 2) + "/" + val.slice(2);
-                        setCardData({ ...cardData, expiry: val });
-                      }}
-                      className={cardErrors.expiry ? "border-red-500" : ""}
-                    />
-                    <Input
-                      placeholder="CVV"
-                      value={cardData.cvv}
-                      onChange={(e) => {
-                        let val = e.target.value.replace(/\D/g, ""); // только цифры
-                        if (val.length > 3) val = val.slice(0, 3);
-                        setCardData({ ...cardData, cvv: val });
-                      }}
-                      className={cardErrors.cvv ? "border-red-500" : ""}
-                    />
+              {/* CARD AMOUNT - Step 1 */}
+              {step === "card_amount" && (
+                <Card className="bg-[#0a0a14] border border-purple-500/20 rounded-2xl p-8 space-y-6">
+                  <div className="text-center mb-4">
+                    <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-purple-500/10 flex items-center justify-center">
+                      <CreditCard className="w-8 h-8 text-purple-400" />
+                    </div>
+                    <h3 className="text-xl font-semibold text-white mb-2">{t("enterAmount") || "Enter Deposit Amount"}</h3>
+                    <p className="text-sm text-slate-400">{t("howMuchDeposit") || "How much would you like to deposit?"}</p>
                   </div>
-                  <Input
-                    placeholder={t("amount")}
-                    type="number"
-                    value={cardData.amount}
-                    onChange={(e) =>
-                      setCardData({ ...cardData, amount: e.target.value })
-                    }
-                    className={cardErrors.amount ? "border-red-500" : ""}
-                  />
-                  <Button className="w-full" onClick={handleCardDeposit}>
-                    {t("deposit")}
+                  
+                  <div className="space-y-2">
+                    <label className="text-xs font-medium text-slate-400 uppercase tracking-wider">
+                      {t("amount")}
+                    </label>
+                    <div className="relative">
+                      <Input
+                        placeholder="0.00"
+                        type="number"
+                        value={cardData.amount}
+                        onChange={(e) => setCardData({ ...cardData, amount: e.target.value })}
+                        className={`h-14 text-2xl font-semibold bg-[#1a1a2e] border-2 rounded-xl pl-12 ${cardErrors.amount ? "border-red-500" : "border-purple-500/30 focus:border-purple-500"}`}
+                      />
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-2xl font-semibold text-slate-500">$</span>
+                    </div>
+                    {cardErrors.amount && (
+                      <p className="text-xs text-red-400 mt-1">{t("enterValidAmount") || "Please enter a valid amount"}</p>
+                    )}
+                  </div>
+
+                  {/* Quick amount buttons */}
+                  <div className="grid grid-cols-4 gap-2">
+                    {[50, 100, 250, 500].map(amount => (
+                      <button
+                        key={amount}
+                        onClick={() => setCardData({ ...cardData, amount: amount.toString() })}
+                        className="py-3 px-4 rounded-lg bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/20 hover:border-purple-500/40 text-purple-300 text-sm font-medium transition-all"
+                      >
+                        ${amount}
+                      </button>
+                    ))}
+                  </div>
+
+                  <Button 
+                    className="w-full h-12 bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-500 hover:to-purple-600 text-white text-base font-semibold rounded-xl" 
+                    onClick={() => {
+                      if (!cardData.amount || Number(cardData.amount) <= 0) {
+                        setCardErrors({ ...cardErrors, amount: true });
+                        return;
+                      }
+                      setCardErrors({ ...cardErrors, amount: false });
+                      setStep("card_details");
+                    }}
+                  >
+                    {t("continue") || "Continue"}
+                  </Button>
+                </Card>
+              )}
+
+              {/* CARD DETAILS - Step 2 */}
+              {step === "card_details" && (
+                <Card className="bg-[#0a0a14] border border-purple-500/20 rounded-2xl p-8 space-y-6">
+                  <div className="text-center mb-4">
+                    <div className="inline-flex items-center gap-2 mb-4 px-4 py-2 rounded-full bg-purple-500/10 border border-purple-500/20">
+                      <span className="text-sm text-slate-400">{t("depositAmount") || "Amount"}:</span>
+                      <span className="text-lg font-bold text-white">${cardData.amount}</span>
+                    </div>
+                    <h3 className="text-xl font-semibold text-white mb-2">{t("enterCardDetails") || "Enter Card Details"}</h3>
+                    <p className="text-sm text-slate-400">{t("cardInfoSecure") || "Your card information is secure and encrypted"}</p>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <label className="text-xs font-medium text-slate-400 uppercase tracking-wider">
+                        {t("cardNumber")}
+                      </label>
+                      <Input
+                        placeholder="1234 5678 9012 3456"
+                        value={formattedNumber}
+                        onChange={(e) => {
+                          const val = e.target.value.replace(/\D/g, "");
+                          setCardData({ ...cardData, number: val });
+                        }}
+                        className={`h-12 bg-[#1a1a2e] border-2 rounded-xl ${cardErrors.number ? "border-red-500" : "border-purple-500/30 focus:border-purple-500"}`}
+                      />
+                      {cardErrors.number && (
+                        <p className="text-xs text-red-400 mt-1">{t("invalidCardNumber") || "Invalid card number"}</p>
+                      )}
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <label className="text-xs font-medium text-slate-400 uppercase tracking-wider">
+                          {t("expiryDate") || "Expiry"}
+                        </label>
+                        <Input
+                          placeholder="MM/YY"
+                          value={cardData.expiry}
+                          onChange={(e) => {
+                            let val = e.target.value.replace(/\D/g, "");
+                            if (val.length > 4) val = val.slice(0, 4);
+                            if (val.length > 2) val = val.slice(0, 2) + "/" + val.slice(2);
+                            setCardData({ ...cardData, expiry: val });
+                          }}
+                          className={`h-12 bg-[#1a1a2e] border-2 rounded-xl ${cardErrors.expiry ? "border-red-500" : "border-purple-500/30 focus:border-purple-500"}`}
+                        />
+                        {cardErrors.expiry && (
+                          <p className="text-xs text-red-400 mt-1">{t("invalidExpiry") || "Invalid date"}</p>
+                        )}
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-xs font-medium text-slate-400 uppercase tracking-wider">
+                          CVV
+                        </label>
+                        <Input
+                          placeholder="123"
+                          type="password"
+                          value={cardData.cvv}
+                          onChange={(e) => {
+                            let val = e.target.value.replace(/\D/g, "");
+                            if (val.length > 3) val = val.slice(0, 3);
+                            setCardData({ ...cardData, cvv: val });
+                          }}
+                          className={`h-12 bg-[#1a1a2e] border-2 rounded-xl ${cardErrors.cvv ? "border-red-500" : "border-purple-500/30 focus:border-purple-500"}`}
+                        />
+                        {cardErrors.cvv && (
+                          <p className="text-xs text-red-400 mt-1">{t("invalidCVV") || "Invalid CVV"}</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  <Button 
+                    className="w-full h-12 bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-500 hover:to-purple-600 text-white text-base font-semibold rounded-xl" 
+                    onClick={handleCardDeposit}
+                  >
+                    {t("confirmDeposit") || "Confirm Deposit"} • ${cardData.amount}
                   </Button>
                 </Card>
               )}
 
               {/* BANK */}
               {step === "bank" && (
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                   {banks.map((bank) => (
                     <CardItem
                       key={bank.id}

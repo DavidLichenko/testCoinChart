@@ -104,10 +104,10 @@ export const AdvancedChartWithDrawings = forwardRef<
 
   if (isLibraryLoading) {
     return (
-        <div className="flex h-full w-full items-center justify-center bg-slate-950">
+        <div className="flex h-full w-full items-center justify-center bg-[#090b1a]">
           <div className="flex flex-col items-center gap-3">
             <div className="relative h-12 w-12">
-              <div className="absolute inset-0  border border-slate-700/60 animate-ping" />
+              <div className="absolute inset-0  border border-[#121426]/60 animate-ping" />
               <div className="absolute inset-2  border-t-2 border-b-2 border-purple-500 animate-spin" />
             </div>
             <p className="text-xs font-medium text-slate-200">
@@ -123,7 +123,7 @@ export const AdvancedChartWithDrawings = forwardRef<
 
   if (libraryError) {
     return (
-        <div className="flex h-full w-full items-center justify-center rounded-xl border border-slate-800 bg-slate-950">
+        <div className="flex h-full w-full items-center justify-center rounded-2xl border border-[#121426] bg-[#090b1a]">
           <div className="text-center">
             <p className="text-sm text-red-400">Failed to load chart library</p>
             <p className="mt-1 text-xs text-slate-500">
@@ -136,7 +136,7 @@ export const AdvancedChartWithDrawings = forwardRef<
 
   if (!isLibraryLoaded) {
     return (
-        <div className="flex h-full w-full items-center justify-center rounded-xl border border-slate-800 bg-slate-950">
+        <div className="flex h-full w-full items-center justify-center rounded-2xl border border-[#121426] bg-[#090b1a]">
           <p className="text-xs text-slate-400">Chart library not available</p>
         </div>
     )
@@ -152,7 +152,7 @@ export const AdvancedChartWithDrawings = forwardRef<
           />
 
           {isChartLoading && (
-              <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center bg-gradient-to-br from-slate-950/95 via-slate-900/90 to-slate-950/95">
+              <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center bg-gradient-to-br from-[#090b1a]/95 via-[#0f1126]/90 to-[#090b1a]/95">
                 <div className="flex flex-col items-center gap-3">
                   <div className="relative h-14 w-14">
                     <div className="absolute inset-0 rounded-full bg-purple-500/10" />

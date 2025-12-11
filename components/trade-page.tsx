@@ -161,6 +161,8 @@ export default function TradePage() {
     setChartLoading(isCandlesLoading)
   }, [isCandlesLoading])
 
+  const [favoriteSymbols, setFavoriteSymbols] = useState<Set<string>>(new Set())
+
   const tickersByCategory = useMemo(() => {
     const map = orderedCategories.reduce(
         (acc, category) => {
@@ -322,8 +324,8 @@ export default function TradePage() {
             onClick={() => handleSelectTicker(ticker)}
             className={`flex w-full items-center justify-between rounded-2xl border px-3 py-2 ${
                 isSelected
-                    ? "border-purple-500/70 bg-purple-950/40"
-                    : "border-slate-800/70 bg-slate-900/70 hover:bg-slate-900"
+                    ? "border-purple-500/70 bg-[#2e1a5e]"
+                    : "border-[#17172b] bg-[#1e1b4b] hover:bg-[#2e1a5e]"
             }`}
         >
           <div className="flex min-w-0 items-center gap-3">
@@ -374,6 +376,18 @@ export default function TradePage() {
       },
       [handleSelectTicker, formatPriceValue, selectedTicker],
   )
+
+  const handleToggleFavorite = useCallback((symbol: string) => {
+    setFavoriteSymbols(prev => {
+      const next = new Set(prev)
+      if (next.has(symbol)) {
+        next.delete(symbol)
+      } else {
+        next.add(symbol)
+      }
+      return next
+    })
+  }, [])
 
   const calculateMargin = () => {
     if (!selectedTicker) return "0.00"
@@ -816,7 +830,7 @@ export default function TradePage() {
 
     if (!selectedTicker) {
       return (
-          <Card className="border-slate-800 bg-slate-950/80">
+          <Card className="border-[#121426] bg-[#090b1a]/90">
             <CardContent className="flex h-16 items-center justify-center text-xs text-slate-500">
               {t("selectTicker")}
             </CardContent>
@@ -825,7 +839,7 @@ export default function TradePage() {
     }
 
     return (
-        <Card className="rounded-2xl border-slate-800 bg-slate-950/95 shadow-[0_0_40px_rgba(88,28,135,0.35)]">
+        <Card className="rounded-2xl border-[#121426] bg-[#090b1a]/95 shadow-[0_0_40px_rgba(107,33,168,0.35)]">
           <CardContent
               className={`space-y-4 ${
                   compact ? "px-4 py-3" : "px-5 py-4"
@@ -835,7 +849,7 @@ export default function TradePage() {
                 value={orderType}
                 onValueChange={(v) => setOrderType(v as "BUY" | "SELL")}
             >
-              <TabsList className="grid h-9 w-full grid-cols-2 rounded-full bg-slate-900/80">
+              <TabsList className="grid h-9 w-full grid-cols-2 rounded-full bg-[#050612]/80">
                 <TabsTrigger
                     value="BUY"
                     className="h-9 rounded-full text-[11px] data-[state=active]:bg-emerald-500 data-[state=active]:text-white"
@@ -859,7 +873,7 @@ export default function TradePage() {
                   value={volume}
                   onChange={(e) => setVolume(e.target.value)}
                   placeholder="0.01"
-                  className="h-9 rounded-md border-slate-800 bg-slate-950 text-xs"
+                  className="h-9 rounded-md border-[#121426] bg-[#090b1a] text-xs"
               />
             </div>
 
@@ -868,10 +882,10 @@ export default function TradePage() {
                 {t("leverage")}
               </Label>
               <Select value={leverage} onValueChange={setLeverage}>
-                <SelectTrigger className="h-9 rounded-md border-slate-800 bg-slate-950 text-xs">
+                <SelectTrigger className="h-9 rounded-md border-[#121426] bg-[#090b1a] text-xs">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="border-slate-800 bg-slate-950 text-xs">
+                <SelectContent className="border-[#121426] bg-[#090b1a] text-xs">
                   <SelectItem value="1">1:1</SelectItem>
                   <SelectItem value="5">1:5</SelectItem>
                   <SelectItem value="10">1:10</SelectItem>
@@ -921,7 +935,7 @@ export default function TradePage() {
                     <Input
                         value={takeProfit}
                         onChange={(e) => setTakeProfit(e.target.value)}
-                        className="h-9 rounded-md border-slate-800 bg-slate-950 text-xs"
+                        className="h-9 rounded-md border-[#121426] bg-[#090b1a] text-xs"
                     />
                 )}
 
@@ -945,7 +959,7 @@ export default function TradePage() {
                     <Input
                         value={stopLoss}
                         onChange={(e) => setStopLoss(e.target.value)}
-                        className="h-9 rounded-md border-slate-800 bg-slate-950 text-xs"
+                        className="h-9 rounded-md border-[#121426] bg-[#090b1a] text-xs"
                     />
                 )}
               </CollapsibleContent>
@@ -953,7 +967,7 @@ export default function TradePage() {
 
             <Button
                 onClick={handlePlaceOrder}
-                className="w-full rounded-xl bg-gradient-to-r from-purple-600 via-fuchsia-500 to-sky-500 text-xs font-semibold shadow-[0_0_25px_rgba(129,140,248,0.7)] hover:brightness-110"
+                className="w-full rounded-xl bg-gradient-to-r from-purple-600 via-fuchsia-500 to-sky-500 text-xs font-semibold shadow-[0_0_25px_rgba(107,33,168,0.7)] hover:brightness-110"
             >
               {t("placeOrderCta").replace("{type}", orderType)}
             </Button>
@@ -977,8 +991,8 @@ export default function TradePage() {
   }
 
   const renderActiveTrades = () => (
-      <Card className="rounded-2xl border-slate-800 bg-slate-950/90 shadow-[0_0_15px_rgba(139,92,246,0.15)]">
-        <CardHeader className="flex flex-row items-center justify-between px-4 py-3 border-b border-slate-800/70">
+      <Card className="rounded-2xl border-[#121426] bg-[#090b1a]/90 shadow-[0_0_15px_rgba(107,33,168,0.15)]">
+        <CardHeader className="flex flex-row items-center justify-between px-4 py-3 border-b border-[#121426]/70">
           <CardTitle className="text-sm font-semibold text-slate-100 flex items-center gap-2">
             <BarChart3 className="h-4 w-4 text-purple-400" />
             {t("activeTrades")}
@@ -1011,7 +1025,7 @@ export default function TradePage() {
                   return (
                       <div
                           key={trade.id}
-                          className="rounded-xl border border-slate-800/60 bg-gradient-to-br from-slate-900/80 to-slate-950/80 p-4 hover:border-slate-700/60 transition-all duration-200"
+                          className="rounded-2xl border border-[#17172b] bg-gradient-to-br from-[#1e1b4b] to-[#2e1a5e] p-4 hover:border-purple-500/50 transition-all duration-200"
                       >
                         <div className="flex items-start justify-between gap-3">
                           <div className="min-w-0 flex-1">
@@ -1150,7 +1164,7 @@ export default function TradePage() {
             {Array.from({ length: 10 }).map((_, i) => (
                 <div
                     key={i}
-                    className="h-11 w-full animate-pulse rounded-xl border border-slate-800/70 bg-slate-900/80"
+                    className="h-11 w-full animate-pulse rounded-2xl border border-[#17172b] bg-[#1e1b4b]"
                 />
             ))}
           </div>
@@ -1173,6 +1187,8 @@ export default function TradePage() {
                     onSelectTicker={handleSelectTicker}
                     formatPriceValue={formatPriceValue}
                     height={typeof window !== "undefined" ? window.innerHeight - 300 : 400}
+                    favoriteSymbols={favoriteSymbols}
+                    onToggleFavorite={handleToggleFavorite}
                 />
             )}
           </div>
@@ -1188,7 +1204,7 @@ export default function TradePage() {
             return (
                 <div
                     key={categoryKey}
-                    className="rounded-2xl border border-slate-800 bg-slate-950/80"
+                    className="rounded-2xl border border-[#17172b] bg-[#1e1b4b]"
                 >
                   <button
                       type="button"
@@ -1219,6 +1235,8 @@ export default function TradePage() {
                             onSelectTicker={handleSelectTicker}
                             formatPriceValue={formatPriceValue}
                             height={Math.min(420, catTickers.length * 64)}
+                            favoriteSymbols={favoriteSymbols}
+                            onToggleFavorite={handleToggleFavorite}
                         />
                       </div>
                   )}
