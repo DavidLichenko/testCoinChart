@@ -13,7 +13,7 @@ export async function GET() {
     const userId = await requireAuth();
 
     // Optimize: select only needed fields
-    const balances = await prisma.walletBalance.findMany({
+    let balances = await prisma.walletBalance.findMany({
         where: { userId },
         select: {
             assetSymbol: true,
@@ -29,6 +29,94 @@ export async function GET() {
         },
     });
 
+    // If user has no wallet balances, try to migrate from old Balances model
+    if (!balances.length) {
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+            select: { baseCurrency: true },
+        });
+
+        const baseCurrency = user?.baseCurrency ?? "USD";
+        const legacy = await prisma.balances.findUnique({
+            where: { userId },
+        });
+
+        if (legacy) {
+            // Create USD wallet from legacy balance
+            if (legacy.usd > 0) {
+                await prisma.walletBalance.create({
+                    data: {
+                        userId,
+                        assetSymbol: "USD",
+                        ownBalance: legacy.usd,
+                        creditLimit: 0,
+                        creditUsed: 0,
+                        locked: 0,
+                    },
+                });
+            }
+
+            // Create EUR wallet from legacy balance
+            if (legacy.eur > 0) {
+                await prisma.walletBalance.create({
+                    data: {
+                        userId,
+                        assetSymbol: "EUR",
+                        ownBalance: legacy.eur,
+                        creditLimit: 0,
+                        creditUsed: 0,
+                        locked: 0,
+                    },
+                });
+            }
+
+            // Reload balances after migration
+            balances = await prisma.walletBalance.findMany({
+                where: { userId },
+                select: {
+                    assetSymbol: true,
+                    ownBalance: true,
+                    locked: true,
+                    creditUsed: true,
+                    creditLimit: true,
+                    asset: {
+                        select: {
+                            name: true,
+                        },
+                    },
+                },
+            });
+        } else {
+            // Create default base currency wallet with 0 balance
+            await prisma.walletBalance.create({
+                data: {
+                    userId,
+                    assetSymbol: baseCurrency,
+                    ownBalance: 0,
+                    creditLimit: 0,
+                    creditUsed: 0,
+                    locked: 0,
+                },
+            });
+
+            balances = await prisma.walletBalance.findMany({
+                where: { userId },
+                select: {
+                    assetSymbol: true,
+                    ownBalance: true,
+                    locked: true,
+                    creditUsed: true,
+                    creditLimit: true,
+                    asset: {
+                        select: {
+                            name: true,
+                        },
+                    },
+                },
+            });
+        }
+    }
+
     if (!balances.length) {
         return NextResponse.json([], {
             headers: {
@@ -37,39 +125,45 @@ export async function GET() {
         });
     }
 
-    // тянем 24h-тикеры один раз (без Next.js cache, т.к. данные > 2MB)
-    const res = await fetch(
-        "https://api.binance.com/api/v3/ticker/24hr",
-        { 
-            cache: "no-store", // Не используем Next.js data cache из-за размера данных > 2MB
+    // Get unique symbols that we need prices for
+    const uniqueSymbols = [...new Set(balances.map(b => b.assetSymbol))];
+    
+    // Only fetch prices for assets we actually have + EUR for conversion
+    const symbolsToFetch = uniqueSymbols
+        .filter(s => s !== "USD" && s !== "USDT") // Skip USD/USDT as they're 1:1
+        .map(s => `${s}USDT`)
+        .concat(["EURUSDT"]) // Always include EUR for conversion
+        .filter((v, i, a) => a.indexOf(v) === i); // Remove duplicates
+
+    const priceMap: Record<string, { lastPrice: string; priceChangePercent: string }> = {};
+    
+    // Fetch only the specific symbols we need (much faster than all 24h tickers)
+    if (symbolsToFetch.length > 0) {
+        try {
+            // Fetch individual 24h tickers in parallel
+            const tickerPromises = symbolsToFetch.map(symbol => 
+                fetch(`https://api.binance.com/api/v3/ticker/24hr?symbol=${symbol}`, 
+                    { cache: "no-store" }
+                ).then(r => r.ok ? r.json() : null)
+            );
+            
+            const tickers = await Promise.all(tickerPromises);
+            
+            for (const ticker of tickers) {
+                if (ticker && ticker.symbol) {
+                    priceMap[ticker.symbol.toLowerCase()] = {
+                        lastPrice: ticker.lastPrice,
+                        priceChangePercent: ticker.priceChangePercent,
+                    };
+                }
+            }
+        } catch (error) {
+            console.error("Error fetching Binance 24h tickers:", error);
+            // Continue with empty price map - will use fallback prices
         }
-    );
-
-    if (!res.ok) {
-        // в крайнем случае вернём без цены, чтобы не падал фронт
-        const fallback = balances.map((b) => ({
-            symbol: b.assetSymbol,
-            name: b.asset.name,
-            balance: b.ownBalance + b.locked,
-            ownBalance: b.ownBalance,
-            creditUsed: b.creditUsed,
-            creditLimit: b.creditLimit,
-            price: 0,
-            change24h: 0,
-            totalValue: 0,
-            totalValueUsd: 0, // Add USD value for consistency
-        }));
-        return NextResponse.json(fallback);
     }
 
-    const data = (await res.json()) as Binance24h[];
-
-    const priceMap: Record<string, Binance24h> = {};
-    for (const row of data) {
-        priceMap[row.symbol.toLowerCase()] = row;
-    }
-
-    // Also get real-time prices for USD conversion
+    // Get user's base currency and EUR/USD rate from already fetched price data
     const user = await prisma.user.findUnique({
         where: { id: userId },
         select: { baseCurrency: true },
@@ -77,22 +171,11 @@ export async function GET() {
 
     const baseCurrency = user?.baseCurrency ?? "USD";
     
-    // Get EUR/USD rate if needed
+    // Get EUR/USD rate from already fetched data instead of separate request
     let eurUsdRate = 1;
-    if (baseCurrency === "EUR") {
-        try {
-            const eurUsdRes = await fetch(
-                "https://api.binance.com/api/v3/ticker/price?symbol=EURUSDT",
-                { cache: "no-store" }
-            );
-            
-            if (eurUsdRes.ok) {
-                const eurUsdData = await eurUsdRes.json();
-                eurUsdRate = parseFloat(eurUsdData.price) || 1;
-            }
-        } catch (error) {
-            console.warn("Failed to fetch EUR/USD rate:", error);
-        }
+    const eurUsdTicker = priceMap["eurusdt"];
+    if (eurUsdTicker) {
+        eurUsdRate = parseFloat(eurUsdTicker.lastPrice) || 1;
     }
 
     const result = balances.map((b) => {

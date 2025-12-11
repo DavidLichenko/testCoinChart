@@ -8,20 +8,8 @@ import {useState, useEffect} from "react";
 const NavItem = ({mobile = false }) => {
     const { user } = useAuth();
     const { t } = useI18n();
-    const [hasAITrading, setHasAITrading] = useState(false);
-
-    useEffect(() => {
-        if (user?.id) {
-            fetch("/api/auth/me")
-                .then(res => res.json())
-                .then(data => {
-                    if (data.user?.aiTrading) {
-                        setHasAITrading(true);
-                    }
-                })
-                .catch(() => {});
-        }
-    }, [user?.id]);
+    // No need to fetch /api/auth/me - user.aiTrading is already available from AuthProvider
+    const hasAITrading = user?.aiTrading ?? false;
 
     const isAdmin =
         user?.role === "OWNER" ||

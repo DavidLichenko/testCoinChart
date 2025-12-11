@@ -13,12 +13,72 @@ export async function GET() {
         select: { baseCurrency: true },
     });
 
-    const baseCurrency = user?.baseCurrency ?? "USD"; // USER.baseCurrency из схемы
+    const baseCurrency = user?.baseCurrency ?? "USD";
 
-    const balances = await prisma.walletBalance.findMany({
+    let balances = await prisma.walletBalance.findMany({
         where: { userId },
         include: { asset: true },
     });
+
+    // If user has no wallet balances, try to migrate from old Balances model
+    if (!balances.length) {
+        const legacy = await prisma.balances.findUnique({
+            where: { userId },
+        });
+
+        if (legacy) {
+            // Create USD wallet from legacy balance
+            if (legacy.usd > 0) {
+                await prisma.walletBalance.create({
+                    data: {
+                        userId,
+                        assetSymbol: "USD",
+                        ownBalance: legacy.usd,
+                        creditLimit: 0,
+                        creditUsed: 0,
+                        locked: 0,
+                    },
+                });
+            }
+
+            // Create EUR wallet from legacy balance
+            if (legacy.eur > 0) {
+                await prisma.walletBalance.create({
+                    data: {
+                        userId,
+                        assetSymbol: "EUR",
+                        ownBalance: legacy.eur,
+                        creditLimit: 0,
+                        creditUsed: 0,
+                        locked: 0,
+                    },
+                });
+            }
+
+            // Reload balances after migration
+            balances = await prisma.walletBalance.findMany({
+                where: { userId },
+                include: { asset: true },
+            });
+        } else {
+            // Create default base currency wallet with 0 balance
+            await prisma.walletBalance.create({
+                data: {
+                    userId,
+                    assetSymbol: baseCurrency,
+                    ownBalance: 0,
+                    creditLimit: 0,
+                    creditUsed: 0,
+                    locked: 0,
+                },
+            });
+
+            balances = await prisma.walletBalance.findMany({
+                where: { userId },
+                include: { asset: true },
+            });
+        }
+    }
 
     if (!balances.length) {
         return NextResponse.json({
@@ -32,30 +92,40 @@ export async function GET() {
         });
     }
 
-    // Берём ВСЕ цены с Binance (USDT-база)
-    const tickersRes = await fetch(
-        "https://api.binance.com/api/v3/ticker/price",
-        { cache: "no-store" }
-    );
-
-    if (!tickersRes.ok) {
-        // На всякий случай graceful fallback, чтобы не ломать фронт
-        return NextResponse.json({
-            totalBalance: 0,
-            ownFunds: 0,
-            creditUsed: 0,
-            creditLimit: 0,
-            availableToTrade: 0,
-            baseCurrency,
-            approxUsd: 0,
-        });
-    }
-
-    const tickers = (await tickersRes.json()) as BinanceTicker[];
+    // Get unique asset symbols that we need prices for
+    const uniqueSymbols = [...new Set(balances.map(b => b.assetSymbol))];
+    
+    // Only fetch prices for assets we actually have + EUR (for conversion)
+    // Build specific symbols list: BTCUSDT, ETHUSDT, EURUSDT, etc.
+    const symbolsToFetch = uniqueSymbols
+        .filter(s => s !== "USD" && s !== "USDT") // Skip USD/USDT as they're 1:1
+        .map(s => `${s}USDT`)
+        .concat(["EURUSDT"]) // Always include EUR for conversion
+        .filter((v, i, a) => a.indexOf(v) === i); // Remove duplicates
 
     const priceMap: Record<string, number> = {};
-    for (const t of tickers) {
-        priceMap[t.symbol] = Number(t.price);
+    
+    // Fetch only the specific symbols we need (much faster than all tickers)
+    if (symbolsToFetch.length > 0) {
+        try {
+            // Fetch individual prices in parallel
+            const pricePromises = symbolsToFetch.map(symbol => 
+                fetch(`https://api.binance.com/api/v3/ticker/price?symbol=${symbol}`, 
+                    { cache: "no-store", next: { revalidate: 5 } }
+                ).then(r => r.ok ? r.json() : null)
+            );
+            
+            const prices = await Promise.all(pricePromises);
+            
+            for (const price of prices) {
+                if (price && price.symbol && price.price) {
+                    priceMap[price.symbol] = Number(price.price);
+                }
+            }
+        } catch (error) {
+            console.error("Error fetching Binance prices:", error);
+            // Continue with empty price map - will default to 0
+        }
     }
 
     const getUsdtPrice = (symbol: string): number => {
@@ -114,5 +184,9 @@ export async function GET() {
         availableToTrade,
         baseCurrency,
         approxUsd,
+    }, {
+        headers: {
+            'Cache-Control': 'private, max-age=5', // Cache for 5 seconds
+        },
     });
 }

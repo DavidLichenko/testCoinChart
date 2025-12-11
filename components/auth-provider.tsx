@@ -13,6 +13,8 @@ interface User {
   can_withdraw?: boolean
   isVerif?: boolean
   role?: string
+  aiTrading?: boolean // Added for AI Trading feature detection
+  baseCurrency?: "USD" | "EUR"
 }
 
 interface AuthContextType {
@@ -40,7 +42,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const checkAuth = async () => {
     try {
-      const response = await fetch("/api/auth/me")
+      // Add cache control and faster timeout
+      const response = await fetch("/api/auth/me", {
+        cache: "force-cache", // Use browser cache when available
+        next: { revalidate: 30 }, // Revalidate every 30 seconds
+      })
       if (response.ok) {
         const data = await response.json()
         setUser(data.user)

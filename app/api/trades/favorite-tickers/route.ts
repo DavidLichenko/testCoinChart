@@ -9,9 +9,19 @@ export async function GET() {
 
     const favorites = await prisma.favoriteTicker.findMany({
         where: { userId: user.id },
+        select: {
+            symbol: true, // Only select needed field
+        },
     })
 
-    return NextResponse.json({ symbols: favorites.map((f) => f.symbol) })
+    return NextResponse.json(
+        { symbols: favorites.map((f) => f.symbol) },
+        {
+            headers: {
+                'Cache-Control': 'private, max-age=60', // Cache for 1 minute
+            },
+        }
+    )
 }
 
 export async function POST(req: NextRequest) {

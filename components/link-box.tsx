@@ -37,7 +37,7 @@ const LinkBox: React.FC<LinkBoxProps> = ({
           }
         `}
       >
-        <div className={`transition-transform group-hover:scale-110 ${isActive ? "text-white" : "text-gray-400"} group-hover:text-white`}>
+        <div className={`${isActive ? "text-white" : "text-gray-400"} group-hover:text-white transition-colors duration-200`}>
           {icon}
         </div>
         <span className="relative z-10">{name}</span>
@@ -57,7 +57,7 @@ const LinkBox: React.FC<LinkBoxProps> = ({
         }
       `}
     >
-      <div className={`transition-transform group-hover:scale-110 ${isActive ? "text-white" : "text-gray-400"} group-hover:text-white`}>
+      <div className={`${isActive ? "text-white" : "text-gray-400"} group-hover:text-white transition-colors duration-200`}>
         {icon}
       </div>
       <span className="relative z-10">{name}</span>

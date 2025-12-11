@@ -1,22 +1,16 @@
 "use client"
 import WelcomePage from "@/components/auth/welcome-page";
 import { useAuth } from "@/components/auth-provider";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
 
 export default function HomePage() {
   const { user, loading } = useAuth();
-  const router = useRouter();
 
-  // If authenticated, redirect to dashboard
-  useEffect(() => {
-    if (!loading && user) {
-      router.push("/dashboard");
-    }
-  }, [user, loading, router]);
+  // Don't auto-redirect authenticated users - let them stay on home page
+  // They can navigate manually if needed
 
   const handleAuthSuccess = () => {
-    router.push("/dashboard");
+    // Don't redirect after login - stay on current page
+    // User will be shown the authenticated home page
   };
 
   return <WelcomePage onAuthSuccess={handleAuthSuccess} />;

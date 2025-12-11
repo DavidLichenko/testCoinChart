@@ -269,14 +269,14 @@ export function DashboardOverview() {
                             {t("totalBalance")}
                           </p>
                           <p className="mt-1.5 text-base sm:text-lg font-semibold text-slate-50">
-                            {walletSummary.totalBalance.toFixed(2)}{" "}
+                            {(walletSummary.totalBalance ?? 0).toFixed(2)}{" "}
                             {walletSummary.baseCurrency}
                           </p>
                         </div>
                         {walletSummary.baseCurrency === "EUR" &&
                             walletSummary.approxUsd && (
                                 <p className="text-[11px] text-slate-500 text-right">
-                                  ≈ ${walletSummary.approxUsd.toFixed(2)} USD
+                                  ≈ ${(walletSummary.approxUsd ?? 0).toFixed(2)} USD
                                 </p>
                             )}
                       </div>
@@ -288,7 +288,7 @@ export function DashboardOverview() {
                           {t("availableToTrade")}
                         </p>
                         <p className="mt-1.5 text-sm font-semibold text-slate-50">
-                          {walletSummary.availableToTrade.toFixed(2)}{" "}
+                          {(walletSummary.availableToTrade ?? 0).toFixed(2)}{" "}
                           {walletSummary.baseCurrency}
                         </p>
                       </div>
@@ -298,7 +298,7 @@ export function DashboardOverview() {
                           {t("creditBalance") ?? "Credit balance"}
                         </p>
                         <p className="mt-1.5 text-sm font-semibold text-slate-50">
-                          {walletSummary.creditBalance.toFixed(2)}{" "}
+                          {(walletSummary.creditBalance ?? 0).toFixed(2)}{" "}
                           {walletSummary.baseCurrency}
                         </p>
                       </div>

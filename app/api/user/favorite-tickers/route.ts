@@ -12,10 +12,18 @@ export async function GET() {
     const favorites = await prisma.favoriteTicker.findMany({
         where: { userId: userId },
         orderBy: { createdAt: "asc" },
+        select: {
+            symbol: true, // Only select needed field
+        },
     });
 
     return NextResponse.json(
         favorites.map((f) => ({ symbol: f.symbol })),
+        {
+            headers: {
+                'Cache-Control': 'private, max-age=60', // Cache for 1 minute
+            },
+        }
     );
 }
 

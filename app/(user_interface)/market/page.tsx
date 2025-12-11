@@ -34,6 +34,7 @@ import {
 import { useTickers } from "@/hooks/market-data"
 import { useI18n } from "@/components/i18n-provider"
 import { useBalance } from "@/hooks/useBalance"
+import { useAuth } from "@/components/auth-provider"
 import { VirtualizedTickerList } from "@/components/virtualized-ticker-list"
 import { TickerAvatar } from "@/components/ticker-avatar"
 import {
@@ -160,34 +161,10 @@ const TestChart: React.FC = () => {
     
     // 🔹 использование кредитных средств для трейда
     const [useCredit, setUseCredit] = useState(false)
-    // 🔹 данные о себе, чтобы узнать aiTrading
-    const [me, setMe] = useState<{
-        id: string
-        aiTrading?: boolean | null
-    } | null>(null)
-    const [meLoading, setMeLoading] = useState(true)
-    useEffect(() => {
-        let cancelled = false
-
-        const loadMe = async () => {
-            try {
-                const res = await fetch("/api/auth/me", { cache: "no-store" })
-                if (!res.ok) return
-                const data = await res.json()
-                if (!cancelled) setMe(data.user)
-            } catch (e) {
-                console.error("Failed to load /api/auth/me", e)
-            } finally {
-                if (!cancelled) setMeLoading(false)
-            }
-        }
-
-        loadMe()
-
-        return () => {
-            cancelled = true
-        }
-    }, [])
+    // 🔹 Get user from AuthProvider instead of fetching /api/auth/me again
+    const { user: authUser } = useAuth()
+    const me = authUser // Use user from context
+    const meLoading = false // Already loaded by AuthProvider
     const aiAvailable = !!me?.aiTrading
     // Load AI trading tickers and settings
     useEffect(() => {
@@ -410,7 +387,11 @@ const TestChart: React.FC = () => {
     useEffect(() => {
         const loadFavorites = async () => {
             try {
-                const res = await fetch("/api/trades/favorite-tickers")
+                // Add caching to prevent repeated requests
+                const res = await fetch("/api/trades/favorite-tickers", {
+                    cache: "force-cache",
+                    next: { revalidate: 60 }, // Cache for 1 minute
+                })
                 if (!res.ok) return
                 const data: { symbols: string[] } = await res.json()
                 setFavoriteSymbols(new Set(data.symbols))
@@ -2238,7 +2219,7 @@ const TestChart: React.FC = () => {
                                         selectedSymbol={selectedTicker?.symbol}
                                         onSelectTicker={handleSelectTicker}
                                         formatPriceValue={formatPriceValue}
-                                        height={Math.min(420, Math.max(200, catTickers.length * 64))}
+                                        height={600} // Fixed height for proper scrolling - shows all tickers
                                         favoriteSymbols={favoriteSymbols}
                                         onToggleFavorite={toggleFavorite}
                                     />

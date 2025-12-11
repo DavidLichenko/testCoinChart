@@ -20,104 +20,101 @@ export async function GET(request: NextRequest) {
 
     // ----- only regular users (ROLE = USER) -----
 
-    // Count of users
-    const totalUsers = await prisma.user.count({
-      where: { role: "USER" },
-    })
+    // Run all queries in parallel for maximum speed
+    const [
+      totalUsers,
+      totalBalance,
+      totalTrades,
+      totalOrders,
+      activeTrades,
+      pendingVerifications,
+      recentUsers,
+      recentTrades,
+    ] = await Promise.all([
+      // Count of users
+      prisma.user.count({
+        where: { role: "USER" },
+      }),
 
-    // Total balance only for USERs - optimized calculation
-    // Only fetch baseCurrency wallet balance for each user
-    const users = await prisma.user.findMany({
-      where: { role: "USER" },
-      select: {
-        baseCurrency: true,
-        walletBalances: {
-          select: {
-            assetSymbol: true,
-            ownBalance: true,
-          },
+      // Total balance - use aggregate for better performance
+      (async () => {
+        const result = await prisma.walletBalance.aggregate({
           where: {
+            user: { role: "USER" },
             OR: [
               { assetSymbol: "USD" },
               { assetSymbol: "EUR" }
             ]
-          }
-        }
-      }
-    })
-    
-    // Calculate total balance from base currency wallets only
-    let totalBalance = 0
-    for (const user of users) {
-      const baseCurrency = user.baseCurrency || "USD"
-      const wallet = user.walletBalances.find(w => w.assetSymbol === baseCurrency)
-      if (wallet) {
-        totalBalance += wallet.ownBalance
-      }
-    }
+          },
+          _sum: {
+            ownBalance: true,
+          },
+        })
+        return result._sum?.ownBalance || 0
+      })(),
 
-    // Total trades only for USERs
-    const totalTrades = await prisma.trade_Transaction.count({
-      where: {
-        User: { role: "USER" },
-      },
-    })
+      // Total trades only for USERs
+      prisma.trade_Transaction.count({
+        where: {
+          User: { role: "USER" },
+        },
+      }),
 
-    // Count of orders (deposits/withdrawals) only for USERs
-    const totalOrders = await prisma.orders.count({
-      where: {
-        User: { role: "USER" },
-      },
-    })
+      // Count of orders (deposits/withdrawals) only for USERs
+      prisma.orders.count({
+        where: {
+          User: { role: "USER" },
+        },
+      }),
 
-    // Open trades only for USERs
-    const activeTrades = await prisma.trade_Transaction.count({
-      where: {
-        status: "OPEN",
-        User: { role: "USER" },
-      },
-    })
+      // Open trades only for USERs
+      prisma.trade_Transaction.count({
+        where: {
+          status: "OPEN",
+          User: { role: "USER" },
+        },
+      }),
 
-    // Pending verifications only for USERs
-    const pendingVerifications = await prisma.verification.count({
-      where: {
-        status: "PENDING",
-        // verification has a relation called `user`, not `User`
-        user: { role: "USER" },
-      },
-    })
+      // Pending verifications only for USERs
+      prisma.verification.count({
+        where: {
+          status: "PENDING",
+          user: { role: "USER" },
+        },
+      }),
 
-    // Recent users (only USERs)
-    const recentUsers = await prisma.user.findMany({
-      where: { role: "USER" },
-      take: 5,
-      orderBy: { createdAt: "desc" },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        role: true,
-        createdAt: true,
-        isVerif: true,
-      },
-    })
+      // Recent users (only USERs)
+      prisma.user.findMany({
+        where: { role: "USER" },
+        take: 5,
+        orderBy: { createdAt: "desc" },
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          role: true,
+          createdAt: true,
+          isVerif: true,
+        },
+      }),
 
-    // Recent trades (only USERs) + user name/email
-    const recentTrades = await prisma.trade_Transaction.findMany({
-      where: {
-        User: { role: "USER" },
-      },
-      take: 5,
-      orderBy: { createdAt: "desc" },
-      include: {
-        User: {
-          select: {
-            name: true,
-            email: true,
+      // Recent trades (only USERs) + user name/email
+      prisma.trade_Transaction.findMany({
+        where: {
+          User: { role: "USER" },
+        },
+        take: 5,
+        orderBy: { createdAt: "desc" },
+        include: {
+          User: {
+            select: {
+              name: true,
+              email: true,
+            },
           },
         },
-      },
-    })
+      }),
+    ])
 
     return NextResponse.json({
       totalUsers,
@@ -128,6 +125,10 @@ export async function GET(request: NextRequest) {
       pendingVerifications,
       recentUsers,
       recentTrades,
+    }, {
+      headers: {
+        'Cache-Control': 'private, max-age=10',
+      },
     })
   } catch (error) {
     console.error("Error fetching admin stats:", error)
