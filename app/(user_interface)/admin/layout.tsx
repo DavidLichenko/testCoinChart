@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState, useRef } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
@@ -111,10 +111,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
     const isOwner = user.role === "OWNER";
 
-    const sections = useMemo(
-        () => SECTIONS.filter((s) => !s.ownerOnly || isOwner),
-        [isOwner]
-    );
+    const sections = isOwner ? SECTIONS : SECTIONS.filter((s) => !s.ownerOnly);
 
     const activeSection =
         sections.find((s) =>

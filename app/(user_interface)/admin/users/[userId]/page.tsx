@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState, useCallback, useMemo } from "react"
+import { useEffect, useState, useCallback } from "react"
 import { useRouter, useParams } from "next/navigation"
 import { motion } from "framer-motion"
 import {
@@ -261,25 +261,24 @@ export default function AdminUserPage() {
         }
     }, [userId])
     
-    const filteredTickers = useMemo(() => {
-        let filtered = tickers
-        if (searchTerm.trim()) {
-            const term = searchTerm.toLowerCase()
-            filtered = tickers.filter(ticker => 
+    const filteredTickers = (() => {
+        const term = searchTerm.trim().toLowerCase()
+        const base = term
+            ? tickers.filter(ticker =>
                 ticker.symbol.toLowerCase().includes(term) ||
                 ticker.showName?.toLowerCase().includes(term) ||
                 ticker.fullName?.toLowerCase().includes(term)
             )
-        }
-        // Sort: favorites first, then alphabetically
-        return filtered.sort((a, b) => {
+            : [...tickers]
+
+        return base.sort((a, b) => {
             const aIsFavorite = favoriteTickers.has(a.symbol)
             const bIsFavorite = favoriteTickers.has(b.symbol)
             if (aIsFavorite && !bIsFavorite) return -1
             if (!aIsFavorite && bIsFavorite) return 1
             return a.symbol.localeCompare(b.symbol)
         })
-    }, [tickers, searchTerm, favoriteTickers])
+    })()
     
     const formatPriceValue = useCallback((value?: number | null) => {
         if (value == null || Number.isNaN(value)) return null

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, useRef, useCallback } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { motion } from "framer-motion";
 
 import {
@@ -142,14 +142,14 @@ export default function OpenTradeAdminDialog({
     }
   };
 
-  const sortedTickers = useMemo(() => {
+  const sortedTickers = (() => {
     const favSet = new Set(favoriteSymbols);
     const fav = tickers.filter((t) => favSet.has(t.symbol));
     const rest = tickers.filter((t) => !favSet.has(t.symbol));
     return [...fav, ...rest];
-  }, [tickers, favoriteSymbols]);
+  })();
 
-  const filteredTickers = useMemo(() => {
+  const filteredTickers = (() => {
     const q = tickerSearch.trim().toLowerCase();
     if (!q) return sortedTickers;
 
@@ -165,7 +165,7 @@ export default function OpenTradeAdminDialog({
           fullName.toLowerCase().includes(q)
       );
     });
-  }, [sortedTickers, tickerSearch]);
+  })();
 
   const handleTickerScroll = useCallback(
       (e: React.UIEvent<HTMLDivElement>) => {
@@ -182,10 +182,7 @@ export default function OpenTradeAdminDialog({
       [filteredTickers.length],
   );
 
-  const selectedTicker = useMemo(
-      () => tickers.find((t) => t.symbol === selectedTickerSymbol),
-      [tickers, selectedTickerSymbol],
-  );
+  const selectedTicker = tickers.find((t) => t.symbol === selectedTickerSymbol);
 
   const canSubmit =
       !submitting &&
@@ -199,7 +196,7 @@ export default function OpenTradeAdminDialog({
   // === preview margin ===
   const numericVolume = Number(volume) || 0;
   const numericLeverage = Number(leverage) || 0;
-  const currentPrice = useMemo(() => {
+  const currentPrice = (() => {
     if (!selectedTicker) return 0;
     const p = Number(
         (selectedTicker as any).bid ??
@@ -207,7 +204,7 @@ export default function OpenTradeAdminDialog({
         0,
     );
     return Number.isFinite(p) ? p : 0;
-  }, [selectedTicker]);
+  })();
 
   let rawMarginUsd = 0;
   if (numericVolume > 0 && numericLeverage > 0 && currentPrice > 0) {

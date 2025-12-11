@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useMemo } from "react"
+import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import {
   MessageCircle,
@@ -361,20 +361,17 @@ export default function ChatManagement() {
     }
   }
 
-  const filteredSessions = useMemo(
-      () =>
-          chatSessions.filter(
-              (session) =>
-                  session.user.email
+  const filteredSessions = (() =>
+      chatSessions.filter(
+          (session) =>
+              session.user.email
+                  .toLowerCase()
+                  .includes(searchTerm.toLowerCase()) ||
+              (session.user.name &&
+                  session.user.name
                       .toLowerCase()
-                      .includes(searchTerm.toLowerCase()) ||
-                  (session.user.name &&
-                      session.user.name
-                          .toLowerCase()
-                          .includes(searchTerm.toLowerCase())),
-          ),
-      [chatSessions, searchTerm],
-  )
+                      .includes(searchTerm.toLowerCase())),
+      ))()
 
   const unreadConversations = chatSessions.filter(
       (s) => s.unreadCount > 0,

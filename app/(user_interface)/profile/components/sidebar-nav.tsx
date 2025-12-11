@@ -70,7 +70,7 @@ export function SidebarNav() {
         {/* основной «бокс» сайдбара */}
         <div className="flex justify-start items-center gap-6 m-2">
           <Link href={'/'} className="rounded-md p-3 bg-app-bgTile bounce"><ArrowLeft className={"w-4 h-4"}/></Link>
-          <span className="text-xl font-bold">Profile</span>
+          <span className="text-xl font-bold">{t("profile")}</span>
         </div>
         <div className="flex h-full flex-col rounded-2xl  bg-app-bgSurface px-3 py-4">
           {/* user / баланс */}
@@ -84,11 +84,11 @@ export function SidebarNav() {
               </div>
               <div className="min-w-0">
                 <div className="truncate text-sm font-medium text-slate-50">
-                  {user?.name || user?.email || "Trader"}
+                  {user?.name || user?.email || t("trader")}
                 </div>
                 {user?.id && (
                     <div className="text-[11px] text-slate-500">
-                      ID: {user.id.slice(0, 6)}
+                      {t("idLabel")}: {user.id.slice(0, 6)}
                     </div>
                 )}
               </div>
@@ -98,7 +98,7 @@ export function SidebarNav() {
               <div className={'flex justify-between w-full'}>
                 <div>
                   <div className="text-[11px] font-medium uppercase tracking-[0.16em] text-slate-500">
-                    {t("accountBalance") ?? "ACCOUNT BALANCE"}
+                    {t("accountBalance")}
                   </div>
                   <div className="mt-1 flex items-baseline gap-1.5">
                 <span className="text-lg font-semibold text-slate-50">
@@ -107,7 +107,7 @@ export function SidebarNav() {
                     <span className="text-[11px] text-slate-500">{currency}</span>
                   </div>
                   <div className="mt-1 flex flex-col items-baseline gap-1.5">
-                    <span className={'text-[11px] font-medium uppercase tracking-[0.16em] text-slate-500'}>{t('Withdrawal')}</span>
+                    <span className={'text-[11px] font-medium uppercase tracking-[0.16em] text-slate-500'}>{t('withdrawal')}</span>
                     <div className="gap-1 flex text-lg font-semibold text-slate-50">
                           { details?.availableToWithdraw }
                       <span className="text-[11px] text-slate-500">{currency}</span>

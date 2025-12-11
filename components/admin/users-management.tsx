@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useMemo } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/components/auth-provider"
 import { hasAdminAccess } from "@/lib/admin-access"
@@ -340,19 +340,19 @@ export default function UsersManagement() {
 
   // ---------- DERIVED DATA ----------
 
-  const filteredUsers = useMemo(() => {
+  const filteredUsers = (() => {
     const q = searchTerm.trim().toLowerCase()
     return users.filter(u => {
       const matchesSearch =
-          !q ||
-          u.email.toLowerCase().includes(q) ||
-          (u.name && u.name.toLowerCase().includes(q)) ||
-          u.id.toLowerCase().includes(q)
+        !q ||
+        u.email.toLowerCase().includes(q) ||
+        (u.name && u.name.toLowerCase().includes(q)) ||
+        u.id.toLowerCase().includes(q)
       const matchesRole = roleFilter === "all" || u.role === roleFilter
       const matchesStatus = statusFilter === "all" || u.status === statusFilter
       return matchesSearch && matchesRole && matchesStatus
     })
-  }, [users, searchTerm, roleFilter, statusFilter])
+  })()
 
   const isSearching = searchTerm.trim().length > 0
   const totalPages = Math.max(
@@ -360,11 +360,11 @@ export default function UsersManagement() {
       Math.ceil(filteredUsers.length / USERS_PER_PAGE),
   )
 
-  const visibleUsers = useMemo(() => {
+  const visibleUsers = (() => {
     if (isSearching) return filteredUsers
     const start = (currentPage - 1) * USERS_PER_PAGE
     return filteredUsers.slice(start, start + USERS_PER_PAGE)
-  }, [filteredUsers, isSearching, currentPage])
+  })()
 
   const handlePageChange = (page: number) => {
     if (page < 1 || page > totalPages) return

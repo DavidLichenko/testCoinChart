@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 
 import { useAuth } from "@/components/auth-provider";
@@ -286,7 +286,7 @@ export default function TeamManagement() {
 
   // ---------- DERIVED: filtered + sorted + paginated users ----------
 
-  const filteredAndSortedUsers = useMemo(() => {
+  const filteredAndSortedUsers = (() => {
     let list = [...users];
 
     if (roleFilter !== "all") {
@@ -330,17 +330,17 @@ export default function TeamManagement() {
     });
 
     return list;
-  }, [users, roleFilter, sortBy, teamLeadFilter]);
+  })();
 
   const totalPages = Math.max(
       1,
       Math.ceil(filteredAndSortedUsers.length / USERS_PER_PAGE),
   );
 
-  const visibleUsers = useMemo(() => {
+  const visibleUsers = (() => {
     const start = (currentPage - 1) * USERS_PER_PAGE;
     return filteredAndSortedUsers.slice(start, start + USERS_PER_PAGE);
-  }, [filteredAndSortedUsers, currentPage]);
+  })();
 
   const handlePageChange = (page: number) => {
     if (page < 1 || page > totalPages) return;

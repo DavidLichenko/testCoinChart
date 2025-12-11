@@ -109,7 +109,7 @@ export default function ProfileWithdrawPage() {
         console.error("Error fetching withdrawal data:", error);
         toast({
           title: t("error"),
-          description: "Failed to load withdrawal data",
+          description: t("failedToLoadWithdrawalData"),
           variant: "destructive",
         });
       } finally {
@@ -137,7 +137,7 @@ export default function ProfileWithdrawPage() {
     if (!amount || !selectedMethod || !selectedAsset) {
       toast({
         title: t("missingInformation"),
-        description: "Please fill all required fields",
+        description: t("pleaseFillAllRequiredFields"),
         variant: "destructive",
       });
       return;
@@ -147,7 +147,7 @@ export default function ProfileWithdrawPage() {
     if (isNaN(amountNum) || amountNum <= 0) {
       toast({
         title: t("invalidAmount"),
-        description: "Please enter a valid amount",
+        description: t("pleaseEnterValidAmount"),
         variant: "destructive",
       });
       return;
@@ -155,8 +155,8 @@ export default function ProfileWithdrawPage() {
 
     if (!selectedLimit) {
       toast({
-        title: "Error",
-        description: "Selected withdrawal method is not available",
+        title: t("error"),
+        description: t("selectedMethodNotAvailable"),
         variant: "destructive",
       });
       return;
@@ -165,8 +165,8 @@ export default function ProfileWithdrawPage() {
     // Check limits
     if (amountNum < selectedLimit.minAmount) {
       toast({
-        title: "Amount too low",
-        description: `Minimum withdrawal amount is ${selectedLimit.minAmount}`,
+        title: t("amountTooLowTitle"),
+        description: `${t("minimumAmountIs")} ${selectedLimit.minAmount.toFixed(2)}`,
         variant: "destructive",
       });
       return;
@@ -174,8 +174,8 @@ export default function ProfileWithdrawPage() {
 
     if (selectedLimit.maxAmount && amountNum > selectedLimit.maxAmount) {
       toast({
-        title: "Amount too high",
-        description: `Maximum withdrawal amount is ${selectedLimit.maxAmount}`,
+        title: t("amountTooHighTitle"),
+        description: `${t("maximumAmountIs")} ${selectedLimit.maxAmount.toFixed(2)}`,
         variant: "destructive",
       });
       return;
@@ -183,8 +183,8 @@ export default function ProfileWithdrawPage() {
 
     if (selectedLimit.dailyLimit && (usedToday + amountNum) > selectedLimit.dailyLimit) {
       toast({
-        title: "Daily limit exceeded",
-        description: `Daily withdrawal limit is ${selectedLimit.dailyLimit}`,
+        title: t("dailyLimitExceededTitle"),
+        description: `${t("dailyLimitIs")} ${selectedLimit.dailyLimit.toFixed(2)}`,
         variant: "destructive",
       });
       return;
@@ -192,8 +192,8 @@ export default function ProfileWithdrawPage() {
 
     if (amountNum > availableBalance) {
       toast({
-        title: "Insufficient funds",
-        description: `Available balance: ${availableBalance.toFixed(2)}`,
+        title: t("insufficientFundsTitle"),
+        description: `${t("availableBalance")}: ${availableBalance.toFixed(2)}`,
         variant: "destructive",
       });
       return;
@@ -326,7 +326,7 @@ export default function ProfileWithdrawPage() {
                 {/* Amount */}
               <div className="space-y-1.5">
                 <Label htmlFor="amount" className="text-xs text-slate-400 font-medium">
-                  Amount
+                  {t("amount")}
                   </Label>
                   <div className="relative">
                     <Input
@@ -334,7 +334,7 @@ export default function ProfileWithdrawPage() {
                         type="number"
                         value={amount}
                         onChange={(e) => setAmount(e.target.value)}
-                    placeholder="Enter amount"
+                    placeholder={t("enterAmount")}
                     className="h-11 rounded-lg border-slate-800 bg-slate-900 pl-11 text-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                     step="0.01"
                     min={selectedLimit?.minAmount || 0}
@@ -349,8 +349,8 @@ export default function ProfileWithdrawPage() {
                   </div>
                 {selectedLimit && (
                   <div className="text-[10px] text-slate-500">
-                    Min: {selectedLimit.minAmount} {selectedAsset}
-                    {selectedLimit.maxAmount && ` • Max: ${selectedLimit.maxAmount} ${selectedAsset}`}
+                    {t("min")}: {selectedLimit.minAmount} {selectedAsset}
+                    {selectedLimit.maxAmount && ` • ${t("max")}: ${selectedLimit.maxAmount} ${selectedAsset}`}
                   </div>
                 )}
                 </div>
@@ -358,7 +358,7 @@ export default function ProfileWithdrawPage() {
               {/* Method Selection */}
               <div className="space-y-1.5">
                 <Label className="text-xs text-slate-400 font-medium">
-                  Withdrawal Method
+                  {t("withdrawalMethod")}
                   </Label>
                 <div className="grid gap-2">
                         <button
@@ -372,9 +372,9 @@ export default function ProfileWithdrawPage() {
                   >
                     <CreditCard className="h-4 w-4 text-slate-400" />
                     <div className="flex-1">
-                      <div className="text-sm font-semibold text-slate-300">Card</div>
+                      <div className="text-sm font-semibold text-slate-300">{t("card")}</div>
                       <div className="text-xs text-slate-500 mt-0.5">
-                        {limits.find(l => l.method === "CARD")?.processingTime || "1-3 business days"}
+                        {limits.find(l => l.method === "CARD")?.processingTime || t("businessDays1to3")}
                   </div>
                 </div>
                   </button>
@@ -389,9 +389,9 @@ export default function ProfileWithdrawPage() {
                   >
                     <Coins className="h-4 w-4 text-slate-400" />
                     <div className="flex-1">
-                      <div className="text-sm font-semibold text-slate-300">Crypto</div>
+                      <div className="text-sm font-semibold text-slate-300">{t("crypto")}</div>
                       <div className="text-xs text-slate-500 mt-0.5">
-                        Withdraw to crypto address
+                        {t("withdrawToCryptoAddress")}
                                 </div>
                               </div>
                   </button>
@@ -409,25 +409,25 @@ export default function ProfileWithdrawPage() {
                   >
                     <div className="space-y-1.5">
                       <Label htmlFor="cardHolder" className="text-xs text-slate-400">
-                        Card Holder Name
+                        {t("cardHolderName")}
                               </Label>
                               <Input
                         id="cardHolder"
                         value={cardHolder}
                         onChange={(e) => setCardHolder(e.target.value)}
-                        placeholder="Enter card holder name"
+                        placeholder={t("enterCardHolderName")}
                         className="h-10 rounded-lg border-slate-800 bg-slate-900 text-sm"
                               />
                             </div>
                     <div className="space-y-1.5">
                       <Label htmlFor="cardNumber" className="text-xs text-slate-400">
-                        Card Number
+                        {t("cardNumber")}
                                 </Label>
                                 <Input
                         id="cardNumber"
                         value={cardNumber}
                         onChange={(e) => setCardNumber(e.target.value)}
-                        placeholder="Enter card number"
+                        placeholder={t("enterCardNumber")}
                         className="h-10 rounded-lg border-slate-800 bg-slate-900 text-sm"
                                 />
                               </div>
@@ -443,7 +443,7 @@ export default function ProfileWithdrawPage() {
                   >
                     {/* Crypto Asset Selection */}
                     <div className="space-y-1.5">
-                      <Label className="text-xs text-slate-400">Select Crypto Asset</Label>
+                      <Label className="text-xs text-slate-400">{t("selectCryptoAsset")}</Label>
                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                         {assets.map((asset) => (
                           <button
@@ -473,10 +473,10 @@ export default function ProfileWithdrawPage() {
                       <>
                         {/* Network Selection */}
                         <div className="space-y-1.5">
-                          <Label className="text-xs text-slate-400">Select Network</Label>
+                          <Label className="text-xs text-slate-400">{t("selectNetwork")}</Label>
                           <Select value={cryptoNetwork} onValueChange={setCryptoNetwork}>
                             <SelectTrigger className="h-10 rounded-lg border-slate-800 bg-slate-900 text-sm">
-                              <SelectValue placeholder="Select network" />
+                              <SelectValue placeholder={t("selectNetwork")} />
                             </SelectTrigger>
                             <SelectContent className="border-slate-800 bg-slate-900">
                               {availableNetworks.map((network) => (
@@ -499,13 +499,13 @@ export default function ProfileWithdrawPage() {
                         {/* Crypto Address Input */}
                         <div className="space-y-1.5">
                           <Label htmlFor="cryptoAddress" className="text-xs text-slate-400">
-                            Crypto Address
+                            {t("cryptoAddress")}
                           </Label>
                           <Input
                             id="cryptoAddress"
                             value={cryptoAddress}
                             onChange={(e) => setCryptoAddress(e.target.value)}
-                            placeholder="Enter crypto address"
+                            placeholder={t("enterCryptoAddress")}
                             className="h-10 rounded-lg border-slate-800 bg-slate-900 text-sm font-mono"
                           />
                         </div>
@@ -519,17 +519,17 @@ export default function ProfileWithdrawPage() {
               {selectedLimit && amount && !isNaN(parseFloat(amount)) && (
                 <div className="rounded-lg bg-slate-900 p-3 border border-slate-800">
                   <div className="flex justify-between text-xs mb-1.5">
-                    <span className="text-slate-400">Amount:</span>
+                    <span className="text-slate-400">{t("amount")}:</span>
                     <span className="text-slate-300 font-medium">{amount} {selectedAsset}</span>
                   </div>
                   <div className="flex justify-between text-xs mb-1.5">
-                    <span className="text-slate-400">Fee:</span>
+                    <span className="text-slate-400">{t("fee")}:</span>
                     <span className="text-slate-300 font-medium">
                       {calculateFee(parseFloat(amount)).toFixed(2)} {selectedAsset}
                     </span>
                   </div>
                   <div className="flex justify-between text-xs font-semibold pt-1.5 border-t border-slate-800">
-                    <span className="text-slate-300">You will receive:</span>
+                    <span className="text-slate-300">{t("youWillReceive") || "You will receive"}:</span>
                     <span className="text-purple-400">
                       {(parseFloat(amount) - calculateFee(parseFloat(amount))).toFixed(2)} {selectedAsset}
                     </span>
@@ -546,10 +546,10 @@ export default function ProfileWithdrawPage() {
                     {isSubmitting ? (
                         <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Processing...
+                    {t("processing")}
                         </>
                     ) : (
-                  "Withdraw"
+                  t("withdraw")
                     )}
                   </Button>
               </CardContent>
@@ -562,13 +562,13 @@ export default function ProfileWithdrawPage() {
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-base font-semibold">
                 <Wallet className="h-4 w-4 text-purple-400" />
-                Available Funds
+                {t("availableFunds")}
                 </CardTitle>
               </CardHeader>
             <CardContent className="space-y-3">
               {assets.length === 0 ? (
                 <div className="text-center py-8 text-slate-500">
-                  No funds available for withdrawal
+                  {t("noFundsAvailable")}
                 </div>
               ) : (
                 assets.map((asset) => (
@@ -593,7 +593,7 @@ export default function ProfileWithdrawPage() {
                             minimumFractionDigits={2}
                           />
                         </div>
-                        <div className="text-[10px] text-slate-500">Available</div>
+                        <div className="text-[10px] text-slate-500">{t("available")}</div>
                       </div>
                 </div>
                 </div>
@@ -607,13 +607,13 @@ export default function ProfileWithdrawPage() {
             <Card className="bg-slate-900 border-slate-800 rounded-lg">
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm font-semibold text-slate-400">
-                  Withdrawal Limits
+                  {t("withdrawalLimits")}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-2.5">
                 {selectedLimit.dailyLimit && (
                   <div className="flex justify-between text-xs">
-                    <span className="text-slate-500">Daily Limit:</span>
+                    <span className="text-slate-500">{t("dailyLimitLabel")}:</span>
                     <span className="font-semibold text-slate-300">
                       {selectedLimit.dailyLimit.toFixed(2)} {selectedAsset}
                     </span>
@@ -621,7 +621,7 @@ export default function ProfileWithdrawPage() {
                 )}
                 {selectedLimit.monthlyLimit && (
                   <div className="flex justify-between text-xs">
-                    <span className="text-slate-500">Monthly Limit:</span>
+                    <span className="text-slate-500">{t("monthlyLimitLabel")}:</span>
                     <span className="font-semibold text-slate-300">
                       {selectedLimit.monthlyLimit.toFixed(2)} {selectedAsset}
                     </span>
@@ -629,7 +629,7 @@ export default function ProfileWithdrawPage() {
                 )}
                 {selectedLimit.dailyLimit && (
                   <div className="flex justify-between text-xs">
-                    <span className="text-slate-500">Used Today:</span>
+                    <span className="text-slate-500">{t("usedToday")}:</span>
                     <span className="font-semibold text-slate-300">
                       {usedToday.toFixed(2)} {selectedAsset}
                     </span>
@@ -637,7 +637,7 @@ export default function ProfileWithdrawPage() {
                 )}
                 {selectedLimit.monthlyLimit && (
                   <div className="flex justify-between text-xs">
-                    <span className="text-slate-500">Used This Month:</span>
+                    <span className="text-slate-500">{t("usedThisMonth")}:</span>
                     <span className="font-semibold text-slate-300">
                       {usedThisMonth.toFixed(2)} {selectedAsset}
                     </span>

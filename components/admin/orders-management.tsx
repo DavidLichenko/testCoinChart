@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useMemo } from "react"
+import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -294,53 +294,36 @@ export default function OrdersManagement() {
     }
 
     // -------- filters / derived --------
-    const filteredOrders = useMemo(
-        () =>
-            orders.filter((order) => {
-                const q = searchTerm.toLowerCase()
-                const matchesSearch =
-                    !q ||
-                    order.User?.email?.toLowerCase().includes(q) ||
-                    (order.User?.name && order.User.name.toLowerCase().includes(q))
-                const matchesStatus = statusFilter === "all" || order.status === statusFilter
-                const matchesType = typeFilter === "all" || order.type === typeFilter
-                return matchesSearch && matchesStatus && matchesType
-            }),
-        [orders, searchTerm, statusFilter, typeFilter],
-    )
+    const filteredOrders = (() =>
+        orders.filter((order) => {
+            const q = searchTerm.toLowerCase()
+            const matchesSearch =
+                !q ||
+                order.User?.email?.toLowerCase().includes(q) ||
+                (order.User?.name && order.User.name.toLowerCase().includes(q))
+            const matchesStatus = statusFilter === "all" || order.status === statusFilter
+            const matchesType = typeFilter === "all" || order.type === typeFilter
+            return matchesSearch && matchesStatus && matchesType
+        }))()
 
     const totalPages =
         filteredOrders.length === 0 ? 1 : Math.ceil(filteredOrders.length / ORDERS_PER_PAGE)
 
-    const ordersToShow = useMemo(
-        () =>
-            filteredOrders.slice(
-                (currentPage - 1) * ORDERS_PER_PAGE,
-                currentPage * ORDERS_PER_PAGE,
-            ),
-        [filteredOrders, currentPage],
-    )
+    const ordersToShow = (() =>
+        filteredOrders.slice(
+            (currentPage - 1) * ORDERS_PER_PAGE,
+            currentPage * ORDERS_PER_PAGE,
+        ))()
 
-    const totalDeposits = useMemo(
-        () =>
-            orders
-                .filter((o) => o.type === "DEPOSIT" && o.status === "SUCCESSFUL")
-                .reduce((sum, o) => sum + o.amount, 0),
-        [orders],
-    )
+    const totalDeposits = orders
+        .filter((o) => o.type === "DEPOSIT" && o.status === "SUCCESSFUL")
+        .reduce((sum, o) => sum + o.amount, 0)
 
-    const totalWithdraws = useMemo(
-        () =>
-            orders
-                .filter((o) => o.type === "WITHDRAW" && o.status === "SUCCESSFUL")
-                .reduce((sum, o) => sum + o.amount, 0),
-        [orders],
-    )
+    const totalWithdraws = orders
+        .filter((o) => o.type === "WITHDRAW" && o.status === "SUCCESSFUL")
+        .reduce((sum, o) => sum + o.amount, 0)
 
-    const pendingCount = useMemo(
-        () => orders.filter((o) => o.status === "PENDING").length,
-        [orders],
-    )
+    const pendingCount = orders.filter((o) => o.status === "PENDING").length
 
     // -------- detail dialog helpers --------
     const openDetailDialog = (order: Order) => {

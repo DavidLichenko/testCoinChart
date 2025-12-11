@@ -304,7 +304,7 @@ export default function ProfileTransactionsPage() {
                                   getTypeIcon(tx.type)
                                 )}
                                 <span className="text-xs capitalize text-slate-100">
-                            {tx.type === "TRADE" && tx.aiEnabled ? "AI Trade" : t(tx.type.toLowerCase())}
+                            {tx.type === "TRADE" && tx.aiEnabled ? t("aiTrade") : t(tx.type.toLowerCase())}
                           </span>
                               </div>
                               <span
@@ -398,7 +398,7 @@ export default function ProfileTransactionsPage() {
                                       getTypeIcon(tx.type)
                                     )}
                                     <span className="text-xs capitalize text-slate-100">
-                                  {tx.type === "TRADE" && tx.aiEnabled ? "AI Trade" : t(tx.type.toLowerCase())}
+                                  {tx.type === "TRADE" && tx.aiEnabled ? t("aiTrade") : t(tx.type.toLowerCase())}
                                 </span>
                                   </div>
                                 </td>

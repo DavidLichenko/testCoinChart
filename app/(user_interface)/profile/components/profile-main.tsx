@@ -120,7 +120,7 @@ const VerificationStatusBadge = ({ status }: { status?: string }) => {
       default:
         return {
           icon: null,
-          text: "Unknown",
+          text: t("unknownStatus"),
           cls: "border-slate-600 bg-slate-900/70 text-slate-300",
         };
     }

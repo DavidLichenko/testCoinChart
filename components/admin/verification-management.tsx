@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useMemo } from "react"
+import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import {
   ShieldCheck,
@@ -151,34 +151,31 @@ export default function VerificationManagement() {
     }
   }
 
-  const filtered = useMemo(() => {
+  const filtered = (() => {
     return verifications.filter((v) => {
       const search = searchTerm.toLowerCase()
       const matchSearch =
-          v.user.email.toLowerCase().includes(search) ||
-          (v.user.name || "").toLowerCase().includes(search)
+        v.user.email.toLowerCase().includes(search) ||
+        (v.user.name || "").toLowerCase().includes(search)
 
       const matchStatus =
-          statusFilter === "all" ||
-          v.status.toLowerCase() === statusFilter
+        statusFilter === "all" ||
+        v.status.toLowerCase() === statusFilter
 
       return matchSearch && matchStatus
     })
-  }, [verifications, searchTerm, statusFilter])
+  })()
 
   const totalPages =
       filtered.length === 0
           ? 1
           : Math.ceil(filtered.length / VERIFICATIONS_PER_PAGE)
 
-  const currentItems = useMemo(
-      () =>
-          filtered.slice(
-              (currentPage - 1) * VERIFICATIONS_PER_PAGE,
-              currentPage * VERIFICATIONS_PER_PAGE,
-          ),
-      [filtered, currentPage],
-  )
+  const currentItems = (() =>
+      filtered.slice(
+          (currentPage - 1) * VERIFICATIONS_PER_PAGE,
+          currentPage * VERIFICATIONS_PER_PAGE,
+      ))()
 
   const handlePageChange = (page: number) => {
     if (page < 1 || page > totalPages) return

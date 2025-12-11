@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState, useMemo } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Wallet as WalletIcon, 
@@ -261,7 +261,7 @@ export default function WalletsManagement() {
   };
 
   // Sort users based on current sort settings
-  const sortedUsers = useMemo(() => {
+  const sortedUsers = (() => {
     return [...users].sort((a, b) => {
       let comparison = 0;
       
@@ -281,7 +281,7 @@ export default function WalletsManagement() {
       
       return sortOrder === "asc" ? comparison : -comparison;
     });
-  }, [users, sortBy, sortOrder]);
+  })();
 
   return (
     <div className="space-y-6">
