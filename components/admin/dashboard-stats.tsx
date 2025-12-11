@@ -1,8 +1,7 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { useRouter } from "next/navigation"
-import { motion } from "framer-motion"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -83,8 +82,11 @@ export default function DashboardStats() {
       }
     }
 
-    fetchStats()
-  }, [])
+    // Only fetch once - no polling
+    if (!stats) {
+      fetchStats()
+    }
+  }, [stats])
 
   if (loading) {
     return (
@@ -148,11 +150,7 @@ export default function DashboardStats() {
         {/* Нижний блок – недавние пользователи и сделки */}
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-5">
           {/* Recent Users */}
-          <motion.div
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.25 }}
-          >
+          <div>
             <Card className="bg-card border-border shadow-[0_18px_40px_rgba(15,23,42,0.35)]">
               <CardHeader className="flex flex-row items-center justify-between gap-2 p-4 pb-3 sm:p-5 sm:pb-3">
                 <CardTitle className="flex items-center gap-2 text-base sm:text-lg text-foreground">
@@ -203,14 +201,10 @@ export default function DashboardStats() {
                 </div>
               </CardContent>
             </Card>
-          </motion.div>
+          </div>
 
           {/* Recent Trades */}
-          <motion.div
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.25, delay: 0.05 }}
-          >
+          <div>
             <Card className="bg-card border-border shadow-[0_18px_40px_rgba(15,23,42,0.35)]">
               <CardHeader className="flex flex-row items-center justify-between gap-2 p-4 pb-3 sm:p-5 sm:pb-3">
                 <CardTitle className="flex items-center gap-2 text-base sm:text-lg text-foreground">
@@ -377,7 +371,7 @@ export default function DashboardStats() {
                 </div>
               </CardContent>
             </Card>
-          </motion.div>
+          </div>
         </div>
       </div>
   )
@@ -410,12 +404,8 @@ function StatCard({
           : "bg-primary/10 text-primary"
 
   return (
-      <motion.div
-          initial={{ opacity: 0, y: 6 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.25 }}
-      >
-        <Card className="relative overflow-hidden rounded-2xl border border-border bg-card shadow-[0_18px_45px_rgba(15,23,42,0.35)]">
+      <div className="animate-in fade-in duration-200">
+        <Card className="relative overflow-hidden rounded-2xl border border-border bg-card shadow-[0_18px_45px_rgba(15,23,42,0.35)]]">
           <div
               className={`pointer-events-none absolute inset-x-0 top-0 h-16 bg-gradient-to-b ${accentColor} opacity-80`}
           />
@@ -438,6 +428,6 @@ function StatCard({
             </p>
           </CardContent>
         </Card>
-      </motion.div>
+      </div>
   )
 }

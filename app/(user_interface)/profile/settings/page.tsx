@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
 import { useAuth } from "@/components/auth-provider";
 import { useI18n } from "@/components/i18n-provider";
 import {
@@ -144,12 +143,7 @@ export default function ProfileSettingsPage() {
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.35 }}
-      className="text-gray-50"
-    >
+    <div className="text-gray-50 animate-in fade-in duration-300">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-white">{t("settings")}</h1>
         <p className="text-gray-500 text-sm mt-1">{t("manageYourPreferences")}</p>
@@ -402,6 +396,6 @@ export default function ProfileSettingsPage() {
           background: rgb(107 33 168 / 0.2) !important;
         }
       `}</style>
-    </motion.div>
+    </div>
   );
 }

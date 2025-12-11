@@ -36,8 +36,9 @@ export function WalletSidebar({ selectedSymbol }: Props) {
     }, 0) ?? 0;
     
     // Show credit information only if there's credit and it's configured
-    const hasCredit = (summary?.creditBalance ?? 0) > 0;
-    const creditBalance = summary?.creditBalance ?? 0;
+    const hasCredit = (summary?.creditUsed ?? 0) > 0 || (summary?.creditLimit ?? 0) > 0;
+    const creditUsed = summary?.creditUsed ?? 0;
+    const creditLimit = summary?.creditLimit ?? 0;
     
     // For EUR users, we might want to show an approximate USD value
     const approxUsd =

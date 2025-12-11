@@ -51,6 +51,10 @@ export default function ProfileHistoryPage() {
   const [filterStatus, setFilterStatus] = useState("all");
   const [sortBy, setSortBy] = useState("date");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+  
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 20;
 
   useEffect(() => {
     const fetchTransactions = async () => {
@@ -125,6 +129,17 @@ export default function ProfileHistoryPage() {
 
     setFilteredTransactions(result);
   }, [transactions, searchTerm, filterType, filterStatus, sortBy, sortOrder]);
+
+  // Calculate pagination
+  const totalPages = Math.ceil(filteredTransactions.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const paginatedTransactions = filteredTransactions.slice(startIndex, endIndex);
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, filterType, filterStatus, sortBy, sortOrder]);
 
   const getTypeConfig = (type: string) => {
     switch (type) {
@@ -314,7 +329,7 @@ export default function ProfileHistoryPage() {
                       </tr>
                     </thead>
                     <tbody className="text-sm">
-                      {filteredTransactions.map((transaction) => {
+                      {paginatedTransactions.map((transaction) => {
                         const typeConfig = getTypeConfig(transaction.type);
                         return (
                           <tr
@@ -372,6 +387,64 @@ export default function ProfileHistoryPage() {
                 <p className="mt-2 text-gray-600">
                   {t("tryAdjustingYourFilters")}
                 </p>
+              </div>
+            )}
+            
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-slate-900 pt-4 mt-6">
+                <div className="text-xs text-slate-400">
+                  Showing {startIndex + 1} to {Math.min(endIndex, filteredTransactions.length)} of {filteredTransactions.length} transactions
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                    variant="outline"
+                    size="sm"
+                    className="h-8 rounded-xl border-[#121426] bg-[#0f1126] text-xs disabled:opacity-50"
+                  >
+                    {t("previous") || "Previous"}
+                  </Button>
+                  <div className="flex items-center gap-1">
+                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                      let pageNum;
+                      if (totalPages <= 5) {
+                        pageNum = i + 1;
+                      } else if (currentPage <= 3) {
+                        pageNum = i + 1;
+                      } else if (currentPage >= totalPages - 2) {
+                        pageNum = totalPages - 4 + i;
+                      } else {
+                        pageNum = currentPage - 2 + i;
+                      }
+                      return (
+                        <Button
+                          key={pageNum}
+                          onClick={() => setCurrentPage(pageNum)}
+                          variant={currentPage === pageNum ? "default" : "outline"}
+                          size="sm"
+                          className={`h-8 w-8 rounded-xl text-xs ${
+                            currentPage === pageNum
+                              ? "bg-purple-600 border-purple-600"
+                              : "border-[#121426] bg-[#0f1126]"
+                          }`}
+                        >
+                          {pageNum}
+                        </Button>
+                      );
+                    })}
+                  </div>
+                  <Button
+                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                    disabled={currentPage === totalPages}
+                    variant="outline"
+                    size="sm"
+                    className="h-8 rounded-xl border-[#121426] bg-[#0f1126] text-xs disabled:opacity-50"
+                  >
+                    {t("next") || "Next"}
+                  </Button>
+                </div>
               </div>
             )}
           </CardContent>

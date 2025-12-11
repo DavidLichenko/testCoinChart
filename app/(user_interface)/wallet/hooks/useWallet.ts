@@ -6,9 +6,11 @@ import {fetcher} from "./fetcher";
 export type WalletSummary = {
     totalBalance: number;
     ownFunds: number;
-    creditBalance: number;
+    creditUsed: number;  // Changed from creditBalance to match API
+    creditLimit: number; // Added to match API response
     availableToTrade: number;
     baseCurrency: string;
+    approxUsd?: number;  // Added as optional since it's only for EUR
 };
 
 export type WalletAsset = {

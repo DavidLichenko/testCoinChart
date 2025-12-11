@@ -25,22 +25,28 @@ export async function GET(request: NextRequest) {
       where: { role: "USER" },
     })
 
-    // Total balance only for USERs - calculate from walletBalances
+    // Total balance only for USERs - optimized calculation
+    // Only fetch baseCurrency wallet balance for each user
     const users = await prisma.user.findMany({
       where: { role: "USER" },
       select: {
-        id: true,
         baseCurrency: true,
         walletBalances: {
           select: {
             assetSymbol: true,
             ownBalance: true,
+          },
+          where: {
+            OR: [
+              { assetSymbol: "USD" },
+              { assetSymbol: "EUR" }
+            ]
           }
         }
       }
     })
     
-    // Calculate total balance from walletBalances
+    // Calculate total balance from base currency wallets only
     let totalBalance = 0
     for (const user of users) {
       const baseCurrency = user.baseCurrency || "USD"

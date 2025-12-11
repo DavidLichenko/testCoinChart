@@ -16,18 +16,17 @@ type NeuralBackgroundProps = {
     clusters: number; // сколько “облаков связей” показывать
 };
 
-/** Background with neural-like lines + parallax */
+/** Background with neural-like lines + optimized parallax */
 function NeuralBackground({ clusters }: NeuralBackgroundProps) {
     const baseX = useMotionValue(0);
     const baseY = useMotionValue(0);
-    const rotMV = useMotionValue(0);
     const glowMV = useMotionValue(0);
 
     const glow = useSpring(glowMV, { stiffness: 50, damping: 22, mass: 0.7 });
 
-    const x = useSpring(baseX, { stiffness: 35, damping: 22, mass: 1 });
-    const y = useSpring(baseY, { stiffness: 35, damping: 22, mass: 1 });
-    const rot = useSpring(rotMV, { stiffness: 30, damping: 20, mass: 0.8 });
+    // Simplified springs - no rotation for better performance
+    const x = useSpring(baseX, { stiffness: 25, damping: 20, mass: 1.2 });
+    const y = useSpring(baseY, { stiffness: 25, damping: 20, mass: 1.2 });
 
     useEffect(() => {
         const onMouseMove = (e: MouseEvent) => {
@@ -35,36 +34,26 @@ function NeuralBackground({ clusters }: NeuralBackgroundProps) {
             const normX = e.clientX / innerWidth - 0.5;
             const normY = e.clientY / innerHeight - 0.5;
 
-            const targetX = normX * 26;
-            const targetY = normY * 20;
+            // Reduced parallax strength for better performance
+            const targetX = normX * 15; // Reduced from 26
+            const targetY = normY * 12; // Reduced from 20
 
-            const currentX = baseX.get();
-            const currentY = baseY.get();
-            baseX.set(currentX + (targetX - currentX) * 0.25);
-            baseY.set(currentY + (targetY - currentY) * 0.25);
-
-            const targetRot = (normX + normY) * 3;
-            const currentRot = rotMV.get();
-            rotMV.set(currentRot + (targetRot - currentRot) * 0.25);
+            baseX.set(targetX);
+            baseY.set(targetY);
         };
 
-        window.addEventListener("mousemove", onMouseMove);
+        window.addEventListener("mousemove", onMouseMove, { passive: true });
 
         const onScrollEvent = (e: Event) => {
             const custom = e as CustomEvent<{ progress: number }>;
-            const p = custom.detail?.progress ?? 0; // 0..1
+            const p = custom.detail?.progress ?? 0;
 
-            const scrollTargetY = (p - 0.5) * 36;
-            const scrollTargetX = (p - 0.5) * 24;
-            const scrollTargetRot = (p - 0.5) * 6;
+            // Reduced scroll effect
+            const scrollTargetY = (p - 0.5) * 20; // Reduced from 36
+            const scrollTargetX = (p - 0.5) * 14; // Reduced from 24
 
-            const currentX = baseX.get();
-            const currentY = baseY.get();
-            const currentRot = rotMV.get();
-
-            baseX.set(currentX + (scrollTargetX - currentX) * 0.36);
-            baseY.set(currentY + (scrollTargetY - currentY) * 0.36);
-            rotMV.set(currentRot + (scrollTargetRot - currentRot) * 0.4);
+            baseX.set(scrollTargetX);
+            baseY.set(scrollTargetY);
         };
 
         window.addEventListener("wallet-scroll", onScrollEvent as EventListener);
@@ -80,7 +69,7 @@ function NeuralBackground({ clusters }: NeuralBackgroundProps) {
             window.removeEventListener("wallet-scroll", onScrollEvent as EventListener);
             window.removeEventListener("wallet-balance-glow", onGlow as EventListener);
         };
-    }, [baseX, baseY, rotMV, glowMV]);
+    }, [baseX, baseY, glowMV]);
 
     const clusterConfigs: {
         type: "A" | "B";
@@ -101,19 +90,19 @@ function NeuralBackground({ clusters }: NeuralBackgroundProps) {
     const maxClusters = clusterConfigs.length;
     const visibleCount = Math.max(2, Math.min(maxClusters, clusters));
 
-    // 🔑 FIX: hooks count is constant – we create springs for ALL clusters
+    // Optimized springs - fewer calculations
     const localXs = clusterConfigs.map((_, idx) =>
         useSpring(x, {
-            stiffness: 30,
-            damping: 18,
-            mass: 0.6 / Math.max(0.4, 1 - idx * 0.08),
+            stiffness: 25,
+            damping: 20,
+            mass: 0.8 / Math.max(0.5, 1 - idx * 0.06),
         })
     );
     const localYs = clusterConfigs.map((_, idx) =>
         useSpring(y, {
-            stiffness: 30,
-            damping: 18,
-            mass: 0.6 / Math.max(0.4, 1 - idx * 0.08),
+            stiffness: 25,
+            damping: 20,
+            mass: 0.8 / Math.max(0.5, 1 - idx * 0.06),
         })
     );
 
@@ -136,7 +125,7 @@ function NeuralBackground({ clusters }: NeuralBackgroundProps) {
                 return cfg.type === "A" ? (
                     <motion.svg
                         key={idx}
-                        style={{ x: localX, y: localY, rotate: rot }}
+                        style={{ x: localX, y: localY }}
                         className={cfg.className}
                         viewBox="0 0 400 400"
                         aria-hidden="true"
@@ -198,7 +187,7 @@ function NeuralBackground({ clusters }: NeuralBackgroundProps) {
                 ) : (
                     <motion.svg
                         key={idx}
-                        style={{ x: localX, y: localY, rotate: rot }}
+                        style={{ x: localX, y: localY }}
                         className={cfg.className}
                         viewBox="0 0 400 400"
                         aria-hidden="true"

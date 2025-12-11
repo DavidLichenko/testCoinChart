@@ -40,17 +40,15 @@ export function HomePageClient() {
   const [dragStartX, setDragStartX] = useState(0);
   const [dragOffset, setDragOffset] = useState(0);
 
-  // Parallax transforms
-  const layer1Y = useTransform(scrollY, [0, 2000], [0, -200]);
-  const layer2Y = useTransform(scrollY, [0, 2000], [0, -400]);
-  const layer3Y = useTransform(scrollY, [0, 2000], [0, -600]);
-  const layer4Y = useTransform(scrollY, [0, 2000], [0, -800]);
+  // Simplified parallax transforms - reduced layers and movement
+  const layer1Y = useTransform(scrollY, [0, 2000], [0, -100]); // Reduced from -200
+  const layer2Y = useTransform(scrollY, [0, 2000], [0, -180]); // Reduced from -400
 
-  // Content sections transforms
-  const featuresY = useTransform(scrollY, [0, 2000], [0, -100]);
-  const howItWorksY = useTransform(scrollY, [0, 2000], [0, -150]);
-  const educationY = useTransform(scrollY, [0, 2000], [0, -200]);
-  const ctaY = useTransform(scrollY, [0, 2000], [0, -100]);
+  // Content sections transforms - simplified
+  const featuresY = useTransform(scrollY, [0, 2000], [0, -50]); // Reduced from -100
+  const howItWorksY = useTransform(scrollY, [0, 2000], [0, -75]); // Reduced from -150
+  const educationY = useTransform(scrollY, [0, 2000], [0, -100]); // Reduced from -200
+  const ctaY = useTransform(scrollY, [0, 2000], [0, -50]); // Reduced from -100
 
   // Hero scale on scroll
   const heroScale = useTransform(scrollY, [0, 500], [1, 0.98]);
@@ -236,9 +234,9 @@ export function HomePageClient() {
     >
       {/* Header for unauthenticated users */}
       {/*{!loadUser && !isAuthenticated && <Header homepage={true} />}*/}
-            {/* Multi-layer Parallax Background */}
+            {/* Simplified 2-layer Background - optimized for performance */}
             <div className="fixed inset-0 z-0">
-                {/* Layer 1 */}
+                {/* Layer 1 - Gradient blobs */}
                 <motion.div style={{ y: layer1Y }} className="absolute inset-0">
                     <div
                         className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full blur-3xl opacity-10"
@@ -254,53 +252,13 @@ export function HomePageClient() {
                     />
                 </motion.div>
 
-                {/* Layer 2 - Grid pattern */}
+                {/* Layer 2 - Grid pattern (static for better performance) */}
                 <motion.div style={{ y: layer2Y }} className="absolute inset-0 opacity-5">
                     <div
                         className="absolute inset-0 bg-center"
                         style={{
                             backgroundImage: `url("data:image/svg+xml,%3Csvg width='80' height='80' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3Cpattern id='grid' width='80' height='80' patternUnits='userSpaceOnUse'%3E%3Cpath d='M 80 0 L 0 0 0 80' fill='none' stroke='white' stroke-width='0.5' opacity='0.2'/%3E%3C/pattern%3E%3C/defs%3E%3Crect width='100%25' height='100%25' fill='url(%23grid)' /%3E%3C/svg%3E")`,
                         }}
-                    />
-                </motion.div>
-
-                {/* Layer 3 - Floating dots */}
-                <motion.div style={{ y: layer3Y }} className="absolute inset-0">
-                    <div
-                        className="absolute top-1/3 left-1/3 w-2 h-2 rounded-full opacity-30"
-                        style={{ background: "var(--app-accent)" }}
-                    />
-                    <div
-                        className="absolute top-2/3 right-1/3 w-3 h-3 rounded-full opacity-30"
-                        style={{ background: "var(--app-text-muted)" }}
-                    />
-                    <div
-                        className="absolute bottom-1/3 left-1/2 w-1 h-1 rounded-full opacity-30"
-                        style={{ background: "var(--app-text-secondary)" }}
-                    />
-                    <div
-                        className="absolute top-1/2 right-1/2 w-2 h-2 rounded-full opacity-30"
-                        style={{ background: "var(--app-success)" }}
-                    />
-                </motion.div>
-
-                {/* Layer 4 - Borders */}
-                <motion.div style={{ y: layer4Y }} className="absolute inset-0">
-                    <div
-                        className="absolute top-0 left-0 w-full h-px"
-                        style={{ background: "linear-gradient(90deg, transparent, var(--app-border-subtle), transparent)" }}
-                    />
-                    <div
-                        className="absolute bottom-0 left-0 w-full h-px"
-                        style={{ background: "linear-gradient(90deg, transparent, var(--app-border-subtle), transparent)" }}
-                    />
-                    <div
-                        className="absolute top-0 left-0 w-px h-full"
-                        style={{ background: "linear-gradient(0deg, transparent, var(--app-border-subtle), transparent)" }}
-                    />
-                    <div
-                        className="absolute top-0 right-0 w-px h-full"
-                        style={{ background: "linear-gradient(0deg, transparent, var(--app-border-subtle), transparent)" }}
                     />
                 </motion.div>
             </div>

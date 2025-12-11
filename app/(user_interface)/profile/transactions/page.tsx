@@ -57,6 +57,10 @@ export default function ProfileTransactionsPage() {
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
   const [typeFilter, setTypeFilter] = useState<string>("ALL");
+  
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 20;
 
   // ---- fetch transactions ----
   useEffect(() => {
@@ -175,7 +179,19 @@ export default function ProfileTransactionsPage() {
     setTypeFilter("ALL");
     setSortField("date");
     setSortDirection("desc");
+    setCurrentPage(1);
   };
+
+  // Calculate pagination
+  const totalPages = Math.ceil(filteredTransactions.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const paginatedTransactions = filteredTransactions.slice(startIndex, endIndex);
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, statusFilter, typeFilter, sortField, sortDirection]);
 
   if (loading) {
     return (
@@ -315,8 +331,8 @@ export default function ProfileTransactionsPage() {
             {filteredTransactions.length > 0 ? (
                 <>
                   {/* Mobile: карточки почти на всю ширину */}
-                  <div className="block max-h-[540px] space-y-3 overflow-y-auto pr-0.5 md:hidden">
-                    {filteredTransactions.map((tx) => {
+                  <div className="block space-y-3 pr-0.5 md:hidden">
+                    {paginatedTransactions.map((tx) => {
                       const isWithdraw = tx.type === "WITHDRAW";
                       return (
                           <div
@@ -384,7 +400,7 @@ export default function ProfileTransactionsPage() {
                   </div>
 
                   {/* Desktop: таблица */}
-                  <div className="hidden max-h-[540px] overflow-hidden rounded-2xl border border-[#121426] bg-[#090b1a] md:block">
+                  <div className="hidden overflow-hidden rounded-2xl border border-[#121426] bg-[#090b1a] md:block">
                     <div className="max-h-[540px] overflow-y-auto">
                       <table className="w-full text-xs">
                         <thead className="sticky top-0 z-10 bg-slate-950/95">
@@ -415,7 +431,7 @@ export default function ProfileTransactionsPage() {
                         </tr>
                         </thead>
                         <tbody>
-                        {filteredTransactions.map((tx, idx) => {
+                        {paginatedTransactions.map((tx, idx) => {
                           const isWithdraw = tx.type === "WITHDRAW";
 
                           return (
@@ -495,6 +511,64 @@ export default function ProfileTransactionsPage() {
                       </table>
                     </div>
                   </div>
+                  
+                  {/* Pagination Controls */}
+                  {totalPages > 1 && (
+                    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-slate-900 pt-4">
+                      <div className="text-xs text-slate-400">
+                        Showing {startIndex + 1} to {Math.min(endIndex, filteredTransactions.length)} of {filteredTransactions.length} transactions
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                          disabled={currentPage === 1}
+                          variant="outline"
+                          size="sm"
+                          className="h-8 rounded-xl border-[#121426] bg-[#0f1126] text-xs disabled:opacity-50"
+                        >
+                          {t("previous") || "Previous"}
+                        </Button>
+                        <div className="flex items-center gap-1">
+                          {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                            let pageNum;
+                            if (totalPages <= 5) {
+                              pageNum = i + 1;
+                            } else if (currentPage <= 3) {
+                              pageNum = i + 1;
+                            } else if (currentPage >= totalPages - 2) {
+                              pageNum = totalPages - 4 + i;
+                            } else {
+                              pageNum = currentPage - 2 + i;
+                            }
+                            return (
+                              <Button
+                                key={pageNum}
+                                onClick={() => setCurrentPage(pageNum)}
+                                variant={currentPage === pageNum ? "default" : "outline"}
+                                size="sm"
+                                className={`h-8 w-8 rounded-xl text-xs ${
+                                  currentPage === pageNum
+                                    ? "bg-purple-600 border-purple-600"
+                                    : "border-[#121426] bg-[#0f1126]"
+                                }`}
+                              >
+                                {pageNum}
+                              </Button>
+                            );
+                          })}
+                        </div>
+                        <Button
+                          onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                          disabled={currentPage === totalPages}
+                          variant="outline"
+                          size="sm"
+                          className="h-8 rounded-xl border-[#121426] bg-[#0f1126] text-xs disabled:opacity-50"
+                        >
+                          {t("next") || "Next"}
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                 </>
             ) : (
                 <div className="py-10 text-center text-slate-500">
