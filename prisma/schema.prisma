@@ -23,8 +23,11 @@ model User {
   blocked             Boolean              @default(false)
   isVerif             Boolean              @default(false)
   TotalBalance        Float?               @default(0)
+  bonusBalanced       Float?
   assignedTo          String?
   assignedAgentTo     String?
+  referralCode        String?              @unique
+  referredById        String?
   balance             Balances?
   comments            Comments?
   messages            Message[]
@@ -38,6 +41,9 @@ model User {
   Authenticator       Authenticator[]
   PasswordResetToken  PasswordResetToken[]
   chartDrawings       ChartDrawing[]
+  referredBy          User?                @relation("UserReferrals", fields: [referredById], references: [id], onDelete: SetNull)
+  referrals           User[]               @relation("UserReferrals")
+  referralRewards     ReferralReward[]
 }
 
 model ChartDrawing {
@@ -256,6 +262,19 @@ enum AssetType {
   Crypto
   Forex
   Metal
+}
+
+model ReferralReward {
+  id             String   @id @default(cuid())
+  userId         String?
+  referralUserId String?
+  amount         Float    @default(0)
+  source         String   @default("")
+  createdAt      DateTime @default(now())
+  user           User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([referralUserId])
 }
 
 enum UserStatus {

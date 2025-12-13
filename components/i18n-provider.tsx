@@ -538,6 +538,30 @@ const en: Messages = {
   processingInfo: "Your card deposit is being processed.",
   bankProcessingInfo:
     "The information is being processed, please wait for confirmation.",
+  // Referrals
+  referrals: "Referrals",
+  referralCode: "Referral Code",
+  referralLink: "Referral Link",
+  yourReferralCode: "Your Referral Code",
+  shareReferralLink: "Share your referral link",
+  copyReferralLink: "Copy Referral Link",
+  referralLinkCopied: "Referral link copied!",
+  earnCommission: "Earn 10% commission",
+  earnCommissionDesc: "Get 10% of profits from trades closed by your referrals",
+  totalReferrals: "Total Referrals",
+  totalEarnings: "Total Earnings",
+  referralsList: "Your Referrals",
+  noReferrals: "You haven't referred anyone yet",
+  referralRewards: "Referral Rewards",
+  rewardDate: "Date",
+  rewardAmount: "Amount",
+  rewardSource: "Source",
+  noRewards: "No rewards yet",
+  inviteFreinds: "Invite friends and earn rewards",
+  referralCodeOptional: "Referral Code (Optional)",
+  enterReferralCode: "Enter referral code",
+  joinedDate: "Joined Date",
+  bonusBalance: "Bonus Balance",
 };
 
 const es: Messages = {
@@ -1057,6 +1081,30 @@ const es: Messages = {
   processingInfo: "Tu depósito con tarjeta se está procesando.",
   bankProcessingInfo:
     "La información está siendo procesada, espera la confirmación.",
+  // Referrals
+  referrals: "Referencias",
+  referralCode: "Código de Referencia",
+  referralLink: "Enlace de Referencia",
+  yourReferralCode: "Tu Código de Referencia",
+  shareReferralLink: "Comparte tu enlace de referencia",
+  copyReferralLink: "Copiar Enlace de Referencia",
+  referralLinkCopied: "¡Enlace de referencia copiado!",
+  earnCommission: "Gana 10% de comisión",
+  earnCommissionDesc: "Obtén 10% de las ganancias de las operaciones cerradas por tus referidos",
+  totalReferrals: "Total de Referidos",
+  totalEarnings: "Ganancias Totales",
+  referralsList: "Tus Referidos",
+  noReferrals: "Aún no has referido a nadie",
+  referralRewards: "Recompensas de Referencia",
+  rewardDate: "Fecha",
+  rewardAmount: "Monto",
+  rewardSource: "Fuente",
+  noRewards: "Aún no hay recompensas",
+  inviteFreinds: "Invita amigos y gana recompensas",
+  referralCodeOptional: "Código de Referencia (Opcional)",
+  enterReferralCode: "Ingresa código de referencia",
+  joinedDate: "Fecha de Registro",
+  bonusBalance: "Balance de Bonificación",
 };
 
 const messagesByLang: Record<string, Messages> = { en, es }

@@ -14,6 +14,9 @@ import {
   BadgeCheck,
   XCircle,
   Clock,
+  Users,
+  Copy,
+  Gift,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,6 +33,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "@/components/toast";
 import { useBalance } from "@/hooks/useBalance";
 import { useRouter } from "next/navigation";
+import { pusherClient } from "@/lib/pusher-client";
 
 interface UserProfile {
   id: string;
@@ -53,6 +57,22 @@ interface Order {
   status: string;
   amount: number;
   createdAt: string;
+}
+
+interface Referral {
+  id: string;
+  name: string | null;
+  email: string;
+  createdAt: string;
+  TotalBalance: number;
+}
+
+interface ReferralReward {
+  id: string;
+  amount: number;
+  source: string;
+  createdAt: string;
+  referralUserId: string | null;
 }
 
 // Cloudinary preview helper
@@ -136,7 +156,7 @@ const VerificationStatusBadge = ({ status }: { status?: string }) => {
   );
 };
 
-type SectionKey = "profile" | "verification" | "withdraw" | "history";
+type SectionKey = "profile" | "verification" | "withdraw" | "history" | "referrals";
 
 const sections: {
   key: SectionKey;
@@ -147,17 +167,24 @@ const sections: {
   { key: "verification", icon: Shield, i18nKey: "verification" },
   { key: "withdraw", icon: CreditCard, i18nKey: "withdraw" },
   { key: "history", icon: FileText, i18nKey: "history" },
+  { key: "referrals", icon: Users, i18nKey: "referrals" },
 ];
 
 export default function ProfilePage() {
   const { user, logout } = useAuth();
-  const { balance, liveProfit } = useBalance();
+  const { balance, liveProfit, bonusBalanced } = useBalance();
   const { t, lang, setLang } = useI18n();
   const router = useRouter();
 
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [transactions, setTransactions] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Referral states
+  const [referrals, setReferrals] = useState<Referral[]>([]);
+  const [referralRewards, setReferralRewards] = useState<ReferralReward[]>([]);
+  const [referralCode, setReferralCode] = useState<string>("");
+  const [totalReferralEarnings, setTotalReferralEarnings] = useState<number>(0);
 
   const [selectedSection, setSelectedSection] =
       useState<SectionKey>("profile");
@@ -205,7 +232,8 @@ export default function ProfilePage() {
         tab === "profile" ||
         tab === "verification" ||
         tab === "withdraw" ||
-        tab === "history"
+        tab === "history" ||
+        tab === "referrals"
     ) {
       setSelectedSection(tab);
     }
@@ -248,6 +276,16 @@ export default function ProfilePage() {
           const ordersData = await ordersResponse.json();
           setTransactions(ordersData.slice(0, 10));
         }
+
+        // Fetch referral data
+        const referralResponse = await fetch("/api/user/referrals");
+        if (referralResponse.ok) {
+          const referralData = await referralResponse.json();
+          setReferrals(referralData.referrals || []);
+          setReferralRewards(referralData.rewards || []);
+          setReferralCode(referralData.referralCode || "");
+          setTotalReferralEarnings(referralData.totalEarnings || 0);
+        }
       } catch (error) {
         console.error("Error fetching profile data:", error);
         toast({
@@ -262,6 +300,26 @@ export default function ProfilePage() {
 
     fetchProfileData();
   }, [t]);
+
+  // Pusher subscription for real-time referral updates
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const channel = pusherClient.subscribe(`user-${user.id}`);
+    
+    channel.bind('referral-added', (data: Referral) => {
+      setReferrals((prev) => [data, ...prev]);
+      toast({
+        title: "🎉 New Referral!",
+        description: `${data.name || data.email} just joined using your referral code!`,
+      });
+    });
+
+    return () => {
+      channel.unbind('referral-added');
+      pusherClient.unsubscribe(`user-${user.id}`);
+    };
+  }, [user?.id]);
 
   const handleUpdateProfile = async () => {
     try {
@@ -330,27 +388,53 @@ export default function ProfilePage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Сохраняем файл
-    if (type === "front") setFrontIdFile(file);
-    else setBackIdFile(file);
-
     const ext = file.name.toLowerCase();
+    const isHeic = ext.endsWith(".heic") || ext.endsWith(".heif") || file.type === "image/heic" || file.type === "image/heif";
 
-    // Если это HEIC — пробуем сделать JPEG превью
-    if (ext.endsWith(".heic") || file.type === "image/heic") {
+    // Convert HEIC to JPEG before storing
+    if (isHeic) {
       try {
-        const jpgPreview = await convertHeicToJpeg(file);
-        if (type === "front") setFrontIdPreview(jpgPreview);
-        else setBackIdPreview(jpgPreview);
+        const jpgDataUrl = await convertHeicToJpeg(file);
+        
+        // Convert base64 to Blob
+        const response = await fetch(jpgDataUrl);
+        const blob = await response.blob();
+        
+        // Create new File object from blob
+        const jpegFile = new File(
+          [blob], 
+          file.name.replace(/\.(heic|heif)$/i, ".jpg"),
+          { type: "image/jpeg" }
+        );
+        
+        // Store the converted JPEG file
+        if (type === "front") {
+          setFrontIdFile(jpegFile);
+          setFrontIdPreview(jpgDataUrl);
+        } else {
+          setBackIdFile(jpegFile);
+          setBackIdPreview(jpgDataUrl);
+        }
+        
+        console.log(`✅ Converted ${file.name} (${(file.size / 1024).toFixed(0)}KB) to JPEG (${(jpegFile.size / 1024).toFixed(0)}KB)`);
         return;
       } catch (e) {
-        console.error("HEIC convert error → fallback to ObjectURL", e);
+        console.error("HEIC conversion failed:", e);
+        toast({
+          title: "⚠️ Conversion Warning",
+          description: "HEIC file detected. Trying to upload as-is. If it fails, try taking a JPG photo instead.",
+        });
       }
     }
 
-    // Иначе обычный превью
-    if (type === "front") setFrontIdPreview(URL.createObjectURL(file));
-    else setBackIdPreview(URL.createObjectURL(file));
+    // Store the original file (non-HEIC or if conversion failed)
+    if (type === "front") {
+      setFrontIdFile(file);
+      setFrontIdPreview(URL.createObjectURL(file));
+    } else {
+      setBackIdFile(file);
+      setBackIdPreview(URL.createObjectURL(file));
+    }
   };
 
   const handleSubmitVerification = async () => {
@@ -786,7 +870,8 @@ export default function ProfilePage() {
                             <Input
                                 type="file"
                                 className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
-                                accept="image/*"
+                                accept="image/jpeg,image/jpg,image/png,image/heic,image/heif,image/webp"
+                                capture="environment"
                                 onChange={(e) => handleFileChange(e, "front")}
                             />
                           </div>
@@ -815,7 +900,8 @@ export default function ProfilePage() {
                             <Input
                                 type="file"
                                 className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
-                                accept="image/*"
+                                accept="image/jpeg,image/jpg,image/png,image/heic,image/heif,image/webp"
+                                capture="environment"
                                 onChange={(e) => handleFileChange(e, "back")}
                             />
                           </div>
@@ -917,6 +1003,15 @@ export default function ProfilePage() {
                           <span>{t("availableForWithdrawal")}</span>
                           <span className="font-mono text-sm font-semibold text-purple-200">
                         ${equity}
+                      </span>
+                        </div>
+                      </div>
+
+                      <div className="rounded-2xl bg-purple-900/20 border border-purple-500/20 px-4 py-3 text-xs">
+                        <div className="flex items-center justify-between">
+                          <span className="text-purple-300">{t("bonusBalance")}</span>
+                          <span className="font-mono text-sm font-semibold text-purple-200">
+                        ${bonusBalanced.toFixed(2)}
                       </span>
                         </div>
                       </div>
@@ -1100,6 +1195,229 @@ export default function ProfilePage() {
                       ) : (
                           <p className="py-4 text-center text-sm text-slate-500">
                             {t("noTransactions")}
+                          </p>
+                      )}
+                    </CardContent>
+                  </Card>
+                </motion.div>
+            )}
+
+            {/* Section: Referrals */}
+            {selectedSection === "referrals" && (
+                <motion.div
+                    key="referrals-section"
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.25 }}
+                    className="space-y-4"
+                >
+                  {/* Referral Code Card */}
+                  <Card className="bg-slate-900/80 border-slate-800">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="flex items-center gap-2 text-base">
+                        <Gift className="h-4 w-4 text-purple-300" />
+                        {t("yourReferralCode")}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="rounded-xl bg-slate-950/60 p-4 text-center">
+                        <p className="text-xs text-slate-400 mb-2">
+                          {t("earnCommissionDesc")}
+                        </p>
+                        <div className="flex items-center gap-2">
+                          <Input
+                              value={referralCode}
+                              readOnly
+                              className="h-10 rounded-xl border-slate-700 bg-slate-900 text-center text-lg font-mono font-semibold text-purple-200"
+                          />
+                          <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                navigator.clipboard.writeText(referralCode);
+                                toast({
+                                  title: t("copied"),
+                                  description: t("referralLinkCopied"),
+                                });
+                              }}
+                              className="h-10 rounded-xl border-slate-700 bg-slate-900 px-4 hover:bg-slate-800"
+                          >
+                            <Copy className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        <p className="text-xs text-slate-500 mt-2">
+                          {t("shareReferralLink")}
+                        </p>
+                        <div className="mt-3 flex items-center gap-2">
+                          <Input
+                              value={`${typeof window !== 'undefined' ? window.location.origin : ''}/register?ref=${referralCode}`}
+                              readOnly
+                              className="h-9 rounded-xl border-slate-700 bg-slate-900 text-xs text-slate-300"
+                          />
+                          <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                navigator.clipboard.writeText(
+                                    `${typeof window !== 'undefined' ? window.location.origin : ''}/register?ref=${referralCode}`
+                                );
+                                toast({
+                                  title: t("copied"),
+                                  description: t("referralLinkCopied"),
+                                });
+                              }}
+                              className="h-9 rounded-xl border-slate-700 bg-purple-600 px-4 text-xs font-medium hover:bg-purple-700"
+                          >
+                            {t("copyReferralLink")}
+                          </Button>
+                        </div>
+                      </div>
+
+                      <div className="grid gap-4 md:grid-cols-2">
+                        <div className="rounded-xl bg-slate-950/60 p-4">
+                          <p className="text-xs text-slate-400">
+                            {t("totalReferrals")}
+                          </p>
+                          <p className="text-2xl font-bold text-purple-200">
+                            {referrals.length}
+                          </p>
+                        </div>
+                        <div className="rounded-xl bg-slate-950/60 p-4">
+                          <p className="text-xs text-slate-400">
+                            {t("totalEarnings")}
+                          </p>
+                          <p className="text-2xl font-bold text-emerald-300">
+                            ${totalReferralEarnings.toFixed(2)}
+                          </p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Referrals List */}
+                  <Card className="bg-slate-900/80 border-slate-800">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="flex items-center gap-2 text-base">
+                        <Users className="h-4 w-4 text-purple-300" />
+                        {t("referralsList")}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      {referrals.length > 0 ? (
+                          <div className="overflow-x-auto">
+                            <table className="w-full">
+                              <thead>
+                              <tr className="border-b border-slate-800">
+                                <th className="pb-3 text-left text-xs font-medium uppercase tracking-wider text-slate-400">
+                                  {t("name")}
+                                </th>
+                                <th className="pb-3 text-left text-xs font-medium uppercase tracking-wider text-slate-400">
+                                  {t("email")}
+                                </th>
+                                <th className="pb-3 text-left text-xs font-medium uppercase tracking-wider text-slate-400">
+                                  {t("joinedDate")}
+                                </th>
+                              </tr>
+                              </thead>
+                              <tbody className="divide-y divide-slate-800">
+                              {referrals.map((ref, index) => (
+                                  <tr
+                                      key={ref.id}
+                                      className="group transition-colors hover:bg-slate-800/50"
+                                  >
+                                    <td className="py-3">
+                                      <div className="flex items-center gap-3">
+                                        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-purple-500 to-pink-500 text-xs font-semibold text-white shadow-lg">
+                                          {(ref.name || ref.email).charAt(0).toUpperCase()}
+                                        </div>
+                                        <span className="text-sm font-medium text-slate-200">
+                                          {ref.name || "Anonymous"}
+                                        </span>
+                                      </div>
+                                    </td>
+                                    <td className="py-3">
+                                      <span className="text-sm text-slate-400">
+                                        {ref.email}
+                                      </span>
+                                    </td>
+                                    <td className="py-3">
+                                      <span className="text-sm text-slate-500">
+                                        {new Date(ref.createdAt).toLocaleDateString('en-US', {
+                                          month: 'short',
+                                          day: 'numeric',
+                                          year: 'numeric'
+                                        })}
+                                      </span>
+                                    </td>
+                                  </tr>
+                              ))}
+                              </tbody>
+                            </table>
+                          </div>
+                      ) : (
+                          <div className="py-12 text-center">
+                            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-slate-800/50">
+                              <Users className="h-8 w-8 text-slate-600" />
+                            </div>
+                            <p className="mt-4 text-sm font-medium text-slate-400">
+                              {t("noReferrals")}
+                            </p>
+                            <p className="mt-1 text-xs text-slate-600">
+                              {t("inviteFreinds")}
+                            </p>
+                          </div>
+                      )}
+                    </CardContent>
+                  </Card>
+
+                  {/* Referral Rewards */}
+                  <Card className="bg-slate-900/80 border-slate-800">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="flex items-center gap-2 text-base">
+                        <Gift className="h-4 w-4 text-purple-300" />
+                        {t("referralRewards")}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      {referralRewards.length > 0 ? (
+                          <div className="overflow-x-auto">
+                            <table className="w-full text-xs md:text-sm">
+                              <thead>
+                              <tr className="border-b border-slate-800 text-left text-slate-400">
+                                <th className="pb-2 font-medium">
+                                  {t("rewardDate")}
+                                </th>
+                                <th className="pb-2 font-medium">
+                                  {t("rewardAmount")}
+                                </th>
+                                <th className="pb-2 font-medium">
+                                  {t("rewardSource")}
+                                </th>
+                              </tr>
+                              </thead>
+                              <tbody>
+                              {referralRewards.map((reward) => (
+                                  <tr
+                                      key={reward.id}
+                                      className="border-t border-slate-800 text-slate-200"
+                                  >
+                                    <td className="py-2 text-slate-400">
+                                      {new Date(reward.createdAt).toLocaleString()}
+                                    </td>
+                                    <td className="py-2 font-semibold text-emerald-300">
+                                      +${reward.amount.toFixed(2)}
+                                    </td>
+                                    <td className="py-2 text-xs text-slate-400">
+                                      {reward.source.includes('Manual referral reward by admin') ? '' : reward.source}
+                                    </td>
+                                  </tr>
+                              ))}
+                              </tbody>
+                            </table>
+                          </div>
+                      ) : (
+                          <p className="py-4 text-center text-sm text-slate-500">
+                            {t("noRewards")}
                           </p>
                       )}
                     </CardContent>

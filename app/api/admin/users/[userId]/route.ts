@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { getCurrentUser } from "@/lib/auth"
 import { pusherServer } from "@/lib/pusher-server"
+import type { Prisma } from "@prisma/client"
 
 // Общая проверка админа
 async function requireAdmin() {
@@ -51,6 +52,7 @@ export async function GET(
         role: true,
         status: true,
         TotalBalance: true,
+        bonusBalanced: true,
         can_withdraw: true,
         isVerif: true,
         blocked: true,
@@ -92,6 +94,7 @@ export async function PATCH(
       "name",
       "role",
       "TotalBalance",
+      "bonusBalanced",
       "can_withdraw",
       "isVerif",
       "blocked",
@@ -106,31 +109,54 @@ export async function PATCH(
     }
 
     // Если меняем баланс — отдельная транзакция + balances + pusher
-    if ("TotalBalance" in filteredUpdates) {
+    if ("TotalBalance" in filteredUpdates || "bonusBalanced" in filteredUpdates) {
       const newBalance = filteredUpdates.TotalBalance
+      const newbonusBalanced = filteredUpdates.bonusBalanced
 
-      await prisma.$transaction(async (tx) => {
-        // Update user's TotalBalance
-        await tx.user.update({
+      // Get current bonusBalanced if not being updated
+      let bonusBalancedToSend = newbonusBalanced;
+      if (bonusBalancedToSend === undefined) {
+        const currentUser = await prisma.user.findUnique({
           where: { id: userId },
-          data: { TotalBalance: newBalance },
-        })
+          select: { bonusBalanced: true },
+        });
+        bonusBalancedToSend = currentUser?.bonusBalanced || "";
+      }
 
-        // Update or create Balances record
-        await tx.balances.upsert({
-          where: { userId },
-          update: { usd: newBalance },
-          create: { userId, usd: newBalance },
-        })
-      })
+      if ("TotalBalance" in filteredUpdates) {
+        await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+          // Update user's TotalBalance
+          await tx.user.update({
+            where: { id: userId },
+            data: { TotalBalance: newBalance },
+          })
 
-      // Trigger real-time update
+          // Update or create Balances record
+          await tx.balances.upsert({
+            where: { userId },
+            update: { usd: newBalance },
+            create: { userId, usd: newBalance },
+          })
+        })
+      }
+
+      // Update bonusBalanced if provided
+      if ("bonusBalanced" in filteredUpdates) {
+        await prisma.user.update({
+          where: { id: userId },
+          data: { bonusBalanced: newbonusBalanced },
+        });
+      }
+
+      // Trigger real-time update with both balances
       await pusherServer.trigger(`user-${userId}`, "balance-update", {
-        totalBalance: newBalance,
+        totalBalance: newBalance !== undefined ? newBalance : (await prisma.user.findUnique({ where: { id: userId }, select: { TotalBalance: true }}))?.TotalBalance,
+        bonusBalanced: bonusBalancedToSend,
       })
 
-      // убираем TotalBalance, чтобы ниже не обновлять повторно
+      // убираем TotalBalance и bonusBalanced, чтобы ниже не обновлять повторно
       delete filteredUpdates.TotalBalance
+      delete filteredUpdates.bonusBalanced
     }
 
     // Остальные поля (name, role, status, blocked, isVerif, can_withdraw)
@@ -192,6 +218,7 @@ export async function PATCH(
         role: true,
         status: true,
         TotalBalance: true,
+        bonusBalanced: true,
         can_withdraw: true,
         isVerif: true,
         blocked: true,

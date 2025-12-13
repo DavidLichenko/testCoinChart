@@ -36,6 +36,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json({
       totalBalance: user.TotalBalance || 0,
+      bonusBalanced: user.bonusBalanced || 0,
       totalPnL,
       totalPnLPercent: user.TotalBalance ? (totalPnL / user.TotalBalance) * 100 : 0,
       activeTradesCount: activeTrades,

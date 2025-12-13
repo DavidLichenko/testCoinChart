@@ -3,8 +3,10 @@ import { prisma } from "@/lib/prisma";
 import { v2 as cloudinary } from "cloudinary";
 import { getCurrentUser } from "@/lib/auth";
 import { Readable } from "stream";
+import type { Prisma } from "@prisma/client";
 
 export const runtime = "nodejs";
+export const maxDuration = 60; // Allow up to 60 seconds for upload
 
 // Configure Cloudinary
 cloudinary.config({
@@ -22,26 +24,46 @@ function fileToNodeStream(file: File): Readable {
 }
 
 async function uploadImage(file: File): Promise<string> {
+  console.log(`📤 Uploading file: ${file.name}, type: ${file.type}, size: ${(file.size / 1024).toFixed(2)}KB`);
+  
+  // Validate file
+  if (!file || file.size === 0) {
+    throw new Error(`Invalid file: ${file?.name || 'unknown'}`);
+  }
+  
+  // Check file size (max 10MB)
+  const maxSize = 10 * 1024 * 1024; // 10MB
+  if (file.size > maxSize) {
+    throw new Error(`File ${file.name} is too large (${(file.size / 1024 / 1024).toFixed(2)}MB). Maximum size is 10MB.`);
+  }
+  
   const nodeStream = fileToNodeStream(file);
 
   return new Promise((resolve, reject) => {
     const uploadStream = cloudinary.uploader.upload_stream(
         {
           folder: "verification-documents",
-          resource_type: "auto", // HEIC, JPG, PNG и т.д.
-          // без transformation → Cloudinary сохраняет оригинал
+          resource_type: "auto",
+          format: "jpg", // Force convert to JPG
+          transformation: [
+            { quality: "auto:good" },
+            { fetch_format: "auto" }
+          ],
         },
         (error, result) => {
           if (error || !result) {
+            console.error("❌ Cloudinary upload error:", error);
             return reject(
                 error || new Error("Cloudinary upload failed without result"),
             );
           }
+          console.log(`✅ Upload successful: ${result.secure_url}`);
           resolve(result.secure_url);
         },
     );
 
     nodeStream.on("error", (err) => {
+      console.error("❌ Stream error:", err);
       uploadStream.destroy(err as any);
       reject(err);
     });
@@ -64,6 +86,10 @@ export async function POST(request: NextRequest) {
     const city = formData.get("city") as string | null;
     const postalCode = formData.get("postalCode") as string | null;
 
+    console.log("📥 Verification request from user:", user.id);
+    console.log("Front file:", frontIdFile?.name, frontIdFile?.type, `${(frontIdFile?.size || 0) / 1024}KB`);
+    console.log("Back file:", backIdFile?.name, backIdFile?.type, `${(backIdFile?.size || 0) / 1024}KB`);
+
     if (!frontIdFile || !backIdFile) {
       return NextResponse.json(
           { error: "Both front and back ID images are required." },
@@ -78,12 +104,24 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const [frontIdUrl, backIdUrl] = await Promise.all([
-      uploadImage(frontIdFile),
-      uploadImage(backIdFile),
-    ]);
+    // Upload both images
+    let frontIdUrl: string;
+    let backIdUrl: string;
+    
+    try {
+      [frontIdUrl, backIdUrl] = await Promise.all([
+        uploadImage(frontIdFile),
+        uploadImage(backIdFile),
+      ]);
+    } catch (uploadError: any) {
+      console.error("❌ Upload failed:", uploadError);
+      return NextResponse.json(
+        { error: `Upload failed: ${uploadError.message || 'Unknown error'}. Please try again or use a different photo format (JPG/PNG recommended).` },
+        { status: 500 }
+      );
+    }
 
-    const result = await prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       const verification = await tx.verification.upsert({
         where: { userId: user.id },
         update: {

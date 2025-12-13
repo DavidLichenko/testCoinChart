@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth-utils";
 import { updateBalance } from "@/app/actions/updateBalance";
 import { getCurrentUser } from "@/lib/auth";
+import type { Prisma } from "@prisma/client";
 
 export async function POST(request: Request) {
   try {
@@ -23,7 +24,7 @@ export async function POST(request: Request) {
     }
 
     // Find the trade and update in a transaction to ensure data consistency
-    const result = await prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       const trade = await tx.trade_Transaction.findUnique({
         where: { id },
       });
@@ -99,6 +100,36 @@ export async function POST(request: Request) {
           TotalBalance: newBalance,
         },
       });
+
+      // If trade is profitable and user has a referrer, add 10% commission
+      if (profit > 0) {
+        const tradeUser = await tx.user.findUnique({
+          where: { id: trade.userId },
+          select: { referredById: true, name: true, email: true },
+        });
+
+        if (tradeUser?.referredById) {
+          const commission = profit * 0.1; // 10% commission
+          
+          // Add commission to referrer's balance
+          await tx.user.update({
+            where: { id: tradeUser.referredById },
+            data: {
+              TotalBalance: { increment: commission },
+            },
+          });
+
+          // Create referral reward record
+          await tx.referralReward.create({
+            data: {
+              userId: tradeUser.referredById,
+              referralUserId: trade.userId,
+              amount: commission,
+              source: `10% commission from ${tradeUser.name || tradeUser.email}'s profitable trade`,
+            },
+          });
+        }
+      }
 
       return {
         trade: updatedTrade,

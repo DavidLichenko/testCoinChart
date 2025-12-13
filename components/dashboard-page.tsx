@@ -32,6 +32,7 @@ import { PerformanceWidget } from "./dashboard/performance-widget";
 
 interface UserStats {
   totalBalance: number;
+  bonusBalanced: number;
   totalPnL: number;
   totalPnLPercent: number;
   activeTradesCount: number;
@@ -399,6 +400,11 @@ export default function DashboardPage() {
                 value={`$${balance.toLocaleString()}`}
                 valueClass=""
                 sparklinePath={sparklinePath}
+                extra={
+                  <div className="mt-2 text-xs text-purple-300">
+                    {t("bonusBalance")}: ${(userStats?.bonusBalanced || 0).toFixed(2)}
+                  </div>
+                }
             />
 
             {/* PnL */}

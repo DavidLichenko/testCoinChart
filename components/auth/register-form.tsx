@@ -32,12 +32,24 @@ export function RegisterForm({
 
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [referralCode, setReferralCode] = useState("");
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  // Get referral code from URL if present
+  React.useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const ref = params.get("ref");
+      if (ref) {
+        setReferralCode(ref);
+      }
+    }
+  }, []);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,7 +66,7 @@ export function RegisterForm({
       const res = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password }),
+        body: JSON.stringify({ name, email, password, referralCode }),
       });
 
       const data = await res.json();
@@ -213,6 +225,23 @@ export function RegisterForm({
                       <Eye size={16}/>
                   )}
                 </Button>
+              </div>
+            </div>
+
+            {/* Referral Code */}
+            <div className="space-y-2">
+              <label className="text-sm text-slate-200" htmlFor="referralCode">
+                {t("referralCodeOptional")}
+              </label>
+              <div className="relative">
+                <Input
+                    id="referralCode"
+                    type="text"
+                    value={referralCode}
+                    onChange={(e) => setReferralCode(e.target.value)}
+                    placeholder={t("enterReferralCode")}
+                    className="h-10 rounded-xl border-slate-700 bg-slate-950/70 text-sm text-white placeholder:text-slate-500 focus:border-purple-500 focus:ring-purple-500"
+                />
               </div>
             </div>
 

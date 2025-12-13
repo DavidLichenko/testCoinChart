@@ -14,17 +14,18 @@ import { useI18n } from "@/components/i18n-provider"
 import { useRouter } from "next/navigation"
 
 export default function Header() {
-    const { balance, liveProfit } = useBalance()
+    const { balance, liveProfit, bonusBalanced } = useBalance()
     const { user, logout } = useAuth()
     const { t } = useI18n()
     const isMobile = useIsMobile()
     const router = useRouter()
 
-    const totalEquity = balance + (liveProfit || 0)
+    const totalEquity = bonusBalanced + balance +  (liveProfit || 0)
     const [depositModalOpen, setDepositModalOpen] = useState(false)
 
     // Custom menu
     const [openMenu, setOpenMenu] = useState(false)
+    const [openBalanceMenu, setOpenBalanceMenu] = useState(false)
 
     const toggleMenu = () => setOpenMenu(!openMenu)
 
@@ -34,7 +35,7 @@ export default function Header() {
         setOpenMenu(false)
     }
 
-
+    console.log(bonusBalanced + balance)
     // MOBILE HEADER
     if (isMobile) {
         return (
@@ -46,11 +47,46 @@ export default function Header() {
                 </Link>
 
                 <div className="flex items-center gap-2">
-                    <div className="text-right">
-                        <p className="text-xs text-gray-400">{t("equity")}</p>
-                        <p className="text-sm font-bold text-white">
-                            ${totalEquity.toFixed(2)}
-                        </p>
+                    {/* Balance Button with Dropdown */}
+                    <div className="relative">
+                        <button
+                            onClick={() => setOpenBalanceMenu(!openBalanceMenu)}
+                            className="text-right px-3 py-2 rounded-lg hover:bg-gray-800 transition-colors cursor-pointer flex items-center justify-end gap-1"
+                        >
+                            <div>
+                                <p className="text-xs text-gray-400">{t("equity")}</p>
+                                <p className="text-sm font-bold text-white">
+                                    ${totalEquity.toFixed(2)}
+                                </p>
+                            </div>
+                            <ChevronRight className={`h-4 w-4 text-gray-400 transition-transform ${openBalanceMenu ? 'rotate-90' : ''}`} />
+                        </button>
+
+                        <AnimatePresence>
+                            {openBalanceMenu && (
+                                <motion.div
+                                    initial={{ opacity: 0, y: -4 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -4 }}
+                                    className="absolute right-0 mt-2 w-56 bg-gray-900 border border-gray-700 rounded-xl shadow-xl p-3 z-[80]"
+                                >
+                                    <div className="space-y-2">
+                                        <div className="px-3 py-2 rounded-lg bg-gray-800/50">
+                                            <p className="text-xs text-gray-400">Balance</p>
+                                            <p className="text-base font-bold text-white">
+                                                ${balance.toFixed(2)}
+                                            </p>
+                                        </div>
+                                        <div className="px-3 py-2 rounded-lg bg-purple-900/20">
+                                            <p className="text-xs text-purple-300">Bonus Balance</p>
+                                            <p className="text-base font-bold text-purple-200">
+                                                ${bonusBalanced.toFixed(2)}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
                     </div>
 
                     <Button size="sm" onClick={() => setDepositModalOpen(true)}>
@@ -110,7 +146,7 @@ export default function Header() {
                     </div>
                 </div>
 
-                <DepositModal open={depositModalOpen} onOpenChange={setDepositModalOpen} />
+                <DepositModal open={depositModalOpen} onOpenChange={setDepositModalOpen} userId={user?.id || ''} />
             </header>
         )
     }
@@ -137,12 +173,47 @@ export default function Header() {
                     {/* RIGHT SIDE */}
                     <div className="flex items-center gap-4">
 
-                        {/* EQUITY */}
-                        <div className="text-right">
-                            <p className="text-xs text-gray-400">{t("totalEquity")}</p>
-                            <p className="text-lg font-bold text-white">
-                                ${totalEquity.toFixed(2)}
-                            </p>
+                        {/* EQUITY - Balance Button with Dropdown */}
+                        <div className="relative">
+                            <button
+                                onClick={() => setOpenBalanceMenu(!openBalanceMenu)}
+                                className="text-right px-4 py-2 rounded-xl hover:bg-gray-800 transition-colors cursor-pointer flex items-center justify-end gap-2"
+                            >
+                                <div>
+                                    <p className="text-xs text-gray-400">{t("totalEquity")}</p>
+                                    <p className="text-lg font-bold text-white">
+                                        ${totalEquity.toFixed(2)}
+                                    </p>
+                                </div>
+                                <ChevronRight className={`h-5 w-5 text-gray-400 transition-transform ${openBalanceMenu ? 'rotate-90' : ''}`} />
+                            </button>
+
+                            <AnimatePresence>
+                                {openBalanceMenu && (
+                                    <motion.div
+                                        initial={{ opacity: 0, y: -6 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: -6 }}
+                                        transition={{ duration: 0.15 }}
+                                        className="absolute right-0 mt-3 w-64 bg-gray-900/95 backdrop-blur-xl border border-gray-700 rounded-xl shadow-xl p-4 z-[80]"
+                                    >
+                                        <div className="space-y-3">
+                                            <div className="px-4 py-3 rounded-lg bg-gray-800/50">
+                                                <p className="text-xs text-gray-400 mb-1">Balance</p>
+                                                <p className="text-xl font-bold text-white">
+                                                    ${balance.toFixed(2)}
+                                                </p>
+                                            </div>
+                                            <div className="px-4 py-3 rounded-lg bg-purple-900/20 border border-purple-500/20">
+                                                <p className="text-xs text-purple-300 mb-1">Bonus Balance</p>
+                                                <p className="text-xl font-bold text-purple-200">
+                                                    ${bonusBalanced.toFixed(2)}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
                         </div>
 
                         {/* Deposit */}
@@ -214,7 +285,7 @@ export default function Header() {
                 </div>
             </header>
 
-            <DepositModal open={depositModalOpen} onOpenChange={setDepositModalOpen} />
+            <DepositModal open={depositModalOpen} onOpenChange={setDepositModalOpen} userId={user?.id || ''} />
         </>
     )
 }

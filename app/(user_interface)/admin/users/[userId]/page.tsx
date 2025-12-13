@@ -14,6 +14,7 @@ import {
     TrendingUp,
     CreditCard,
 } from "lucide-react"
+import { toast } from "@/components/toast"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -38,6 +39,7 @@ interface AdminUser {
     role: string
     status: string
     TotalBalance: number
+    bonusBalanced: number | null
     can_withdraw: boolean
     isVerif: boolean
     blocked: boolean
@@ -152,6 +154,16 @@ export default function AdminUserPage() {
         amount: 0
     })
 
+    // Referral states
+    const [referrals, setReferrals] = useState<any[]>([]);
+    const [loadingReferrals, setLoadingReferrals] = useState(false);
+    const [isAddReferralDialogOpen, setIsAddReferralDialogOpen] = useState(false);
+    const [isAddRewardDialogOpen, setIsAddRewardDialogOpen] = useState(false);
+    const [referralEmail, setReferralEmail] = useState("");
+    const [rewardAmount, setRewardAmount] = useState("");
+    const [rewardReferralEmail, setRewardReferralEmail] = useState("");
+    const [allUsers, setAllUsers] = useState<Array<{ id: string; email: string; name: string | null }>>([]);
+
     // локальные стейты для редактирования
     const [name, setName] = useState("")
     const [role, setRole] = useState("USER")
@@ -160,6 +172,7 @@ export default function AdminUserPage() {
     const [isVerif, setIsVerif] = useState(false)
     const [canWithdraw, setCanWithdraw] = useState(false)
     const [balance, setBalance] = useState("0")
+    const [bonusBalance, setBonusBalance] = useState("0");
 
     useEffect(() => {
         if (!userId) return
@@ -179,6 +192,7 @@ export default function AdminUserPage() {
                     setIsVerif(data.isVerif)
                     setCanWithdraw(data.can_withdraw)
                     setBalance((data.TotalBalance ?? 0).toString())
+                    setBonusBalance((data.bonusBalanced ?? 0).toString())
                 }
 
                 // 2) сделки юзера
@@ -193,6 +207,27 @@ export default function AdminUserPage() {
                 if (ordersRes.ok) {
                     const o = await ordersRes.json()
                     setOrders(o)
+                }
+
+                // 4) referrals
+                setLoadingReferrals(true);
+                const referralsRes = await fetch(`/api/admin/referrals?userId=${userId}`);
+                if (referralsRes.ok) {
+                    const r = await referralsRes.json();
+                    setReferrals(r);
+                }
+                setLoadingReferrals(false);
+
+                // 5) fetch all users with role USER
+                const usersRes = await fetch('/api/admin/users');
+                if (usersRes.ok) {
+                    const allUsersData = await usersRes.json();
+                    const regularUsers = allUsersData.filter((u: any) => u.role === 'USER');
+                    setAllUsers(regularUsers.map((u: any) => ({
+                        id: u.id,
+                        email: u.email,
+                        name: u.name
+                    })));
                 }
             } catch (e) {
                 console.error("Error loading admin user page", e)
@@ -210,6 +245,7 @@ export default function AdminUserPage() {
         setSaving(true)
         try {
             const newBalance = parseFloat(balance) || 0
+            const newBonusBalance = parseFloat(bonusBalance) || 0
             const res = await fetch(`/api/admin/users/${user.id}`, {
                 method: "PATCH",
                 headers: { "Content-Type": "application/json" },
@@ -221,15 +257,35 @@ export default function AdminUserPage() {
                     isVerif,
                     can_withdraw: canWithdraw,
                     TotalBalance: newBalance,
+                    bonusBalanced: newBonusBalance,
                 }),
             })
 
             if (res.ok) {
                 const updated = await res.json()
                 setUser(updated)
+                setBalance((updated.TotalBalance ?? 0).toString())
+                setBonusBalance((updated.bonusBalanced ?? 0).toString())
+                toast({
+                    title: "✅ User updated successfully",
+                    description: `Changes for ${user.email} have been saved.`,
+                    variant: "success",
+                })
+            } else {
+                const errorData = await res.json()
+                toast({
+                    title: "❌ Failed to update user",
+                    description: errorData.error || "An error occurred while updating the user.",
+                    variant: "error",
+                })
             }
         } catch (e) {
             console.error("Error updating user:", e)
+            toast({
+                title: "❌ Error",
+                description: "An unexpected error occurred. Please try again.",
+                variant: "error",
+            })
         } finally {
             setSaving(false)
         }
@@ -256,9 +312,26 @@ export default function AdminUserPage() {
                     setTrades(t)
                 }
                 setIsTradeDialogOpen(false)
+                toast({
+                    title: "✅ Trade created successfully",
+                    description: `${newTrade.type} trade for ${newTrade.ticker} has been created.`,
+                    variant: "success",
+                })
+            } else {
+                const errorData = await res.json()
+                toast({
+                    title: "❌ Failed to create trade",
+                    description: errorData.error || "An error occurred while creating the trade.",
+                    variant: "error",
+                })
             }
         } catch (e) {
             console.error("Error creating trade:", e)
+            toast({
+                title: "❌ Error",
+                description: "An unexpected error occurred. Please try again.",
+                variant: "error",
+            })
         }
     }
 
@@ -283,9 +356,26 @@ export default function AdminUserPage() {
                     setOrders(o)
                 }
                 setIsOrderDialogOpen(false)
+                toast({
+                    title: "✅ Order created successfully",
+                    description: `${newOrder.type} order for $${newOrder.amount} has been created.`,
+                    variant: "success",
+                })
+            } else {
+                const errorData = await res.json()
+                toast({
+                    title: "❌ Failed to create order",
+                    description: errorData.error || "An error occurred while creating the order.",
+                    variant: "error",
+                })
             }
         } catch (e) {
             console.error("Error creating order:", e)
+            toast({
+                title: "❌ Error",
+                description: "An unexpected error occurred. Please try again.",
+                variant: "error",
+            })
         }
     }
 
@@ -305,9 +395,26 @@ export default function AdminUserPage() {
                     setTrades(t)
                 }
                 setIsEditTradeDialogOpen(false)
+                toast({
+                    title: "✅ Trade updated successfully",
+                    description: "Trade has been updated with new values.",
+                    variant: "success",
+                })
+            } else {
+                const errorData = await res.json()
+                toast({
+                    title: "❌ Failed to update trade",
+                    description: errorData.error || "An error occurred while updating the trade.",
+                    variant: "error",
+                })
             }
         } catch (e) {
             console.error("Error updating trade:", e)
+            toast({
+                title: "❌ Error",
+                description: "An unexpected error occurred. Please try again.",
+                variant: "error",
+            })
         }
     }
 
@@ -327,9 +434,26 @@ export default function AdminUserPage() {
                     setOrders(o)
                 }
                 setIsEditOrderDialogOpen(false)
+                toast({
+                    title: "✅ Order updated successfully",
+                    description: `Order status changed to ${editOrder.status}.`,
+                    variant: "success",
+                })
+            } else {
+                const errorData = await res.json()
+                toast({
+                    title: "❌ Failed to update order",
+                    description: errorData.error || "An error occurred while updating the order.",
+                    variant: "error",
+                })
             }
         } catch (e) {
             console.error("Error updating order:", e)
+            toast({
+                title: "❌ Error",
+                description: "An unexpected error occurred. Please try again.",
+                variant: "error",
+            })
         }
     }
 
@@ -353,6 +477,89 @@ export default function AdminUserPage() {
         })
         setIsEditOrderDialogOpen(true)
     }
+
+    const handleAddReferral = async () => {
+        if (!referralEmail.trim() || !userId) return;
+
+        try {
+            const res = await fetch("/api/admin/referrals", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ userId, referralEmail: referralEmail.trim() }),
+            });
+
+            if (res.ok) {
+                // Refresh referrals
+                const referralsRes = await fetch(`/api/admin/referrals?userId=${userId}`);
+                if (referralsRes.ok) {
+                    const r = await referralsRes.json();
+                    setReferrals(r);
+                }
+                setReferralEmail("");
+                setIsAddReferralDialogOpen(false);
+                toast({
+                    title: "✅ Referral added successfully",
+                    description: `${referralEmail} has been added as a referral.`,
+                    variant: "success",
+                })
+            } else {
+                const errorData = await res.json();
+                toast({
+                    title: "❌ Failed to add referral",
+                    description: errorData.error || "An error occurred while adding the referral.",
+                    variant: "error",
+                })
+            }
+        } catch (e) {
+            console.error("Error adding referral:", e);
+            toast({
+                title: "❌ Error",
+                description: "An unexpected error occurred. Please try again.",
+                variant: "error",
+            })
+        }
+    };
+
+    const handleAddReward = async () => {
+        if (!rewardAmount || !userId) return;
+
+        try {
+            const res = await fetch("/api/admin/referral-rewards", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    userId,
+                    amount: parseFloat(rewardAmount),
+                    referralEmail: rewardReferralEmail.trim() || null,
+                }),
+            });
+
+            if (res.ok) {
+                setRewardAmount("");
+                setRewardReferralEmail("");
+                setIsAddRewardDialogOpen(false);
+                toast({
+                    title: "✅ Referral reward added successfully",
+                    description: `Reward of $${rewardAmount} has been added.`,
+                    variant: "success",
+                })
+            } else {
+                const errorData = await res.json();
+                toast({
+                    title: "❌ Failed to add reward",
+                    description: errorData.error || "An error occurred while adding the reward.",
+                    variant: "error",
+                })
+            }
+        } catch (e) {
+            console.error("Error adding reward:", e);
+            toast({
+                title: "❌ Error",
+                description: "An unexpected error occurred. Please try again.",
+                variant: "error",
+            })
+        }
+    };
 
     if (loading && !user) {
         return (
@@ -599,6 +806,21 @@ export default function AdminUserPage() {
                                             className="h-9 flex-1 rounded-xl border-slate-800 bg-slate-900 text-sm"
                                         />
                                         <span className="rounded-xl bg-slate-900 px-3 py-1 text-xs text-slate-400">
+                      USD
+                    </span>
+                                    </div>
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-xs text-slate-400">Bonus Balance</label>
+                                    <div className="flex items-center gap-2">
+                                        <Input
+                                            type="number"
+                                            value={bonusBalance}
+                                            onChange={(e) => setBonusBalance(e.target.value)}
+                                            placeholder="e.g., $100.00"
+                                            className="h-9 flex-1 rounded-xl border-slate-800 bg-slate-900 text-sm"
+                                        />
+                                        <span className="rounded-xl bg-purple-900/30 px-3 py-1 text-xs text-purple-300">
                       USD
                     </span>
                                     </div>
@@ -1102,6 +1324,162 @@ export default function AdminUserPage() {
                                 </div>
                             </DialogContent>
                         </Dialog>
+                    </div>
+
+                    {/* User Referrals Card */}
+                    <div className="space-y-4">
+                        <Card className="overflow-hidden rounded-2xl border-slate-800 bg-slate-900/80 shadow-lg">
+                            <CardHeader className="border-b border-slate-800 pb-3">
+                                <div className="flex items-center justify-between">
+                                    <CardTitle className="flex items-center gap-2 text-base font-semibold">
+                                        <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-purple-500/20">
+                                            <Users className="h-3.5 w-3.5 text-purple-300" />
+                                        </span>
+                                        User Referrals
+                                    </CardTitle>
+                                    <div className="flex gap-2">
+                                        <Dialog open={isAddReferralDialogOpen} onOpenChange={setIsAddReferralDialogOpen}>
+                                            <DialogTrigger asChild>
+                                                <Button
+                                                    size="sm"
+                                                    className="h-7 rounded-full bg-purple-600 px-3 text-xs font-medium hover:bg-purple-700"
+                                                >
+                                                    + Add Referral
+                                                </Button>
+                                            </DialogTrigger>
+                                            <DialogContent className="rounded-2xl border-slate-800 bg-slate-900 text-slate-100 sm:max-w-md">
+                                                <DialogHeader>
+                                                    <DialogTitle className="text-lg font-semibold">Add Referral</DialogTitle>
+                                                </DialogHeader>
+                                                <div className="space-y-4">
+                                                    <div className="space-y-2">
+                                                        <Label className="text-xs text-slate-400">Select User</Label>
+                                                        <Select
+                                                            value={referralEmail}
+                                                            onValueChange={setReferralEmail}
+                                                        >
+                                                            <SelectTrigger className="h-9 rounded-xl border-slate-800 bg-slate-900 text-sm">
+                                                                <SelectValue placeholder="Choose a user..." />
+                                                            </SelectTrigger>
+                                                            <SelectContent className="max-h-[300px] border-slate-800 bg-slate-900 text-sm">
+                                                                {allUsers.map((u) => (
+                                                                    <SelectItem key={u.id} value={u.email}>
+                                                                        {u.name || 'No Name'} ({u.email})
+                                                                    </SelectItem>
+                                                                ))}
+                                                            </SelectContent>
+                                                        </Select>
+                                                    </div>
+                                                    <Button
+                                                        onClick={handleAddReferral}
+                                                        disabled={!referralEmail}
+                                                        className="w-full rounded-xl bg-purple-600 text-sm font-medium hover:bg-purple-700"
+                                                    >
+                                                        Add Referral
+                                                    </Button>
+                                                </div>
+                                            </DialogContent>
+                                        </Dialog>
+
+                                        <Dialog open={isAddRewardDialogOpen} onOpenChange={setIsAddRewardDialogOpen}>
+                                            <DialogTrigger asChild>
+                                                <Button
+                                                    size="sm"
+                                                    className="h-7 rounded-full bg-emerald-600 px-3 text-xs font-medium hover:bg-emerald-700"
+                                                >
+                                                    + Create Reward
+                                                </Button>
+                                            </DialogTrigger>
+                                            <DialogContent className="rounded-2xl border-slate-800 bg-slate-900 text-slate-100 sm:max-w-md">
+                                                <DialogHeader>
+                                                    <DialogTitle className="text-lg font-semibold">Create Referral Reward</DialogTitle>
+                                                </DialogHeader>
+                                                <div className="space-y-4">
+                                                    <div className="space-y-2">
+                                                        <Label className="text-xs text-slate-400">Amount (USD)</Label>
+                                                        <Input
+                                                            type="number"
+                                                            step="0.01"
+                                                            placeholder="100.00"
+                                                            value={rewardAmount}
+                                                            onChange={(e) => setRewardAmount(e.target.value)}
+                                                            className="h-9 rounded-xl border-slate-800 bg-slate-900 text-sm"
+                                                        />
+                                                    </div>
+                                                    <div className="space-y-2">
+                                                        <Label className="text-xs text-slate-400">Select User (Optional)</Label>
+                                                        <Select
+                                                            value={rewardReferralEmail || "NONE"}
+                                                            onValueChange={(val) => setRewardReferralEmail(val === "NONE" ? "" : val)}
+                                                        >
+                                                            <SelectTrigger className="h-9 rounded-xl border-slate-800 bg-slate-900 text-sm">
+                                                                <SelectValue placeholder="None selected" />
+                                                            </SelectTrigger>
+                                                            <SelectContent className="max-h-[300px] border-slate-800 bg-slate-900 text-sm">
+                                                                <SelectItem value="NONE">
+                                                                    None
+                                                                </SelectItem>
+                                                                {allUsers.map((u) => (
+                                                                    <SelectItem key={u.id} value={u.email}>
+                                                                        {u.name || 'No Name'} ({u.email})
+                                                                    </SelectItem>
+                                                                ))}
+                                                            </SelectContent>
+                                                        </Select>
+                                                    </div>
+                                                    <Button
+                                                        onClick={handleAddReward}
+                                                        disabled={!rewardAmount}
+                                                        className="w-full rounded-xl bg-emerald-600 text-sm font-medium hover:bg-emerald-700"
+                                                    >
+                                                        Create Reward
+                                                    </Button>
+                                                </div>
+                                            </DialogContent>
+                                        </Dialog>
+                                    </div>
+                                </div>
+                            </CardHeader>
+                            <CardContent className="space-y-2 px-3 py-3 sm:px-4">
+                                {loadingReferrals && (
+                                    <div className="flex items-center justify-center py-6">
+                                        <div className="h-6 w-6 animate-spin rounded-full border-2 border-purple-500 border-t-transparent" />
+                                    </div>
+                                )}
+
+                                {!loadingReferrals && referrals.length === 0 && (
+                                    <div className="rounded-xl bg-slate-900/80 px-4 py-6 text-center text-slate-400">
+                                        No referrals yet.
+                                    </div>
+                                )}
+
+                                {!loadingReferrals &&
+                                    referrals.map((ref: any) => (
+                                        <div
+                                            key={ref.id}
+                                            className="flex items-center justify-between rounded-xl bg-slate-900/80 px-3 py-2.5"
+                                        >
+                                            <div className="min-w-0 flex-1">
+                                                <div className="text-xs font-medium text-slate-200">
+                                                    {ref.name || "Anonymous"}
+                                                </div>
+                                                <div className="text-[11px] text-slate-400">
+                                                    {ref.email}
+                                                </div>
+                                                <div className="mt-0.5 text-[10px] text-slate-500">
+                                                    Joined: {new Date(ref.createdAt).toLocaleDateString()}
+                                                </div>
+                                            </div>
+                                            <div className="ml-3 text-right">
+                                                <div className="text-xs font-semibold text-emerald-300">
+                                                    ${ref.TotalBalance?.toFixed(2) || "0.00"}
+                                                </div>
+                                                <div className="text-[10px] text-slate-500">Balance</div>
+                                            </div>
+                                        </div>
+                                    ))}
+                            </CardContent>
+                        </Card>
                     </div>
                 </div>
             </div>
