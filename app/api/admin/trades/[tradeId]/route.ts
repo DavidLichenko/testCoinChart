@@ -50,13 +50,44 @@ export async function PATCH(
       include: { User: { select: { id: true, TotalBalance: true, email: true, name: true } } }
     })
 
-    // If profit was updated - adjust user balance
+    // If profit was updated - adjust user balance and add referral commission if applicable
     if ('profit' in filteredUpdates) {
       const profitDiff = filteredUpdates.profit - (existingTrade.profit || 0)
+      
+      // Update user balance
       await prisma.user.update({
         where: { id: updatedTrade.User.id },
         data: { TotalBalance: { increment: profitDiff } }
       })
+      
+      // If profit is positive, check for referral commission
+      if (filteredUpdates.profit > 0) {
+        const tradeUser = await prisma.user.findUnique({
+          where: { id: updatedTrade.User.id },
+          select: { referredById: true, name: true, email: true }
+        })
+        
+        // If user has a referrer, add 10% commission
+        if (tradeUser?.referredById) {
+          const commission = filteredUpdates.profit * 0.1 // 10% commission
+          
+          // Add commission to referrer's balance
+          await prisma.user.update({
+            where: { id: tradeUser.referredById },
+            data: { TotalBalance: { increment: commission } }
+          })
+          
+          // Create referral reward record
+          await prisma.referralReward.create({
+            data: {
+              userId: tradeUser.referredById,
+              referralUserId: updatedTrade.User.id,
+              amount: commission,
+              source: `10% commission from admin profit adjustment for ${tradeUser.name || tradeUser.email}`
+            }
+          })
+        }
+      }
     }
 
     return NextResponse.json(updatedTrade)

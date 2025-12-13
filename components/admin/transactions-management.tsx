@@ -155,7 +155,19 @@ export default function TransactionsManagement() {
       })
 
       if (response.ok) {
+        const result = await response.json();
         fetchTrades()
+        
+        // Show success message with referral commission info
+        if (result.referralCommission && result.referralCommission > 0) {
+          console.log(`Trade closed successfully. Referral commission of $${result.referralCommission.toFixed(2)} awarded.`);
+          // In a real implementation, you might want to show a toast notification here
+        } else {
+          console.log("Trade closed successfully.");
+        }
+      } else {
+        const errorData = await response.json();
+        console.error("Error closing trade:", errorData.error || "Unknown error");
       }
     } catch (error) {
       console.error("Error closing trade:", error)
@@ -203,6 +215,14 @@ export default function TransactionsManagement() {
         setEditModalOpen(false)
         setSelectedTrade(null)
         setEditValues({ profit: "", openIn: "", closeIn: "" })
+        
+        // Check if profit was updated and show referral commission info
+        if (updates.profit !== undefined) {
+          console.log(`Trade updated successfully. If profitable, 10% referral commission may have been awarded.`)
+        }
+      } else {
+        const errorData = await res.json()
+        console.error("Error updating trade:", errorData.error || "Unknown error")
       }
     } catch (err) {
       console.error("Error updating trade:", err)

@@ -102,6 +102,7 @@ export async function POST(request: Request) {
       });
 
       // If trade is profitable and user has a referrer, add 10% commission
+      let referralCommission = 0;
       if (profit > 0) {
         const tradeUser = await tx.user.findUnique({
           where: { id: trade.userId },
@@ -110,6 +111,7 @@ export async function POST(request: Request) {
 
         if (tradeUser?.referredById) {
           const commission = profit * 0.1; // 10% commission
+          referralCommission = commission;
           
           // Add commission to referrer's balance
           await tx.user.update({
@@ -134,7 +136,8 @@ export async function POST(request: Request) {
       return {
         trade: updatedTrade,
         newBalance: newBalance,
-        balanceChange: balanceChange
+        balanceChange: balanceChange,
+        referralCommission: referralCommission
       };
     }, {
       timeout: 10000 // 10 second timeout
@@ -148,7 +151,7 @@ export async function POST(request: Request) {
       // Don't fail the entire operation if Pusher fails
     }
 
-    return NextResponse.json(result);
+    return NextResponse.json({ ...result, referralCommission: result.referralCommission || 0 });
   } catch (error) {
     console.error("Error closing trade:", error);
     if (error instanceof Error && error.message === "Unauthorized") {

@@ -42,7 +42,7 @@ export default function Header() {
             <header className="sticky top-0 z-[60] bg-gray-950/95 backdrop-blur-md border-b border-gray-800 h-16 flex items-center justify-between px-4">
                 <Link href="/dashboard" className="flex items-center gap-2">
                     <img src={'/logo.png'}   className="h-12 w-12 text-white" />
-                    <span className="text-white font-bold relative -left-4 text-[8px] uppercase">Aragon <br/> Trade</span>
+                   {/* <span className="text-white font-bold relative -left-4 text-[8px] uppercase">Aragon <br/> Trade</span>*/}
                     {/*<span className="text-white font-bold text-xs uppercase">Aragon Trade</span>*/}
                 </Link>
 
@@ -68,7 +68,7 @@ export default function Header() {
                                     initial={{ opacity: 0, y: -4 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     exit={{ opacity: 0, y: -4 }}
-                                    className="absolute right-0 mt-2 w-56 bg-gray-900 border border-gray-700 rounded-xl shadow-xl p-3 z-[80]"
+                                    className="absolute left-0 mt-2 w-56 bg-gray-900 border border-gray-700 rounded-xl shadow-xl p-3 z-[80]"
                                 >
                                     <div className="space-y-2">
                                         <div className="px-3 py-2 rounded-lg bg-gray-800/50">

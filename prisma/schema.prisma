@@ -23,6 +23,7 @@ model User {
   blocked             Boolean              @default(false)
   isVerif             Boolean              @default(false)
   TotalBalance        Float?               @default(0)
+  bonusBalance       String?
   bonusBalanced       Float?
   assignedTo          String?
   assignedAgentTo     String?

@@ -388,6 +388,32 @@ export default function ProfilePage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    // Validate file size (max 10MB)
+    const maxSize = 10 * 1024 * 1024;
+    if (file.size > maxSize) {
+      toast({
+        title: "❌ " + t("fileTooLarge"),
+        description: t("fileMustBeLessThan10MB"),
+        variant: "destructive" as any,
+      });
+      // Clear the input so user can try again
+      e.target.value = '';
+      return;
+    }
+
+    // Validate file type
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/heic', 'image/heif', 'image/webp'];
+    if (!validTypes.includes(file.type) && !file.type.startsWith('image/')) {
+      toast({
+        title: "❌ " + t("invalidFileType"),
+        description: t("pleaseUploadAnImage"),
+        variant: "destructive" as any,
+      });
+      // Clear the input so user can try again
+      e.target.value = '';
+      return;
+    }
+
     const ext = file.name.toLowerCase();
     const isHeic = ext.endsWith(".heic") || ext.endsWith(".heif") || file.type === "image/heic" || file.type === "image/heif";
 
@@ -417,13 +443,19 @@ export default function ProfilePage() {
         }
         
         console.log(`✅ Converted ${file.name} (${(file.size / 1024).toFixed(0)}KB) to JPEG (${(jpegFile.size / 1024).toFixed(0)}KB)`);
+        toast({
+          title: "✅ " + t("conversionSuccess"),
+          description: t("heicConvertedToJpeg"),
+        });
         return;
       } catch (e) {
         console.error("HEIC conversion failed:", e);
         toast({
-          title: "⚠️ Conversion Warning",
-          description: "HEIC file detected. Trying to upload as-is. If it fails, try taking a JPG photo instead.",
+          title: "⚠️ " + t("conversionWarning"),
+          description: t("heicConversionFailed"),
+          variant: "destructive" as any,
         });
+        // Fall back to storing original HEIC file
       }
     }
 
@@ -435,6 +467,12 @@ export default function ProfilePage() {
       setBackIdFile(file);
       setBackIdPreview(URL.createObjectURL(file));
     }
+    
+    // Show success message
+    toast({
+      title: "✅ " + t("fileSelected"),
+      description: `${file.name} ${t("selectedForUpload")}`,
+    });
   };
 
   const handleSubmitVerification = async () => {
@@ -870,8 +908,7 @@ export default function ProfilePage() {
                             <Input
                                 type="file"
                                 className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
-                                accept="image/jpeg,image/jpg,image/png,image/heic,image/heif,image/webp"
-                                capture="environment"
+                                accept="image/*"
                                 onChange={(e) => handleFileChange(e, "front")}
                             />
                           </div>
@@ -900,11 +937,11 @@ export default function ProfilePage() {
                             <Input
                                 type="file"
                                 className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
-                                accept="image/jpeg,image/jpg,image/png,image/heic,image/heif,image/webp"
-                                capture="environment"
+                                accept="image/*"
                                 onChange={(e) => handleFileChange(e, "back")}
                             />
                           </div>
+                          
                         </div>
                       </div>
 
@@ -1390,9 +1427,6 @@ export default function ProfilePage() {
                                 <th className="pb-2 font-medium">
                                   {t("rewardAmount")}
                                 </th>
-                                <th className="pb-2 font-medium">
-                                  {t("rewardSource")}
-                                </th>
                               </tr>
                               </thead>
                               <tbody>
@@ -1406,9 +1440,6 @@ export default function ProfilePage() {
                                     </td>
                                     <td className="py-2 font-semibold text-emerald-300">
                                       +${reward.amount.toFixed(2)}
-                                    </td>
-                                    <td className="py-2 text-xs text-slate-400">
-                                      {reward.source.includes('Manual referral reward by admin') ? '' : reward.source}
                                     </td>
                                   </tr>
                               ))}
