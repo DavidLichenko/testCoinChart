@@ -829,7 +829,7 @@ export const useCandlestickChart = ({
       setIsChartLoading(true);
       
       const timeframe = getTimeframeString(timeframeInSeconds);
-      const url = `https://https://b7e852d78a9f.ngrok-free.app/candles?symbol=${selectedSymbol}&timeframe=${timeframe}&count=100`;
+      const url = `https://b7e852d78a9f.ngrok-free.app/candles?symbol=${selectedSymbol}&timeframe=${timeframe}&count=100`;
       
       // Add a small delay for better UX (like sleep(1) in Python)
       setTimeout(() => {
@@ -885,7 +885,7 @@ export const useCandlestickChart = ({
       setIsChartLoading(true);
       
       const timeframe = getTimeframeString(timeframeInSeconds);
-      const url = `https://https://b7e852d78a9f.ngrok-free.app/candles?symbol=${selectedSymbol}&timeframe=${timeframe}&count=100`;
+      const url = `https://b7e852d78a9f.ngrok-free.app/candles?symbol=${selectedSymbol}&timeframe=${timeframe}&count=100`;
       
       // Add a small delay for better UX
       setTimeout(() => {

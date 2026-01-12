@@ -76,7 +76,7 @@ export default function RealtimeChart({ symbol, timeframe }: Props) {
         const fetchData = async () => {
             try {
                 const response = await fetch(
-                    `https://https://b7e852d78a9f.ngrok-free.app/candles?symbol=${symbol}&timeframe=${timeframe}&count=200`
+                    `https://b7e852d78a9f.ngrok-free.app/candles?symbol=${symbol}&timeframe=${timeframe}&count=200`
                 );
                 const initialData = await response.json();
 
@@ -103,7 +103,7 @@ export default function RealtimeChart({ symbol, timeframe }: Props) {
     useEffect(() => {
         if (ws) ws.close();
 
-        const socket = new WebSocket("wss://https://b7e852d78a9f.ngrok-free.app/ws");
+        const socket = new WebSocket("wss://b7e852d78a9f.ngrok-free.app/ws");
 
         socket.onopen = () => {
             console.log("WebSocket connected");

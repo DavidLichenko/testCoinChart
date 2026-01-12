@@ -5,15 +5,13 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="fd28fafe-204c-4ae6-8105-3dd8baaf979d" name="Changes" comment="master2upd">
-      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/api/user/verification/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/app/api/user/verification/route.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/dashboard-page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/dashboard-page.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/dashboard/performance-widget.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/dashboard/performance-widget.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/header.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/header.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/hooks/useBalance.ts" beforeDir="false" afterPath="$PROJECT_DIR$/hooks/useBalance.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/RealtimeChart.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/RealtimeChart.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/auth/welcome-page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/auth/welcome-page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/old-files/use-candlestick-chart-old.ts" beforeDir="false" afterPath="$PROJECT_DIR$/components/old-files/use-candlestick-chart-old.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/hooks/market-data.ts" beforeDir="false" afterPath="$PROJECT_DIR$/hooks/market-data.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/hooks/use-candlestick-chart.ts" beforeDir="false" afterPath="$PROJECT_DIR$/hooks/use-candlestick-chart.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -111,7 +109,7 @@
       <workItem from="1757101317762" duration="2000" />
       <workItem from="1758390509018" duration="1223000" />
       <workItem from="1766408239072" duration="8178000" />
-      <workItem from="1768215396214" duration="549000" />
+      <workItem from="1768215396214" duration="1154000" />
     </task>
     <task id="LOCAL-00001" summary="master2upd">
       <option name="closed" value="true" />
@@ -121,7 +119,15 @@
       <option name="project" value="LOCAL" />
       <updated>1756696680113</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="master2upd">
+      <option name="closed" value="true" />
+      <created>1768216146996</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1768216146996</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
