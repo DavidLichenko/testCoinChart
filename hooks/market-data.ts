@@ -57,7 +57,7 @@ export function useTickers(initialTimeframe = "H1") {
         setCandlesBySymbol([])
 
         const controller = new AbortController()
-        const url = `https://b7e852d78a9f.ngrok-free.app/candles?symbol=${selectedTicker.symbol}&timeframe=${timeframe}&count=365`
+        const url = `https://api.aragon-trade.com/candles?symbol=${selectedTicker.symbol}&timeframe=${timeframe}&count=365`
 
         fetch(url, { signal: controller.signal })
             .then((res) => res.json())
@@ -84,7 +84,7 @@ export function useTickers(initialTimeframe = "H1") {
     }, [tickers, selectedTicker])
 
     useEffect(() => {
-        const ws = new WebSocket("wss://b7e852d78a9f.ngrok-free.app/ws")
+        const ws = new WebSocket("wss://api.aragon-trade.com/ws")
         
         // Batch updates to reduce re-renders
         let updateQueue: TickerData[] = []

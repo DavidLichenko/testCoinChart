@@ -143,13 +143,13 @@ export default function WelcomePage({
 
         const [btcResponse, ethResponse, aaplResponse] = await Promise.all([
           fetch(
-              "https://b7e852d78a9f.ngrok-free.app/candles?symbol=BTCUSD&timeframe=D1&count=2"
+              "https://api.aragon-trade.com/candles?symbol=BTCUSD&timeframe=D1&count=2"
           ),
           fetch(
-              "https://b7e852d78a9f.ngrok-free.app/candles?symbol=ETHUSD&timeframe=D1&count=2"
+              "https://api.aragon-trade.com/candles?symbol=ETHUSD&timeframe=D1&count=2"
           ),
           fetch(
-              "https://b7e852d78a9f.ngrok-free.app/candles?symbol=AAPL.NAS&timeframe=D1&count=2"
+              "https://api.aragon-trade.com/candles?symbol=AAPL.NAS&timeframe=D1&count=2"
           ),
         ]);
 

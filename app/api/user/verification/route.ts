@@ -9,7 +9,7 @@ export const maxDuration = 60;
 
 const UPLOAD_API =
     process.env.UPLOAD_API_URL ||
-    "https://b7e852d78a9f.ngrok-free.app/api/upload/verification";
+    "https://api.aragon-trade.com/api/upload/verification";
 
 export async function POST(request: NextRequest) {
     try {
