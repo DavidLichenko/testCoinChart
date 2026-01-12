@@ -1,91 +1,156 @@
-import { useEffect, useState, useCallback } from "react"
-import { pusherClient } from "@/lib/pusher-client"
+import { useEffect, useState, useCallback } from "react";
+import { pusherClient } from "@/lib/pusher-client";
 
 type BalanceResponse = {
-  userId: string
-  totalBalance: number
-  bonusBalanced?: number
-}
+    userId: string;
+    totalBalance: number;
+    bonusBalanced?: number;
+};
 
-// --- Глобальные переменные ---
-let balanceStore = 0
-let profitStore = 0
-let bonusBalancedStore = 0
-const listeners: Set<(balance: number, profit: number, bonusBalanced: number) => void> = new Set()
+type Listener = (balance: number, profit: number, bonusBalanced: number) => void;
 
-const updateAndNotify = () => {
-  listeners.forEach(listener => listener(balanceStore, profitStore, bonusBalancedStore))
-}
+let balanceStore = 0;
+let profitStore = 0;
+let bonusBalancedStore = 0;
 
-// --- Функция получения баланса ---
-async function fetchInitialBalance() {
-  try {
-    const res = await fetch("/api/user/balance")
+let currentUserId: string | null = null;
+let subscribedChannel: ReturnType<typeof pusherClient.subscribe> | null = null;
 
-    if (res.status === 401) {
-      // пользователь не авторизован → сбрасываем всё
-      balanceStore = 0
-      profitStore = 0
-      bonusBalancedStore = 0
-      updateAndNotify()
-      return
+let initPromise: Promise<void> | null = null;
+let inFlightFetch: Promise<void> | null = null;
+
+const listeners = new Set<Listener>();
+
+const notify = () => {
+    for (const l of listeners) l(balanceStore, profitStore, bonusBalancedStore);
+};
+
+const resetStore = () => {
+    balanceStore = 0;
+    profitStore = 0;
+    bonusBalancedStore = 0;
+    notify();
+};
+
+const unsubscribeIfNeeded = () => {
+    if (!subscribedChannel || !currentUserId) return;
+
+    // важно: bind'ы снимаем, иначе будет дублирование на HMR/рефетчах
+    subscribedChannel.unbind("balance-update");
+    pusherClient.unsubscribe(`user-${currentUserId}`);
+
+    subscribedChannel = null;
+};
+
+const ensureSubscribed = (userId: string) => {
+    // если уже подписаны на этого пользователя — ничего не делаем
+    if (currentUserId === userId && subscribedChannel) return;
+
+    // если подписаны на другого — отписываемся
+    if (currentUserId && currentUserId !== userId) {
+        unsubscribeIfNeeded();
     }
 
-    if (!res.ok) throw new Error("Failed to fetch balance")
+    currentUserId = userId;
+    subscribedChannel = pusherClient.subscribe(`user-${userId}`);
 
-    const data: BalanceResponse = await res.json()
-    balanceStore = data.totalBalance
-    bonusBalancedStore = data.bonusBalanced || 0
+    subscribedChannel.bind(
+        "balance-update",
+        (payload: { totalBalance: number; bonusBalanced?: number }) => {
+            balanceStore = payload.totalBalance;
+            bonusBalancedStore = payload.bonusBalanced ?? 0;
+            notify();
+        }
+    );
+};
 
-    // Подписка на Pusher после получения userId
-    const channel = pusherClient.subscribe(`user-${data.userId}`)
-    channel.bind("balance-update", (data: { totalBalance: number; bonusBalanced?: number }) => {
-      balanceStore = data.totalBalance
-      bonusBalancedStore = data.bonusBalanced || 0
-      updateAndNotify()
-    })
+async function fetchInitialBalanceInternal(): Promise<void> {
+    if (typeof window === "undefined") return;
 
-    updateAndNotify()
-  } catch (err) {
-    console.error("Error fetching balance:", err)
-  }
+    // не допускаем параллельных fetch'ей
+    if (inFlightFetch) return inFlightFetch;
+
+    inFlightFetch = (async () => {
+        try {
+            const res = await fetch("/api/user/balance", { cache: "no-store" });
+
+            if (res.status === 401) {
+                // logout/не авторизован — чистим стейт и отписываемся
+                unsubscribeIfNeeded();
+                currentUserId = null;
+                resetStore();
+                return;
+            }
+
+            if (!res.ok) throw new Error("Failed to fetch balance");
+
+            const data: BalanceResponse = await res.json();
+
+            balanceStore = data.totalBalance;
+            bonusBalancedStore = data.bonusBalanced ?? 0;
+
+            ensureSubscribed(data.userId);
+            notify();
+        } catch (err) {
+            console.error("Error fetching balance:", err);
+        } finally {
+            inFlightFetch = null;
+        }
+    })();
+
+    return inFlightFetch;
 }
 
-// --- Запрашиваем баланс сразу при загрузке страницы ---
-if (typeof window !== "undefined") {
-  fetchInitialBalance()
-}
-
-// --- Сам хук ---
-export function useBalance() {
-  const [balance, setBalance] = useState(balanceStore)
-  const [liveProfit, setLiveProfit] = useState(profitStore)
-  const [bonusBalanced, setbonusBalanced] = useState(bonusBalancedStore)
-
-  useEffect(() => {
-    const onUpdate = (newBalance: number, newProfit: number, newbonusBalanced: number) => {
-      setBalance(newBalance)
-      setLiveProfit(newProfit)
-      setbonusBalanced(newbonusBalanced)
+// Инициализация строго один раз на клиенте
+function ensureInitOnce() {
+    if (typeof window === "undefined") return;
+    if (!initPromise) {
+        initPromise = fetchInitialBalanceInternal();
     }
-    listeners.add(onUpdate)
-
-    // Первичная синхронизация
-    onUpdate(balanceStore, profitStore, bonusBalancedStore)
-
-    return () => {
-      listeners.delete(onUpdate)
-    }
-  }, [])
-
-  const setProfit = useCallback((profit: number) => {
-    profitStore = profit
-    updateAndNotify()
-  }, [])
-
-  return { balance, liveProfit, bonusBalanced, setLiveProfit: setProfit, refetchBalance }
 }
 
+// --- публичное API ---
 export async function refetchBalance() {
-  await fetchInitialBalance()
+    // рефетч не должен создавать дополнительные подписки
+    await fetchInitialBalanceInternal();
+}
+
+export function useBalance() {
+    ensureInitOnce();
+
+    const [balance, setBalance] = useState(balanceStore);
+    const [liveProfit, setLiveProfitState] = useState(profitStore);
+    const [bonusBalanced, setBonusBalanced] = useState(bonusBalancedStore);
+
+    useEffect(() => {
+        const onUpdate: Listener = (b, p, bb) => {
+            setBalance(b);
+            setLiveProfitState(p);
+            setBonusBalanced(bb);
+        };
+
+        listeners.add(onUpdate);
+
+        // синхронизируемся сразу
+        onUpdate(balanceStore, profitStore, bonusBalancedStore);
+
+        return () => {
+            listeners.delete(onUpdate);
+            // специально НЕ отписываемся от pusher тут,
+            // потому что это глобальный store и может быть другой компонент слушает.
+        };
+    }, []);
+
+    const setProfit = useCallback((profit: number) => {
+        profitStore = profit;
+        notify();
+    }, []);
+
+    return {
+        balance,
+        liveProfit,
+        bonusBalanced,
+        setLiveProfit: setProfit,
+        refetchBalance,
+    };
 }

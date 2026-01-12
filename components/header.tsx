@@ -35,8 +35,6 @@ export default function Header() {
         setOpenMenu(false)
     }
 
-    console.log(bonusBalanced + balance)
-    // MOBILE HEADER
     if (isMobile) {
         return (
             <header className="sticky top-0 z-[60] bg-gray-950/95 backdrop-blur-md border-b border-gray-800 h-16 flex items-center justify-between px-4">

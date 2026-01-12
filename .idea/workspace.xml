@@ -5,19 +5,27 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="fd28fafe-204c-4ae6-8105-3dd8baaf979d" name="Changes" comment="master2upd">
+      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/layout.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/admin/transactions-management.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/admin/transactions-management.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/chat/chat-button.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/chat/chat-button.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/api/user/verification/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/app/api/user/verification/route.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/components/dashboard-page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/dashboard-page.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/i18n-provider.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/i18n-provider.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/profile-page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/profile-page.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/trade-page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/trade-page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/dashboard/performance-widget.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/dashboard/performance-widget.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/header.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/header.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/hooks/useBalance.ts" beforeDir="false" afterPath="$PROJECT_DIR$/hooks/useBalance.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FormatOnSaveOptions">
+    <option name="myRunOnSave" value="false" />
+    <option name="myAllFileTypesSelected" value="true" />
+    <option name="mySelectedFileTypes">
+      <set />
+    </option>
   </component>
   <component name="Git.Settings">
     <option name="RECENT_BRANCH_BY_REPOSITORY">
@@ -35,8 +43,8 @@
 }</component>
   <component name="GithubPullRequestsUISettings">{
   &quot;selectedUrlAndAccountId&quot;: {
-    &quot;url&quot;: &quot;https://github.com/DavidLichenko/testCoinChart&quot;,
-    &quot;accountId&quot;: &quot;b4535fca-92db-4b90-af83-711722d81766&quot;
+    &quot;url&quot;: &quot;https://github.com/DavidLichenko/testCoinChart.git&quot;,
+    &quot;accountId&quot;: &quot;c936dd8f-6916-4d3e-9369-95910f5517f5&quot;
   }
 }</component>
   <component name="ProjectColorInfo">{
@@ -50,21 +58,40 @@
   <component name="PropertiesComponent">{
   &quot;keyToString&quot;: {
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
     &quot;git-widget-placeholder&quot;: &quot;master2&quot;,
+    &quot;js.debugger.nextJs.config.created.client&quot;: &quot;true&quot;,
+    &quot;js.debugger.nextJs.config.created.server&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
     &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
     &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;project.propVCSSupport.DirectoryMappings&quot;,
-    &quot;ts.external.directory.path&quot;: &quot;D:\\sites\\aragon-trade\\node_modules\\typescript\\lib&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;configurable.group.appearance&quot;,
+    &quot;ts.external.directory.path&quot;: &quot;C:\\Users\\CannonPC\\WebstormProjects\\testCoinChart\\node_modules\\typescript\\lib&quot;,
     &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
 }</component>
+  <component name="RunManager" selected="npm.Next.js: server-side">
+    <configuration name="Next.js: debug client-side" type="JavascriptDebugType" uri="http://localhost:3000/">
+      <method v="2" />
+    </configuration>
+    <configuration name="Next.js: server-side" type="js.build_tools.npm">
+      <package-json value="$PROJECT_DIR$/package.json" />
+      <command value="run" />
+      <scripts>
+        <script value="dev" />
+      </scripts>
+      <node-interpreter value="project" />
+      <envs />
+      <method v="2" />
+    </configuration>
+  </component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-js-predefined-1d06a55b98c1-0b3e54e931b4-JavaScript-WS-241.18034.50" />
+        <option value="bundled-js-predefined-d6986cc7102b-a71380e98a7c-JavaScript-WS-252.28539.21" />
       </set>
     </attachedChunks>
   </component>
@@ -83,6 +110,8 @@
       <workItem from="1756810341630" duration="820000" />
       <workItem from="1757101317762" duration="2000" />
       <workItem from="1758390509018" duration="1223000" />
+      <workItem from="1766408239072" duration="8178000" />
+      <workItem from="1768215396214" duration="549000" />
     </task>
     <task id="LOCAL-00001" summary="master2upd">
       <option name="closed" value="true" />
