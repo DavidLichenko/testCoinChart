@@ -1,18 +1,19 @@
+// "@/app/admin/users/[userId]/page.tsx"
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useCallback, useMemo, useRef } from "react"
 import { useRouter, useParams } from "next/navigation"
 import {
     ArrowLeft,
     Users,
-    Shield,
     DollarSign,
-    Ban,
-    CheckCircle,
     Mail,
     Calendar,
     TrendingUp,
     CreditCard,
+    ChevronDown,
+    Search,
+    X
 } from "lucide-react"
 import { toast } from "@/components/toast"
 
@@ -30,7 +31,11 @@ import {
 import { Checkbox } from "@/components/ui/checkbox"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
+import { Slider } from "@/components/ui/slider"
+import { Separator } from "@/components/ui/separator"
+
+// Импортируем тикер метаданные
+import {tickerMeta, TickerMeta, tickerMetaMap} from "@/data/ticker-meta"
 
 interface AdminUser {
     id: string
@@ -68,7 +73,6 @@ interface UserOrder {
     createdAt: string
 }
 
-// New interfaces for creating/editing transactions
 interface NewTrade {
     type: "BUY" | "SELL"
     ticker: string
@@ -78,7 +82,6 @@ interface NewTrade {
     openIn: number
     takeProfit: number | null
     stopLoss: number | null
-    assetType: string
 }
 
 interface EditTrade {
@@ -101,6 +104,29 @@ interface EditOrder {
     amount: number
 }
 
+// Оптимизированный компонент для отображения иконок
+const TickerIcon = ({ ticker, className = "h-5 w-5" }: { ticker: TickerMeta, className?: string }) => {
+    const [imgError, setImgError] = useState(false)
+
+    if (imgError || !ticker.icon) {
+        return (
+            <div className={`${className} flex items-center justify-center rounded-full bg-slate-700 text-xs font-medium`}>
+                {ticker.symbol.substring(0, 2)}
+            </div>
+        )
+    }
+
+    return (
+        <img
+            src={ticker.icon}
+            alt={ticker.showName}
+            className={`${className} rounded-full`}
+            onError={() => setImgError(true)}
+            loading="lazy"
+        />
+    )
+}
+
 export default function AdminUserPage() {
     const router = useRouter()
     const params = useParams()
@@ -119,26 +145,29 @@ export default function AdminUserPage() {
     const [isOrderDialogOpen, setIsOrderDialogOpen] = useState(false)
     const [isEditTradeDialogOpen, setIsEditTradeDialogOpen] = useState(false)
     const [isEditOrderDialogOpen, setIsEditOrderDialogOpen] = useState(false)
-    
-    // State for new transactions
+
+    // State for new trade
     const [newTrade, setNewTrade] = useState<NewTrade>({
         type: "BUY",
-        ticker: "BTCUSDT",
-        volume: 0.1,
+        ticker: "BTCUSD",
+        volume: 0.01,
         leverage: 10,
         margin: 100,
-        openIn: 0,
+        openIn: 50000,
         takeProfit: null,
         stopLoss: null,
-        assetType: "CRYPTO"
     })
-    
+
+    // State for price data
+    const [tickerPrice, setTickerPrice] = useState<number>(50000)
+    const [isLoadingPrice, setIsLoadingPrice] = useState(false)
+
     const [newOrder, setNewOrder] = useState<NewOrder>({
         type: "DEPOSIT",
         amount: 100,
         status: "PENDING"
     })
-    
+
     // State for editing transactions
     const [editTrade, setEditTrade] = useState<EditTrade>({
         id: "",
@@ -147,7 +176,7 @@ export default function AdminUserPage() {
         closeIn: null,
         status: "OPEN"
     })
-    
+
     const [editOrder, setEditOrder] = useState<EditOrder>({
         id: "",
         status: "PENDING",
@@ -174,6 +203,68 @@ export default function AdminUserPage() {
     const [balance, setBalance] = useState("0")
     const [bonusBalance, setBonusBalance] = useState("0");
 
+    // State for ticker selector with infinite scroll
+    const [searchQuery, setSearchQuery] = useState<string>("")
+    const [page, setPage] = useState<number>(1)
+    const [hasMore, setHasMore] = useState<boolean>(true)
+    const [isLoadingMore, setIsLoadingMore] = useState<boolean>(false)
+    const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false)
+    const dropdownRef = useRef<HTMLDivElement>(null)
+    const ITEMS_PER_PAGE = 10
+    const tickerMetaArray = Array.from(tickerMetaMap.values())
+    // Оптимизированный поиск тикеров с мемоизацией
+    const filteredTickers = useMemo(() => {
+        if (!searchQuery.trim()) {
+            return tickerMetaArray
+        }
+
+        const query = searchQuery.toLowerCase().trim()
+        return tickerMetaArray.filter(ticker =>
+            ticker.symbol.toLowerCase().includes(query) ||
+            ticker.showName.toLowerCase().includes(query) ||
+            (ticker.fullName?.toLowerCase() || '').includes(query)
+        )
+    }, [searchQuery])
+
+    // Пагинированные тикеры
+    const paginatedTickers = useMemo(() => {
+        return filteredTickers.slice(0, page * ITEMS_PER_PAGE)
+    }, [filteredTickers, page])
+
+    // Проверяем, есть ли еще тикеры для загрузки
+    useEffect(() => {
+        setHasMore(paginatedTickers.length < filteredTickers.length)
+    }, [paginatedTickers, filteredTickers])
+
+    // Обработчик скролла для бесконечной прокрутки
+    const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
+        const element = e.currentTarget
+        const isBottom = element.scrollHeight - element.scrollTop <= element.clientHeight + 100
+
+        if (isBottom && hasMore && !isLoadingMore) {
+            setIsLoadingMore(true)
+            setTimeout(() => {
+                setPage(prev => prev + 1)
+                setIsLoadingMore(false)
+            }, 200)
+        }
+    }, [hasMore, isLoadingMore])
+
+    // Закрытие dropdown при клике вне
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+                setIsDropdownOpen(false)
+            }
+        }
+
+        if (isDropdownOpen) {
+            document.addEventListener('mousedown', handleClickOutside)
+            return () => document.removeEventListener('mousedown', handleClickOutside)
+        }
+    }, [isDropdownOpen])
+
+    // Загружаем данные пользователя
     useEffect(() => {
         if (!userId) return
         const fetchAll = async () => {
@@ -240,6 +331,49 @@ export default function AdminUserPage() {
         fetchAll()
     }, [userId])
 
+    // Функция для имитации загрузки цены
+    const fetchTickerPrice = async (ticker: string) => {
+        setIsLoadingPrice(true)
+        try {
+            const meta = tickerMetaMap.get(ticker)
+            let basePrice = 50000
+
+            if (meta?.category === "forex") basePrice = 1.1
+            if (meta?.category === "stocks") basePrice = 150
+            if (meta?.category === "indices") basePrice = 4000
+            if (meta?.category === "commodities") basePrice = 2000
+
+            const randomChange = (Math.random() - 0.5) * 0.1
+            const price = basePrice * (1 + randomChange)
+            setTickerPrice(Number(price.toFixed(2)))
+            setNewTrade(prev => ({ ...prev, openIn: Number(price.toFixed(2)) }))
+        } catch (error) {
+            console.error("Error fetching price:", error)
+        } finally {
+            setIsLoadingPrice(false)
+        }
+    }
+
+    // При изменении тикера обновляем цену
+    useEffect(() => {
+        if (newTrade.ticker) {
+            fetchTickerPrice(newTrade.ticker)
+        }
+    }, [newTrade.ticker])
+
+    // Функция для расчета маржи и объема
+    const calculateTradeDetails = () => {
+        const { volume, leverage, openIn } = newTrade
+        const contractValue = volume * openIn
+        const requiredMargin = contractValue / leverage
+
+        return {
+            contractValue,
+            requiredMargin,
+            totalCost: requiredMargin
+        }
+    }
+
     const handleSave = async () => {
         if (!user) return
         setSaving(true)
@@ -293,17 +427,20 @@ export default function AdminUserPage() {
 
     const handleCreateTrade = async () => {
         if (!user) return
-        
+
+        const tradeDetails = calculateTradeDetails()
+
         try {
             const res = await fetch("/api/admin/opentrade", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     userId: user.id,
-                    ...newTrade
+                    ...newTrade,
+                    margin: tradeDetails.requiredMargin
                 }),
             })
-            
+
             if (res.ok) {
                 // Refresh trades
                 const tradesRes = await fetch(`/api/admin/trades?userId=${userId}`)
@@ -337,7 +474,7 @@ export default function AdminUserPage() {
 
     const handleCreateOrder = async () => {
         if (!user) return
-        
+
         try {
             const res = await fetch("/api/admin/orders", {
                 method: "POST",
@@ -347,7 +484,7 @@ export default function AdminUserPage() {
                     ...newOrder
                 }),
             })
-            
+
             if (res.ok) {
                 // Refresh orders
                 const ordersRes = await fetch(`/api/admin/orders?userId=${userId}`)
@@ -386,7 +523,7 @@ export default function AdminUserPage() {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(editTrade),
             })
-            
+
             if (res.ok) {
                 // Refresh trades
                 const tradesRes = await fetch(`/api/admin/trades?userId=${userId}`)
@@ -425,7 +562,7 @@ export default function AdminUserPage() {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ status: editOrder.status }),
             })
-            
+
             if (res.ok) {
                 // Refresh orders
                 const ordersRes = await fetch(`/api/admin/orders?userId=${userId}`)
@@ -583,6 +720,11 @@ export default function AdminUserPage() {
         )
     }
 
+    const tradeDetails = calculateTradeDetails()
+    const selectedTickerMeta = tickerMetaMap.get(newTrade.ticker)
+    const userBalance = parseFloat(balance) || 0
+    const hasEnoughBalance = userBalance >= tradeDetails.totalCost
+
     return (
         <div className="min-h-screen bg-gray-950 px-2 py-4 text-slate-100 sm:px-6">
             <div className="mx-auto max-w-6xl space-y-5 sm:space-y-6">
@@ -600,15 +742,15 @@ export default function AdminUserPage() {
                         </Button>
                         <div>
                             <h1 className="flex items-center gap-2 text-xl font-bold sm:text-2xl">
-                <span className="flex h-9 w-9 items-center justify-center rounded-2xl bg-purple-500/20 text-purple-200">
-                  <Users className="h-4 w-4" />
-                </span>
+                                <span className="flex h-9 w-9 items-center justify-center rounded-2xl bg-purple-500/20 text-purple-200">
+                                    <Users className="h-4 w-4" />
+                                </span>
                                 <span>
-                  {user.name || "No Name"}{" "}
+                                    {user.name || "No Name"}{" "}
                                     <span className="ml-1 text-sm text-slate-400">
-                    ({user.email})
-                  </span>
-                </span>
+                                        ({user.email})
+                                    </span>
+                                </span>
                             </h1>
                             <p className="mt-1 text-xs text-slate-400 sm:text-sm">
                                 User ID: <span className="font-mono text-slate-300">{user.id}</span>
@@ -645,9 +787,9 @@ export default function AdminUserPage() {
                         <Card className="rounded-2xl border-slate-900 bg-slate-950/80 shadow-[0_18px_45px_rgba(15,23,42,0.7)]">
                             <CardHeader className="pb-3">
                                 <CardTitle className="flex items-center gap-2 text-base font-semibold">
-                  <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-purple-500/20 text-purple-200">
-                    <Users className="h-4 w-4" />
-                  </span>
+                                    <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-purple-500/20 text-purple-200">
+                                        <Users className="h-4 w-4" />
+                                    </span>
                                     Account details
                                 </CardTitle>
                             </CardHeader>
@@ -675,7 +817,6 @@ export default function AdminUserPage() {
                                         <Select
                                             value={role}
                                             onValueChange={setRole}
-                                            disabled={false /* можно оставить проверку на OWNER */}
                                         >
                                             <SelectTrigger className="h-9 rounded-xl border-slate-800 bg-slate-900 text-sm">
                                                 <SelectValue />
@@ -760,16 +901,16 @@ export default function AdminUserPage() {
                                     <div className="flex items-center gap-1.5">
                                         <Calendar className="h-3.5 w-3.5" />
                                         <span>
-                      Created:{" "}
+                                            Created:{" "}
                                             {new Date(user.createdAt).toLocaleDateString()}
-                    </span>
+                                        </span>
                                     </div>
                                     <div className="hidden items-center gap-1.5 sm:flex">
                                         <Calendar className="h-3.5 w-3.5" />
                                         <span>
-                      Updated:{" "}
+                                            Updated:{" "}
                                             {new Date(user.updatedAt).toLocaleDateString()}
-                    </span>
+                                        </span>
                                     </div>
                                 </div>
 
@@ -789,9 +930,9 @@ export default function AdminUserPage() {
                         <Card className="rounded-2xl border-slate-900 bg-slate-950/80">
                             <CardHeader className="pb-3">
                                 <CardTitle className="flex items-center gap-2 text-sm font-semibold">
-                  <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-emerald-500/15 text-emerald-300">
-                    <DollarSign className="h-4 w-4" />
-                  </span>
+                                    <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-emerald-500/15 text-emerald-300">
+                                        <DollarSign className="h-4 w-4" />
+                                    </span>
                                     Balance & Permissions
                                 </CardTitle>
                             </CardHeader>
@@ -806,8 +947,8 @@ export default function AdminUserPage() {
                                             className="h-9 flex-1 rounded-xl border-slate-800 bg-slate-900 text-sm"
                                         />
                                         <span className="rounded-xl bg-slate-900 px-3 py-1 text-xs text-slate-400">
-                      USD
-                    </span>
+                                            USD
+                                        </span>
                                     </div>
                                 </div>
                                 <div className="space-y-1.5">
@@ -821,8 +962,8 @@ export default function AdminUserPage() {
                                             className="h-9 flex-1 rounded-xl border-slate-800 bg-slate-900 text-sm"
                                         />
                                         <span className="rounded-xl bg-purple-900/30 px-3 py-1 text-xs text-purple-300">
-                      USD
-                    </span>
+                                            USD
+                                        </span>
                                     </div>
                                 </div>
                                 <p className="text-xs text-slate-500">
@@ -839,9 +980,9 @@ export default function AdminUserPage() {
                         <Card className="rounded-2xl border-slate-900 bg-slate-950/80">
                             <CardHeader className="flex items-center justify-between pb-3">
                                 <CardTitle className="flex items-center gap-2 text-base font-semibold">
-                            <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-sky-500/20 text-sky-200">
-                                <TrendingUp className="h-4 w-4" />
-                            </span>
+                                    <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-sky-500/20 text-sky-200">
+                                        <TrendingUp className="h-4 w-4" />
+                                    </span>
                                     Trades
                                 </CardTitle>
                                 <div className="flex items-center gap-2">
@@ -853,130 +994,342 @@ export default function AdminUserPage() {
                                     </Badge>
                                     <Dialog open={isTradeDialogOpen} onOpenChange={setIsTradeDialogOpen}>
                                         <DialogTrigger asChild>
-                                            <Button 
-                                                size="sm" 
+                                            <Button
+                                                size="sm"
                                                 className="h-7 rounded-full bg-purple-600 px-2.5 text-xs hover:bg-purple-700"
                                                 onClick={() => setIsTradeDialogOpen(true)}
                                             >
                                                 New Trade
                                             </Button>
                                         </DialogTrigger>
-                                        <DialogContent className="rounded-2xl border-slate-800 bg-slate-900 text-slate-100 sm:max-w-md">
+                                        <DialogContent className="rounded-2xl border-slate-800 bg-slate-900 text-slate-100 sm:max-w-lg">
                                             <DialogHeader>
                                                 <DialogTitle className="text-lg font-semibold">Create New Trade</DialogTitle>
                                             </DialogHeader>
                                             <div className="space-y-4">
-                                                <div className="grid grid-cols-2 gap-3">
-                                                    <div className="space-y-2">
-                                                        <Label className="text-xs text-slate-400">Type</Label>
-                                                        <Select
-                                                            value={newTrade.type}
-                                                            onValueChange={(v) => setNewTrade({...newTrade, type: v as "BUY" | "SELL"})}
-                                                        >
-                                                            <SelectTrigger className="h-9 rounded-xl border-slate-800 bg-slate-900 text-sm">
-                                                                <SelectValue />
-                                                            </SelectTrigger>
-                                                            <SelectContent className="border-slate-800 bg-slate-900 text-sm">
-                                                                <SelectItem value="BUY">Buy</SelectItem>
-                                                                <SelectItem value="SELL">Sell</SelectItem>
-                                                            </SelectContent>
-                                                        </Select>
-                                                    </div>
-                                                    <div className="space-y-2">
-                                                        <Label className="text-xs text-slate-400">Asset Type</Label>
-                                                        <Select
-                                                            value={newTrade.assetType}
-                                                            onValueChange={(v) => setNewTrade({...newTrade, assetType: v})}
-                                                        >
-                                                            <SelectTrigger className="h-9 rounded-xl border-slate-800 bg-slate-900 text-sm">
-                                                                <SelectValue />
-                                                            </SelectTrigger>
-                                                            <SelectContent className="border-slate-800 bg-slate-900 text-sm">
-                                                                <SelectItem value="CRYPTO">Crypto</SelectItem>
-                                                                <SelectItem value="STOCK">Stock</SelectItem>
-                                                                <SelectItem value="FOREX">Forex</SelectItem>
-                                                            </SelectContent>
-                                                        </Select>
+                                                {/* User Balance Info */}
+                                                <div className="rounded-xl bg-slate-800/50 p-3">
+                                                    <div className="flex items-center justify-between">
+                                                        <div>
+                                                            <div className="text-xs text-slate-400">User Balance</div>
+                                                            <div className="text-lg font-semibold text-emerald-300">
+                                                                ${userBalance.toFixed(2)}
+                                                            </div>
+                                                        </div>
+                                                        <div className="text-right">
+                                                            <div className="text-xs text-slate-400">Available Margin</div>
+                                                            <div className={`text-lg font-semibold ${hasEnoughBalance ? 'text-emerald-300' : 'text-rose-400'}`}>
+                                                                ${(userBalance - tradeDetails.totalCost).toFixed(2)}
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                 </div>
-                                                
+
+                                                {/* Selected Ticker Info */}
+                                                <div className="flex items-center justify-between rounded-xl bg-slate-800/30 p-3">
+                                                    <div className="flex items-center gap-3">
+                                                        {selectedTickerMeta && (
+                                                            <TickerIcon ticker={selectedTickerMeta} className="h-8 w-8" />
+                                                        )}
+                                                        <div>
+                                                            <div className="text-sm font-semibold">{selectedTickerMeta?.showName || newTrade.ticker}</div>
+                                                            <div className="text-xs text-slate-400">{selectedTickerMeta?.category || 'Unknown'}</div>
+                                                        </div>
+                                                    </div>
+                                                    <div className="text-right">
+                                                        <div className="text-xs text-slate-400">Current Price</div>
+                                                        <div className="text-lg font-semibold">
+                                                            {isLoadingPrice ? (
+                                                                <div className="h-6 w-20 animate-pulse rounded bg-slate-700" />
+                                                            ) : (
+                                                                `$${tickerPrice.toFixed(2)}`
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                {/* Trade Type */}
                                                 <div className="space-y-2">
-                                                    <Label className="text-xs text-slate-400">Ticker</Label>
+                                                    <Label className="text-xs text-slate-400">Trade Type</Label>
+                                                    <div className="grid grid-cols-2 gap-2">
+                                                        <Button
+                                                            type="button"
+                                                            variant={newTrade.type === "BUY" ? "default" : "outline"}
+                                                            className={`h-9 rounded-xl ${newTrade.type === "BUY" ? 'bg-emerald-600 hover:bg-emerald-700' : 'border-slate-700 bg-slate-800 hover:bg-slate-700'}`}
+                                                            onClick={() => setNewTrade({...newTrade, type: "BUY"})}
+                                                        >
+                                                            BUY
+                                                        </Button>
+                                                        <Button
+                                                            type="button"
+                                                            variant={newTrade.type === "SELL" ? "default" : "outline"}
+                                                            className={`h-9 rounded-xl ${newTrade.type === "SELL" ? 'bg-rose-600 hover:bg-rose-700' : 'border-slate-700 bg-slate-800 hover:bg-slate-700'}`}
+                                                            onClick={() => setNewTrade({...newTrade, type: "SELL"})}
+                                                        >
+                                                            SELL
+                                                        </Button>
+                                                    </div>
+                                                </div>
+
+                                                {/* Ticker Selector - ОПТИМИЗИРОВАННАЯ ВЕРСИЯ */}
+                                                <div className="space-y-2" ref={dropdownRef}>
+                                                    <Label className="text-xs text-slate-400">Select Ticker</Label>
+
+                                                    {/* Кастомный dropdown с поиском и бесконечной прокруткой */}
+                                                    <div className="relative">
+                                                        {/* Trigger кнопка */}
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                setIsDropdownOpen(!isDropdownOpen)
+                                                                setPage(1) // Сбрасываем пагинацию при открытии
+                                                            }}
+                                                            className="flex h-9 w-full items-center justify-between rounded-xl border border-slate-700 bg-slate-800 px-3 text-sm"
+                                                        >
+                                                            <div className="flex items-center gap-2">
+                                                                {selectedTickerMeta && (
+                                                                    <TickerIcon ticker={selectedTickerMeta} />
+                                                                )}
+                                                                <span className="truncate">
+                                                                    {selectedTickerMeta
+                                                                        ? `${selectedTickerMeta.showName} `
+                                                                        : "Select ticker..."
+                                                                    }
+                                                                </span>
+                                                            </div>
+                                                            <ChevronDown className={`h-4 w-4 text-slate-500 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
+                                                        </button>
+
+                                                        {/* Dropdown */}
+                                                        {isDropdownOpen && (
+                                                            <div className="absolute left-0 right-0 top-full z-50 mt-1 max-h-80 overflow-hidden rounded-xl border border-slate-700 bg-slate-900 shadow-lg">
+                                                                {/* Search */}
+                                                                <div className="sticky top-0 z-10 border-b border-slate-800 bg-slate-900 p-2">
+                                                                    <div className="relative">
+                                                                        <Input
+                                                                            type="text"
+                                                                            placeholder="Search tickers..."
+                                                                            value={searchQuery}
+                                                                            onChange={(e) => {
+                                                                                setSearchQuery(e.target.value)
+                                                                                setPage(1) // Сбрасываем пагинацию при поиске
+                                                                            }}
+                                                                            className="h-8 border-slate-700 bg-slate-800 text-sm"
+                                                                            autoFocus
+                                                                        />
+                                                                        <div className="absolute right-2 top-1/2 -translate-y-1/2">
+                                                                            {searchQuery ? (
+                                                                                <button
+                                                                                    onClick={() => setSearchQuery("")}
+                                                                                    className="text-slate-500 hover:text-slate-300"
+                                                                                >
+                                                                                    <X className="h-4 w-4" />
+                                                                                </button>
+                                                                            ) : (
+                                                                                <Search className="h-4 w-4 text-slate-500" />
+                                                                            )}
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+
+                                                                {/* Ticker list */}
+                                                                <div
+                                                                    className="max-h-60 overflow-y-auto"
+                                                                    onScroll={handleScroll}
+                                                                >
+                                                                    {paginatedTickers.length === 0 ? (
+                                                                        <div className="p-4 text-center text-sm text-slate-400">
+                                                                            {searchQuery ? `No tickers found for "${searchQuery}"` : "Loading tickers..."}
+                                                                        </div>
+                                                                    ) : (
+                                                                        <>
+                                                                            {paginatedTickers.map((ticker) => (
+                                                                                <button
+                                                                                    key={ticker.symbol}
+                                                                                    type="button"
+                                                                                    className={`flex w-full items-center gap-3 p-3 hover:bg-slate-800 ${
+                                                                                        newTrade.ticker === ticker.symbol ? 'bg-purple-900/30' : ''
+                                                                                    }`}
+                                                                                    onClick={() => {
+                                                                                        setNewTrade({...newTrade, ticker: ticker.symbol})
+                                                                                        setIsDropdownOpen(false)
+                                                                                        setSearchQuery("") // Сбрасываем поиск
+                                                                                    }}
+                                                                                >
+                                                                                    <TickerIcon ticker={ticker} className="h-6 w-6" />
+                                                                                    <div className="flex-1 text-left">
+                                                                                        <div className="text-sm font-medium">{ticker.showName}</div>
+                                                                                    </div>
+                                                                                    <Badge className="rounded-full bg-slate-800 px-2 py-0.5 text-[10px] capitalize text-slate-400">
+                                                                                        {ticker.category}
+                                                                                    </Badge>
+                                                                                </button>
+                                                                            ))}
+
+                                                                            {/* Loading indicator */}
+                                                                            {isLoadingMore && (
+                                                                                <div className="flex justify-center p-3">
+                                                                                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-slate-500 border-t-transparent" />
+                                                                                </div>
+                                                                            )}
+
+                                                                            {/* End of list message */}
+                                                                            {!hasMore && paginatedTickers.length > 0 && (
+                                                                                <div className="border-t border-slate-800 p-3 text-center text-xs text-slate-500">
+                                                                                    Showing {paginatedTickers.length} of {filteredTickers.length} {searchQuery ? 'matching' : 'total'} tickers
+                                                                                </div>
+                                                                            )}
+                                                                        </>
+                                                                    )}
+                                                                </div>
+
+                                                                {/* Popular quick actions */}
+                                                                <div className="border-t border-slate-800 p-3">
+                                                                    <div className="mb-2 text-xs text-slate-400">Quick select:</div>
+                                                                    <div className="flex flex-wrap gap-1">
+                                                                        {["BTCUSD", "ETHUSD", "EURUSD", "US500", "XAUUSD"].map((symbol) => {
+                                                                            const meta = tickerMetaMap.get(symbol)
+                                                                            return (
+                                                                                <button
+                                                                                    key={symbol}
+                                                                                    type="button"
+                                                                                    className="flex items-center gap-1 rounded-full bg-slate-800 px-3 py-1.5 text-xs hover:bg-slate-700"
+                                                                                    onClick={() => {
+                                                                                        setNewTrade({...newTrade, ticker: symbol})
+                                                                                        setIsDropdownOpen(false)
+                                                                                        setSearchQuery("")
+                                                                                    }}
+                                                                                >
+                                                                                    {meta && <TickerIcon ticker={meta} className="h-4 w-4" />}
+                                                                                    {symbol}
+                                                                                </button>
+                                                                            )
+                                                                        })}
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+
+                                                <Separator className="bg-slate-700" />
+
+                                                {/* Volume Input */}
+                                                <div className="space-y-2">
+                                                    <div className="flex items-center justify-between">
+                                                        <Label className="text-xs text-slate-400">Volume</Label>
+                                                        <span className="text-xs text-slate-400">
+                                                            Contract Value: ${tradeDetails.contractValue.toFixed(2)}
+                                                        </span>
+                                                    </div>
+                                                    <div className="flex items-center gap-2">
+                                                        <Button
+                                                            type="button"
+                                                            size="sm"
+                                                            variant="outline"
+                                                            className="h-7 w-12 border-slate-700 bg-slate-800 text-xs hover:bg-slate-700"
+                                                            onClick={() => setNewTrade({...newTrade, volume: Math.max(0.01, newTrade.volume - 0.01)})}
+                                                        >
+                                                            -0.01
+                                                        </Button>
+                                                        <Input
+                                                            type="number"
+                                                            step="0.01"
+                                                            min="0.01"
+                                                            value={newTrade.volume}
+                                                            onChange={(e) => setNewTrade({...newTrade, volume: parseFloat(e.target.value) || 0.01})}
+                                                            className="h-9 flex-1 rounded-xl border-slate-700 bg-slate-800 text-center text-sm"
+                                                        />
+                                                        <Button
+                                                            type="button"
+                                                            size="sm"
+                                                            variant="outline"
+                                                            className="h-7 w-12 border-slate-700 bg-slate-800 text-xs hover:bg-slate-700"
+                                                            onClick={() => setNewTrade({...newTrade, volume: newTrade.volume + 0.01})}
+                                                        >
+                                                            +0.01
+                                                        </Button>
+                                                    </div>
+                                                </div>
+
+                                                {/* Leverage Input */}
+                                                <div className="space-y-2">
+                                                    <div className="flex items-center justify-between">
+                                                        <Label className="text-xs text-slate-400">Leverage</Label>
+                                                        <span className="text-xs text-slate-400">{newTrade.leverage}x</span>
+                                                    </div>
+                                                    <Slider
+                                                        value={[newTrade.leverage]}
+                                                        onValueChange={([value]) => setNewTrade({...newTrade, leverage: value})}
+                                                        min={1}
+                                                        max={100}
+                                                        step={1}
+                                                        className="[&>span]:bg-purple-600"
+                                                    />
+                                                    <div className="flex justify-between text-xs text-slate-400">
+                                                        <span>1x</span>
+                                                        <span>25x</span>
+                                                        <span>50x</span>
+                                                        <span>75x</span>
+                                                        <span>100x</span>
+                                                    </div>
+                                                    <div className="flex flex-wrap gap-1">
+                                                        {[1, 5, 10, 25, 50, 100].map((value) => (
+                                                            <Button
+                                                                key={value}
+                                                                type="button"
+                                                                size="sm"
+                                                                variant={newTrade.leverage === value ? "default" : "outline"}
+                                                                className={`h-6 rounded-full px-2 text-xs ${newTrade.leverage === value ? 'bg-purple-600' : 'border-slate-700 bg-slate-800 hover:bg-slate-700'}`}
+                                                                onClick={() => setNewTrade({...newTrade, leverage: value})}
+                                                            >
+                                                                {value}x
+                                                            </Button>
+                                                        ))}
+                                                    </div>
+                                                </div>
+
+                                                {/* Price Input */}
+                                                <div className="space-y-2">
+                                                    <Label className="text-xs text-slate-400">Open Price</Label>
                                                     <Input
-                                                        value={newTrade.ticker}
-                                                        onChange={(e) => setNewTrade({...newTrade, ticker: e.target.value})}
-                                                        className="h-9 rounded-xl border-slate-800 bg-slate-900 text-sm"
+                                                        type="number"
+                                                        step="0.01"
+                                                        value={newTrade.openIn}
+                                                        onChange={(e) => setNewTrade({...newTrade, openIn: parseFloat(e.target.value) || 0})}
+                                                        className="h-9 rounded-xl border-slate-700 bg-slate-800 text-sm"
                                                     />
                                                 </div>
-                                                
-                                                <div className="grid grid-cols-2 gap-3">
-                                                    <div className="space-y-2">
-                                                        <Label className="text-xs text-slate-400">Volume</Label>
-                                                        <Input
-                                                            type="number"
-                                                            value={newTrade.volume}
-                                                            onChange={(e) => setNewTrade({...newTrade, volume: parseFloat(e.target.value) || 0})}
-                                                            className="h-9 rounded-xl border-slate-800 bg-slate-900 text-sm"
-                                                        />
-                                                    </div>
-                                                    <div className="space-y-2">
-                                                        <Label className="text-xs text-slate-400">Leverage</Label>
-                                                        <Input
-                                                            type="number"
-                                                            value={newTrade.leverage}
-                                                            onChange={(e) => setNewTrade({...newTrade, leverage: parseInt(e.target.value) || 1})}
-                                                            className="h-9 rounded-xl border-slate-800 bg-slate-900 text-sm"
-                                                        />
-                                                    </div>
-                                                </div>
-                                                
-                                                <div className="grid grid-cols-2 gap-3">
-                                                    <div className="space-y-2">
-                                                        <Label className="text-xs text-slate-400">Margin</Label>
-                                                        <Input
-                                                            type="number"
-                                                            value={newTrade.margin}
-                                                            onChange={(e) => setNewTrade({...newTrade, margin: parseFloat(e.target.value) || 0})}
-                                                            className="h-9 rounded-xl border-slate-800 bg-slate-900 text-sm"
-                                                        />
-                                                    </div>
-                                                    <div className="space-y-2">
-                                                        <Label className="text-xs text-slate-400">Open Price</Label>
-                                                        <Input
-                                                            type="number"
-                                                            value={newTrade.openIn}
-                                                            onChange={(e) => setNewTrade({...newTrade, openIn: parseFloat(e.target.value) || 0})}
-                                                            className="h-9 rounded-xl border-slate-800 bg-slate-900 text-sm"
-                                                        />
+
+                                                {/* Trade Summary */}
+                                                <div className="rounded-xl bg-slate-800/50 p-3">
+                                                    <div className="mb-2 text-sm font-semibold">Trade Summary</div>
+                                                    <div className="space-y-1.5 text-sm">
+                                                        <div className="flex justify-between">
+                                                            <span className="text-slate-400">Required Margin:</span>
+                                                            <span className="font-medium">${tradeDetails.requiredMargin.toFixed(2)}</span>
+                                                        </div>
+                                                        <Separator className="my-1 bg-slate-700" />
+                                                        <div className="flex justify-between">
+                                                            <span className="text-slate-300">Total Cost:</span>
+                                                            <span className={`text-lg font-semibold ${hasEnoughBalance ? 'text-emerald-300' : 'text-rose-400'}`}>
+                                                                ${tradeDetails.totalCost.toFixed(2)}
+                                                            </span>
+                                                        </div>
+                                                        {!hasEnoughBalance && (
+                                                            <div className="mt-2 rounded-lg bg-rose-900/30 p-2 text-xs text-rose-300">
+                                                                Insufficient balance. Need ${(tradeDetails.totalCost - userBalance).toFixed(2)} more.
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 </div>
-                                                
-                                                <div className="grid grid-cols-2 gap-3">
-                                                    <div className="space-y-2">
-                                                        <Label className="text-xs text-slate-400">Take Profit (Optional)</Label>
-                                                        <Input
-                                                            type="number"
-                                                            value={newTrade.takeProfit || ''}
-                                                            onChange={(e) => setNewTrade({...newTrade, takeProfit: e.target.value ? parseFloat(e.target.value) : null})}
-                                                            className="h-9 rounded-xl border-slate-800 bg-slate-900 text-sm"
-                                                        />
-                                                    </div>
-                                                    <div className="space-y-2">
-                                                        <Label className="text-xs text-slate-400">Stop Loss (Optional)</Label>
-                                                        <Input
-                                                            type="number"
-                                                            value={newTrade.stopLoss || ''}
-                                                            onChange={(e) => setNewTrade({...newTrade, stopLoss: e.target.value ? parseFloat(e.target.value) : null})}
-                                                            className="h-9 rounded-xl border-slate-800 bg-slate-900 text-sm"
-                                                        />
-                                                    </div>
-                                                </div>
-                                                
-                                                <Button 
+
+                                                <Button
                                                     onClick={handleCreateTrade}
-                                                    className="w-full rounded-xl bg-purple-600 text-sm font-medium hover:bg-purple-700"
+                                                    disabled={!hasEnoughBalance}
+                                                    className="w-full rounded-xl bg-purple-600 text-sm font-medium hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
                                                 >
-                                                    Create Trade
+                                                    {hasEnoughBalance ? 'Open Trade' : 'Insufficient Balance'}
                                                 </Button>
                                             </div>
                                         </DialogContent>
@@ -999,6 +1352,7 @@ export default function AdminUserPage() {
                                 {!loadingRelations &&
                                     trades.map((t) => {
                                         const isProfit = (t.profit ?? 0) >= 0
+                                        const tickerInfo = tickerMetaMap.get(t.ticker)
                                         return (
                                             <div
                                                 key={t.id}
@@ -1006,8 +1360,9 @@ export default function AdminUserPage() {
                                             >
                                                 <div className="min-w-0 flex-1">
                                                     <div className="flex items-center gap-2">
+                                                        {tickerInfo && <TickerIcon ticker={tickerInfo} />}
                                                         <span className="font-mono text-xs font-semibold text-slate-100 sm:text-sm">
-                                                            {t.ticker}
+                                                              {tickerInfo?.showName || t.ticker}
                                                         </span>
                                                         <Badge
                                                             className={`rounded-full px-2 text-[10px] ${
@@ -1044,8 +1399,8 @@ export default function AdminUserPage() {
                                                             Open: {t.openIn.toFixed(5)}
                                                         </div>
                                                     </div>
-                                                    <Button 
-                                                        size="sm" 
+                                                    <Button
+                                                        size="sm"
                                                         variant="ghost"
                                                         className="h-7 w-7 p-0 text-slate-400 hover:bg-slate-800 hover:text-slate-200"
                                                         onClick={() => openEditTradeDialog(t)}
@@ -1058,7 +1413,6 @@ export default function AdminUserPage() {
                                             </div>
                                         )
                                     })}
-
                             </CardContent>
                         </Card>
 
@@ -1095,7 +1449,7 @@ export default function AdminUserPage() {
                                             />
                                         </div>
                                     </div>
-                                    
+
                                     <div className="grid grid-cols-2 gap-3">
                                         <div className="space-y-2">
                                             <Label className="text-xs text-slate-400">Open Price</Label>
@@ -1116,8 +1470,8 @@ export default function AdminUserPage() {
                                             />
                                         </div>
                                     </div>
-                                    
-                                    <Button 
+
+                                    <Button
                                         onClick={handleEditTrade}
                                         className="w-full rounded-xl bg-purple-600 text-sm font-medium hover:bg-purple-700"
                                     >
@@ -1131,9 +1485,9 @@ export default function AdminUserPage() {
                         <Card className="rounded-2xl border-slate-900 bg-slate-950/80">
                             <CardHeader className="flex items-center justify-between pb-3">
                                 <CardTitle className="flex items-center gap-2 text-base font-semibold">
-                            <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-amber-500/20 text-amber-200">
-                                <CreditCard className="h-4 w-4" />
-                            </span>
+                                    <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-amber-500/20 text-amber-200">
+                                        <CreditCard className="h-4 w-4" />
+                                    </span>
                                     Deposits & Withdrawals
                                 </CardTitle>
                                 <div className="flex items-center gap-2">
@@ -1145,8 +1499,8 @@ export default function AdminUserPage() {
                                     </Badge>
                                     <Dialog open={isOrderDialogOpen} onOpenChange={setIsOrderDialogOpen}>
                                         <DialogTrigger asChild>
-                                            <Button 
-                                                size="sm" 
+                                            <Button
+                                                size="sm"
                                                 className="h-7 rounded-full bg-amber-600 px-2.5 text-xs hover:bg-amber-700"
                                                 onClick={() => setIsOrderDialogOpen(true)}
                                             >
@@ -1193,7 +1547,7 @@ export default function AdminUserPage() {
                                                         </Select>
                                                     </div>
                                                 </div>
-                                                
+
                                                 <div className="space-y-2">
                                                     <Label className="text-xs text-slate-400">Amount (USD)</Label>
                                                     <Input
@@ -1203,8 +1557,8 @@ export default function AdminUserPage() {
                                                         className="h-9 rounded-xl border-slate-800 bg-slate-900 text-sm"
                                                     />
                                                 </div>
-                                                
-                                                <Button 
+
+                                                <Button
                                                     onClick={handleCreateOrder}
                                                     className="w-full rounded-xl bg-amber-600 text-sm font-medium hover:bg-amber-700"
                                                 >
@@ -1262,8 +1616,8 @@ export default function AdminUserPage() {
                                                         ${o.amount.toFixed(2)}
                                                     </div>
                                                 </div>
-                                                <Button 
-                                                    size="sm" 
+                                                <Button
+                                                    size="sm"
                                                     variant="ghost"
                                                     className="h-7 w-7 p-0 text-slate-400 hover:bg-slate-800 hover:text-slate-200"
                                                     onClick={() => openEditOrderDialog(o)}
@@ -1275,7 +1629,6 @@ export default function AdminUserPage() {
                                             </div>
                                         </div>
                                     ))}
-
                             </CardContent>
                         </Card>
 
@@ -1304,7 +1657,7 @@ export default function AdminUserPage() {
                                             </SelectContent>
                                         </Select>
                                     </div>
-                                    
+
                                     <div className="space-y-2">
                                         <Label className="text-xs text-slate-400">Amount (USD)</Label>
                                         <Input
@@ -1314,8 +1667,8 @@ export default function AdminUserPage() {
                                             className="h-9 rounded-xl border-slate-800 bg-slate-900 text-sm"
                                         />
                                     </div>
-                                    
-                                    <Button 
+
+                                    <Button
                                         onClick={handleEditOrder}
                                         className="w-full rounded-xl bg-amber-600 text-sm font-medium hover:bg-amber-700"
                                     >
