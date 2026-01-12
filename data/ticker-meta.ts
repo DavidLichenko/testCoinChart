@@ -234,6 +234,11 @@ const tickerOverrides: Record<string, TickerOverride> = {
     showName: "Apple",
     icon: "/icons/ticker_icons/aapl.png",
   },
+    "USTEC": {
+      showName: "Nasdaq 100",
+        icon: "/icons/ticker_icons/nasdaq.png",
+        fullName: "Nasdaq Composite",
+    }
   // "BTCUSD": {
   //   showName: "Bitcoin",
   //   icon: "/icons/crypto_icons/btc.png",
