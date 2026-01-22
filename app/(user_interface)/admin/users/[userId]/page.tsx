@@ -1002,11 +1002,11 @@ export default function AdminUserPage() {
                                                 New Trade
                                             </Button>
                                         </DialogTrigger>
-                                        <DialogContent className="rounded-2xl border-slate-800 bg-slate-900 text-slate-100 sm:max-w-lg">
+                                        <DialogContent className="rounded-2xl border-slate-800 bg-slate-900 text-slate-100 sm:max-w-lg ">
                                             <DialogHeader>
                                                 <DialogTitle className="text-lg font-semibold">Create New Trade</DialogTitle>
                                             </DialogHeader>
-                                            <div className="space-y-4">
+                                            <div className="space-y-4 max-h-[500px] overflow-y-auto px-2">
                                                 {/* User Balance Info */}
                                                 <div className="rounded-xl bg-slate-800/50 p-3">
                                                     <div className="flex items-center justify-between">
