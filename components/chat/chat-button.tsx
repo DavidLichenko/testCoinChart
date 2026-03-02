@@ -46,6 +46,9 @@ export default function ChatButton() {
         setMounted(true)
     }, [])
 
+
+
+    
     // авто-скролл
     useEffect(() => {
         if (chatOpen && messagesEndRef.current) {
